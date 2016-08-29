@@ -1,0 +1,112 @@
+{
+  "modules": [
+    {
+      "name": "Microsoft.IIS.Administration.AccessManagement",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.Certificates",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Applications",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.AppPools",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Authentication",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Authorization",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Compression",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.DefaultDocuments",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Delegation",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.DirectoryBrowsing",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Handlers",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.HttpRequestTracing",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.HttpResponseHeaders",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Info",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.IPRestrictions",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Logging",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Modules",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.RequestFiltering",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.RequestMonitor",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Scm",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Sites",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.SslSettings",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.StaticContent",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.Transactions",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.VirtualDirectories",
+      "enabled": true
+    },
+    {
+      "name": "Microsoft.IIS.Administration.WebServer.WorkerProcesses",
+      "enabled": true
+    }
+  ]
+}

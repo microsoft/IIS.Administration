@@ -1,0 +1,94 @@
+/* Copyright (c) Microsoft Corporation. All rights reserved.
+   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+*/
+
+
+.tokens {
+    padding:0;
+    width: 100%;
+    overflow: hidden;
+}
+
+.tokens li {
+    border-bottom: 1px solid #ccc;
+    padding: 10px;
+    width: 100%;
+}
+
+.tokens li h2 {
+    line-height: 30px;
+}
+
+.tokens li small {
+    line-height: 16px;
+    font-weight:bold;
+    font-style: italic;
+}
+
+.tokens li .created {
+    font-weight:normal;
+}
+
+.tokens li.expired {
+    color: #bbb;
+}
+
+
+.tokens li small:not(.created) {
+    display: none;
+}
+
+.tokens li.active .active {
+    display: inline-block;
+}
+
+.tokens li.expired .expired {
+    display: inline-block;
+}
+
+.tokens li.never-expires .never {
+    display: inline-block;
+    font-weight:bold;
+    text-transform: uppercase;
+}
+
+
+#newTokenForm #purpose {
+    width:100%; 
+    height:40px; 
+    padding: 3px;
+}
+
+#newTokenForm .expiration {
+    padding-top: 20px;
+}
+
+#newTokenForm .expiration ul {
+    width: 100%;
+}
+
+.expiration .never.selected,
+.expiration .never:hover {
+    background-color: orange;
+    color: inherit;
+}
+
+#newTokenForm .expiration li {
+    font-size: small;
+    line-height: 20px;
+    padding: 5px;
+}
+
+#tokenForm {
+    top: 35%;
+}
+
+#tokenForm #key {
+    font-size:large; 
+    color: green;
+    word-break:break-all;
+    word-wrap:break-word;
+    width:100%; 
+    padding-top: 15px;
+    padding-bottom: 15px;
+}

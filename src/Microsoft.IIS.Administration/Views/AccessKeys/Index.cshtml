@@ -1,0 +1,102 @@
+@* Copyright (c) Microsoft Corporation. All rights reserved.
+   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+*@
+
+
+@using Microsoft.IIS.Administration.Core.Security
+@using Microsoft.IIS.Administration.Utils
+
+@model dynamic
+@functions{
+    string Expires(ApiKey k) {
+        if (k.ExpiresOn != null) {
+            return (k.ExpiresOn.Value - DateTime.UtcNow).Humanize();
+        }
+
+        return string.Empty;
+    }
+}
+
+@{ 
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Access Keys";
+    ViewBag.css = "tkn";
+
+    IEnumerable<ApiKey> keys = (IEnumerable<ApiKey>)Model.Keys;
+    var newToken = Model.NewToken;
+    var formToken = Html.AntiForgeryToken();
+}
+@section head {
+    <link href="~/css/access-keys.css" rel="stylesheet" />
+}
+<h1>Access Keys</h1>
+<p>
+    <input class="btn btn-default" id="showNewForm" type="button" value="Create Access Key" />
+</p>
+<form id="keysForm" action="/security/tokens/" method="post">
+    <ul class="tokens">
+        @foreach (var k in keys) {
+            <li class='@(k.ExpiresOn < DateTime.UtcNow ? "expired" : (k.ExpiresOn == null ? "never-expires" : "active"))'>
+                <h2>@k.Purpose</h2>
+                <small class="active" title="@k.ExpiresOn">Expires in @(Expires(k))</small>
+                <small class="never orange">Never expires</small>
+                <small class="expired red" title="@k.ExpiresOn">Expired @(Expires(k)) ago</small>
+                <br />
+                <small class="created" title="@k.LastModified">Modified @((DateTime.UtcNow - k.LastModified).Humanize()) ago</small>
+                <small class="created" title="@k.CreatedOn">(Created @((DateTime.UtcNow - k.CreatedOn).Humanize()) ago)</small>
+                <p>
+                    <button class="btn refresh-token" type="submit" name="id" value="@k.Id">Refresh</button>
+                    <button class="btn del-token" type="submit" name="id" value="@k.Id">Delete</button>
+                <p>
+            </li>
+        }
+    </ul>
+    @(formToken)
+</form>
+<div id="modal" class="modal-wrapper" style="display:none">
+    <form action="/security/tokens/create" id="tokenGenerator" method="post">
+        <div id="newTokenForm" class="modal-form">
+            <fieldset>
+                <label>Access Key Purpose</label>
+                <input id="purpose" name="purpose" type="text" placeholder="e.g. My staging deployment services" />
+            </fieldset>
+            <fieldset class="expiration">
+                <label>Expires in</label>
+                <ul class="radio-row">
+                    <li date-days="1">1 DAY</li>
+                    <li date-months="1" class="selected">1 MONTH</li>
+                    <li date-months="3">3 MONTHS</li>
+                    <li date-years="1">1 YEAR</li>
+                    <li class="never" title="Allow access until the key is deleted from the list">NEVER</li>
+                </ul>
+                <input type="hidden" name="expiration" value="">
+            </fieldset>
+            <br/>
+            <p class="right">
+                <input class="btn" id="cancel" type="button" value="Cancel" />
+                <input class="btn btn-default" id="generate" type="submit" value="Create it" />
+            </p>
+        </div>
+        @(formToken)
+    </form>
+
+    <section id="tokenForm" class="modal-form">
+        <fieldset>
+            <h1>@newToken?.Purpose</h1>
+            <label>Access Token</label>
+            <p id="key" class="note">@newToken?.Value</p>
+            <p class="small">
+                Keep the access token above secured! You will not be able to see it here once you dimiss this window.<br />
+                <span class="red">If lost or compromised, refresh it immediately!</span>
+            </p>
+        </fieldset>
+        <p class="right">
+            <a id="ok" class="btn btn-default" href="/security/tokens" >Got it</a>
+        </p>
+    </section>
+</div>
+
+@section scripts {
+    <script src="~/js/access-keys.js"></script>
+}
+

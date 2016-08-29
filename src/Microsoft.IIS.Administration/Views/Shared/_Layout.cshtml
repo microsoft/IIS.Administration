@@ -1,0 +1,38 @@
+@* Copyright (c) Microsoft Corporation. All rights reserved.
+   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+*@
+
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title | Microsoft IIS</title>
+    <link href="~/css/main.css" rel="stylesheet" />
+    @RenderSection("head", false)
+</head>
+<body class="@ViewBag.css">
+    <div class="nav-panel">
+        <a class="brand" href="/">
+            Microsoft IIS Administration API
+        </a>
+        <div class="menu">
+            <ul>
+                <li class="explorer"><a href="/">API Explorer</a></li>
+                <li class="tkn"><a title="Manage API Keys" href="/security/tokens">Access Keys</a></li>
+                <li class="connect" id="signOut"><a title="Forget me! Access Token will be required to connect again.">Exit</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="content">
+        @RenderBody()
+    </div>
+    <script src="~/lib/jquery-2.2.0.min/index.js"></script>
+    <script src="~/js/main.js"></script>
+    @RenderSection("scripts", false)
+    <script type="text/javascript">
+        @RenderSection("js", false)
+    </script>
+</body>
+</html>

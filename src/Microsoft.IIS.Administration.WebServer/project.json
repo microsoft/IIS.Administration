@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "description": "Microsoft.IIS.Administration.WebServer Class Library",
+  "authors": [ "Microsoft" ],
+  "buildOptions": {
+    "allowUnsafe": true 
+  },
+  "frameworks": {
+    "netstandard1.6": {
+      "imports": [
+        "dotnet5.6",
+        "dnxcore50",
+        "portable-net45+win8"
+      ]
+    }
+  },
+  "dependencies": {
+    "Microsoft.Web.Administration": "10.0.0-rc1",
+    "Microsoft.IIS.Administration.Core": "1.0.0"
+  }
+}

@@ -1,0 +1,44 @@
+@* Copyright (c) Microsoft Corporation. All rights reserved.
+   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+*@
+
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Connect";
+    ViewBag.css = "connect";
+}
+
+@section head {
+    <link href="~/css/connect.css" rel="stylesheet" />
+}
+
+<div id="connectForm" class="token middle">
+    <div>
+        <h1>Connect</h1>
+        <p>
+            <fieldset>
+                <label>Access Token</label>
+                <input id="token" type="text" autofocus />
+                <small style="float:right;"><a href="/security/tokens">Get Access Token</a></small>
+            </fieldset>
+        </p>
+        <div class="rememberMe">
+            <input id="rememberMe" type="checkbox" />
+            <label for="rememberMe">
+                <span><span></span></span>
+                Keep me connected
+            </label>
+        </div>
+        <small>
+            <i>My device is private & trusted</i>
+        </small>
+        <p>
+            <button id="connect" class="btn btn-default">Connect</button>
+        </p>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/js/connect.js"></script>
+}

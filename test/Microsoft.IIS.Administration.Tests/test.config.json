@@ -1,0 +1,5 @@
+﻿{
+  "test_server": "https://localhost",
+  "test_port": "44326",
+  "test_root_path":  ""
+}

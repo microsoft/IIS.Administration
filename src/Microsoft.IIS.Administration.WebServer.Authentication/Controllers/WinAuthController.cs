@@ -1,0 +1,81 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+
+namespace Microsoft.IIS.Administration.WebServer.Authentication
+{
+    using Applications;
+    using AspNetCore.Mvc;
+    using Sites;
+    using System.Net;
+    using Web.Administration;
+    using Core.Http;
+    using Core;
+
+    [RequireGlobalModule("WindowsAuthenticationModule", "Windows Authentication")]
+    public class WinAuthController : ApiBaseController
+    {
+        [HttpGet]
+        [ResourceInfo(Name = Defines.WindowsAuthenticationName)]
+        public object Get()
+        {
+            // Check if the scope of the request is for site or application
+            Site site = ApplicationHelper.ResolveSite();
+            string path = ApplicationHelper.ResolvePath();
+
+            return WindowsAuthenticationHelper.ToJsonModel(site, path);
+        }
+
+        [HttpGet]
+        [ResourceInfo(Name = Defines.WindowsAuthenticationName)]
+        public object Get(string id)
+        {
+            WinAuthId winAuthId = new WinAuthId(id);
+
+            Site site = winAuthId.SiteId == null ? null : SiteHelper.GetSite(winAuthId.SiteId.Value);
+
+            return WindowsAuthenticationHelper.ToJsonModel(site, winAuthId.Path);
+        }
+
+        [HttpPatch]
+        [Audit]
+        [ResourceInfo(Name = Defines.WindowsAuthenticationName)]
+        public object Patch(string id, [FromBody] dynamic model)
+        {
+            WinAuthId winAuthId = new WinAuthId(id);
+
+            Site site = winAuthId.SiteId == null ? null : SiteHelper.GetSite(winAuthId.SiteId.Value);
+
+            // Targetting section for a site, but unable to find that site
+            if (winAuthId.SiteId != null && site == null) {
+                return NotFound();
+            }
+
+            string configPath = model == null ? null : ManagementUnit.ResolveConfigScope(model);
+            WindowsAuthenticationHelper.UpdateSettings(model, site, winAuthId.Path, configPath);
+
+            ManagementUnit.Current.Commit();
+
+            return WindowsAuthenticationHelper.ToJsonModel(site, winAuthId.Path);
+        }
+
+        [HttpDelete]
+        [Audit]
+        public void Delete(string id)
+        {
+            WinAuthId winAuthId = new WinAuthId(id);
+
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            Site site = (winAuthId.SiteId != null) ? SiteHelper.GetSite(winAuthId.SiteId.Value) : null;
+
+            if (site == null) {
+                return;
+            }
+
+            WindowsAuthenticationHelper.GetSection(site, winAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+
+            ManagementUnit.Current.Commit();
+        }
+    }
+}

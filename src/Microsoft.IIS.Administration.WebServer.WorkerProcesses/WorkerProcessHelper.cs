@@ -1,0 +1,192 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+
+namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.Dynamic;
+    using System.Linq;
+    using AppPools;
+    using Core.Utils;
+    using Web.Administration;
+
+
+
+    public static class WorkerProcessHelper {
+        private static readonly Fields RefFields = new Fields("name", "id", "process_id");
+
+        public static WorkerProcess GetWorkerProcess(int processId) {
+            return ManagementUnit.ServerManager.WorkerProcesses.Where(wp => wp.ProcessId == processId).FirstOrDefault();
+        }
+
+        public static IEnumerable<WorkerProcess> GetWorkerProcesses(ApplicationPool pool) {
+            if (pool == null) {
+                throw new ArgumentNullException(nameof(pool));
+            }
+
+            return ManagementUnit.ServerManager.WorkerProcesses.Where(wp => wp.AppPoolName.Equals(pool.Name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static IEnumerable<WorkerProcess> GetWorkerProcesses() {
+            return ManagementUnit.ServerManager.WorkerProcesses;
+        }
+
+        public static IEnumerable<WorkerProcess> GetWorkerProcesses(Site site) {
+            if (site == null) {
+                throw new ArgumentNullException(nameof(site));
+            }
+
+            var result = new List<WorkerProcess>();
+
+            foreach (var wp in ManagementUnit.ServerManager.WorkerProcesses) {
+                foreach (var ad in wp.ApplicationDomains) {
+
+                    if (ad.Id.Contains($"/{site.Id}/")) {
+                        result.Add(wp);
+                        break;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public static IEnumerable<WorkerProcess> GetWorkerProcesses(Site site, Application app) {
+            if (site == null) {
+                throw new ArgumentNullException(nameof(site));
+            }
+
+            if (app == null) {
+                throw new ArgumentNullException(nameof(app));
+            }
+
+            var result = new List<WorkerProcess>();
+
+            foreach (var wp in ManagementUnit.ServerManager.WorkerProcesses) {
+                if (!wp.AppPoolName.Equals(app.ApplicationPoolName, StringComparison.OrdinalIgnoreCase)) {
+                    continue;
+                }
+
+                foreach (var ad in wp.ApplicationDomains) {
+                    if (ad.Id.Contains($"/{site.Id}/")) {
+                        if (app.Path.Equals(ad.VirtualPath, StringComparison.OrdinalIgnoreCase) ||
+                            app.Path.Equals(ad.VirtualPath.TrimEnd('/'), StringComparison.OrdinalIgnoreCase)) {
+                            result.Add(wp);
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        public static void Kill(WorkerProcess wp) {
+            if (wp == null) {
+                throw new ArgumentNullException(nameof(wp));
+            }
+
+            Process.GetProcessById(wp.ProcessId).Kill();
+        }
+
+        public static object ToJsonModelRef(WorkerProcess wp) {
+            return WpToJsonModel(wp, RefFields);
+        }
+
+        public static object WpToJsonModel(WorkerProcess wp, Fields fields = null) {
+            if (wp == null) {
+                throw new ArgumentNullException(nameof(wp));
+            }
+
+            bool full = fields == null || !fields.HasFields;
+
+            if (fields == null) {
+                fields = Fields.All;
+            }
+
+            Process p = Process.GetProcessById(wp.ProcessId);
+
+            dynamic obj = new ExpandoObject();
+
+            //
+            // name
+            if (fields.Exists("name")) {
+                obj.name = p.ProcessName;
+            }
+
+            //
+            // id
+            obj.id = new WorkerProcessId(p.Id, Guid.Parse(wp.ProcessGuid)).Uuid;
+
+            //
+            // status
+            if (fields.Exists("status")) {
+                obj.status = Enum.GetName(typeof(WorkerProcessState), wp.State).ToLower();
+            }
+
+            //
+            // process_id
+            if (fields.Exists("process_id")) {
+                obj.process_id = p.Id;
+            }
+
+            //
+            // process_guid
+            if (fields.Exists("process_guid")) {
+                obj.process_guid = wp.ProcessGuid;
+            }
+
+            //
+            // start_time
+            if (fields.Exists("start_time")) {
+                obj.start_time = p.StartTime;
+            }
+
+            //
+            // working_set
+            if (fields.Exists("working_set")) {
+                obj.working_set = p.WorkingSet64;
+            }
+
+            //
+            // peak_working_set
+            if (fields.Exists("peak_working_set")) {
+                obj.peak_working_set = p.PeakWorkingSet64;
+            }
+
+            //
+            // private_memory_size
+            if (fields.Exists("private_memory_size")) {
+                obj.private_memory_size = p.PrivateMemorySize64;
+            }
+
+            //
+            // virtual_memory_size
+            if (fields.Exists("virtual_memory_size")) {
+                obj.virtual_memory_size = p.VirtualMemorySize64;
+            }
+
+            //
+            // peak_virtual_memory_size
+            if (fields.Exists("peak_virtual_memory_size")) {
+                obj.peak_virtual_memory_size = p.PeakVirtualMemorySize64;
+            }
+
+            //
+            // total_processor_time
+            if (fields.Exists("total_processor_time")) {
+                obj.total_processor_time = p.TotalProcessorTime;
+            }
+
+            //
+            // application_pool
+            if (fields.Exists("application_pool")) {
+                ApplicationPool pool = AppPoolHelper.GetAppPool(wp.AppPoolName);
+                obj.application_pool = AppPoolHelper.ToJsonModelRef(pool);
+            }
+
+            return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj, full);
+        }
+    }
+}

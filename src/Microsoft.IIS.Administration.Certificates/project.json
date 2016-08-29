@@ -1,0 +1,18 @@
+{
+  "version": "1.0.0",
+  "description": "Microsoft.IIS.Administration.Certificates Class Library",
+  "authors": [ "Microsoft" ],
+  "frameworks": {
+    "netstandard1.6": {
+      "imports": [
+        "dotnet5.6",
+        "dnxcore50",
+        "portable-net45+win8"
+      ]
+    }
+  },
+  "dependencies": {
+    "Microsoft.IIS.Administration.Core": "1.0.0",
+    "System.Security.Cryptography.X509Certificates": "4.1.0"
+  }
+}

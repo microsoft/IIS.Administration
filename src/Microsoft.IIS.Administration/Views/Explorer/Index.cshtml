@@ -1,0 +1,59 @@
+@* Copyright (c) Microsoft Corporation. All rights reserved.
+   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+*@
+
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "API Explorer";
+    ViewBag.css = "explorer";
+}
+
+@section head {
+    <link href="~/css/explorer.css" rel="stylesheet" />
+}
+
+<div id="nav-panel" class="middle">
+    <div>
+        <div class="verbs">
+            <a id="verb-get" class="selected">GET</a>
+            <a id="verb-post">POST</a>
+            <a id="verb-patch">PATCH</a>
+            <a id="verb-put">PUT</a>
+            <a id="verb-delete">DELETE</a>
+            <a id="verb-head">HEAD</a>
+        </div>
+        <div>
+            <div class="url">
+                <input id="urlgo" type="text" autofocus/>
+            </div>
+            <div class="btn">
+                <button id="go-button" class="btn btn-default" title="Go">&rarr;</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content-wrapper">
+    <div id="request-panel">
+        <span>JSON request</span>
+        <textarea id="payload" class="auto-resize note" placeholder="JSON request entity body"></textarea>
+    </div>
+    <div class="result-panel">
+        <div>
+            <div id="response">
+                <span class="status"></span>
+                <span class="status-text"></span>
+            </div>
+            <div id="resultWrapper">
+                <div id="result"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+@section scripts {
+    <script src="~/js/explorer.js"></script>
+}

@@ -1,0 +1,226 @@
+/* Copyright (c) Microsoft Corporation. All rights reserved.
+   Licensed under the MIT license. See LICENSE file in the project root for full license information.
+*/
+
+
+* {
+    box-sizing: border-box;
+}
+
+.string {
+    color: #098129;
+    font-weight: normal;
+}
+
+.number {
+    color: rgba(161, 21, 62, 1);
+    font-weight: normal;
+}
+
+.boolean {
+    color: #0066FF;
+    font-weight: normal;
+}
+
+.datetime {
+    font-weight: normal;
+    color: #7519FF;
+}
+
+.timespan {
+    font-weight: normal;
+    color: #7519FF;
+}
+
+.id {
+    color: coral;
+    font-weight: normal;
+}
+
+b {
+    font-weight: normal;
+}
+
+.obj {
+    font-weight: bold;
+    font-size:1.1em;
+    color: #333;
+}
+
+.links {
+    font-weight: bold;
+    font-size:1.1em;
+    background-color: #ffc !important;
+}
+
+.href {
+    color: #506eff;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+#nav-panel {
+    margin-top: 30px;
+    display:none;
+}
+
+#nav-panel div.url {
+    padding-right:40px;
+}
+
+#nav-panel div.btn {
+    margin-top: -42px;
+    padding: 0;
+    display: inline-block;
+    width:40px;
+    float:right;
+}
+
+.middle {
+    padding: 0;
+    width: 100%;
+    background-color: #fff;
+    display: block;
+    overflow-x: hidden;
+}
+
+.middle > div {
+    position: relative;
+    border-right:none;
+    padding: 5px;
+    width: 60%;
+    margin-left: 20%;
+    display:inline-block;
+}
+
+.content-wrapper {
+    width:100%;
+    display: block;
+    box-sizing: content-box;
+    padding: 0;
+}
+
+#urlgo {
+    width: 100%;
+}
+
+#go-button {
+    height: 40px;
+    width: 40px;
+    z-index: 10;
+    color: #fff;
+    cursor: pointer;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.verbs {
+    font-size: 11px;
+    padding-bottom: 10px;
+    text-align:left;
+    text-transform:uppercase;
+}
+
+.verbs a {
+    font-size: 14px;
+    padding: 5px;
+}
+
+.verbs a.selected,
+.verbs a:hover {
+    background-color: #0094ff;
+    color: #fff;
+}
+    
+
+#request-panel {
+    width:30%;
+    float: left;
+    display: block;
+    margin-top: 50px;
+    margin-right: 30px;
+    display: none;
+    overflow-x: no-display;
+    box-sizing: content-box;
+    padding-right: 0;
+}
+
+#request-panel span {
+    display: inline-block;
+    padding: 5px;
+    padding-bottom: 15px;
+}
+
+#request-panel textarea {
+    font-family: Consolas;
+    overflow-y: hidden;
+    resize: none;
+    border: none;
+    outline: none;
+    height: auto;
+    padding: 5px;
+    padding-right: 0;
+    width:100%;
+    border-left: 2px dotted #777;
+    box-sizing: content-box;
+}
+
+.result-panel {
+    margin-top: 50px;
+    display: inline-block;
+    float: left;
+    box-sizing: content-box;
+}
+
+#result {
+    font-family: Consolas;
+    font-size:14px;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    overflow: hidden;
+    font-weight:bold;
+}
+
+
+#response {
+    padding-bottom: 20px;
+    font-family: Consolas;
+}
+
+.status {
+    color: green;
+    font-weight: bold;
+}
+
+.error .status {
+    color: red;
+}
+
+.status:not(:empty)::before {
+    font-weight: normal;
+    color: #333;
+    content: "HTTP/1.1 ";
+}
+
+
+@media only screen and (max-width: 1199px) {
+    #request-panel {
+        margin-left: 0;
+        margin-right: 0;
+        width: 100%;
+    }
+
+    .result-panel {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+@media only screen and (max-width: 799px) {
+    .middle > div {
+        margin-left:0;
+        width: 100%;
+    }
+}

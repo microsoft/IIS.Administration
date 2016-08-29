@@ -1,0 +1,18 @@
+﻿{
+  "version": "1.0.0",
+  "description": "Microsoft.IIS.Administration.WebServer.Scm Class Library",
+  "authors": [ "Microsoft" ],
+  "frameworks": {
+    "netstandard1.6": {
+      "imports": [
+        "dotnet5.6",
+        "dnxcore50",
+        "portable-net45+win8"
+      ]
+    }
+  },
+  "dependencies": {
+    "Microsoft.IIS.Administration.WebServer": "1.0.0",
+    "System.ServiceProcess.ServiceController": "4.1.0"
+  }
+}
