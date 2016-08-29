@@ -68,7 +68,7 @@ function CheckInstallParameters() {
         Write-Verbose "Invalid DistributablePath directory: $DistributablePath"
     }    
     $versionInfoPath = Join-Path $DistributablePath "Version.txt"
-    if(![System.IO.File]::Exists($versionInfoPath)) {
+    if($(Get-Item $versionInfoPath -ErrorAction SilentlyContinue) -eq $null) {
         throw "Cannot find version information."
     }
     try {
