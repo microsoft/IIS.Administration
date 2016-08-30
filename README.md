@@ -34,7 +34,7 @@ Running the install script will perform an in place update and will preserve use
 ```
 var apiClient = new HttpClient();
 // Set access token for every request
-apiClient.DefaultRequestHeaders.Add("ACCESS_TOKEN", {token});
+apiClient.DefaultRequestHeaders.Add("Access-Token", "Bearer {token}");
 ```
 
 ### Get Web Sites ###
