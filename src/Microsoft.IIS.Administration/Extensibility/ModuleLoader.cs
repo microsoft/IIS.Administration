@@ -13,7 +13,7 @@ namespace Microsoft.IIS.Administration
     using System.Reflection;
     using System.Runtime.Loader;
 
-    internal class ModuleLoader
+    class ModuleLoader
     {
         private IHostingEnvironment _env;
         private AssemblyLoadContext _loader;
@@ -21,19 +21,14 @@ namespace Microsoft.IIS.Administration
         private AdminHost _moduleHolder;
         private string _moduleLoadBasePath;
 
-        private string _pluginsFolderName {
-            get {
-                return _env.GetPluginsFolderName();
-            }
-        }
+        private const string PLUGINS_FOLDER_NAME = "plugins";
 
         public ModuleLoader(IHostingEnvironment env)
         {
             this._env = env;
-            this._moduleLoadBasePath = Path.Combine(env.ContentRootPath, _pluginsFolderName);
-            _loadedAssemblies = new List<Assembly>();
+            this._moduleLoadBasePath = Path.Combine(env.ContentRootPath, PLUGINS_FOLDER_NAME);
+            this._loadedAssemblies = new List<Assembly>();
             this._moduleHolder = AdminHost.Instance;
-
             this._loader = new PluginAssemblyLoadContext(_moduleLoadBasePath);
         }
 

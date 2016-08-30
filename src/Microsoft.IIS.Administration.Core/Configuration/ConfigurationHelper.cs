@@ -4,6 +4,7 @@
 
 namespace Microsoft.IIS.Administration.Core
 {
+    using Extensions.Configuration;
     using Newtonsoft.Json;
     using System;
     using System.IO;
@@ -13,7 +14,7 @@ namespace Microsoft.IIS.Administration.Core
     {
         public static Guid HostId{ get; private set;}
 
-        public static Config.IConfiguration Config { get; set; }
+        public static IConfiguration Config { get; set; }
 
         public static void Initialize(string filePath)
         {

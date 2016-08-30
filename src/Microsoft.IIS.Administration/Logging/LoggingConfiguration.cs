@@ -4,18 +4,27 @@
 
 namespace Microsoft.IIS.Administration.Logging
 {
+    using Extensions.Configuration;
     using Extensions.Logging;
     using Serilog.Events;
+    using System;
 
-
-    class LoggingConfiguration : ILoggingConfiguration
+    class LoggingConfiguration
     {
         public bool Enabled { get; set; }
         public string LogsRoot { get; set; }
         public LogLevel MinLevel { get; set; }
         public string FileName { get; set; }
 
-        public LogEventLevel ToLogEventLevel(LogLevel logLevel)
+        public LoggingConfiguration(IConfiguration configuration)
+        {
+            Enabled = configuration.GetValue("logging:enabled", true);
+            LogsRoot = Environment.ExpandEnvironmentVariables(configuration.GetValue("logging:path", string.Empty));
+            MinLevel = configuration.GetValue("logging:min_level", LogLevel.Error);
+            FileName = configuration.GetValue("logging:file_name", "log-{Date}.txt");
+        }
+
+        public static LogEventLevel ToLogEventLevel(LogLevel logLevel)
         {
             switch (logLevel) {
                 case LogLevel.Critical:

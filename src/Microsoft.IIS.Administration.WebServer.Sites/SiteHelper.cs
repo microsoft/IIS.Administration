@@ -20,7 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
     using System.Security.Cryptography.X509Certificates;
     using Core.Http;
     using System.Dynamic;
-
+    using Extensions.Configuration;
 
     public static class SiteHelper
     {
@@ -39,7 +39,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
             //
             // Check if root directory provided for site creation via application settings
-            string siteCreationRoot = ConfigurationHelper.Config.SiteCreationRoot;
+            string siteCreationRoot = ConfigurationHelper.Config.GetValue<string>("site_creation_root", string.Empty);
 
             string physicalPath = DynamicHelper.Value(model.physical_path);
             if (!string.IsNullOrEmpty(physicalPath) || string.IsNullOrEmpty(siteCreationRoot) || !Directory.Exists(siteCreationRoot)) {

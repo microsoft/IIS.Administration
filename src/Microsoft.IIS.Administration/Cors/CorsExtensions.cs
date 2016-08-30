@@ -37,7 +37,8 @@ namespace Microsoft.IIS.Administration.Cors
 
             //
             // Setup 
-            var config = builder.ApplicationServices.GetRequiredService<Core.Config.IConfiguration>();
+            var config = builder.ApplicationServices.GetRequiredService<IConfiguration>();
+            var corsConfiguration = new CorsConfiguration(config);
 
             builder.UseCors(cBuilder => {
                 cBuilder.AllowAnyHeader();
@@ -48,7 +49,7 @@ namespace Microsoft.IIS.Administration.Cors
                 cBuilder.WithMethods("GET","HEAD","POST","PUT","PATCH","DELETE","OPTIONS","DEBUG");
                 cBuilder.AllowCredentials();
 
-                IEnumerable<string> allowedOrigins = GetAllowedOrigins(config.Cors);
+                IEnumerable<string> allowedOrigins = GetAllowedOrigins(corsConfiguration);
 
                 if (allowedOrigins.Any(o=> o.Equals("*")))
                 {
@@ -72,7 +73,7 @@ namespace Microsoft.IIS.Administration.Cors
             return builder;
         }
 
-        private static IEnumerable<string> GetAllowedOrigins(ICorsConfiguration config)
+        private static IEnumerable<string> GetAllowedOrigins(CorsConfiguration config)
         {
             return config.Rules.Where(r => r.Allow).Select(r => r.Origin);
         }

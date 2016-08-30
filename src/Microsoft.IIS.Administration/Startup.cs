@@ -4,6 +4,15 @@
 
 namespace Microsoft.IIS.Administration
 {
+    using AspNetCore.Antiforgery.Internal;
+    using AspNetCore.Authorization;
+    using AspNetCore.Builder;
+    using AspNetCore.Hosting;
+    using AspNetCore.Http;
+    using AspNetCore.Mvc;
+    using AspNetCore.Mvc.Formatters;
+    using AspNetCore.Mvc.ModelBinding;
+    using AspNetCore.Routing;
     using Core;
     using Core.Http;
     using Cors;
@@ -16,19 +25,10 @@ namespace Microsoft.IIS.Administration
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using AspNetCore.Antiforgery.Internal;
-    using AspNetCore.Builder;
-    using AspNetCore.Hosting;
-    using AspNetCore.Http;
-    using AspNetCore.Routing;
-    using AspNetCore.Mvc.ModelBinding;
-    using AspNetCore.Mvc;
-    using AspNetCore.Mvc.Formatters;
-    using AspNetCore.Authorization;
 
     public class Startup : BaseModule
     {
-        public Core.Config.IConfiguration Configuration { get; set; }
+        public IConfiguration Configuration { get; set; }
 
         public Startup(IHostingEnvironment env)
         {
@@ -37,7 +37,7 @@ namespace Microsoft.IIS.Administration
             builder.SetBasePath(env.ConfigRootPath());
             builder.AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables();
-            Configuration = new Core.Config.Configuration(builder.Build());
+            Configuration = builder.Build();
         }
 
         // This method gets called by a runtime.
@@ -49,7 +49,7 @@ namespace Microsoft.IIS.Administration
 
             //
             // Configuration
-            services.AddSingleton(typeof(Core.Config.IConfiguration), (s) => Configuration);
+            services.AddSingleton((s) => Configuration);
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             //
@@ -146,7 +146,6 @@ namespace Microsoft.IIS.Administration
             // Initalize Config
             ConfigurationHelper.Initialize(Path.Combine(env.ConfigRootPath(), "appsettings.json"));
             ConfigurationHelper.Config = Configuration;
-
 
 
             //
@@ -338,11 +337,14 @@ namespace Microsoft.IIS.Administration
             }
         }
 
-        private static bool IsUserInAdministrators(AuthorizationHandlerContext authContext, Core.Config.IConfiguration configuration)
+        private static bool IsUserInAdministrators(AuthorizationHandlerContext authContext, IConfiguration configuration)
         {
+            var administrators = new List<string>();
+            ConfigurationBinder.Bind(configuration.GetSection("administrators"), administrators);
+
             var winUser = HttpHelper.Current.Authentication.AuthenticateAsync("NTLM").Result;
 
-            foreach (var identifier in configuration.Administrators)
+            foreach (var identifier in administrators)
             {
 
                 // Is user in an administrative role

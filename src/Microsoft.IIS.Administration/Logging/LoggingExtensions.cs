@@ -11,17 +11,18 @@ namespace Microsoft.IIS.Administration.Logging
     using System.IO;
     using AspNetCore.Hosting;
     using Serilog.Events;
+    using Extensions.Configuration;
 
     public static class LoggingExtensions
     {
         public static IServiceCollection AddApiLogging(this IServiceCollection services)
         {
             var sp = services.BuildServiceProvider();
-            var config = sp.GetRequiredService<Core.Config.IConfiguration>();
+            var config = sp.GetRequiredService<IConfiguration>();
             var appBasePath = sp.GetRequiredService<IHostingEnvironment>().ContentRootPath;
             var defaultLogsRoot = Path.GetFullPath(Path.Combine(appBasePath, "logs"));
 
-            var loggingConfiguration = config.Logging;
+            var loggingConfiguration = new LoggingConfiguration(config);
             var logsRoot = loggingConfiguration.LogsRoot;
             var minLevel = loggingConfiguration.MinLevel;
 
@@ -37,12 +38,10 @@ namespace Microsoft.IIS.Administration.Logging
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel
-                .Is(loggingConfiguration.ToLogEventLevel(minLevel))
+                .Is(LoggingConfiguration.ToLogEventLevel(minLevel))
                 .WriteTo
                 .RollingFile(Path.Combine(logsRoot, loggingConfiguration.FileName), retainedFileCountLimit: null)
                 .CreateLogger();
-
-            services.AddSingleton(typeof(ILoggingConfiguration), (s) => { return loggingConfiguration; });
 
             ILoggerFactory loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
             loggerFactory.AddSerilog();
@@ -53,17 +52,17 @@ namespace Microsoft.IIS.Administration.Logging
         public static IServiceCollection AddApiAuditing(this IServiceCollection services)
         {
             var sp = services.BuildServiceProvider();
-            var config = sp.GetRequiredService<Core.Config.IConfiguration>();
+            var config = sp.GetRequiredService<IConfiguration>();
             var appBasePath = sp.GetRequiredService<IHostingEnvironment>().ContentRootPath;
-            var defaultLogsRoot = Path.GetFullPath(Path.Combine(appBasePath, "logs"));
+            var defaultAuditRoot = Path.GetFullPath(Path.Combine(appBasePath, "logs"));
 
-            var auditingConfiguration = config.Auditing;
-            var logsRoot = auditingConfiguration.LogsRoot;
+            var auditingConfiguration = new AuditingConfiguration(config);
+            var auditRoot = auditingConfiguration.AuditingRoot;
             var minLevel = auditingConfiguration.MinLevel;
 
             // If invalid directory was specified in the configuration. Reset to default
-            if (!Directory.Exists(logsRoot)) {
-                logsRoot = defaultLogsRoot;
+            if (!Directory.Exists(auditRoot)) {
+                auditRoot = defaultAuditRoot;
             }
 
             if (!auditingConfiguration.Enabled) {
@@ -73,9 +72,9 @@ namespace Microsoft.IIS.Administration.Logging
 
             AuditAttribute.Logger = new LoggerConfiguration()
                 .MinimumLevel
-                .Is(auditingConfiguration.ToLogEventLevel(minLevel))
+                .Is(LoggingConfiguration.ToLogEventLevel(minLevel))
                 .WriteTo
-                .RollingFile(Path.Combine(logsRoot, auditingConfiguration.FileName), retainedFileCountLimit: null)
+                .RollingFile(Path.Combine(auditRoot, auditingConfiguration.FileName), retainedFileCountLimit: null)
                 .CreateLogger();
 
             return services;

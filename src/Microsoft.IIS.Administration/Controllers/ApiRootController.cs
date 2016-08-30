@@ -8,13 +8,14 @@ namespace Microsoft.IIS.Administration
     using AspNetCore.Mvc;
     using Core.Http;
     using System;
+    using Extensions.Configuration;
 
     public class ApiRootController : ApiBaseController
     {
         private const string ApiRootName = "Microsoft.WebServer.Api";
-        private Core.Config.IConfiguration _config;
+        private IConfiguration _config;
 
-        public ApiRootController(Core.Config.IConfiguration configuration)
+        public ApiRootController(IConfiguration configuration)
         {
             if(configuration == null)
             {
@@ -28,7 +29,7 @@ namespace Microsoft.IIS.Administration
         [ResourceInfo(Name = ApiRootName)]
         public object Get()
         {
-            string host = _config.HostName ?? System.Environment.GetEnvironmentVariable("COMPUTERNAME");
+            string host = _config.GetValue<string>("host_name", System.Environment.GetEnvironmentVariable("COMPUTERNAME"));
 
             // Initialize an empty expandable object for adding properties for the json model
             var obj = new {
