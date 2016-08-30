@@ -8,13 +8,10 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using System.Collections.Generic;
     using System.Runtime.InteropServices;
 
-    public static class ProvidersUtil
+    static class ProvidersUtil
     {
         private static List<string> nego2AuthProvidersList = new List<string>();
 
-        /// <summary>
-        /// SecPkgInfo structure. 
-        /// </summary>
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         private struct SecPkgInfo
         {
@@ -28,34 +25,13 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             public string Comment;
         }
 
-        /// <summary>
-        /// Wrapper method to call the unmanaged EnumerateSecurityPackagesW.
-        /// </summary>
-        /// <param name="pcPackages">Count of packages installed on the server.</param>
-        /// <param name="ppPackageInfo">Pointer to an array of SecPkgInfo data.</param>
-        /// <returns>Returns zero in case of success and error code otherwise.</returns>
         [DllImport("secur32.dll", EntryPoint = "EnumerateSecurityPackagesW", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern int EnumerateSecuirtyPackagesW(out IntPtr pcPackages, //Number of packages
                                                             out IntPtr ppPackageInfo); // Package Information
 
-        /// <summary>
-        /// Wrapper method to free the memory allocated for SecPkgInfo structures.
-        /// </summary>
-        /// <param name="Ptr">Pointer to the SecPackageInfo.</param>
-        /// <returns>Returns zero in case of success and error code otherwise.</returns>
         [DllImport("secur32.dll", EntryPoint = "FreeContextBuffer", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern int FreeContextBuffer(IntPtr Ptr);
 
-
-
-
-        /// <summary>
-        /// Takes configured authentication providers list as input and returns available
-        /// authentication providers which are not listed in the configured authentication
-        /// providers list
-        /// </summary>
-        /// <param name="configuredProviders">Windows authentication providers configured</param>
-        /// <returns>Available providers</returns>
         public static List<string> GetAvailableProvidersList()
         {
             List<string> configuredProviders = new List<string>();
