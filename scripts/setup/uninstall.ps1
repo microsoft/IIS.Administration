@@ -64,11 +64,12 @@ function Uninstall($_path)
     }
 
     if ($DeleteBinding) {
-        Write-Verbose "Deleting ssl binding"
+        Write-Verbose "Deleting SSL binding"
         .\network.ps1 DeleteSslBinding -Port $Port
     }
 
     if ($DeleteGroup) {
+        Write-Verbose "Deleting $(.\constants.ps1 IISAdministratorsGroupName) group"
         .\activedirectory.ps1 RemoveLocalGroup -Name $(.\constants.ps1 IISAdministratorsGroupName)
     }
 

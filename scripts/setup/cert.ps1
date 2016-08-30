@@ -110,7 +110,7 @@ switch ($Command)
     }
     "Delete"
     {
-        return DeleteCert $Name
+        return DeleteCert $Name $Thumbprint
     }
     "New"
     {

@@ -7,8 +7,7 @@
 Param(
     [parameter(Mandatory=$true , Position=0)]
     [ValidateSet("Install",
-                 "Uninstall",
-                 "Upgrade")]
+                 "Uninstall")]
     [string]
     $Command,
 
@@ -37,12 +36,16 @@ Param(
     $SkipIisAdministrators,
     
     [parameter()]
-    [bool]
+    [switch]
     $DeleteCert,
     
     [parameter()]
-    [bool]
-    $DeleteBinding
+    [switch]
+    $DeleteBinding,
+    
+    [parameter()]
+    [switch]
+    $DeleteGroup
 )
 
 function Get-ScriptDirectory {
@@ -153,7 +156,7 @@ function Uninstall() {
     }
 
     foreach ($child in $children) {
-        .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding
+        .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding -DeleteGroup:$DeleteGroup
     }    
     
     $dir = Get-Item $adminRoot -ErrorAction SilentlyContinue
