@@ -149,11 +149,26 @@ function Uninstall() {
 
     $children = Get-ChildItem -Directory $adminRoot
 
+    $validAdminRoot = $false
     foreach ($child in $children) {
-        if (-not(.\installationconfig.ps1 Exists -Path $child.FullName)) {
-		    throw "Cannot find setup.config file for uninstall. Cannot continue"
+        if (.\installationconfig.ps1 Exists -Path $child.FullName) {
+		    $validAdminRoot = $true
+            break
         }
     }
+
+    if (-not($validAdminRoot)) {
+        throw "Cannot find setup.config file for uninstall. Cannot continue"
+    }
+
+    
+    foreach ($child in $children) {
+        if (-not(.\installationconfig.ps1 Exists -Path $child.FullName)) {
+            Remove-Item -Recurse -Force $child.FullName -ErrorAction SilentlyContinue
+        }
+    }
+    
+    $children = Get-ChildItem -Directory $adminRoot
 
     foreach ($child in $children) {
         .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding -DeleteGroup:$DeleteGroup
@@ -165,13 +180,12 @@ function Uninstall() {
         {
             $files = Get-ChildItem $dir.FullName
 
-            Remove-Item $dir.FullName -Recurse -Force
+            Remove-Item $dir.FullName -Recurse -Force -ErrorAction Stop
             Write-Host "Successfully removed installation folder."
         }
         Catch
         {
             Write-Warning $_.Exception.Message
-            Write-Warning "Could not remove installation folder"
         }
     }
 }

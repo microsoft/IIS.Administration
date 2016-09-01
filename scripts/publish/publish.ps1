@@ -12,46 +12,40 @@ Param(
     $ConfigDebug
 )
 
+$BASE_VERSION = "1.0.0"
 $applicationName = "Microsoft.IIS.Administration"
-
-$defaultAppSettingsContent = @"
-{
-  "host_id": "",
-  "host_name": "IIS Administration API",
-  "site_creation_root": null,
-  "administrators": [
-    "Administrators",
-    "IIS Administrators",
-  ],
-  "logging": {
-    "enabled": true,
-    "path": null,
-    "min_level": "error",
-    "file_name": "log-{Date}.txt"
-  },
-  "auditing": {
-    "enabled": true,
-    "path": null,
-    "file_name": "audit-{Date}.txt"
-  },
-  "cors": {
-    "rules": [
-      {
-        "origin": "https://manage.iis.net",
-        "allow": true
-      },
-      {
-        "origin": "https://manage.iisqa.net",
-        "allow": true
-      }
-    ]
-  }
-}
-"@
 
 function Get-ScriptDirectory
 {
     Split-Path $script:MyInvocation.MyCommand.Path
+}
+
+function Get-SolutionDirectory
+{
+    return Join-Path $(Get-ScriptDirectory) "../.."
+}
+
+function Get-DefaultAppSettings
+{
+    return [System.IO.File]::ReadAllText($(Join-Path $(Get-ScriptDirectory) "defaultAppSettings.json"))
+}
+
+function Bump-Version
+{
+    $v = [System.IO.File]::ReadAllText($(Join-Path $(Get-ScriptDirectory) "version.txt"))
+    $version = [System.Version]::New($v)
+    $bumpedVersion = [System.Version]::New($version.Major, $version.Minor, $version.Build + 1)
+    [System.IO.File]::WriteAllText($(Join-Path $(Get-ScriptDirectory) "version.txt"), $bumpedVersion.ToString())
+}
+
+function Get-Version
+{
+    $versionPath = Join-Path $(Get-ScriptDirectory) "version.txt"
+    if (-not(Test-Path $versionPath)) {
+        $version = [System.Version]::New($BASE_VERSION)
+        [System.IO.File]::WriteAllText($versionPath, $version.ToString())
+    }
+    return [System.IO.File]::ReadAllText($versionPath)
 }
 
 function DeletePreExistingFiles($targetPath)
@@ -127,7 +121,7 @@ function Get-IISAdministrationHost($destinationDirectory) {
     popd
 }
 
-$ProjectPath = $(Resolve-Path $(join-path $(Get-ScriptDirectory) ../src/Microsoft.IIS.Administration)).Path
+$ProjectPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Microsoft.IIS.Administration)).Path
 
 $ProjectPathExists = Test-Path $ProjectPath
 
@@ -167,7 +161,7 @@ if($ConfigDebug) {
 }
 
 try {
-	$packagerPath = $(Resolve-Path $(join-path $(Get-ScriptDirectory) ../src/Packager)).Path
+	$packagerPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Packager)).Path
 
 	dotnet publish $packagerPath -o "$(Join-Path $ProjectPath plugins)" --configuration $configuration
 
@@ -200,6 +194,7 @@ if(!$outputConfigPathExists) {
 
 copy (Join-Path $configFolderPath "modules.json") $outputConfigPath  -Force -ErrorAction Stop;
 
+$defaultAppSettingsContent = Get-DefaultAppSettings
 $defaultAppSettingsContent | Out-File (Join-Path $outputConfigPath "appsettings.json")
 
 # Dlls required for plugins reside in the plugins folder at dev time
@@ -215,11 +210,8 @@ if(!(Test-Path $outputPluginsFolder)) {
 Get-ChildItem $pluginFolder  | Copy-Item -Destination $outputPluginsFolder -Recurse -Force
 
 # Copy setup.ps1
-Copy-Item $(Join-Path $(Get-ScriptDirectory) setup) $OutputPath -Recurse -ErrorAction Stop
+Copy-Item $(Join-Path $(Get-SolutionDirectory) scripts/setup) $OutputPath -Recurse -ErrorAction Stop
 
-# Place version
-$project = ConvertFrom-Json (Get-Content (Join-Path $ProjectPath project.json) -Raw)
-$Project.version | Out-File (Join-Path $OutputPath "Version.txt")
 
 # Place Admin Host
 Get-IISAdministrationHost $OutputPath
@@ -240,3 +232,10 @@ foreach ($pluginDll in $pluginDlls) {
 		}
 	}
 }
+
+# Place version
+$publishVersion = Get-Version
+$publishVersion | Out-File (Join-Path $OutputPath "Version.txt")
+Bump-Version
+
+Write-Host "Finished publishing $applicationName $publishVersion"

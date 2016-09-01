@@ -105,7 +105,6 @@ function Uninstall($_path)
             Catch
             {
                 Write-Warning $_.Exception.Message
-                Write-Warning "Could not remove installation folder"
             }
         }
         else {
