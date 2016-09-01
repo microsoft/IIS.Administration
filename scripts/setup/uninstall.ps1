@@ -95,11 +95,15 @@ function Uninstall($_path)
 
                 foreach ($file in $files) {
                     if ($file.name -ne "setup") {
-                        Remove-Item $file.FullName -Force -Recurse -ErrorAction Stop
+                        Remove-Item $file.FullName -Force -Recurse -ErrorAction SilentlyContinue
+                    }
+                    else {
+                        Get-ChildItem $file.FullName | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+                        Remove-Item $file.FullName -Force -ErrorAction SilentlyContinue
                     }
                 }
 
-                Remove-Item $InstallationDirectory.FullName -Recurse -Force -ErrorAction Stop
+                Remove-Item $InstallationDirectory.FullName -Force -ErrorAction Stop
                 Write-Verbose "Successfully removed installation folder."
             }
             Catch
@@ -110,7 +114,7 @@ function Uninstall($_path)
         else {
             try {
                 $setupConfig = Get-Item $(Join-Path $InstallationDirectory.FullName "setup.config")
-                Remove-Item $setupConfig -Force
+                Remove-Item $setupConfig -Force -ErrorAction Stop
             }
             catch {
                 Write-Warning "Could not remove installation configuration file"
