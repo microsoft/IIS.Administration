@@ -4,6 +4,8 @@
 
 namespace Microsoft.IIS.Administration.Tests
 {
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System.Net.Http;
     using System.Text;
 
@@ -26,6 +28,26 @@ namespace Microsoft.IIS.Administration.Tests
             return Globals.Success(response);
         }
 
+        public static bool Post(this HttpClient client, string uri, object body, out string result)
+        {
+            return Post(client, uri, JsonConvert.SerializeObject(body), out result);
+        }
+
+        public static JObject Post(this HttpClient client, string uri, string body)
+        {
+            JObject res = null;
+            string result = null;
+            if (Post(client, uri, body, out result)) {
+                res = JObject.Parse(result);
+            }
+            return res;
+        }
+
+        public static JObject Post(this HttpClient client, string uri, object body)
+        {
+            return Post(client, uri, JsonConvert.SerializeObject(body));
+        }
+
         public static bool Patch(this HttpClient client, string uri, string body, out string result)
         {
             HttpContent content = new StringContent(body, Encoding.UTF8, "application/json");
@@ -38,6 +60,27 @@ namespace Microsoft.IIS.Administration.Tests
             result = response.Content.ReadAsStringAsync().Result;
 
             return Globals.Success(response);
+        }
+
+        public static bool Patch(this HttpClient client, string uri, object body, out string result)
+        {
+            string sBody = JsonConvert.SerializeObject(body);
+            return Patch(client, uri, sBody, out result);
+        }
+
+        public static JObject Patch(this HttpClient client, string uri, string body)
+        {
+            JObject res = null;
+            string result = null;
+            if (Patch(client, uri, body, out result)) {
+                res = JObject.Parse(result);
+            }
+            return res;
+        }
+
+        public static JObject Patch(this HttpClient client, string uri, object body)
+        {
+            return Patch(client, uri, JsonConvert.SerializeObject(body));
         }
 
         public static bool Delete(this HttpClient client, string uri)

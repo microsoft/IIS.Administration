@@ -114,16 +114,16 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             if(mapping == null) {
                 throw new ArgumentNullException("mapping");
             }
-
+            
             mapping.Path = DynamicHelper.Value(model.path) ?? mapping.Path;
-            mapping.Verb = DynamicHelper.Value(model.verb) ?? mapping.Verb;
+            mapping.Verb = DynamicHelper.Value(model.verbs) ?? mapping.Verb;
             mapping.Type = DynamicHelper.Value(model.type) ?? mapping.Type;
             mapping.Modules = DynamicHelper.Value(model.modules) ?? mapping.Modules;
             mapping.ScriptProcessor = DynamicHelper.Value(model.script_processor) ?? mapping.ScriptProcessor;
             mapping.ResourceType = DynamicHelper.To<ResourceType>(model.resource_type) ?? mapping.ResourceType;
             mapping.RequireAccess = DynamicHelper.To<HandlerRequiredAccess>(model.require_access) ?? mapping.RequireAccess;
             mapping.AllowPathInfo = DynamicHelper.To<bool>(model.allow_path_info) ?? mapping.AllowPathInfo;
-            mapping.PreCondition = DynamicHelper.Value(model.pre_condition) ?? mapping.PreCondition;
+            mapping.PreCondition = DynamicHelper.Value(model.precondition) ?? mapping.PreCondition;
             mapping.ResponseBufferLimit = DynamicHelper.To(model.response_buffer_limit, 0, uint.MaxValue) ?? mapping.ResponseBufferLimit;
         }
 
@@ -187,10 +187,10 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             }
 
             //
-            // verb
-            if (fields.Exists("verb"))
+            // verbs
+            if (fields.Exists("verbs"))
             {
-                obj.verb = mapping.Verb;
+                obj.verbs = mapping.Verb;
             }
 
             //
@@ -236,10 +236,10 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             }
 
             //
-            // pre_condition
-            if (fields.Exists("pre_condition"))
+            // precondition
+            if (fields.Exists("precondition"))
             {
-                obj.pre_condition = mapping.PreCondition;
+                obj.precondition = mapping.PreCondition;
             }
 
             //

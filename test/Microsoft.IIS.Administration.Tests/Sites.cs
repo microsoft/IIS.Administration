@@ -14,14 +14,14 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Text;
     using Xunit;
     using Xunit.Abstractions;
-    using Microsoft.IIS.Administration.Core.Utils;
+    using Core.Utils;
 
     public class Sites
     {
         private const string TEST_SITE_NAME = "test_site";
         private ITestOutputHelper _output;
         private static readonly object TEST_SITE = new {
-            physical_path = @"c:\sites\test_site",
+            physical_path = TEST_SITE_PATH,
             name = TEST_SITE_NAME,
             bindings = new object[] {
                 new {
@@ -32,6 +32,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         };
 
+        public const string TEST_SITE_PATH = @"c:\sites\test_site";
         public static readonly string SITE_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/websites";
         public static readonly string CertificatesUrl = $"{Configuration.TEST_SERVER_URL}/api/certificates";
 

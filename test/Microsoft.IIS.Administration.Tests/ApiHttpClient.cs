@@ -4,7 +4,7 @@
 
 namespace Microsoft.IIS.Administration.Tests
 {
-    using Microsoft.IIS.Administration.Core.Http;
+    using Core.Http;
     using System.Net.Http;
 
     public class ApiHttpClient : HttpClient

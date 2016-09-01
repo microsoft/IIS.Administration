@@ -5,8 +5,8 @@
 namespace Microsoft.IIS.Administration.WebServer.Handlers
 {
     using Core.Utils;
-    using Microsoft.IIS.Administration.Core;
-    using Microsoft.Web.Administration;
+    using Core;
+    using Web.Administration;
     using Newtonsoft.Json;
     using Sites;
     using System;
@@ -24,22 +24,25 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             // Access Policy
             HandlerAccessPolicy accessPolicy = section.AccessPolicy;
 
-            Dictionary<string, bool> policyDictionary = new Dictionary<string, bool>();
-            policyDictionary.Add("read", accessPolicy.HasFlag(HandlerAccessPolicy.Read));
-            policyDictionary.Add("write", accessPolicy.HasFlag(HandlerAccessPolicy.Write));
-            policyDictionary.Add("execute", accessPolicy.HasFlag(HandlerAccessPolicy.Execute));
-            policyDictionary.Add("source", accessPolicy.HasFlag(HandlerAccessPolicy.Source));
-            policyDictionary.Add("script", accessPolicy.HasFlag(HandlerAccessPolicy.Script));
-            policyDictionary.Add("no_remote_write", accessPolicy.HasFlag(HandlerAccessPolicy.NoRemoteWrite));
-            policyDictionary.Add("no_remote_read", accessPolicy.HasFlag(HandlerAccessPolicy.NoRemoteRead));
-            policyDictionary.Add("no_remote_execute", accessPolicy.HasFlag(HandlerAccessPolicy.NoRemoteExecute));
-            policyDictionary.Add("no_remote_script", accessPolicy.HasFlag(HandlerAccessPolicy.NoRemoteScript));
+            Dictionary<string, bool> allowedAccess = new Dictionary<string, bool>();
+            allowedAccess.Add("read", accessPolicy.HasFlag(HandlerAccessPolicy.Read));
+            allowedAccess.Add("write", accessPolicy.HasFlag(HandlerAccessPolicy.Write));
+            allowedAccess.Add("execute", accessPolicy.HasFlag(HandlerAccessPolicy.Execute));
+            allowedAccess.Add("source", accessPolicy.HasFlag(HandlerAccessPolicy.Source));
+            allowedAccess.Add("script", accessPolicy.HasFlag(HandlerAccessPolicy.Script));
+
+            Dictionary<string, bool> remoteAccessPrevention = new Dictionary<string, bool>();
+            remoteAccessPrevention.Add("write", accessPolicy.HasFlag(HandlerAccessPolicy.NoRemoteWrite));
+            remoteAccessPrevention.Add("read", accessPolicy.HasFlag(HandlerAccessPolicy.NoRemoteRead));
+            remoteAccessPrevention.Add("execute", accessPolicy.HasFlag(HandlerAccessPolicy.NoRemoteExecute));
+            remoteAccessPrevention.Add("script", accessPolicy.HasFlag(HandlerAccessPolicy.NoRemoteScript));
 
             var obj = new {
                 id = id.Uuid,
                 scope = site == null ? string.Empty : site.Name + path,
                 metadata = ConfigurationUtility.MetadataToJson(section.IsLocallyStored, section.IsLocked, section.OverrideMode, section.OverrideModeEffective),
-                access_policy = policyDictionary,
+                allowed_access = allowedAccess,
+                remote_access_prevention = remoteAccessPrevention,
                 website = SiteHelper.ToJsonModelRef(site)
             };
 
@@ -48,7 +51,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
 
         public static void UpdateFeatureSettings(dynamic model, HandlersSection section)
         {
-            if(model == null) {
+            if (model == null) {
                 throw new ApiArgumentException("model");
             }
             if (section == null) {
@@ -56,45 +59,73 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             }
             
             try {
+                if (model.allowed_access != null) {
 
-                if (model.access_policy != null) {
-
-                    Dictionary<string, bool> accessPolicyDictionary = JsonConvert.DeserializeObject<Dictionary<string, bool>>(model.access_policy.ToString());
+                    Dictionary<string, bool> accessPolicyDictionary = null;
+                    
+                    try {
+                        accessPolicyDictionary = JsonConvert.DeserializeObject<Dictionary<string, bool>>(model.allowed_access.ToString());
+                    }
+                    catch (JsonSerializationException e) {
+                        throw new ApiArgumentException("allowed_access", e);
+                    }
 
                     if (accessPolicyDictionary == null) {
-                        throw new ApiArgumentException("access_policy");
+                        throw new ApiArgumentException("allowed_access");
                     }
 
-                    HandlerAccessPolicy accessPolicy = HandlerAccessPolicy.None;
-                    if (accessPolicyDictionary.ContainsKey("read") && accessPolicyDictionary["read"] == true) {
-                        accessPolicy |= HandlerAccessPolicy.Read;
+                    Dictionary<string, HandlerAccessPolicy> accessPolicyMap = new Dictionary<string, HandlerAccessPolicy>() {
+                        { "read", HandlerAccessPolicy.Read },
+                        { "write", HandlerAccessPolicy.Write },
+                        { "execute", HandlerAccessPolicy.Execute },
+                        { "source", HandlerAccessPolicy.Source },
+                        { "script", HandlerAccessPolicy.Script }
+                    };
+                    
+                    foreach (var key in accessPolicyMap.Keys) {
+                        if (accessPolicyDictionary.ContainsKey(key)) {
+                            if (accessPolicyDictionary[key]) {
+                                section.AccessPolicy |= accessPolicyMap[key];
+                            }
+                            else {
+                                section.AccessPolicy &= ~accessPolicyMap[key];
+                            }
+                        }
                     }
-                    if (accessPolicyDictionary.ContainsKey("write") && accessPolicyDictionary["write"] == true) {
-                        accessPolicy |= HandlerAccessPolicy.Write;
+                }
+
+                if (model.remote_access_prevention != null) {
+
+                    Dictionary<string, bool> remoteAccessDictionary = null;
+
+                    try {
+                        remoteAccessDictionary = JsonConvert.DeserializeObject<Dictionary<string, bool>>(model.remote_access_prevention.ToString());
                     }
-                    if (accessPolicyDictionary.ContainsKey("execute") && accessPolicyDictionary["execute"] == true) {
-                        accessPolicy |= HandlerAccessPolicy.Execute;
-                    }
-                    if (accessPolicyDictionary.ContainsKey("source") && accessPolicyDictionary["source"] == true) {
-                        accessPolicy |= HandlerAccessPolicy.Source;
-                    }
-                    if (accessPolicyDictionary.ContainsKey("script") && accessPolicyDictionary["script"] == true) {
-                        accessPolicy |= HandlerAccessPolicy.Script;
-                    }
-                    if (accessPolicyDictionary.ContainsKey("no_remote_write") && accessPolicyDictionary["no_remote_write"] == true) {
-                        accessPolicy |= HandlerAccessPolicy.NoRemoteWrite;
-                    }
-                    if (accessPolicyDictionary.ContainsKey("no_remote_read") && accessPolicyDictionary["no_remote_read"] == true) {
-                        accessPolicy |= HandlerAccessPolicy.NoRemoteRead;
-                    }
-                    if (accessPolicyDictionary.ContainsKey("no_remote_execute") && accessPolicyDictionary["no_remote_execute"] == true) {
-                        accessPolicy |= HandlerAccessPolicy.NoRemoteExecute;
-                    }
-                    if (accessPolicyDictionary.ContainsKey("no_remote_script") && accessPolicyDictionary["no_remote_script"] == true) {
-                        accessPolicy |= HandlerAccessPolicy.NoRemoteScript;
+                    catch (JsonSerializationException e) {
+                        throw new ApiArgumentException("remote_access_prevention", e);
                     }
 
-                    section.AccessPolicy = accessPolicy;
+                    if (remoteAccessDictionary == null) {
+                        throw new ApiArgumentException("remote_access_prevention");
+                    }
+
+                    Dictionary<string, HandlerAccessPolicy> remoteAccessMap = new Dictionary<string, HandlerAccessPolicy>() {
+                        { "read", HandlerAccessPolicy.NoRemoteRead },
+                        { "write", HandlerAccessPolicy.NoRemoteWrite },
+                        { "execute", HandlerAccessPolicy.NoRemoteExecute },
+                        { "script", HandlerAccessPolicy.NoRemoteScript }
+                    };
+                    
+                    foreach (var key in remoteAccessMap.Keys) {
+                        if (remoteAccessDictionary.ContainsKey(key)) {
+                            if (remoteAccessDictionary[key]) {
+                                section.AccessPolicy |= remoteAccessMap[key];
+                            }
+                            else {
+                                section.AccessPolicy &= ~remoteAccessMap[key];
+                            }
+                        }
+                    }
                 }
 
                 if (model.metadata != null) {
@@ -102,10 +133,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
                 }
 
             }
-            catch (JsonSerializationException e) {
-                throw new ApiArgumentException("access_policy", e);
-            }
-            catch(FileLoadException e) {
+            catch (FileLoadException e) {
                 throw new LockedException(section.SectionPath, e);
             }
             catch (DirectoryNotFoundException e) {

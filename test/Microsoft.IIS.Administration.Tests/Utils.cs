@@ -12,6 +12,8 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using Microsoft.IIS.Administration.Core.Http;
     using System.IO;
+    using System.Net.Sockets;
+    using System.Net;
 
     public class Utils
     {
@@ -180,6 +182,36 @@ namespace Microsoft.IIS.Administration.Tests
             if (!Directory.Exists(dirPath))
             {
                 Directory.CreateDirectory(dirPath);
+            }
+        }
+
+        public static int GetAvailablePort()
+        {
+            int current = 30000;
+
+            do {
+                if (IsPortAvailable(current)) {
+                    return current;
+                }
+                current++;
+            } while (current < IPEndPoint.MaxPort);
+
+            throw new FileNotFoundException();
+        }
+
+        public static bool IsPortAvailable(int port)
+        {
+            var tcp = new TcpClient();
+
+            try {
+                tcp.ConnectAsync("localhost", port).RunSynchronously();
+                return false;
+            }
+            catch {
+                return true;
+            }
+            finally {
+                tcp.Dispose();
             }
         }
     }

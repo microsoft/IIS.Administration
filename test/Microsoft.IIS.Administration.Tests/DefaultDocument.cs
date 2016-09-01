@@ -23,7 +23,7 @@ namespace Microsoft.IIS.Administration.Tests
             using (HttpClient client = ApiHttpClient.Create()) {
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50311, @"c:\sites\test_site");
+                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50311, Sites.TEST_SITE_PATH);
 
                 JObject serverDoc = GetDefaultDocumentFeature(client, null, null);
                 JObject siteDoc = GetDefaultDocumentFeature(client, site.Value<string>("name"), null);
