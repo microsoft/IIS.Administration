@@ -51,7 +51,8 @@ function Check-Licenses($fileExtension) {
         $h = Get-Lines $file $headerLength
 
         if ($file.FullName.Contains("\obj\") -or
-             $file.FullName.Contains("\lib\")) {
+             $file.FullName.Contains("\lib\") -or
+             $file.FullName.Contains("\PublishProfiles\")) {
             continue;
         }
 

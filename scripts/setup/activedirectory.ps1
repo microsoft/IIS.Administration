@@ -30,33 +30,66 @@ Param(
     $Group
 )
 
+# Nano Server does not support ADSI provider
+# Nano Server has localgroup and localuser commands which can be used instead of ADSI provider
+
+
+# Function not available on Nano Server
 function GetLocalAd {
     $server = "$env:COMPUTERNAME"
     return [ADSI]"WinNT://$server,computer"
 }
 
+function GroupCommandletsAvailable() {
+    # For PS > 5.0
+    $localGroupCommand = Get-Command "Get-LocalGroup"  -ErrorAction SilentlyContinue
+    $newLocalGroupCommand = Get-Command "New-LocalGroup" -ErrorAction SilentlyContinue
+    $removeLocalGroupCommand = Get-Command "Remove-LocalGroup" -ErrorAction SilentlyContinue
+    $addLocalGroupMemberCommand = Get-Command "Add-LocalGroupMember" -ErrorAction SilentlyContinue
+
+    return $($localGroupCommand -ne $null -and
+                $newLocalGroupCommand -ne $null -and
+                $removeLocalGroupCommand -ne $null -and
+                $addLocalGroupMemberCommand -ne $null)
+}
+
 function GetLocalGroup($groupName) {
-
-	if ([System.String]::IsNullOrEmpty($groupName)) {
-		throw "Name cannot be null"
-	}
-
-    $localAd = GetLocalAd
-
     $group = $null;
 
-    try {
-        $group = $localAd.Children.Find($groupName, 'group')
+    if (-not($(GroupCommandletsAvailable))) {
+	    if ([System.String]::IsNullOrEmpty($groupName)) {
+		    throw "Name cannot be null"
+	    }
+    
+        $localAd = GetLocalAd
+
+        try {
+            $group = $localAd.Children.Find($groupName, 'group')
+        }
+        catch {
+            #COM Exception if group doesn't exit
+        }
     }
-    catch {
-        #COM Exception if group doesn't exit
+    else {
+        $group = Get-LocalGroup -Name $groupName -ErrorAction SilentlyContinue
     }
 
     return $group;
 }
 
 function GroupEquals($group, $_name, $desc) {
-    return $group.Name -eq $_name -and $group.Properties["Description"].Value -eq $desc
+    
+    $description = $null
+    if (-not($(GroupCommandletsAvailable))) {
+        # Using ADSI
+        $description = $group.Properties["Description"].Value
+    }
+    else {
+        # Using Local Group commands
+        $description = $group.Description
+    }
+
+    return $group.Name -eq $_name -and $description -eq $desc
 }
 
 function CreateLocalGroup($_name, $desc) {
@@ -65,19 +98,24 @@ function CreateLocalGroup($_name, $desc) {
 		throw "Name cannot be null"
 	}
 
-    $localAd = GetLocalAd
-
     $group = GetLocalGroup $_name;
 
     if($group -ne $null) {
-
         throw "Group $_name already exists"
     }
+
+    if (-not($(GroupCommandletsAvailable))) {
+        $localAd = GetLocalAd
+
+        $group = $localAd.Children.Add($_name, 'group')
+        $group.Properties["Description"].Value = $desc
     
-    $group = $localAd.Children.Add($_name, 'group')
-    $group.Properties["Description"].Value = $desc
-    
-    $group.CommitChanges()
+        $group.CommitChanges()
+    }
+    else {
+        $group = New-LocalGroup -Name $_name
+        net localgroup $_name /comment:$desc | Out-Null
+    }
 
     return $group
 }
@@ -88,17 +126,21 @@ function RemoveLocalGroup($_name) {
 		throw "Name cannot be null"
 	}
 
-    $localAd = GetLocalAd
-
     $g = GetLocalGroup $_name
 
     if($g -ne $null) {
-        $localAd.Children.Remove($g.Path)
+        if (-not($(GroupCommandletsAvailable))) {
+            $localAd = GetLocalAd
+            $localAd.Children.Remove($g.Path)
+        }
+        else {
+            Remove-LocalGroup -Name $_name
+        }
     }
 }
 
 function CurrentAdUser {
-    return 'WinNT://' + [System.Environment]::UserDomainName + '/' +  [System.Environment]::UserName
+    return [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 }
 
 function AddUserToGroup($userPath, $_group) {
@@ -111,15 +153,25 @@ function AddUserToGroup($userPath, $_group) {
 		throw "Group cannot be null"
 	}
 
-    try {
-        $_group.Invoke('Add', @($userPath))
-    }
-    catch {
+    if (-not($(GroupCommandletsAvailable))) {
+        $userPath = 'WinNT://' + $userPath.Replace("\", "/")
 
-        # HRESULT -2147023518
-        # The specified account name is already a member of the group.
-        if($_.Exception.InnerException -eq $null -or $_.Exception.InnerException.HResult -ne -2147023518) {
-            throw $_.Exception
+        try {
+            $_group.Invoke('Add', @($userPath))
+        }
+        catch {
+            # HRESULT -2147023518
+            # The specified account name is already a member of the group.
+            if($_.Exception.InnerException -eq $null -or $_.Exception.InnerException.HResult -ne -2147023518) {
+                throw $_.Exception
+            }
+        }
+    }
+    else {
+        $existingMember = Get-LocalGroupMember -Name $($_group.name) -Member $($userPath) -ErrorAction SilentlyContinue
+
+        if ($existingMember -eq $null) {
+            Add-LocalGroupMember -Name $($_group.name) -Member $($userPath)
         }
     }
 }

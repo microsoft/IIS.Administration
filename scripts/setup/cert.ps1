@@ -71,7 +71,7 @@ function New($_name)
     $dnsNames += "localhost"
 	$dnsNames += hostname
 	$dnsNames += "$_name"
-	return .\Create-SelfSignedCertificate.ps1 -subject "localhost" -AlternativeNames $dnsNames -FriendlyName $_name -ErrorAction Stop
+	return .\selfsignedcertificate.ps1 Create -subject "localhost" -AlternativeNames $dnsNames -FriendlyName $_name -ErrorAction Stop
 }
 
 function AddToTrusted($cert)

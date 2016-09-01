@@ -80,32 +80,42 @@ function Uninstall($_path)
     .\cache.ps1 Destroy
     
     $InstallationDirectory = Get-Item $adminRoot -ErrorAction SilentlyContinue
-    if ($InstallationDirectory -ne $null -and -not($KeepFiles)) {
-
+    if ($InstallationDirectory -ne $null) {   
         try {
             .\acl.ps1 Add-SelfRights -Path $InstallationDirectory.FullName
         }
         catch {
             Write-Warning "Unable to obtain full control of installation directory"
-        }
+        }     
+        if (-not($KeepFiles)) {
 
-        Try
-        {
-            $files = Get-ChildItem $InstallationDirectory.FullName
+            Try
+            {
+                $files = Get-ChildItem $InstallationDirectory.FullName
 
-            foreach ($file in $files) {
-                if ($file.name -ne "setup") {
-                    Remove-Item $file.FullName -Force -Recurse -ErrorAction Stop
+                foreach ($file in $files) {
+                    if ($file.name -ne "setup") {
+                        Remove-Item $file.FullName -Force -Recurse -ErrorAction Stop
+                    }
                 }
-            }
 
-            Remove-Item $InstallationDirectory.FullName -Recurse -Force
-            Write-Verbose "Successfully removed installation folder."
+                Remove-Item $InstallationDirectory.FullName -Recurse -Force -ErrorAction Stop
+                Write-Verbose "Successfully removed installation folder."
+            }
+            Catch
+            {
+                Write-Warning $_.Exception.Message
+                Write-Warning "Could not remove installation folder"
+            }
         }
-        Catch
-        {
-            Write-Warning $_.Exception.Message
-            Write-Warning "Could not remove installation folder"
+        else {
+            try {
+                $setupConfig = Get-Item $(Join-Path $InstallationDirectory.FullName "setup.config")
+                Remove-Item $setupConfig -Force
+            }
+            catch {
+                Write-Warning "Could not remove installation configuration file"
+            }
         }
     }
     exit 0

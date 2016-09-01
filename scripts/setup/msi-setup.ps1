@@ -105,8 +105,10 @@ Require-Script "acl"
 Require-Script "activedirectory"
 Require-Script "cache"
 Require-Script "cert"
+Require-Script "selfsignedcertificate"
 Require-Script "constants"
 Require-Script "dependencies"
+Require-Script "httpsys"
 Require-Script "installationconfig"
 Require-Script "migrate"
 Require-Script "modules"
@@ -147,3 +149,4 @@ catch {
 finally {
     Pop-Location
 }
+exit $exitCode

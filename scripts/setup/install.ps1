@@ -210,17 +210,26 @@ function rollback() {
     if ($rollbackStore.newBoundCertPort -ne $null) {
         Write-Host "Rolling back HTTP.Sys port binding" 
 
-        .\network.ps1 DeleteSslBinding -Port $rollbackStore.newBoundCertPort
+        try {
+            .\network.ps1 DeleteSslBinding -Port $rollbackStore.newBoundCertPort
+        }
+        catch {
+            Write-Warning "Could not roll back SSL binding on port $($rollbackStore.newBoundCertPort)"
+        }
     }
 
     #
     # Restore any deleted HTTP.Sys binding
     if ($rollbackStore.preboundCertInfo -ne $null) {
-
+    
         $info = $rollbackStore.preboundCertInfo
-        Write-Host "Rolling back deleted SSL binding on port $($info.ipPort)"
-
-        netsh http add sslcert ipport="$($info.ipPort)" certhash="$($info.thumbprint)" appid=$($info.appId) | Out-Null
+        try {
+            Write-Host "Rolling back deleted SSL binding on port $($info.IpEndpoint.Port)"
+            .\network.ps1 BindCert -Hash $($info.CertificateHash) -AppId $($info.AppId) -Port $($info.IpEndpoint.Port)
+        }
+        catch {
+            Write-Warning "Could not restore previous SSL binding"
+        }
     }
 
     #
