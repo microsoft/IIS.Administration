@@ -99,11 +99,11 @@ function Uninstall($_path)
                     }
                     else {
                         Get-ChildItem $file.FullName | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
-                        Remove-Item $file.FullName -Force -ErrorAction SilentlyContinue
+                        Remove-Item $file.FullName -Force -Recurse -ErrorAction SilentlyContinue
                     }
                 }
 
-                Remove-Item $InstallationDirectory.FullName -Force -ErrorAction Stop
+                Remove-Item $InstallationDirectory.FullName -Force -Recurse -ErrorAction Stop
                 Write-Verbose "Successfully removed installation folder."
             }
             Catch

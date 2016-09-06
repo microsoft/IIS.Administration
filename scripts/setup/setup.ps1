@@ -226,6 +226,11 @@ try {
         }
     }
 }
+catch {
+    Write-Error -Exception $_.exception -Message $($_.Exception.Message + [Environment]::NewLine + $_.InvocationInfo.PositionMessage)
+    exit -1
+}
 finally {
     Pop-Location
 }
+exit 0

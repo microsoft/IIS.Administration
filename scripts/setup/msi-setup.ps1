@@ -116,7 +116,6 @@ Require-Script "network"
 Require-Script "services"
 Require-Script "uninstall"
 
-$exitCode = 0
 try {
     Push-Location $(Get-ScriptDirectory)
     
@@ -144,9 +143,10 @@ try {
     }
 }
 catch {
-    throw
+    Write-Error -Exception $_.exception -Message $($_.Exception.Message + [Environment]::NewLine + $_.InvocationInfo.PositionMessage)
+    exit -1
 }
 finally {
     Pop-Location
 }
-exit $exitCode
+exit 0
