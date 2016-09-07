@@ -62,21 +62,21 @@ namespace Microsoft.IIS.Administration.Tests
 
                 // Site Scope
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50311, @"c:\sites\test_site");
+                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50311, Sites.TEST_SITE_PATH);
                 JObject siteFeature = GetDefaultDocumentFeature(client, site.Value<string>("name"), null);
                 Assert.NotNull(siteFeature);
 
                 CreateAndRemoveFile(client, siteFeature, fileName);
 
                 // Application Scope
-                JObject app = Applications.CreateApplication(client, "test_app", @"c:\sites\test_site\test_application", site);
+                JObject app = Applications.CreateApplication(client, "test_app", Applications.TEST_APPLICATION_PATH, site);
                 JObject appFeature = GetDefaultDocumentFeature(client, site.Value<string>("name"), app.Value<string>("path"));
                 Assert.NotNull(appFeature);
 
                 CreateAndRemoveFile(client, appFeature, fileName);
 
                 // Vdir Scope
-                JObject vdir = VirtualDirectories.CreateVdir(client, "test_vdir", @"c:\sites\test_site\test_vdir", site);
+                JObject vdir = VirtualDirectories.CreateVdir(client, "test_vdir", VirtualDirectories.TEST_VDIR_PATH, site);
                 JObject vdirFeature = GetDefaultDocumentFeature(client, site.Value<string>("name"), vdir.Value<string>("path"));
                 Assert.NotNull(vdirFeature);
 
@@ -128,9 +128,9 @@ namespace Microsoft.IIS.Administration.Tests
 
         public static JArray GetFiles(HttpClient client, JObject docFeature)
         {
-            docFeature = Utils.FollowLink(client, docFeature, "entries");
+            docFeature = Utils.FollowLink(client, docFeature, "files");
 
-            return docFeature.Value<JArray>("entries");
+            return docFeature.Value<JArray>("files");
         }
 
         public static JObject CreateFile(HttpClient client, JObject docFeature, string fileName)
@@ -141,7 +141,7 @@ namespace Microsoft.IIS.Administration.Tests
                 throw new ArgumentException("docFeature");
             }
 
-            string filesLink = $"{Configuration.TEST_SERVER_URL}{ docFeature["_links"]["entries"].Value<string>("href") }";
+            string filesLink = $"{Configuration.TEST_SERVER_URL}{ docFeature["_links"]["files"].Value<string>("href") }";
 
             dynamic feature = new JObject();
             feature.id = featureUuid;

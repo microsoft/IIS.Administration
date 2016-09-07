@@ -14,7 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.SslSettings
     public static class SslSettingsHelper
     {
 
-        public static object ToJsonModel(Site site, string path)
+        internal static object ToJsonModel(Site site, string path)
         {
             if(site == null) {
                 throw new ArgumentException("site");

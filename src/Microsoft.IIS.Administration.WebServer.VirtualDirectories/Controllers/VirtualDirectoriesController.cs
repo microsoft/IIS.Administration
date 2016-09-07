@@ -84,9 +84,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             // Return reference representations of all virtual directories
             return new {
                 virtual_directories = vDirsWithParents.Select(tuple => {
-                    return fields.HasFields ? 
-                           VDirHelper.ToJsonModel(tuple.Item1, tuple.Item2, tuple.Item3, fields) : 
-                           VDirHelper.ToJsonModelRef(tuple.Item1, tuple.Item2, tuple.Item3);
+                    return VDirHelper.ToJsonModelRef(tuple.Item1, tuple.Item2, tuple.Item3, fields);
                 })
             };
         }
@@ -110,7 +108,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
                 return NotFound();
             }
 
-            return VDirHelper.ToJsonModel(vdir, app, site);
+            return VDirHelper.ToJsonModel(vdir, app, site, Context.Request.GetFields());
         }
 
         [HttpPost]

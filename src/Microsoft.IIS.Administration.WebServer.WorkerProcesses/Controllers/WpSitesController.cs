@@ -40,8 +40,7 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
             Fields fields = Context.Request.GetFields();
 
             var obj = new {
-                websites = sites.Select(site => fields.HasFields ? Sites.SiteHelper.ToJsonModel(site, fields) :
-                                                                   Sites.SiteHelper.ToJsonModelRef(site))
+                websites = sites.Select(site => Sites.SiteHelper.ToJsonModelRef(site, fields))
             };
 
             return obj;

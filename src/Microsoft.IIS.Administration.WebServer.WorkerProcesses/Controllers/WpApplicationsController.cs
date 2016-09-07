@@ -44,8 +44,7 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
             Fields fields = Context.Request.GetFields();
 
             var obj = new {
-                webapps = apps.Select(app => fields.HasFields ? Applications.ApplicationHelper.ToJsonModel(app.Application, app.Site, fields) :
-                                                                Applications.ApplicationHelper.ToJsonModelRef(app.Application, app.Site))
+                webapps = apps.Select(app => Applications.ApplicationHelper.ToJsonModelRef(app.Application, app.Site, fields))
             };
 
             return obj;

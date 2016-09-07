@@ -81,7 +81,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             }
         }
 
-        public static object ToJsonModel(VirtualDirectory vdir, Application app, Site site, Fields fields = null)
+        internal static object ToJsonModel(VirtualDirectory vdir, Application app, Site site, Fields fields = null, bool full = true)
         {
             if (vdir == null) {
                 return null;
@@ -92,8 +92,6 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             if (site == null) {
                 throw new ArgumentNullException("site");
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null) {
                 fields = Fields.All;
@@ -132,20 +130,25 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             //
             // webapp
             if (fields.Exists("webapp")) {
-                obj.webapp = ApplicationHelper.ToJsonModelRef(app, site);
+                obj.webapp = ApplicationHelper.ToJsonModelRef(app, site, fields.Filter("webapp"));
             }
 
             //
             // website
             if (fields.Exists("website")) {
-                obj.website = SiteHelper.ToJsonModelRef(site);
+                obj.website = SiteHelper.ToJsonModelRef(site, fields.Filter("website"));
             }
             return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj, full);
         }
 
-        public static object ToJsonModelRef(VirtualDirectory vdir, Application app, Site site)
+        public static object ToJsonModelRef(VirtualDirectory vdir, Application app, Site site, Fields fields = null)
         {
-            return ToJsonModel(vdir, app, site, RefFields);
+            if (fields == null || !fields.HasFields) {
+                return ToJsonModel(vdir, app, site, RefFields, false);
+            }
+            else {
+                return ToJsonModel(vdir, app, site, fields, false);
+            }
         }
 
 

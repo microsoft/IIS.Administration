@@ -359,13 +359,11 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
 
         #region Json Model Helpers
 
-        public static object GlobalModuleToJsonModel(GlobalModule globalModule, Fields fields = null)
+        internal static object GlobalModuleToJsonModel(GlobalModule globalModule, Fields fields = null, bool full = true)
         {
             if (globalModule == null) {
                 return null;
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null)
             {
@@ -402,24 +400,32 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             return Core.Environment.Hal.Apply(Defines.GlobalModulesResource.Guid, obj, full);
         }
 
-        public static object GlobalModuleToJsonModelRef(GlobalModule globalModule)
+        public static object GlobalModuleToJsonModelRef(GlobalModule globalModule, Fields fields = null)
         {
-            return GlobalModuleToJsonModel(globalModule, GlobalModuleRefFields);
+            if (fields == null || !fields.HasFields) {
+                return GlobalModuleToJsonModel(globalModule, GlobalModuleRefFields, false);
+            }
+            else {
+                return GlobalModuleToJsonModel(globalModule, fields, false);
+            }
         }
 
-        public static object ModuleToJsonModelRef(Module module, Site site, string path)
+        public static object ModuleToJsonModelRef(Module module, Site site, string path, Fields fields = null)
         {
-            return ModuleToJsonModel(module, site, path, ModuleRefFields);
+            if (fields == null || !fields.HasFields) {
+                return ModuleToJsonModel(module, site, path, ModuleRefFields, false);
+            }
+            else {
+                return ModuleToJsonModel(module, site, path, fields, false);
+            }
         }
 
-        public static object ModuleToJsonModel(Module module, Site site, string path, Fields fields = null)
+        internal static object ModuleToJsonModel(Module module, Site site, string path, Fields fields = null, bool full = true)
         {
             if (module == null) {
                 return null;
             }
-
-            bool full = fields == null || !fields.HasFields;
-
+            
             if (fields == null)
             {
                 fields = Fields.All;
@@ -469,7 +475,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             return Core.Environment.Hal.Apply(Defines.ModuleEntriesResource.Guid, obj, full);
         }
 
-        public static object ModuleFeatureToJsonModel(Site site, string path)
+        internal static object ModuleFeatureToJsonModel(Site site, string path)
         {
             ModulesSection section = GetModulesSection(site, path);
 

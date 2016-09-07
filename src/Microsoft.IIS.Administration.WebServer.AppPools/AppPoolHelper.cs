@@ -77,13 +77,11 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             ManagementUnit.ServerManager.ApplicationPools.Remove(pool);
         }
 
-        public static object ToJsonModel(ApplicationPool pool, Fields fields = null)
+        internal static object ToJsonModel(ApplicationPool pool, Fields fields = null, bool full = true)
         {
             if(pool == null) {
                 return null;
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null) {
                 fields = Fields.All;
@@ -248,9 +246,14 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj, full);
         }
 
-        public static object ToJsonModelRef(ApplicationPool pool)
+        public static object ToJsonModelRef(ApplicationPool pool, Fields fields = null)
         {
-            return ToJsonModel(pool, RefFields);
+            if (fields == null || !fields.HasFields) {
+                return ToJsonModel(pool, RefFields, false);
+            }
+            else {
+                return ToJsonModel(pool, fields, false);
+            }
         }
 
         public static string GetLocation(string id) {

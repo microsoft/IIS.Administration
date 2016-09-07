@@ -41,7 +41,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             Fields fields = Context.Request.GetFields();
 
             return new {
-                rules = rules.Select(r => fields.HasFields ? RulesHelper.ToJsonModel(r, site, reqId.Path, fields) : RulesHelper.ToJsonModelRef(r, site, reqId.Path))
+                rules = rules.Select(r => RulesHelper.ToJsonModelRef(r, site, reqId.Path, fields))
             };
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
                 return NotFound();
             }
 
-            return RulesHelper.ToJsonModel(rule, site, ruleId.Path, Context.Request.GetFields());
+            return RulesHelper.ToJsonModel(rule, site, ruleId.Path, Context.Request.GetFields(), true);
         }
 
         [HttpPost]
@@ -111,7 +111,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
             //
             // Create response
-            dynamic r = RulesHelper.ToJsonModel(rule, site, reqId.Path);
+            dynamic r = RulesHelper.ToJsonModel(rule, site, reqId.Path, null, true);
             return Created(RulesHelper.GetLocation(r.id), r);
         }
 
@@ -144,7 +144,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
             ManagementUnit.Current.Commit();
 
-            dynamic rle = RulesHelper.ToJsonModel(rule, site, ruleId.Path);
+            dynamic rle = RulesHelper.ToJsonModel(rule, site, ruleId.Path, null, true);
 
             if(rle.id != id) {
                 return LocationChanged(RulesHelper.GetLocation(rle.id), rle);

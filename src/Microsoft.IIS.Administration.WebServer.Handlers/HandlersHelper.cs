@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
 
     public static class HandlersHelper
     {
-        public static object ToJsonModel(Site site, string path)
+        internal static object ToJsonModel(Site site, string path)
         {
             HandlersSection section = GetHandlersSection(site, path);
 

@@ -61,16 +61,19 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
             return result;
         }
 
-        public static object ToJsonModelRef(Request request) {
-            return ToJsonModel(request, RefFields);
+        public static object ToJsonModelRef(Request request, Fields fields = null) {
+            if (fields == null || !fields.HasFields) {
+                return ToJsonModel(request, RefFields, false);
+            }
+            else {
+                return ToJsonModel(request, fields, false);
+            }
         }
 
-        public static object ToJsonModel(Request request, Fields fields = null) {
+        internal static object ToJsonModel(Request request, Fields fields = null, bool full = true) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null) {
                 fields = Fields.All;

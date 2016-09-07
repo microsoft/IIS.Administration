@@ -10,7 +10,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
     public class Defines
     {
         private const string ENDPOINT = "default-documents";
-        private const string FILES_ENDPOINT = "entries";
+        private const string FILES_ENDPOINT = "files";
 
         // Top level resource for plugin
         public const string DefaultDocumentsName = "Microsoft.WebServer.DefaultDocuments";
@@ -19,8 +19,8 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
         public const string IDENTIFIER = "default_document.id";
 
         // File
-        public const string EntriesName = "Microsoft.WebServer.DefaultDocuments.Entries";
-        public const string EntryName = "Microsoft.WebServer.DefaultDocuments.Entry";
+        public const string EntriesName = "Microsoft.WebServer.DefaultDocuments.Files";
+        public const string EntryName = "Microsoft.WebServer.DefaultDocuments.File";
         public static readonly ResDef FilesResource = new ResDef("files", new Guid("1C770C5E-8D48-4E87-9108-75B7A41F6D94"), FILES_ENDPOINT);
         public static readonly string FILES_PATH = $"{PATH}/{FILES_ENDPOINT}";
         public const string FILE_IDENTIFIER = "file.id";

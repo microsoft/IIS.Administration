@@ -110,7 +110,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             }
         }
 
-        public static object ToJsonModel(Extension extension, Site site, string path)
+        internal static object ToJsonModel(Extension extension, Site site, string path)
         {
             if (extension == null) {
                 return null;

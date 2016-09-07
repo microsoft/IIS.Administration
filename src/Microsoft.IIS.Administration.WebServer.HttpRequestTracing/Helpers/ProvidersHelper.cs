@@ -23,13 +23,11 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return Helper.GetTraceProviderDefinitionSection(site, path, configPath).TraceProviderDefinitions;
         }
 
-        public static object ToJsonModel(TraceProviderDefinition provider, Site site, string path, Fields fields = null)
+        internal static object ToJsonModel(TraceProviderDefinition provider, Site site, string path, Fields fields = null, bool full = true)
         {
             if (provider == null) {
                 return null;
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null) {
                 fields = Fields.All;
@@ -195,9 +193,14 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             }
         }
 
-        public static object ToJsonModelRef(TraceProviderDefinition provider, Site site, string path)
+        public static object ToJsonModelRef(TraceProviderDefinition provider, Site site, string path, Fields fields = null)
         {
-            return ToJsonModel(provider, site, path, RefFields);
+            if (fields == null || !fields.HasFields) {
+                return ToJsonModel(provider, site, path, RefFields, false);
+            }
+            else {
+                return ToJsonModel(provider, site, path, fields, false);
+            }
         }
 
         public static string GetLocation(string id)

@@ -85,8 +85,7 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
             Fields fields = Context.Request.GetFields();
 
             var obj = new {
-                worker_processes = wps.Select(wp => fields.HasFields ? WorkerProcessHelper.WpToJsonModel(wp, fields) :
-                                                                       WorkerProcessHelper.ToJsonModelRef(wp))
+                worker_processes = wps.Select(wp => WorkerProcessHelper.ToJsonModelRef(wp, fields))
             };
 
             return obj;

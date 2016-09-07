@@ -207,7 +207,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             }
         }
 
-        public static object ToJsonModel(UrlRule url, Site site, string path)
+        internal static object ToJsonModel(UrlRule url, Site site, string path)
         {
             if (url == null) {
                 return null;

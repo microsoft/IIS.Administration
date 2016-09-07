@@ -39,7 +39,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             Fields fields = Context.Request.GetFields();
 
             return new {                
-                rules = rules.Select(rule => fields.HasFields ? AuthorizationHelper.RuleToJsonModel(rule, site, id.Path, fields) : AuthorizationHelper.RuleToJsonModelRef(rule, site, id.Path))
+                rules = rules.Select(rule => AuthorizationHelper.RuleToJsonModelRef(rule, site, id.Path, fields))
             };
         }
 

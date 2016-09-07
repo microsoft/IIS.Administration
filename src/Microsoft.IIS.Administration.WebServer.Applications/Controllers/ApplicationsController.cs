@@ -56,8 +56,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
             Fields fields = Context.Request.GetFields();
 
             return new {
-                webapps = apps.Select(app => fields.HasFields ? ApplicationHelper.ToJsonModel(app.Application, app.Site, fields) :
-                                                                ApplicationHelper.ToJsonModelRef(app.Application, app.Site))
+                webapps = apps.Select(app => ApplicationHelper.ToJsonModelRef(app.Application, app.Site, fields))
             };
         }
 

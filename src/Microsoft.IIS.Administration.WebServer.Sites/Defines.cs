@@ -12,7 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         private const string ENDPOINT = "websites";
 
         public const string WebsitesName = "Microsoft.WebServer.WebSites";
-        public const string WebsiteName = "Microsoft.WebServer.Website";
+        public const string WebsiteName = "Microsoft.WebServer.WebSite";
         public static readonly string PATH = $"{WebServer.Defines.PATH}/{ENDPOINT}";
         public static readonly ResDef Resource = new ResDef("websites", new Guid("4E9A2B7A-927B-4D59-BFCA-2904AA31F721"), ENDPOINT);
         public const string IDENTIFIER = "website.id";

@@ -21,6 +21,7 @@ namespace Microsoft.IIS.Administration.Tests
         ITestOutputHelper _output;
 
         public static readonly string VDIR_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/virtual-directories";
+        public static readonly string TEST_VDIR_PATH = $@"{Sites.TEST_SITE_PATH}\test_vdir";
 
         public VirtualDirectories(ITestOutputHelper output)
         {

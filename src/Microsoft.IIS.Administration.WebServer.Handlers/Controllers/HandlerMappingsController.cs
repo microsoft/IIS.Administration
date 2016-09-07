@@ -40,7 +40,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             Fields fields = Context.Request.GetFields();
 
             return new {
-                entries = mappings.Select(mapping => fields.HasFields ? MappingsHelper.ToJsonModel(mapping, site, id.Path, fields) : MappingsHelper.ToJsonModelRef(mapping, site, id.Path))
+                entries = mappings.Select(mapping => MappingsHelper.ToJsonModelRef(mapping, site, id.Path, fields))
             };
         }
 

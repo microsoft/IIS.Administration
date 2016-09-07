@@ -259,7 +259,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
             }
         }
 
-        public static object ToJsonModel(Site site, string path)
+        internal static object ToJsonModel(Site site, string path)
         {
             // Dynamic ip security section added in iis 8.0
             var hasDynamic = ManagementUnit.ServerManager.GetApplicationHostConfiguration().HasSection(IPRestrictionsGlobals.DynamicIPSecuritySectionName);
@@ -370,13 +370,11 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
             return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj, false);
         }
 
-        public static object RuleToJsonModel(Rule rule, Site site, string path, Fields fields = null)
+        internal static object RuleToJsonModel(Rule rule, Site site, string path, Fields fields = null, bool full = true)
         {
             if (rule == null) {
                 return null;
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null) {
                 fields = Fields.All;
@@ -421,9 +419,14 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
             return Core.Environment.Hal.Apply(Defines.RulesResource.Guid, obj, full);
         }
 
-        public static object RuleToJsonModelRef(Rule rule, Site site, string path)
+        public static object RuleToJsonModelRef(Rule rule, Site site, string path, Fields fields = null)
         {
-            return RuleToJsonModel(rule, site, path, RuleRefFields);
+            if (fields == null || !fields.HasFields) {
+                return RuleToJsonModel(rule, site, path, RuleRefFields, false);
+            }
+            else {
+                return RuleToJsonModel(rule, site, path, fields, false);
+            }
         }
 
 

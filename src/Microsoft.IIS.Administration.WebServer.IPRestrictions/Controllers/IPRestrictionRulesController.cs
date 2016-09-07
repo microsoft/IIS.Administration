@@ -42,7 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
             Fields fields = Context.Request.GetFields();
 
             return new {
-                entries = rules.Select(rule => fields.HasFields ? IPRestrictionsHelper.RuleToJsonModel(rule, site, ipId.Path, fields) : IPRestrictionsHelper.RuleToJsonModelRef(rule, site, ipId.Path))
+                entries = rules.Select(rule => IPRestrictionsHelper.RuleToJsonModelRef(rule, site, ipId.Path, fields))
             };
         }
 

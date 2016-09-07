@@ -20,6 +20,7 @@ namespace Microsoft.IIS.Administration.Tests
         ITestOutputHelper _output;
 
         public static readonly string APPLICATION_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/webapps";
+        public static readonly string TEST_APPLICATION_PATH = $@"{Sites.TEST_SITE_PATH}\test_application";
 
 
         public Applications(ITestOutputHelper output)

@@ -64,8 +64,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
             Fields fields = Context.Request.GetFields();
 
             return new {
-                requests = requests.Select(r => fields.HasFields ? RequestHelper.ToJsonModel(r, fields) : 
-                                                                   RequestHelper.ToJsonModelRef(r))
+                requests = requests.Select(r => RequestHelper.ToJsonModelRef(r, fields))
             };
         }
 

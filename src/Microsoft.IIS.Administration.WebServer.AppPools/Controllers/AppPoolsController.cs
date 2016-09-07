@@ -24,7 +24,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
 
             // Get reference models for app pool collection
             var pools = ManagementUnit.ServerManager.ApplicationPools.Select(pool => 
-                            fields.HasFields ? AppPoolHelper.ToJsonModel(pool, fields) : AppPoolHelper.ToJsonModelRef(pool)).ToList();
+                            AppPoolHelper.ToJsonModelRef(pool, fields));
 
             // Set HTTP header for total count
             this.Context.Response.SetItemsCount(pools.Count());

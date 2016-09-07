@@ -227,7 +227,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return Core.Environment.Hal.Apply(Defines.QueryStringResource.Guid, obj, false);
         }
 
-        public static object ToJsonModel(QueryStringRule queryString, Site site, string path)
+        internal static object ToJsonModel(QueryStringRule queryString, Site site, string path)
         {
             if (queryString == null) {
                 return null;

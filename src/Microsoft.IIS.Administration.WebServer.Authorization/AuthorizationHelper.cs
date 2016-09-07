@@ -134,7 +134,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return $"/{Defines.RULES_PATH}/{id}";
         }
 
-        public static object ToJsonModel(Site site, string path)
+        internal static object ToJsonModel(Site site, string path)
         {
             var section = GetSection(site, path);
 
@@ -179,14 +179,12 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return Core.Environment.Hal.Apply(Defines.AuthorizationResource.Guid, obj, false);
         }
 
-        public static object RuleToJsonModel(Rule rule, Site site, string path, Fields fields = null)
+        internal static object RuleToJsonModel(Rule rule, Site site, string path, Fields fields = null, bool full = true)
         {
             if (rule == null)
             {
                 return null;
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null)
             {
@@ -237,9 +235,14 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return Core.Environment.Hal.Apply(Defines.RulesResource.Guid, obj, full);
         }
 
-        public static object RuleToJsonModelRef(Rule rule, Site site, string path)
+        public static object RuleToJsonModelRef(Rule rule, Site site, string path, Fields fields = null)
         {
-            return RuleToJsonModel(rule, site, path, RuleRefFields);
+            if (fields == null || !fields.HasFields) {
+                return RuleToJsonModel(rule, site, path, RuleRefFields, false);
+            }
+            else {
+                return RuleToJsonModel(rule, site, path, fields, false);
+            }
         }
 
         private static void SetRule(Rule rule, dynamic model)

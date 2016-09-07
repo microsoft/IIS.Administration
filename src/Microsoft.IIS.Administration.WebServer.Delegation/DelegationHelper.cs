@@ -32,7 +32,7 @@ namespace Microsoft.IIS.Administration.WebServer.Delegation
             }
         }
 
-        public static object SectionToJsonModel(ConfigurationSection section, Site site, string path, string configScope)
+        internal static object SectionToJsonModel(ConfigurationSection section, Site site, string path, string configScope)
         {
             if(section == null) {
                 return null;

@@ -21,7 +21,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
         private const string LogTargetW3CAttribute = "logTargetW3C";
         private const string CustomFieldsElement = "customFields";
 
-        public static object ToJsonModel(Site site, string path)
+        internal static object ToJsonModel(Site site, string path)
         {
             LogSection logSection = GetLogSection(site, path);
             HttpLoggingSection httpLogSection = GetHttpLoggingSection(site, path);

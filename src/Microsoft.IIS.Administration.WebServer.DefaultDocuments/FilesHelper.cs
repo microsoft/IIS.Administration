@@ -19,7 +19,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
             return DefaultDocumentHelper.GetDefaultDocumentSection(site, path).Files.ToList();
         }
 
-        public static object ToJsonModel(File file, Site site, string path)
+        internal static object ToJsonModel(File file, Site site, string path)
         {
             if (file == null) {
                 return null;

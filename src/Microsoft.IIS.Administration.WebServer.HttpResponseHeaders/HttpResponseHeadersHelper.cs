@@ -42,7 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             }
         }
 
-        public static object ToJsonModel(Site site, string path)
+        internal static object ToJsonModel(Site site, string path)
         {
             HttpProtocolSection section = GetSection(site, path);
 

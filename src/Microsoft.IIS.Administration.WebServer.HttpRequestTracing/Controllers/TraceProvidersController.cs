@@ -38,7 +38,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             Fields fields = Context.Request.GetFields();
 
             return new {
-                providers = providers.Select(p => fields.HasFields ? ProvidersHelper.ToJsonModel(p, site, hrtId.Path, fields) : ProvidersHelper.ToJsonModelRef(p, site, hrtId.Path))
+                providers = providers.Select(p => ProvidersHelper.ToJsonModelRef(p, site, hrtId.Path, fields))
             };
         }
 

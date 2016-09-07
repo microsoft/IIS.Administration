@@ -43,7 +43,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
 
             return new
             {
-                mime_maps = mappings.Select(m => fields.HasFields ? MimeMapHelper.ToJsonModel(m, site, id.Path, fields) : MimeMapHelper.ToJsonModelRef(m, site, id.Path))
+                mime_maps = mappings.Select(m => MimeMapHelper.ToJsonModelRef(m, site, id.Path, fields))
             };
         }
 

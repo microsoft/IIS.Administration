@@ -134,13 +134,11 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             ManagementUnit.ServerManager.Sites.Remove(site);
         }
 
-        public static object ToJsonModel(Site site, Fields fields = null)
+        internal static object ToJsonModel(Site site, Fields fields = null, bool full = true)
         {
             if (site == null) {
                 return null;
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if(fields == null) {
                 fields = Fields.All;
@@ -228,15 +226,20 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             if (fields.Exists("application_pool")) {
                 Application rootApp = site.Applications["/"];
                 var pool = rootApp != null ? AppPoolHelper.GetAppPool(rootApp.ApplicationPoolName) : null;
-                obj.application_pool = (pool == null) ? null : AppPoolHelper.ToJsonModelRef(pool);
+                obj.application_pool = (pool == null) ? null : AppPoolHelper.ToJsonModelRef(pool, fields.Filter("application_pool"));
             }
 
             return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj, full);
         }
 
-        public static object ToJsonModelRef(Site site)
+        public static object ToJsonModelRef(Site site, Fields fields = null)
         {
-            return ToJsonModel(site, RefFields);
+            if (fields == null || !fields.HasFields) {
+                return ToJsonModel(site, RefFields, false);
+            }
+            else {
+                return ToJsonModel(site, fields, false);
+            }
         }
 
         public static string GetLocation(string id) {

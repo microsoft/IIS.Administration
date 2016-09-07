@@ -133,13 +133,11 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
             return collection.ToList();
         }
 
-        public static object ToJsonModel(MimeMap mimeMap, Site site, string path, Fields fields = null)
+        internal static object ToJsonModel(MimeMap mimeMap, Site site, string path, Fields fields = null, bool full = true)
         {
             if (mimeMap == null) {
                 return null;
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null)
             {
@@ -177,10 +175,14 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
 
         }
 
-        public static object ToJsonModelRef(MimeMap mimeMap, Site site, string path)
+        public static object ToJsonModelRef(MimeMap mimeMap, Site site, string path, Fields fields = null)
         {
-            return ToJsonModel(mimeMap, site, path, RefFields);
-
+            if (fields == null || !fields.HasFields) {
+                return ToJsonModel(mimeMap, site, path, RefFields, false);
+            }
+            else {
+                return ToJsonModel(mimeMap, site, path, fields, false);
+            }
         }
 
         public static string GetLocation(string id)

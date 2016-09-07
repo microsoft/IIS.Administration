@@ -117,7 +117,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
             }
         }
 
-        public static object ToJsonModel(Application app, Site site, Fields fields = null) {
+        internal static object ToJsonModel(Application app, Site site, Fields fields = null, bool full = true) {
             if (app == null) {
                 return null;
             }
@@ -125,8 +125,6 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
             if(site == null) {
                 throw new ArgumentNullException("site");
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null) {
                 fields = Fields.All;
@@ -168,21 +166,27 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
 
             // website
             if (fields.Exists("website")) {
-                obj.website = SiteHelper.ToJsonModelRef(site);
+                obj.website = SiteHelper.ToJsonModelRef(site, fields.Filter("website"));
             }
 
             //
             // application_pool
             if (fields.Exists("application_pool")) {
                 ApplicationPool pool = AppPoolHelper.GetAppPool(app.ApplicationPoolName);
-                obj.application_pool = pool != null ? AppPoolHelper.ToJsonModelRef(pool) : null;
+                obj.application_pool = pool != null ? AppPoolHelper.ToJsonModelRef(pool, fields.Filter("application_pool")) : null;
             }
 
             return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj, full);
         }
 
-        public static object ToJsonModelRef(Application app, Site site) {
-            return ToJsonModel(app, site, RefFields);
+        public static object ToJsonModelRef(Application app, Site site, Fields fields = null)
+        {
+            if (fields == null || !fields.HasFields) {
+                return ToJsonModel(app, site, RefFields, false);
+            }
+            else {
+                return ToJsonModel(app, site, fields, false);
+            }
         }
 
         public static Site ResolveSite(dynamic model = null)

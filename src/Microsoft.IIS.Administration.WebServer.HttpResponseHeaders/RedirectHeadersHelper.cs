@@ -132,7 +132,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             }
         }
 
-        public static object ToJsonModel(NameValueConfigurationElement header, Site site, string path)
+        internal static object ToJsonModel(NameValueConfigurationElement header, Site site, string path)
         {
             if (header == null) {
                 return null;

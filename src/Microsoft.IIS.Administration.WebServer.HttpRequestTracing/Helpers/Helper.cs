@@ -17,7 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return GetTraceFailedRequestsSection(site, path).IsLocallyStored;
         }
 
-        public static object ToJsonModel(Site site, string path)
+        internal static object ToJsonModel(Site site, string path)
         {
             var section = GetTraceFailedRequestsSection(site, path);
             var providersSection = GetTraceProviderDefinitionSection(site, path);

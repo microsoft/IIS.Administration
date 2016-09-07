@@ -121,7 +121,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             }
         }
 
-        public static object ToJsonModel(HeaderLimit headerLimit, Site site, string path)
+        internal static object ToJsonModel(HeaderLimit headerLimit, Site site, string path)
         {
             if (headerLimit == null) {
                 return null;

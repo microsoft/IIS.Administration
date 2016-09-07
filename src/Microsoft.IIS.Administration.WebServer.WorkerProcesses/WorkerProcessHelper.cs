@@ -90,16 +90,19 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
             Process.GetProcessById(wp.ProcessId).Kill();
         }
 
-        public static object ToJsonModelRef(WorkerProcess wp) {
-            return WpToJsonModel(wp, RefFields);
+        public static object ToJsonModelRef(WorkerProcess wp, Fields fields = null) {
+            if (fields == null || !fields.HasFields) {
+                return WpToJsonModel(wp, RefFields, false);
+            }
+            else {
+                return WpToJsonModel(wp, fields, false);
+            }
         }
 
-        public static object WpToJsonModel(WorkerProcess wp, Fields fields = null) {
+        internal static object WpToJsonModel(WorkerProcess wp, Fields fields = null, bool full = true) {
             if (wp == null) {
                 throw new ArgumentNullException(nameof(wp));
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null) {
                 fields = Fields.All;

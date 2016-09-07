@@ -34,7 +34,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             Fields fields = Context.Request.GetFields();
 
             return new {
-                global_modules = modules.Select(globalModule => fields.HasFields ? ModuleHelper.GlobalModuleToJsonModel(globalModule, fields) : ModuleHelper.GlobalModuleToJsonModelRef(globalModule))
+                global_modules = modules.Select(globalModule => ModuleHelper.GlobalModuleToJsonModelRef(globalModule, fields))
             };
         }
 

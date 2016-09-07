@@ -30,7 +30,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", doc => new { href = DefaultDocumentHelper.GetLocation(doc.id) });
 
             // Files
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, "entries", doc => new { href = $"/{Defines.FILES_PATH}?{Defines.IDENTIFIER}={doc.id}" });
+            Environment.Hal.ProvideLink(Defines.Resource.Guid, "files", doc => new { href = $"/{Defines.FILES_PATH}?{Defines.IDENTIFIER}={doc.id}" });
 
             // DefaultDocument File
             Environment.Hal.ProvideLink(Defines.FilesResource.Guid, "self", file => new { href = FilesHelper.GetLocation(file.id) });

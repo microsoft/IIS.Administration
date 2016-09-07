@@ -24,15 +24,13 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return Helper.GetTraceFailedRequestsSection(site, path, configPath).TraceRules;
         }
 
-        public static object ToJsonModel(TraceRule rule, Site site, string path, Fields fields = null)
+        internal static object ToJsonModel(TraceRule rule, Site site, string path, Fields fields = null, bool full = true)
         {
             if (rule == null) {
                 return null;
             }
 
             RuleId ruleId = new RuleId(site?.Id, path, rule.Path);
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null) {
                 fields = Fields.All;
@@ -127,9 +125,14 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return Core.Environment.Hal.Apply(Defines.RulesResource.Guid, obj, full);
         }
 
-        public static object ToJsonModelRef(TraceRule rule, Site site, string path)
+        public static object ToJsonModelRef(TraceRule rule, Site site, string path, Fields fields = null)
         {
-            return ToJsonModel(rule, site, path, RefFields);
+            if (fields == null || !fields.HasFields) {
+                return ToJsonModel(rule, site, path, RefFields, false);
+            }
+            else {
+                return ToJsonModel(rule, site, path, fields, false);
+            }
         }
 
         public static TraceRule CreateRule(dynamic model, Site site, string path, string configPath = null)

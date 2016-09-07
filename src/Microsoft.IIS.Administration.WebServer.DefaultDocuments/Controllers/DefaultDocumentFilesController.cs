@@ -37,7 +37,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
             List<File> files = FilesHelper.GetFiles(site, docId.Path);
 
             return new {
-                entries = files.Select(f => FilesHelper.ToJsonModelRef(f, site, docId.Path))
+                files = files.Select(f => FilesHelper.ToJsonModelRef(f, site, docId.Path))
             };
         }
 

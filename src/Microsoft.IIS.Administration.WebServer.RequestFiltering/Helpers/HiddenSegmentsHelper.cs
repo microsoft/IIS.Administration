@@ -93,7 +93,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             }
         }
 
-        public static object ToJsonModel(HiddenSegment segment, Site site, string path)
+        internal static object ToJsonModel(HiddenSegment segment, Site site, string path)
         {
             if (segment == null) {
                 return null;

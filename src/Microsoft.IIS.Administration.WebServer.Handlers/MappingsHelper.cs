@@ -152,14 +152,12 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             }
         }
 
-        public static object ToJsonModel(Mapping mapping, Site site, string path, Fields fields = null)
+        internal static object ToJsonModel(Mapping mapping, Site site, string path, Fields fields = null, bool full = true)
         {
             if (mapping == null)
             {
                 return null;
             }
-
-            bool full = fields == null || !fields.HasFields;
 
             if (fields == null)
             {
@@ -259,9 +257,14 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             return Core.Environment.Hal.Apply(Defines.MappingsResource.Guid, obj, full);
         }
 
-        public static object ToJsonModelRef(Mapping mapping, Site site, string path)
+        public static object ToJsonModelRef(Mapping mapping, Site site, string path, Fields fields = null)
         {
-            return ToJsonModel(mapping, site, path, RefFields);
+            if (fields == null || !fields.HasFields) {
+                return ToJsonModel(mapping, site, path, RefFields, false);
+            }
+            else {
+                return ToJsonModel(mapping, site, path, fields, false);
+            }
         }
 
         public static string GetLocation(string id) {
