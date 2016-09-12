@@ -109,7 +109,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
 
             //
             // Create response
-            dynamic application = (dynamic) ApplicationHelper.ToJsonModel(app, site);
+            dynamic application = (dynamic) ApplicationHelper.ToJsonModel(app, site, Context.Request.GetFields());
             return Created((string)ApplicationHelper.GetLocation(application.id), application);
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
 
             //
             // Create response
-            dynamic application = ApplicationHelper.ToJsonModel(app, site);
+            dynamic application = ApplicationHelper.ToJsonModel(app, site, Context.Request.GetFields());
 
             // The Id could change by changing path.
             if (application.id != id) {

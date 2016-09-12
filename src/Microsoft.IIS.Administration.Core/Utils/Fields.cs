@@ -73,6 +73,10 @@ namespace Microsoft.IIS.Administration.Core.Utils {
         {
             field = field.Trim();
 
+            if (field == string.Empty) {
+                return;
+            }
+
             HasFields = true;
 
             if (field == "*") {

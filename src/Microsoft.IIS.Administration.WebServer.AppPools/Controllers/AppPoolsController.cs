@@ -71,7 +71,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
 
             //
             // Create response
-            dynamic appPool = (dynamic) AppPoolHelper.ToJsonModel(pool);
+            dynamic appPool = (dynamic) AppPoolHelper.ToJsonModel(pool, Context.Request.GetFields());
 
             return Created((string)AppPoolHelper.GetLocation(appPool.id), appPool);
         }
@@ -140,7 +140,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
 
             //
             // Create response
-            dynamic pool = AppPoolHelper.ToJsonModel(appPool);
+            dynamic pool = AppPoolHelper.ToJsonModel(appPool, Context.Request.GetFields());
 
             // The Id could change by changing apppool name
             if (pool.id != id) {

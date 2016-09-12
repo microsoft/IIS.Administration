@@ -95,7 +95,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
             //
             // Create response
-            dynamic website = (dynamic) SiteHelper.ToJsonModel(site);
+            dynamic website = (dynamic) SiteHelper.ToJsonModel(site, Context.Request.GetFields());
             return Created((string)SiteHelper.GetLocation(website.id), website);
         }
 
@@ -139,7 +139,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             // Refresh data
             site = ManagementUnit.ServerManager.Sites[site.Name];
 
-            return SiteHelper.ToJsonModel(site);
+            return SiteHelper.ToJsonModel(site, Context.Request.GetFields());
         }
 
         [HttpDelete]

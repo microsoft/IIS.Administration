@@ -141,7 +141,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
 
             //
             // Create response
-            dynamic virtualDir = (dynamic) VDirHelper.ToJsonModel(vdir, app, site);
+            dynamic virtualDir = (dynamic) VDirHelper.ToJsonModel(vdir, app, site, Context.Request.GetFields());
 
             return Created((string)VDirHelper.GetLocation(virtualDir.id), virtualDir);
         }
@@ -174,7 +174,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
 
             //            
             // Create response
-            dynamic virtualDir = VDirHelper.ToJsonModel(vdir, app, site);
+            dynamic virtualDir = VDirHelper.ToJsonModel(vdir, app, site, Context.Request.GetFields());
 
             // Id can change if path is different
             if (virtualDir.id != id) {
