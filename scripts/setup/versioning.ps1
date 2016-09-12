@@ -83,10 +83,17 @@ function Get-Latest($_path, $_serviceName) {
         return $null
     }
 
-    $vs = $previousInstallations | %{New-Object "System.Version" -ArgumentList $(Normalize-Version $_.Name)} | sort
+    $vs = @()
+    foreach ($pi in $previousInstallations) {
+        $nv = Normalize-Version $pi.Name
+        $v = $null
+        if ([System.Version]::TryParse($nv, [ref] $v)) {
+            $vs += $v
+        }
+    }
 
     # Default to the latest previous version that has a valid installation config specifying the target service
-    for ($i = $vs.Length -1; $i -ge 0; $i--) {
+    for ($i = $vs.Length - 1; $i -ge 0; $i--) {
         $installConfig = .\installationconfig.ps1 Get -Path (Join-Path $_path $vs[$i].ToString())
         if ($installConfig -ne $null -and $installConfig.ServiceName -eq $_serviceName) {            
             return (Join-Path $_path $vs[$i].ToString())

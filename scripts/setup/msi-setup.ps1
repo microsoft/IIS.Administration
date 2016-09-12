@@ -86,10 +86,11 @@ function Upgrade() {
         .\install.ps1 -Path $adminRoot -Port 0 -DistributablePath $Path -Version $Version -ServiceName $ServiceName -DontCopy
         $installed = $true
         .\migrate.ps1 -Source $latest -Destination $(Join-Path $adminRoot $Version)
+        .\uninstall.ps1 -Path $latest -KeepFiles
     }
     catch {
         if ($installed) {
-            .\uninstall.ps1  -Path $adminRoot -Version $Version -KeepFiles
+            .\uninstall.ps1 -Path $(Join-Path $adminRoot $version) -KeepFiles
         }
         throw $_
     }

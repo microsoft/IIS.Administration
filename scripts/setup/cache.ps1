@@ -40,7 +40,7 @@ function Store($_path, $_name) {
 
     # Ensure directory structure created
     Remove-Item -Force -Recurse $finalPath -ErrorAction SilentlyContinue
-    New-Item -Force $finalPath -ErrorAction Stop | Out-Null
+    New-Item -Type File -Force $finalPath -ErrorAction Stop | Out-Null
     Remove-Item -Force -Recurse $finalPath
 
     Copy-Item -Force -Recurse $_path $finalPath -ErrorAction Stop

@@ -20,33 +20,12 @@ $OptionalFeatureCommand = Get-Command "Get-WindowsOptionalFeature" -ErrorAction 
 $AddFeatureCommand = Get-Command "Add-WindowsFeature" -ErrorAction SilentlyContinue
 
 function IisEnabled
-{    
-    # Server 2012 - 2016 use Get-WindowsOptionalFeature
-    # Server 2008 R2 uses Get-WindowsFeature
-    # Nano Server doesn't use either, and once IIS is installed, everything is installed
-
-    if ($OptionalFeatureCommand -ne $null) {
-        $webserverRole = Get-WindowsOptionalFeature -Online -FeatureName "IIS-WebServerRole" -Verbose:$false -ErrorAction SilentlyContinue
-        $webserver = Get-WindowsOptionalFeature -Online -FeatureName "IIS-WebServer" -Verbose:$false -ErrorAction SilentlyContinue
-
-        #
-        # Handle Nano Server case where IIS doesn't exist as an optional feature
-        if ($webserverRole -eq $null) {
-            $iis = Get-Service W3SVC -ErrorAction SilentlyContinue
-            if ($iis -eq $NULL) {
-                return $false
-            }
-            return $true
-        }
-
-        return $webserverRole.State -eq [Microsoft.Dism.Commands.FeatureState]::Enabled -and $webserver.State -eq [Microsoft.Dism.Commands.FeatureState]::Enabled
+{   
+    $iis = Get-Service W3SVC -ErrorAction SilentlyContinue
+    if ($iis -eq $NULL) {
+        return $false
     }
-    else {
-        $webserverRole = Get-WindowsFeature -Name Web-Server -Verbose:$false -ErrorAction Stop
-        $webserver = Get-WindowsFeature -Name Web-WebServer -Verbose:$false -ErrorAction Stop
-
-        return $webserverRole.Installed -and $webserver.Installed
-    }
+    return $true
 }
 
 function EnableIis {    
@@ -72,28 +51,10 @@ function EnableIis {
     }
 }
 
+# The only part of being enabled we worry about is whether the dll exists so that we can use it with our self host
 function WinAuthEnabled
 {
-    if ($OptionalFeatureCommand -ne $null) {
-        $winAuth = Get-WindowsOptionalFeature -Online -FeatureName "IIS-WindowsAuthentication" -Verbose:$false -ErrorAction SilentlyContinue
-
-        #
-        # Handle Nano Server case where IIS comes with all features
-        if ($winAuth -eq $null) {
-            $iis = Get-Service W3SVC -ErrorAction SilentlyContinue
-            if ($iis -eq $NULL) {
-                return $false
-            }
-            return $true
-        }
-        
-        return $winAuth.State -eq [Microsoft.Dism.Commands.FeatureState]::Enabled
-    }
-    else {
-        $winAuth = Get-WindowsFeature -Name Web-Windows-Auth -Verbose:$false -ErrorAction Stop
-
-        return $winAuth.Installed
-    }
+    return Test-Path $env:windir\system32\inetsrv\authsspi.dll
 }
 
 function EnableWinAuth {    
@@ -113,26 +74,7 @@ function EnableWinAuth {
 
 function HostableWebCoreEnabled
 {
-    if ($OptionalFeatureCommand -ne $null) {
-        $hwc = Get-WindowsOptionalFeature -Online -FeatureName "IIS-HostableWebCore" -Verbose:$false -ErrorAction SilentlyContinue
-
-        #
-        # Handle Nano Server case where IIS comes with all features
-        if ($hwc -eq $null) {
-            $iis = Get-Service W3SVC -ErrorAction SilentlyContinue
-            if ($iis -eq $NULL) {
-                return $false
-            }
-            return $true
-        }
-        
-        return $hwc.State -eq [Microsoft.Dism.Commands.FeatureState]::Enabled
-    }
-    else {
-        $hwc = Get-WindowsFeature -Name Web-WHC -Verbose:$false -ErrorAction Stop
-
-        return $hwc.Installed
-    }
+    return Test-Path $env:windir\system32\inetsrv\hwebcore.dll
 }
 
 function EnableHostableWebCore {  
