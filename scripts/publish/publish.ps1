@@ -209,8 +209,11 @@ if(!(Test-Path $outputPluginsFolder)) {
 # Only copying in assemblies that aren't already present
 Get-ChildItem $pluginFolder  | Copy-Item -Destination $outputPluginsFolder -Recurse -Force
 
-# Copy setup.ps1
+# Copy setup
 Copy-Item $(Join-Path $(Get-SolutionDirectory) scripts/setup) $OutputPath -Recurse -ErrorAction Stop
+
+# Copy thirdpartynotices.txt
+Copy-Item $(Join-Path $(Get-SolutionDirectory) ThirdPartyNotices.txt) $OutputPath -ErrorAction Stop
 
 
 # Place Admin Host
