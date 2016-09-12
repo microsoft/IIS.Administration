@@ -12,6 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
     using Sites;
     using System.IO;
     using System.Dynamic;
+    using Newtonsoft.Json.Linq;
 
     public static class VDirHelper
     {
@@ -122,9 +123,12 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             }
 
             //
-            // username
-            if (fields.Exists("username")) {
-                obj.username = vdir.UserName;
+            // identity
+            if (fields.Exists("identity")) {
+                obj.identity = new {
+                    username = vdir.UserName,
+                    logon_method = FriendlyLogonMethod(vdir.LogonMethod)
+                };
             }
 
             //
@@ -150,7 +154,6 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
                 return ToJsonModel(vdir, app, site, fields, false);
             }
         }
-
 
         public static string GetLocation(string id) {
             if (string.IsNullOrEmpty(id)) {
@@ -192,9 +195,39 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
                 vdir.PhysicalPath = physicalPath.Replace('/', '\\');
             }
 
-            vdir.LogonMethod = DynamicHelper.To<AuthenticationLogonMethod>(model.auth_logon_method) ?? vdir.LogonMethod;
-            vdir.Password = DynamicHelper.Value(model.password) ?? vdir.Password;
-            vdir.UserName = DynamicHelper.Value(model.username) ?? vdir.UserName;
+            if (model.identity != null) {
+                var identity = model.identity;
+
+                if (!(model.identity is JObject)) {
+                    throw new ApiArgumentException("model.identity", ApiArgumentException.EXPECTED_OBJECT);
+                }
+
+                DynamicHelper.If((object)identity.logon_method, v => vdir.LogonMethod = ToLogonMethod(v));
+                vdir.Password = DynamicHelper.Value(identity.password) ?? vdir.Password;
+                vdir.UserName = DynamicHelper.Value(identity.username) ?? vdir.UserName;
+            }
+        }
+
+        private static string FriendlyLogonMethod(AuthenticationLogonMethod logonMethod)
+        {
+            string name = Enum.GetName(typeof(AuthenticationLogonMethod), logonMethod);
+            if (name.Equals("cleartext", StringComparison.OrdinalIgnoreCase)) {
+                name = "network_cleartext";
+            }
+
+            return name.ToLower();
+        }
+
+        private static AuthenticationLogonMethod ToLogonMethod(string val)
+        {
+            AuthenticationLogonMethod ret;
+            if (val.Equals("network_cleartext", StringComparison.OrdinalIgnoreCase)) {
+                val = "cleartext";
+            }
+            if (!Enum.TryParse(val, true, out ret)) {
+                throw new ApiArgumentException("logon_method");
+            }
+            return ret;
         }
     }
 }
