@@ -28,6 +28,12 @@ Microsoft IIS Administration API
 #### Updating ####
 Running the install script will perform an in place update and will preserve user files.
 
+#### Dev Setup ####
+1. Open the solution in VS 2015, which will automatically trigger a package restore
+2. Build the solution
+3. Run the solution (F5) so Visual Studio automatically generates required IIS Express files
+4. Using PowerShell, run the **Configure-DevEnvironment.ps1** script in the scripts directory
+
 ## Examples ##
 
 ### Intialize Api Client ###
