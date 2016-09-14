@@ -2,8 +2,6 @@
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-#Requires -RunAsAdministrator
-#Requires -Version 4.0
 Param (
     [parameter(Mandatory=$true)]
     [string]
@@ -183,11 +181,11 @@ function Migrate {
     }
 
     if ($sourceSvc -ne $null -and $sourceSvc.Status -eq [System.ServiceProcess.ServiceControllerStatus]::Running) {
-        Stop-Service $sourceSvc -ErrorAction Stop
+        Stop-Service $sourceSvc.Name -ErrorAction Stop
         $migrateRollback.stoppedSourceService = $sourceSvc.Name
     }
     if ($destinationSvc.Status -eq [System.ServiceProcess.ServiceControllerStatus]::Running) {
-        Stop-Service $destinationSvc -ErrorAction Stop
+        Stop-Service $destinationSvc.Name -ErrorAction Stop
         $migrateRollback.stoppedDestinationService = $destinationSvc.Name
     }
 
@@ -199,23 +197,26 @@ function Migrate {
     # Modules should be the union of destination and source modules
     $oldModules = .\modules.ps1 Get-JsonContent -Path $(Join-Path $Source $userFiles["modules.json"])
     $newModules = .\modules.ps1 Get-JsonContent -Path $(Join-Path $Destination $userFiles["modules.json"])
-    $oldModules.modules = .\modules.ps1 Add-NewModules -OldModules $oldModules.modules -NewModules $newModules.modules
+    $joined = .\modules.ps1 Add-NewModules -OldModules $oldModules.modules -NewModules $newModules.modules
+    $ms = .\modules.ps1 Deserialize -Value $joined
+    $oldModules = @{modules = $ms}
 
     foreach ($fileName in $userFiles.keys) {
         Copy-Item -Force -Recurse $(Join-Path $Source $userFiles[$fileName]) $(Join-Path $Destination $userFiles[$fileName]) -ErrorAction SilentlyContinue
     }
-
     .\modules.ps1 Set-JsonContent -Path $(Join-Path $Destination $userFiles["modules.json"]) -JsonObject $oldModules
 
     $appHostPath = Join-Path $Destination host\applicationHost.config
     $appPath = Join-Path $Destination Microsoft.IIS.Administration
     $Port = $sourceSettings.Port
 
-    # Configure applicationHost.config based on install parameters
-    .\installationconfig.ps1 Write-AppHost -AppHostPath $appHostPath -ApplicationPath $appPath -Port $Port
+    $destDir = Get-Item $Destination
 
-    Start-Service $destinationSvc -ErrorAction Stop
-    Stop-Service $destinationSvc -ErrorAction Stop
+    # Configure applicationHost.config based on install parameters
+    .\installationconfig.ps1 Write-AppHost -AppHostPath $appHostPath -ApplicationPath $appPath -Port $Port -Version $destDir.Name
+
+    Start-Service $destinationSvc.Name -ErrorAction Stop
+    Stop-Service $destinationSvc.Name -ErrorAction Stop
 
     if ($sourceSvc -ne $null) { 
         $svc = .\services.ps1 Get-ServiceAsWmiObject -Name $sourceSvc.Name
@@ -270,7 +271,7 @@ function Migrate {
     }
 
     $svc = Get-Service $sourceSvc.Name
-    Start-Service $svc -ErrorAction Stop
+    Start-Service $svc.Name -ErrorAction Stop
 
     $migrateRollback.startedNewService = $sourceSettings.ServiceName
 
@@ -290,6 +291,7 @@ function Migrate {
 }
 
 try {
+    .\require.ps1 Is-Administrator
     Migrate
 }
 catch {

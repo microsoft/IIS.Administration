@@ -32,7 +32,11 @@ function GetCert($_name, $_thumbprint)
 	}
     
     if (-not([System.String]::IsNullOrEmpty($_name))) {
-        $certs = Get-ChildItem Cert:\LocalMachine\My | where {$_.DnsNameList -ne $null -and $_.DnsNameList.Contains("$_name")}
+        $certs = Get-ChildItem Cert:\LocalMachine\My | where {
+                 ($_.DnsNameList -ne $null -and $_.DnsNameList.Contains("$_name")) -or
+                 ($_.FriendlyName -eq $_name) -or
+                 ($_.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::DnsFromAlternativeName, $false) -eq $_name)
+        }
     }
     else {
         $certs = Get-ChildItem Cert:\LocalMachine\My | where {$_.Thumbprint -eq $_thumbprint}
@@ -57,7 +61,10 @@ function DeleteCert($_name, $_thumbprint)
         $files = Get-ChildItem -Recurse Cert:\LocalMachine | where {$_.Thumbprint -eq $_thumbprint}
     }
     foreach ($file in $files){
-        remove-item $file.PSPath 
+        $store = Get-Item $file.PSParentPath
+        $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+        $store.Remove($file)
+        $store.Close()
     }
 }
 

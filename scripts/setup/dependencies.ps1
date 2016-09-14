@@ -9,7 +9,9 @@ Param (
                  "WinAuthEnabled",
                  "EnableWinAuth",
                  "HostableWebCoreEnabled",
-                 "EnableHostableWebCore")]
+                 "EnableHostableWebCore",
+                 "NetFx3Enabled",
+                 "EnableNetFx3")]
     [string]
     $Command
 )
@@ -18,6 +20,27 @@ Param (
 $OptionalFeatureCommand = Get-Command "Get-WindowsOptionalFeature" -ErrorAction SilentlyContinue
 #SKU == 2008 R2
 $AddFeatureCommand = Get-Command "Add-WindowsFeature" -ErrorAction SilentlyContinue
+
+function Enable-Feature($_featureName) {
+    dism.exe /Online /Enable-Feature /FeatureName:"$_featureName"
+    if ($LASTEXITCODE -ne 0) {
+        throw $(new-object "System.ComponentModel.Win32Exception" -ArgumentList $LASTEXITCODE "Error enabling $_featureName")
+    }
+}
+
+function Feature-Enabled($_featureName) {
+    # Returns string[]
+    $info = dism.exe /Online /Get-FeatureInfo /FeatureName:"$_featureName"
+    if ($LASTEXITCODE -ne 0) {
+        throw $(new-object "System.ComponentModel.Win32Exception" -ArgumentList $LASTEXITCODE "Error checking state of $_featureName")
+    }
+    foreach ($line in $info) {
+        if ($line.StartsWith("State :")) {
+            return $line.Contains("Enabled")
+        }
+    }
+    throw "Could not get the state of $_featureName"
+}
 
 function IisEnabled
 {   
@@ -43,15 +66,20 @@ function EnableIis {
         Enable-WindowsOptionalFeature -Online -FeatureName "IIS-WebServerRole" -NoRestart -ErrorAction Stop
         Enable-WindowsOptionalFeature -Online -FeatureName "IIS-WebServer" -NoRestart -ErrorAction Stop
     }
-    else {
-        #SKU == 2008 R2
+    elseif ($AddFeatureCommand -ne $null) {
+        #SKU == 2008 R2 with PS Upgrade
         
         Add-WindowsFeature -Name Web-Server -ErrorAction Stop
         Add-WindowsFeature -Name Web-WebServer -ErrorAction Stop
     }
+    else {
+        dism.exe /Online /Enable-Feature /FeatureName:"IIS-WebServerRole" /FeatureName:"IIS-WebServer" /FeatureName:"WAS-ConfigurationAPI" /FeatureName:"WAS-NetFxEnvironment" /FeatureName:"WAS-ProcessModel" /FeatureName:"WAS-WindowsActivationService"
+        if ($LASTEXITCODE -ne 0) {
+            throw $(new-object "System.ComponentModel.Win32Exception" -ArgumentList $LASTEXITCODE "Error enabling IIS")
+        }
+    }
 }
 
-# The only part of being enabled we worry about is whether the dll exists so that we can use it with our self host
 function WinAuthEnabled
 {
     return Test-Path $env:windir\system32\inetsrv\authsspi.dll
@@ -68,13 +96,13 @@ function EnableWinAuth {
         Enable-WindowsOptionalFeature -Online -FeatureName "IIS-WindowsAuthentication" -NoRestart -ErrorAction Stop
     }
     else {
-        Add-WindowsFeature -Name Web-Windows-Auth -ErrorAction Stop
+        Enable-Feature "IIS-WindowsAuthentication"
     }
 }
 
 function HostableWebCoreEnabled
 {
-    return Test-Path $env:windir\system32\inetsrv\hwebcore.dll
+    return Feature-Enabled "IIS-HostableWebCore"
 }
 
 function EnableHostableWebCore {  
@@ -88,8 +116,16 @@ function EnableHostableWebCore {
         Enable-WindowsOptionalFeature -Online -FeatureName "IIS-HostableWebCore" -NoRestart -ErrorAction Stop
     }
     else {
-        Add-WindowsFeature -Name Web-WHC -ErrorAction Stop
+        Enable-Feature "IIS-WindowsAuthentication"
     }
+}
+
+function NetFx3Enabled {
+    return Feature-Enabled "NetFx3"
+}
+
+function EnableNetFx3 {
+    Enable-Feature "NetFx3"
 }
 
 switch ($Command)
@@ -117,6 +153,14 @@ switch ($Command)
     "EnableHostableWebCore"
     {
         return EnableHostableWebCore
+    }
+    "NetFx3Enabled"
+    {
+        return NetFx3Enabled
+    }
+    "EnableNetFx3"
+    {
+        return EnableNetFx3
     }
     default
     {

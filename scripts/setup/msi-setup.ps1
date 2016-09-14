@@ -2,8 +2,6 @@
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-#Requires -RunAsAdministrator
-#Requires -Version 4.0
 Param(
     [parameter(Mandatory=$true , Position=0)]
     [ValidateSet("Install",
@@ -114,11 +112,13 @@ Require-Script "installationconfig"
 Require-Script "migrate"
 Require-Script "modules"
 Require-Script "network"
+Require-Script "require"
 Require-Script "services"
 Require-Script "uninstall"
 
 try {
     Push-Location $(Get-ScriptDirectory)
+    .\require.ps1 Is-Administrator
     
     switch($Command)
     {

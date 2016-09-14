@@ -29,6 +29,10 @@ Param (
     $ApplicationPath,
     
     [parameter()]
+    [string]
+    $Version,
+    
+    [parameter()]
     [int]
     $Port
 )
@@ -90,8 +94,8 @@ function Write-Config($obj, $_path) {
         throw "Path required."
     }
 
-    $xml = [xml]""
-    $xConfig = $xml.CreateElement("Configuration")
+    $xml = [xml]"<?xml version=`"1.0`" encoding=`"utf-8`"?><Configuration></Configuration>"
+    $xConfig = $xml.SelectSingleNode("Configuration")
 
     foreach ($key in $obj.keys) {     
            
@@ -106,7 +110,7 @@ function Write-Config($obj, $_path) {
     $sw.Dispose()
 }
 
-function Write-AppHost($_appHostPath, $_applicationPath, $_port) {
+function Write-AppHost($_appHostPath, $_applicationPath, $_port, $_version) {
 
     if ([string]::IsNullOrEmpty($_appHostPath)) {
         throw "AppHostPath required."
@@ -118,9 +122,11 @@ function Write-AppHost($_appHostPath, $_applicationPath, $_port) {
         throw "Port required."
     }
 
+    $IISAdminPoolName = "IISAdminAppPool" + $_version
     $IISAdminSiteName = "IISAdmin"
 
     [xml]$xml = Get-Content -Path "$_appHostPath"
+    $xml.configuration."system.applicationHost".applicationPools.Add.name = $IISAdminPoolName
     $sites = $xml.GetElementsByTagName("site")
 
     $site = $null;
@@ -134,6 +140,7 @@ function Write-AppHost($_appHostPath, $_applicationPath, $_port) {
         throw "Installation applicationHost.config does not contain IISAdmin site"
     }
 
+    $site.application.SetAttribute("applicationPool", "$IISAdminPoolName")
     $site.application.virtualDirectory.SetAttribute("physicalPath", "$_applicationPath")
     $site.bindings.binding.SetAttribute("bindingInformation", "*:$($_port):")
     $sw = New-Object System.IO.StreamWriter -ArgumentList $_appHostPath
@@ -161,7 +168,7 @@ switch ($Command)
     }
     "Write-AppHost"
     {
-        Write-AppHost $AppHostPath $ApplicationPath $Port
+        Write-AppHost $AppHostPath $ApplicationPath $Port $Version
     }
     default
     {

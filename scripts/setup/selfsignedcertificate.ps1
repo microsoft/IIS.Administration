@@ -91,7 +91,10 @@ function Create-SelfSignedCertificate($_subject, $_friendlyName, $_alternativeNa
 
     $cert.Encode()
 
-    $locator = $(New-Object "System.Guid").ToString()
+    $locator = $_friendlyName
+    if ($locator -eq $null) {
+        $locator = $(New-Object "System.Guid").ToString()
+    }
     $enrollment = new-object -com "X509Enrollment.CX509Enrollment"
     $enrollment.CertificateFriendlyName = $locator
     $enrollment.InitializeFromRequest($cert)
@@ -103,7 +106,6 @@ function Create-SelfSignedCertificate($_subject, $_friendlyName, $_alternativeNa
     do {
         $CACertificate = (Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.FriendlyName -eq $locator })
     } while ($CACertificate -eq $null -and $(Get-Date) -lt $end)
-    $CACertificate.FriendlyName = $_friendlyName
 
     return $CACertificate 
 }

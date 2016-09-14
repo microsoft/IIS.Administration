@@ -2,8 +2,6 @@
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-#Requires -RunAsAdministrator
-#Requires -Version 4.0
 Param(    
     [parameter(Mandatory=$true)]
     [string]
@@ -128,6 +126,24 @@ function InstallationPreparationCheck
 				Write-Warning "Could not enable IIS Hostable Web Core"
 				throw $_
 			}
+        }
+        Write-Verbose "Ok"
+        # We require.NET 3.5 for JSON manipulation if it isn't available through built in powershell commands
+        if ($(Get-Command "ConvertFrom-Json" -ErrorAction SilentlyContinue) -eq $null) {
+            Write-Verbose ".NET 3.5 required for setup to continue"
+            Write-Verbose "Verifying NetFx3 is Enabled"
+            $netfx3Enabled = .\dependencies.ps1 NetFx3Enabled
+            if (!$netfx3Enabled) {
+                Write-Warning "NetFx3 not enabled"
+			    Write-Host "Enabling NetFx3 (.NET Framework 3.5)"
+			    try {
+				    .\dependencies.ps1 EnableNetFx3
+			    }
+			    catch {
+				    Write-Warning "Could not enable NetFx3 (.NET Framework 3.5)"
+				    throw $_
+			    }
+            }
         }
 		Write-Verbose "Ok"
     }
@@ -366,7 +382,7 @@ function Install
     $appPath = Join-Path $adminRoot Microsoft.IIS.Administration
 
     # Configure applicationHost.config based on install parameters
-    .\installationconfig.ps1 Write-AppHost -AppHostPath $appHostPath -ApplicationPath $appPath -Port $Port
+    .\installationconfig.ps1 Write-AppHost -AppHostPath $appHostPath -ApplicationPath $appPath -Port $Port -Version $Version
 
     if (!$SkipIisAdministrators) {
         $group = .\activedirectory.ps1 GetLocalGroup -Name $(.\constants.ps1 IISAdministratorsGroupName)
@@ -474,6 +490,7 @@ function Install
 
 try {
     Push-Location $(Get-ScriptDirectory)
+    .\require.ps1 Is-Administrator
 
     CheckInstallParameters
     InstallationPreparationCheck

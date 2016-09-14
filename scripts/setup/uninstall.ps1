@@ -2,8 +2,6 @@
 # Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-#Requires -RunAsAdministrator
-#Requires -Version 4.0
 Param(    
     [parameter(Position=0)]
     [string]
@@ -25,6 +23,8 @@ Param(
     [switch]
     $KeepFiles
 )
+
+.\require.ps1 Is-Administrator
 
 function Uninstall($_path)
 {

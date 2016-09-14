@@ -51,7 +51,7 @@ function PortAvailable($portNo)
     }
     Finally
     {
-        $tcp.Dispose()
+        $tcp.Close()
     }
 }
 

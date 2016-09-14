@@ -191,7 +191,7 @@ function Add-SslBinding($_ipEndpoint, $_certificate, $_appId) {
         throw "App id required."
     }
     if (-not($_appId -is [System.Guid])) {
-        $_appId = [System.Guid]::Parse($_appId)
+        $_appId = New-Object "System.Guid" -ArgumentList $_appId
     }
 
     setSslConfiguration $_ipEndpoint $_certificate $_appId

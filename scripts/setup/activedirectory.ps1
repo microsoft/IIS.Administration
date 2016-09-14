@@ -162,7 +162,7 @@ function AddUserToGroup($userPath, $_group) {
         catch {
             # HRESULT -2147023518
             # The specified account name is already a member of the group.
-            if($_.Exception.InnerException -eq $null -or $_.Exception.InnerException.HResult -ne -2147023518) {
+            if($_.Exception.InnerException -eq $null -or ($_.Exception.InnerException.HResult -ne -2147023518 -and $_.Exception.InnerException.ErrorCode -ne -2147023518)) {
                 throw $_.Exception
             }
         }

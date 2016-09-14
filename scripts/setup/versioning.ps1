@@ -63,7 +63,7 @@ function Get-Latest($_path, $_serviceName) {
         return $null
     }
 
-    $previousInstallations = Get-ChildItem -Directory $_path
+    $previousInstallations = Get-ChildItem $_path | where {$_ -is [System.IO.DirectoryInfo]}
 
     # Check if there are any previous versions at the specified path
     if ($previousInstallations.Length -eq 0) {

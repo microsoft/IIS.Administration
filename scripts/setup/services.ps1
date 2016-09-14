@@ -54,7 +54,7 @@ function Get-ServiceAsWmiObject($_name) {
     $collection = $searcher.Get()
 
     if ($collection.Count -gt 0) {
-        return $collection[0]
+        return $($collection | Select -First 1)
     }
     return $null
 }
