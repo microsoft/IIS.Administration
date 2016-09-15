@@ -147,14 +147,8 @@ function InstallationPreparationCheck
         }
 		Write-Verbose "Ok"
     }
-	
-    Write-Verbose "Verifying AspNet Core Module is installed"
-	$aspNetCoreModuleSchemaInstalled = test-path "$env:windir\system32\inetsrv\config\schema\aspnetcore_schema.xml"
-    if (!$aspNetCoreModuleSchemaInstalled) {
-        Write-Warning "AspNet Core Module not installed"
-        Write-Warning "Download AspNet Core module from 'https://go.microsoft.com/fwlink/?LinkId=817246'"
-        throw "Cannot install IIS Administration API without AspNet Core Module being installed"
-    }
+    # Shared framework and ANCM
+    .\require.ps1 DotNetServerHosting
     Write-Verbose "Ok"
 
 	Write-Verbose "Checking if port `'$Port`' is available"

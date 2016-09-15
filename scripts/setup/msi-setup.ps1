@@ -100,6 +100,8 @@ function Uninstall() {
     .\uninstall.ps1 -Path $adminRoot -KeepFiles
 }
 
+Write-Host "Checking for mandatory installation scripts."
+
 Require-Script "acl"
 Require-Script "activedirectory"
 Require-Script "cache"
@@ -117,7 +119,9 @@ Require-Script "services"
 Require-Script "uninstall"
 
 try {
+    Write-Host "Entering installation directory"
     Push-Location $(Get-ScriptDirectory)
+    Write-Host "Ensuring installer is an Administrator"
     .\require.ps1 Is-Administrator
     
     switch($Command)
