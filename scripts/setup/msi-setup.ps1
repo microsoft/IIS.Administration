@@ -45,7 +45,7 @@ function CheckParameters() {
 function Install() {
     $adminRoot = $Path
 
-    $ServiceName = .\constants.ps1 DEFAULT_SERVICE_NAME
+    $ServiceName = .\globals.ps1 DEFAULT_SERVICE_NAME
     $svc = Get-Service $ServiceName -ErrorAction SilentlyContinue
     if ($svc -ne $null) {
         throw "$ServiceName already exists."
@@ -61,16 +61,16 @@ function Install() {
 
 function Upgrade() {
     $adminRoot = $Path
-    $ServiceName = .\constants.ps1 DEFAULT_SERVICE_NAME
+    $ServiceName = .\globals.ps1 DEFAULT_SERVICE_NAME
 
-    $latest = .\versioning.ps1 Get-Latest -Path $Path -ServiceName $ServiceName
+    $latest = .\ver.ps1 Get-Latest -Path $Path -ServiceName $ServiceName
 
     if ($latest -eq $null) {
         throw "Could not find installation to upgrade from"
     }
 
     $ver = $(Get-Item $latest).Name
-    if ($(.\versioning.ps1 Compare-Version -Left $Version -Right $ver) -le 0) {
+    if ($(.\ver.ps1 Compare-Version -Left $Version -Right $ver) -le 0) {
         throw "Cannot upgrade from $ver to $Version."
     }
     
@@ -100,26 +100,22 @@ function Uninstall() {
     .\uninstall.ps1 -Path $adminRoot -KeepFiles
 }
 
-Write-Host "Checking for mandatory installation scripts."
-
-Require-Script "acl"
-Require-Script "activedirectory"
 Require-Script "cache"
 Require-Script "cert"
-Require-Script "selfsignedcertificate"
-Require-Script "constants"
+Require-Script "config"
 Require-Script "dependencies"
-Require-Script "httpsys"
-Require-Script "installationconfig"
+Require-Script "globals"
 Require-Script "migrate"
 Require-Script "modules"
-Require-Script "network"
+Require-Script "net"
+Require-Script "netsh"
 Require-Script "require"
+Require-Script "security"
 Require-Script "services"
 Require-Script "uninstall"
+Require-Script "ver"
 
 try {
-    Write-Host "Entering installation directory"
     Push-Location $(Get-ScriptDirectory)
     Write-Host "Ensuring installer is an Administrator"
     .\require.ps1 Is-Administrator

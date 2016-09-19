@@ -14,41 +14,6 @@ Param (
 
 $Script:migrateRollback = @{}
 
-function Cache-UserFiles($root) {
-    # Copy all user files to temporary location
-    $userFiles = .\installationconfig.ps1 Get-UserFileMap
-    foreach ($fileName in $userFiles.keys) {
-
-        try {
-            .\cache.ps1 Store -Path $(Join-Path $root $userFiles[$fileName]) -Name $userFiles[$fileName]
-        }
-        catch {
-                
-            # Not generated until first run
-            if ($fileName -eq 'api-keys.json') {
-                Write-Warning "$filename could not be found for backup"
-                continue;
-            }
-
-            Write-Warning $_.Exception.Message
-            Write-Warning "Could not temporarily cache application files"
-                
-            throw;
-        }
-    }
-}
-
-function RestoreUserFiles($root) {
-    $userFiles = .\installationconfig.ps1 Get-UserFileMap
-    foreach ($fileName in $userFiles.keys) {
-        $item = .\cache.ps1 Get -Name $userFiles[$fileName]
-
-        if ($item -ne $null) {
-            Copy-Item -Force $item.FullName (Join-Path $root $userFiles[$fileName]) 
-        }
-    }
-}
-
 function Rollback {
     Write-Warning "Rolling back migration."
     
@@ -60,24 +25,6 @@ function Rollback {
         }
         catch {
             Write-Warning "Could not stop newly created service $($migrateRollback.startedNewService)"
-        }
-    }
-
-    #
-    # Restore destination service we may have deleted
-    if ($migrateRollback.deletedDestinationSvc -ne $null) {
-
-        $name = $migrateRollback.deletedDestinationSvc.Name
-        $startType = $migrateRollback.deletedDestinationSvcStartType
-        $binaryPath = $migrateRollback.deletedDestinationSvcImagePath
-
-        Write-Host "Rolling back service $name"
-
-        try {
-            New-Service -BinaryPathName $binaryPath -StartupType $startType -DisplayName $name -Name $name -ErrorAction Stop | Out-Null
-        }
-        catch {
-            Write-Warning "Could not restore the $($name) service."
         }
     }
 
@@ -110,28 +57,7 @@ function Rollback {
         catch {
             Write-Warning "Could not restore the $($name) service."
         }
-    }
-
-    #
-    # Restore destination user files we cached
-    if ($migrateRollback.cachedUserFiles -ne $null) {
-        "Rolling back destination application files"
-
-        RestoreUserFiles $migrateRollback.cachedUserFiles
-    }
-
-    #
-    # Restart destination service we stopped
-    if ($migrateRollback.stoppedDestinationService -ne $null) {
-        Write-Host "Restarting the $($migrateRollback.stoppedDestinationService) service."
-
-        try {
-            Start-Service $migrateRollback.stoppedDestinationService -ErrorAction Stop
-        }
-        catch {
-            Write-Warning "Could not restart destination service"
-        }
-    }    
+    }  
 
     #
     # Restart source service we stopped
@@ -155,7 +81,7 @@ function Migrate {
         throw "Destination path required."
     }
 
-    $sourceSettings = .\installationconfig.ps1 Get -Path $Source
+    $sourceSettings = .\config.ps1 Get -Path $Source
 
     if ($sourceSettings -eq $null) {
         throw "Cannot find installation settings for source."
@@ -164,7 +90,7 @@ function Migrate {
         throw "Cannot find source service name."
     }
 
-    $destinationSettings = .\installationconfig.ps1 Get -Path $Destination
+    $destinationSettings = .\config.ps1 Get -Path $Destination
 
     if ($destinationSettings -eq $null) {
         throw "Cannot find installation settings for destination."
@@ -186,13 +112,9 @@ function Migrate {
     }
     if ($destinationSvc.Status -eq [System.ServiceProcess.ServiceControllerStatus]::Running) {
         Stop-Service $destinationSvc.Name -ErrorAction Stop
-        $migrateRollback.stoppedDestinationService = $destinationSvc.Name
     }
 
-    $userFiles = .\installationconfig.ps1 Get-UserFileMap
-
-    Cache-UserFiles $Destination
-    $migrateRollback.cachedUserFiles = $Destination
+    $userFiles = .\config.ps1 Get-UserFileMap
 
     # Modules should be the union of destination and source modules
     $oldModules = .\modules.ps1 Get-JsonContent -Path $(Join-Path $Source $userFiles["modules.json"])
@@ -213,7 +135,7 @@ function Migrate {
     $destDir = Get-Item $Destination
 
     # Configure applicationHost.config based on install parameters
-    .\installationconfig.ps1 Write-AppHost -AppHostPath $appHostPath -ApplicationPath $appPath -Port $Port -Version $destDir.Name
+    .\config.ps1 Write-AppHost -AppHostPath $appHostPath -ApplicationPath $appPath -Port $Port -Version $destDir.Name
 
     Start-Service $destinationSvc.Name -ErrorAction Stop
     Stop-Service $destinationSvc.Name -ErrorAction Stop
@@ -258,14 +180,9 @@ function Migrate {
             throw "Could not access service information through WMI."
         }
 
-        $migrateRollback.deletedDestinationSvc = $destinationSvc
-        $migrateRollback.deletedDestinationSvcStartType = $destinationSvc.StartType
-        $migrateRollback.deletedDestinationSvcImagePath = $svc.PathName
-
         sc.exe delete "$($destinationSvc.Name)" | Out-Null
 
         if ($LASTEXITCODE -ne 0) {
-            $migrateRollback.deletedDestinationSvc -eq $null
             throw "Could not delete destination service"
         }
     }
@@ -285,7 +202,7 @@ function Migrate {
 		CertificateThumbprint = $sourceSettings.CertificateThumbprint
     }
 
-    .\installationconfig.ps1 Write-Config -ConfigObject $installObject -Path $Destination
+    .\config.ps1 Write-Config -ConfigObject $installObject -Path $Destination
 
     Write-Host "Migration complete, URI: https://localhost:$Port"
 }

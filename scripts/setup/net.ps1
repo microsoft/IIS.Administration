@@ -79,7 +79,7 @@ function SslBindingExists($portNo)
     ValidatePort $portno
 
     $ipEndpoint = New-Object "System.Net.IPEndPoint" -ArgumentList ([System.Net.IPAddress]::Any, $portNo)
-    $binding = .\httpsys.ps1 Get-SslBinding -IpEndpoint $ipEndpoint
+    $binding = .\netsh.ps1 Get-SslBinding -IpEndpoint $ipEndpoint
 
     return $binding -ne $null
 }
@@ -89,7 +89,7 @@ function GetBoundCertificateInfo($portNo) {
     ValidatePort($portNo)
 
     $ipEndpoint = New-Object "System.Net.IPEndPoint" -ArgumentList ([System.Net.IPAddress]::Any, $portNo)
-    return .\httpsys.ps1 Get-SslBinding -IpEndpoint $ipEndpoint
+    return .\netsh.ps1 Get-SslBinding -IpEndpoint $ipEndpoint
 }
 
 function BindCertificate($_hash, $portNo, $_appId)
@@ -99,7 +99,7 @@ function BindCertificate($_hash, $portNo, $_appId)
     $ipEndpoint = New-Object "System.Net.IPEndPoint" -ArgumentList ([System.Net.IPAddress]::Any, $portNo)
     $certificate = Get-Item "Cert:\LocalMachine\my\$_hash"
 
-    .\httpsys.ps1 Add-SslBinding -IpEndpoint $ipEndpoint -Certificate $certificate -AppId $_appId
+    .\netsh.ps1 Add-SslBinding -IpEndpoint $ipEndpoint -Certificate $certificate -AppId $_appId
 }
 
 function DeleteHttpsBinding($portNo)
@@ -108,7 +108,7 @@ function DeleteHttpsBinding($portNo)
 
     if(SslBindingExists $portNo) {
         $ipEndpoint = New-Object "System.Net.IPEndPoint" -ArgumentList ([System.Net.IPAddress]::Any, $portNo)
-        .\httpsys.ps1 Delete-SslBinding -IpEndpoint $ipEndpoint
+        .\netsh.ps1 Delete-SslBinding -IpEndpoint $ipEndpoint
     }
     else {
         Write-Verbose "No HTTP.Sys binding exists for port $portNo"

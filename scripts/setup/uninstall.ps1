@@ -30,11 +30,11 @@ function Uninstall($_path)
 {
     $adminRoot = $_path
 
-	if (!(.\installationconfig.ps1 Exists -Path $adminRoot)) { 
+	if (!(.\config.ps1 Exists -Path $adminRoot)) { 
 		throw "Cannot find setup.config file for uninstall. Cannot continue"
 	}
 
-    $installedSettings = .\installationconfig.ps1 Get -Path $adminRoot
+    $installedSettings = .\config.ps1 Get -Path $adminRoot
 
     if ($Port -eq 0) {
         $Port = $installedSettings.Port
@@ -65,12 +65,12 @@ function Uninstall($_path)
 
     if ($DeleteBinding) {
         Write-Verbose "Deleting SSL binding"
-        .\network.ps1 DeleteSslBinding -Port $Port
+        .\net.ps1 DeleteSslBinding -Port $Port
     }
 
     if ($DeleteGroup) {
-        Write-Verbose "Deleting $(.\constants.ps1 IISAdministratorsGroupName) group"
-        .\activedirectory.ps1 RemoveLocalGroup -Name $(.\constants.ps1 IISAdministratorsGroupName)
+        Write-Verbose "Deleting $(.\globals.ps1 IISAdministratorsGroupName) group"
+        .\security.ps1 RemoveLocalGroup -Name $(.\globals.ps1 IISAdministratorsGroupName)
     }
 
     if ($ownsSvc) {
@@ -82,7 +82,7 @@ function Uninstall($_path)
     $InstallationDirectory = Get-Item $adminRoot -ErrorAction SilentlyContinue
     if ($InstallationDirectory -ne $null) {   
         try {
-            .\acl.ps1 Add-SelfRights -Path $InstallationDirectory.FullName
+            .\security.ps1 Add-SelfRights -Path $InstallationDirectory.FullName
         }
         catch {
             Write-Warning "Unable to obtain full control of installation directory"

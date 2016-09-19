@@ -152,7 +152,7 @@ function InstallationPreparationCheck
     Write-Verbose "Ok"
 
 	Write-Verbose "Checking if port `'$Port`' is available"
-    $available = .\network.ps1 IsAvailable -Port $Port
+    $available = .\net.ps1 IsAvailable -Port $Port
     if ($available) {
         Write-Verbose Ok
     }
@@ -162,10 +162,10 @@ function InstallationPreparationCheck
 
     if (!$SkipIisAdministrators) {
         Write-Verbose "Verifying that IIS Administrators group does not already exist"
-        $group = .\activedirectory.ps1 GetLocalGroup -Name $(.\constants.ps1 IISAdministratorsGroupName)
+        $group = .\security.ps1 GetLocalGroup -Name $(.\globals.ps1 IISAdministratorsGroupName)
 
         # It is okay if IIS Administrators group already exists if it is our group
-        if ($group -ne $null -and (-not (.\activedirectory.ps1 GroupEquals -Group $group -Name $(.\constants.ps1 IISAdministratorsGroupName) -Description $(.\constants.ps1 IISAdministratorsDescription) ))) {
+        if ($group -ne $null -and (-not (.\security.ps1 GroupEquals -Group $group -Name $(.\globals.ps1 IISAdministratorsGroupName) -Description $(.\globals.ps1 IISAdministratorsDescription) ))) {
             throw "IIS Administrators group already exists."
         }  
     }
@@ -221,7 +221,7 @@ function rollback() {
         Write-Host "Rolling back HTTP.Sys port binding" 
 
         try {
-            .\network.ps1 DeleteSslBinding -Port $rollbackStore.newBoundCertPort
+            .\net.ps1 DeleteSslBinding -Port $rollbackStore.newBoundCertPort
         }
         catch {
             Write-Warning "Could not roll back SSL binding on port $($rollbackStore.newBoundCertPort)"
@@ -235,7 +235,7 @@ function rollback() {
         $info = $rollbackStore.preboundCertInfo
         try {
             Write-Host "Rolling back deleted SSL binding on port $($info.IpEndpoint.Port)"
-            .\network.ps1 BindCert -Hash $($info.CertificateHash) -AppId $($info.AppId) -Port $($info.IpEndpoint.Port)
+            .\net.ps1 BindCert -Hash $($info.CertificateHash) -AppId $($info.AppId) -Port $($info.IpEndpoint.Port)
         }
         catch {
             Write-Warning "Could not restore previous SSL binding"
@@ -264,7 +264,7 @@ function rollback() {
     if ($rollbackStore.iisAdministratorsGroup -ne $null) {
         Write-Host "Rolling back IIS Administrators group creation" 
 
-        .\activedirectory.ps1 RemoveLocalGroup -Name $rollbackStore.iisAdministratorsGroup
+        .\security.ps1 RemoveLocalGroup -Name $rollbackStore.iisAdministratorsGroup
     }
 
     #
@@ -325,7 +325,7 @@ function Install
     }
 
     # Check for a previous installation at the installation path provided
-    $previousInstallSettings = .\installationconfig.ps1 Get -Path $adminRoot
+    $previousInstallSettings = .\config.ps1 Get -Path $adminRoot
 
     if ($previousInstallSettings -ne $null) {
         throw "Cannot overwrite previous installation."
@@ -337,7 +337,7 @@ function Install
         throw "Service with name: `'$ServiceName`' already exists"
     }
 
-    if (!(.\network.ps1 IsAvailable -Port $Port)) {
+    if (!(.\net.ps1 IsAvailable -Port $Port)) {
 
 		# Make sure we don't scan for available port if explicit port was specified
 		if ($PortIsExplicit) {
@@ -346,7 +346,7 @@ function Install
 		}
 
 		try {
-			$Port = .\network.ps1 GetAvailable -Port $Port
+			$Port = .\net.ps1 GetAvailable -Port $Port
 		}
 		catch {
 			throw $_
@@ -354,7 +354,7 @@ function Install
     }
 
     # Construct an access rule that allows full control for Administrators
-    .\acl.ps1 SetAdminAcl -Path $adminRoot
+    .\security.ps1 SetAdminAcl -Path $adminRoot
 
     if (-not($DontCopy)) {
         Write-Host "Copying files"
@@ -376,19 +376,19 @@ function Install
     $appPath = Join-Path $adminRoot Microsoft.IIS.Administration
 
     # Configure applicationHost.config based on install parameters
-    .\installationconfig.ps1 Write-AppHost -AppHostPath $appHostPath -ApplicationPath $appPath -Port $Port -Version $Version
+    .\config.ps1 Write-AppHost -AppHostPath $appHostPath -ApplicationPath $appPath -Port $Port -Version $Version
 
     if (!$SkipIisAdministrators) {
-        $group = .\activedirectory.ps1 GetLocalGroup -Name $(.\constants.ps1 IISAdministratorsGroupName)
+        $group = .\security.ps1 GetLocalGroup -Name $(.\globals.ps1 IISAdministratorsGroupName)
     
         if ($group -eq $null) {
-            $group = .\activedirectory.ps1 CreateLocalGroup -Name $(.\constants.ps1 IISAdministratorsGroupName) -Description $(.\constants.ps1 IISAdministratorsDescription)
+            $group = .\security.ps1 CreateLocalGroup -Name $(.\globals.ps1 IISAdministratorsGroupName) -Description $(.\globals.ps1 IISAdministratorsDescription)
             $rollbackStore.iisAdministratorsGroup = $group
         }
 
         # Add the user running the installer to the IIS Administrators group
-        $currentUser = .\activedirectory.ps1 CurrentAdUser
-        .\activedirectory.ps1 AddUserToGroup -AdPath $currentUser -Group $group
+        $currentUser = .\security.ps1 CurrentAdUser
+        .\security.ps1 AddUserToGroup -AdPath $currentUser -Group $group
     }
 
     # Need a cert to bind to the port the API is supposed to listen on
@@ -406,12 +406,12 @@ function Install
     }
     else {
 
-        $cert = .\cert.ps1 Get -Name $(.\constants.ps1 CERT_NAME)
+        $cert = .\cert.ps1 Get -Name $(.\globals.ps1 CERT_NAME)
         if ($cert -eq $null) {
             # No valid cert exists, we must create one to enable HTTPS
 
             Write-Verbose "Creating new IIS Administration Certificate"
-            $cert = .\cert.ps1 New -Name $(.\constants.ps1 CERT_NAME)
+            $cert = .\cert.ps1 New -Name $(.\globals.ps1 CERT_NAME)
             $rollbackStore.createdCertThumbprint = $cert.Thumbprint;
 
             Write-Verbose "Adding the certificate to trusted store"
@@ -434,10 +434,10 @@ function Install
 		Date = date
 		CertificateThumbprint = $cert.thumbprint
     }
-    .\installationconfig.ps1 Write-Config -ConfigObject $installObject -Path $adminRoot
+    .\config.ps1 Write-Config -ConfigObject $installObject -Path $adminRoot
     
     # Get the certificate currently bound on desired installation port if any
-    $preboundCert = .\network.ps1 GetSslBindingInfo -Port $Port
+    $preboundCert = .\net.ps1 GetSslBindingInfo -Port $Port
 
     # If a certificate is bound we delete it to bind our cert
     if ( $preboundCert -ne $null) {
@@ -445,16 +445,16 @@ function Install
 
         # Remove any preexisting HTTPS. binding on the specified port
         Write-Verbose "Deleting certificate from port $Port in HTTP.Sys"
-        .\network.ps1 DeleteSslBinding -Port $Port | Out-Null
+        .\net.ps1 DeleteSslBinding -Port $Port | Out-Null
     }
 
     Write-Verbose "Binding Certificate to port $Port in HTTP.Sys"
 
-    .\network.ps1 BindCert -Hash $cert.thumbprint -Port $Port -AppId $(.\constants.ps1 IIS_HWC_APP_ID)  | Out-Null
+    .\net.ps1 BindCert -Hash $cert.thumbprint -Port $Port -AppId $(.\globals.ps1 IIS_HWC_APP_ID)  | Out-Null
     $rollbackStore.newBoundCertPort = $Port
 
     $platform = "onecore"
-    if (!$(.\constants.ps1 ONECORE)) {
+    if (!$(.\globals.ps1 ONECORE)) {
         $platform = "win32"
     }
 
@@ -475,7 +475,7 @@ function Install
         throw "Could not install service"
     }
 
-	sc.exe description "$ServiceName" "$(.\constants.ps1 SERVICE_DESCRIPTION)" | Out-Null
+	sc.exe description "$ServiceName" "$(.\globals.ps1 SERVICE_DESCRIPTION)" | Out-Null
 
     .\cache.ps1 Destroy
 

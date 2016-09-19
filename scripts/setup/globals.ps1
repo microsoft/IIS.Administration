@@ -30,7 +30,7 @@ switch ($Command)
     }
     "DEFAULT_INSTALL_PATH"
     {
-        return Join-Path $env:ProgramFiles $(.\constants.ps1 DEFAULT_ADMIN_ROOT_NAME)
+        return Join-Path $env:ProgramFiles $(.\globals.ps1 DEFAULT_ADMIN_ROOT_NAME)
     }
     # Application id for IIS Hostable Web Core
     "IIS_HWC_APP_ID"

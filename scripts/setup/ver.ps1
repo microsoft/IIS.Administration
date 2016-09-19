@@ -5,8 +5,6 @@
 Param (
     [parameter(Mandatory=$true , Position=0)]
     [ValidateSet("Get-Latest",
-                 "Remove-Subversion",
-                 "Get-SubVersion",
                  "Compare-Version")]
     [string]
     $Command,
@@ -53,7 +51,7 @@ function Get-Latest($_path, $_serviceName) {
         throw "Path required."
     }
     if ([string]::IsNullOrEmpty($_serviceName)) {
-        $_serviceName = .\constants.ps1 DEFAULT_SERVICE_NAME
+        $_serviceName = .\globals.ps1 DEFAULT_SERVICE_NAME
         $serviceRequired = $true
     }
 
@@ -94,7 +92,7 @@ function Get-Latest($_path, $_serviceName) {
 
     # Default to the latest previous version that has a valid installation config specifying the target service
     for ($i = $vs.Length - 1; $i -ge 0; $i--) {
-        $installConfig = .\installationconfig.ps1 Get -Path (Join-Path $_path $vs[$i].ToString())
+        $installConfig = .\config.ps1 Get -Path (Join-Path $_path $vs[$i].ToString())
         if ($installConfig -ne $null -and $installConfig.ServiceName -eq $_serviceName) {            
             return (Join-Path $_path $vs[$i].ToString())
         }

@@ -59,7 +59,7 @@ function Require-Script($name) {
 
 function CheckInstallParameters() {
     if ([string]::IsNullOrEmpty($Path)) {
-        $Script:path = .\constants.ps1 DEFAULT_INSTALL_PATH
+        $Script:path = .\globals.ps1 DEFAULT_INSTALL_PATH
     }
     if ([String]::IsNullOrEmpty($DistributablePath)){
         $script:DistributablePath = $(Resolve-Path $(Join-Path $(Get-ScriptDirectory) ..)).Path
@@ -83,7 +83,7 @@ function CheckInstallParameters() {
 
 function CheckUninstallParameters() {
     if ([string]::IsNullOrEmpty($Path)) {
-        $Script:path = .\constants.ps1 DEFAULT_INSTALL_PATH
+        $Script:path = .\globals.ps1 DEFAULT_INSTALL_PATH
     }
 }
 
@@ -91,20 +91,20 @@ function Install() {
     $adminRoot = $Path
 
        
-    $latest = .\versioning.ps1 Get-Latest -Path $adminRoot
+    $latest = .\ver.ps1 Get-Latest -Path $adminRoot
 
     if ($latest -ne $null) {
         Upgrade
     }
     else {
-        $ServiceName = .\constants.ps1 DEFAULT_SERVICE_NAME
+        $ServiceName = .\globals.ps1 DEFAULT_SERVICE_NAME
         .\install.ps1 -Path $adminRoot -Port $Port -SkipVerification:$SkipVerification -SkipIisAdministrators:$SkipIisAdministrators -DistributablePath $DistributablePath -CertHash $CertHash -Version $Version -ServiceName $ServiceName
     }
 }
 
 function Upgrade() {
     $adminRoot = $Path    
-    $latest = .\versioning.ps1 Get-Latest -Path $adminRoot
+    $latest = .\ver.ps1 Get-Latest -Path $adminRoot
 
     if ($latest -eq $null) {
         throw "Cannot find previous installation."
@@ -113,12 +113,12 @@ function Upgrade() {
     $item = Get-Item $latest
     $latestVersion = $item.Name
 
-    if ($(.\versioning.ps1 Compare-Version -Left $Version -Right $latestVersion) -le 0) {
+    if ($(.\ver.ps1 Compare-Version -Left $Version -Right $latestVersion) -le 0) {
         Write-Host "Application already installed"
         return
     }
 
-    $ServiceName = .\constants.ps1 DEFAULT_SERVICE_NAME
+    $ServiceName = .\globals.ps1 DEFAULT_SERVICE_NAME
     $svc = Get-Service $ServiceName -ErrorAction SilentlyContinue
     if ($svc -ne $null) {
         $ServiceName = $ServiceName + " $Version"
@@ -149,7 +149,7 @@ function Uninstall() {
 
     $validAdminRoot = $false
     foreach ($child in $children) {
-        if (.\installationconfig.ps1 Exists -Path $child.FullName) {
+        if (.\config.ps1 Exists -Path $child.FullName) {
 		    $validAdminRoot = $true
             break
         }
@@ -161,7 +161,7 @@ function Uninstall() {
 
     
     foreach ($child in $children) {
-        if (-not(.\installationconfig.ps1 Exists -Path $child.FullName)) {
+        if (-not(.\config.ps1 Exists -Path $child.FullName)) {
             Remove-Item -Recurse -Force $child.FullName -ErrorAction SilentlyContinue
         }
     }
@@ -188,21 +188,20 @@ function Uninstall() {
     }
 }
 
-Require-Script "acl"
-Require-Script "activedirectory"
 Require-Script "cache"
 Require-Script "cert"
-Require-Script "selfsignedcertificate"
-Require-Script "constants"
+Require-Script "config"
 Require-Script "dependencies"
-Require-Script "httpsys"
-Require-Script "installationconfig"
+Require-Script "globals"
 Require-Script "migrate"
 Require-Script "modules"
-Require-Script "network"
+Require-Script "net"
+Require-Script "netsh"
 Require-Script "require"
+Require-Script "security"
 Require-Script "services"
 Require-Script "uninstall"
+Require-Script "ver"
 
 try {
     Push-Location $(Get-ScriptDirectory)
