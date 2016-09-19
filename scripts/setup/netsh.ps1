@@ -180,6 +180,10 @@ function TerminateHttpSys() {
     return [Microsoft.IIS.Administration.Setup.Http]::HttpTerminate([Microsoft.IIS.Administration.Setup.Http]::HTTP_INITIALIZE_CONFIG, [System.IntPtr]::Zero)
 }
 
+# Binds an SSL certificate to the specified ip endpoint for use by HTTP.Sys.
+# IpEndpoint: The IP endpoint consists of the IP address and port for the certificate to be bound to.
+# Certificate: The Certificate to bind to the IP endpoint.
+# AppId: The unique ID that identifies the application the binding is being created for.
 function Add-SslBinding($_ipEndpoint, $_certificate, $_appId) {
     if ($_ipEndpoint -eq $null) {
         throw "Ip Endpoint required."
@@ -197,6 +201,8 @@ function Add-SslBinding($_ipEndpoint, $_certificate, $_appId) {
     setSslConfiguration $_ipEndpoint $_certificate $_appId
 }
 
+# Deletes an SSL binding that is registered for the specified IP endpoint.
+# IpEndpoint: The IP endpoint consists of the IP address and port for the certificate to be deleted from.
 function Delete-SslBinding($_ipEndpoint) {
     if ($_ipEndpoint -eq $null) {
         throw "Ip Endpoint required."
@@ -205,6 +211,8 @@ function Delete-SslBinding($_ipEndpoint) {
     setSslConfiguration $_ipEndpoint $null $([System.Guid]::Empty)
 }
 
+# Retrieves an SSL binding that is registered for the specified IP endpoint. Returns NULL if no binding exists.
+# IpEndpoint: The IP endpoint consists of the IP address and port for the certificate to be deleted from.
 function Get-SslBinding($_ipEndpoint) {
     if ($_ipEndpoint -eq $null) {
         throw "Ip Endpoint required."

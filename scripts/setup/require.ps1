@@ -10,6 +10,7 @@ Param(
     $Command
 )
 
+# Throws if the caller is not an Administrator
 function Is-Administrator {
     Write-Verbose "Verifying user is an Administrator"
     if (-not(([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
@@ -18,6 +19,7 @@ function Is-Administrator {
     Write-Verbose "Ok"
 }
 
+# Throws if DotNet Server Hosting has not been installed.
 function DotNetServerHosting {
     Write-Verbose "Verifying .NET Core shared framework installed"
     if($(Get-Command "dotnet.exe" -ErrorAction SilentlyContinue) -eq $null) {

@@ -38,6 +38,9 @@ Param (
     $AlternativeNames = ""
 )
 
+# Retrieves an X509 certificate from the 'local machine\my' store.
+# Name: Used to filter the certificate by Dns Name or Friendly Name
+# Thumbprint: Used to filter the certificate by its thumbprint (hash).
 function GetCert($_name, $_thumbprint)
 {
 
@@ -47,10 +50,10 @@ function GetCert($_name, $_thumbprint)
     
     if (-not([System.String]::IsNullOrEmpty($_name))) {
         $certs = Get-ChildItem Cert:\LocalMachine\My | where {
-                 ($_.DnsNameList -ne $null -and $_.DnsNameList.Contains("$_name")) -or
-                 ($_.FriendlyName -eq $_name) -or
-                 ($_.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::DnsFromAlternativeName, $false) -eq $_name)
-        }
+                     ($_.DnsNameList -ne $null -and $_.DnsNameList.Contains("$_name")) -or
+                     ($_.FriendlyName -eq $_name) -or
+                     ($_.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::DnsFromAlternativeName, $false) -eq $_name)
+                 }
     }
     else {
         $certs = Get-ChildItem Cert:\LocalMachine\My | where {$_.Thumbprint -eq $_thumbprint}
@@ -62,6 +65,9 @@ function GetCert($_name, $_thumbprint)
     return $certs
 }
 
+# Deletes an X509 certificate from the local machine.
+# Name: Used to filter the certificate by Dns Name or Friendly Name
+# Thumbprint: Used to filter the certificate by its thumbprint (hash).
 function DeleteCert($_name, $_thumbprint)
 {	
 	if ([System.String]::IsNullOrEmpty($_name) -and [System.String]::IsNullOrEmpty($_thumbprint)) {
@@ -69,7 +75,11 @@ function DeleteCert($_name, $_thumbprint)
 	}    
     
     if (-not([System.String]::IsNullOrEmpty($_name))) {
-        $files = Get-ChildItem -Recurse cert:\LocalMachine | where {$_.DnsNameList -ne $null -and $_.DnsNameList.Contains("$_name")}
+        $files = Get-ChildItem -Recurse Cert:\LocalMachine | where {
+                     ($_.DnsNameList -ne $null -and $_.DnsNameList.Contains("$_name")) -or
+                     ($_.FriendlyName -eq $_name) -or
+                     ($_.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::DnsFromAlternativeName, $false) -eq $_name)
+                 }
     }
     else {
         $files = Get-ChildItem -Recurse Cert:\LocalMachine | where {$_.Thumbprint -eq $_thumbprint}
@@ -82,6 +92,8 @@ function DeleteCert($_name, $_thumbprint)
     }
 }
 
+# Creates a new X509 certificate in the 'local machine\my' store.
+# Name: The friendly name for the certificate. Also included in subject alternative names list.
 function New($_name)
 {
 	if ([System.String]::IsNullOrEmpty($_name)) {
@@ -92,9 +104,11 @@ function New($_name)
     $dnsNames += "localhost"
 	$dnsNames += hostname
 	$dnsNames += "$_name"
-	return .\cert.ps1 Create -subject "localhost" -AlternativeNames $dnsNames -FriendlyName $_name -ErrorAction Stop
+	return Create-SelfSignedCertificate "localhost" $_name $dnsNames -ErrorAction Stop
 }
 
+# Added a specified x509certificate to the 'local machine\root' trusted store.
+# Cert: The certificate to add to the trusted store
 function AddToTrusted($cert)
 {
     if ($cert -eq $null) {
@@ -123,6 +137,10 @@ function AddToTrusted($cert)
     }
 }
 
+# Create a self signed certificate
+# Subject: The Subject (DNS Name) for the certificate
+# FriendlyName: The friendly name for the certificate
+# AlternativeNames: A list of alternative names used to identify the certificate
 function Create-SelfSignedCertificate($_subject, $_friendlyName, $_alternativeNames) {
     if ($_subject -eq $null) {
         throw "Subject required."

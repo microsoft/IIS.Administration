@@ -117,7 +117,6 @@ Require-Script "ver"
 
 try {
     Push-Location $(Get-ScriptDirectory)
-    Write-Host "Ensuring installer is an Administrator"
     .\require.ps1 Is-Administrator
     
     switch($Command)

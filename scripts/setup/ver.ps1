@@ -46,6 +46,10 @@ function Normalize-Version($_version) {
     return $newV
 }
 
+# Get the latest version of IIS Administration installed at the specified path.
+# Returns the path to the latest version
+# Path: The path to look for versioned applications.
+# ServiceName (optional): If service name is provided, the version of the application that is the owner of the service is returned
 function Get-Latest($_path, $_serviceName) {
     if ([string]::IsNullOrEmpty($_path)) {
         throw "Path required."
@@ -102,6 +106,10 @@ function Get-Latest($_path, $_serviceName) {
     return $null
 }
 
+# Compares two versions in the format "x.y.z".
+# Returns a negative int if $a < $b, 0 if $a == $b, a positive int if $a > $b.
+# Left: The first version for comparison.
+# Right: The second version for comparison.
 function Compare-Version($a, $b) {
     if ([string]::IsNullOrEmpty($a)) {
         throw "Left required."

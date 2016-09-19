@@ -35,6 +35,8 @@ function ValidatePort($portNo) {
     }
 }
 
+# Tests whether the specified port is available.
+# Port: The port to test.
 function PortAvailable($portNo)
 {
     ValidatePort($portNo)
@@ -55,6 +57,8 @@ function PortAvailable($portNo)
     }
 }
 
+# Retrieves the first available port at or after the provided start port.
+# Port: The port to start scanning on.
 function GetAvailablePort($startPort) {
 
     ValidatePort($startPort)
@@ -74,6 +78,8 @@ function GetAvailablePort($startPort) {
 	throw "No available port found"
 }
 
+# Tests whether an SSL binding exists for the specified port. The binding is assumed to listen on the broadcast IP Address 0.0.0.0
+# Port: The port to test.
 function SslBindingExists($portNo)
 {
     ValidatePort $portno
@@ -84,6 +90,8 @@ function SslBindingExists($portNo)
     return $binding -ne $null
 }
 
+# Gets the binding info that is used for a given port.
+# Port: The port to retrieve info for.
 function GetBoundCertificateInfo($portNo) {
 
     ValidatePort($portNo)
@@ -92,6 +100,10 @@ function GetBoundCertificateInfo($portNo) {
     return .\netsh.ps1 Get-SslBinding -IpEndpoint $ipEndpoint
 }
 
+# Binds a certificate to a specified port in HTTP.Sys.
+# Hash: The thumbprint (hash) of the certificate to bind.
+# Port: The port to bind to.
+# AppId: The unique application id used to bind the certificate.
 function BindCertificate($_hash, $portNo, $_appId)
 {
     ValidatePort($portNo)
@@ -102,6 +114,8 @@ function BindCertificate($_hash, $portNo, $_appId)
     .\netsh.ps1 Add-SslBinding -IpEndpoint $ipEndpoint -Certificate $certificate -AppId $_appId
 }
 
+# Deletes an HTTP.Sys binding for the specified port.
+# Port: The target port.
 function DeleteHttpsBinding($portNo)
 {
     ValidatePort($portNo)

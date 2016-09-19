@@ -41,6 +41,7 @@ Param(
 
 
 # Function not available on Nano Server
+# Retrieves the provider used to interact with Active Directory for the local machine.
 function GetLocalAd {
     $server = "$env:COMPUTERNAME"
     return [ADSI]"WinNT://$server,computer"
@@ -59,6 +60,8 @@ function GroupCommandletsAvailable() {
                 $addLocalGroupMemberCommand -ne $null)
 }
 
+# Retrieve a local group given the group name
+# Name: The name of the local group.
 function GetLocalGroup($groupName) {
     $group = $null;
 
@@ -83,6 +86,10 @@ function GetLocalGroup($groupName) {
     return $group;
 }
 
+# Check if a group is equal to another group with the provided name and description.
+# Group: The group to test for equality.
+# Name: Used to test for equality, must be equal to the Group parameter's name property for a true result.
+# Description: Used to test for equality, must be equal to the group paremeter's description property for a true result.
 function GroupEquals($group, $_name, $desc) {
     
     $description = $null
@@ -98,6 +105,9 @@ function GroupEquals($group, $_name, $desc) {
     return $group.Name -eq $_name -and $description -eq $desc
 }
 
+# Creates a local group with the specified name and description.
+# Name: The name for the local group.
+# Description: The description for the local group.
 function CreateLocalGroup($_name, $desc) {
 
 	if ([System.String]::IsNullOrEmpty($_name)) {
@@ -126,6 +136,8 @@ function CreateLocalGroup($_name, $desc) {
     return $group
 }
 
+# Deletes a local group by name.
+# Name: The name of the local group to delete.
 function RemoveLocalGroup($_name) {
 
 	if ([System.String]::IsNullOrEmpty($_name)) {
@@ -145,10 +157,14 @@ function RemoveLocalGroup($_name) {
     }
 }
 
+# Returns a representation of the current user for use in group manipulation
 function CurrentAdUser {
     return [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 }
 
+# Adds a user to a local group.
+# AdPath: the representation of the current user. Provided by CurrentAdUser.
+# Group: The group to add the user to.
 function AddUserToGroup($userPath, $_group) {
 
 	if ([System.String]::IsNullOrEmpty($userPath)) {
@@ -182,6 +198,8 @@ function AddUserToGroup($userPath, $_group) {
     }
 }
 
+# Restricts the directory at the specified path to administrators only.
+# Path: The path of the target directory.
 function Set-AdminAcl($_path) {
 
 	if ([System.String]::IsNullOrEmpty($_path)) {
@@ -226,6 +244,8 @@ function Set-AdminAcl($_path) {
     Set-Acl -Path $_path -AclObject $acl
 }
 
+# Gives full control of the directory at the specified path to the caller.
+# Path: The path of the target directory.
 function Add-SelfRights($_path) {
     $objUser = New-Object System.Security.Principal.NTAccount($env:USERNAME)
     $idRef = $objUser.Translate([System.Security.Principal.SecurityIdentifier])

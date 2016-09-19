@@ -33,6 +33,8 @@ Param (
     $Value
 )
 
+# Returns an object representation parsed from the given string.
+# Value: The string value to parse.
 function Deserialize($_content) {
     $fromJsonCommand = Get-Command "ConvertFrom-Json" -ErrorAction SilentlyContinue
     if ($fromJsonCommand -ne $null) {
@@ -45,6 +47,8 @@ function Deserialize($_content) {
     }
 }
 
+# Returns the JSON representation of an object as a string.
+# JsonObject: The object to serialize.
 function Serialize($_jsonObject) {
     $toJsonCommand = Get-Command "ConvertTo-Json" -ErrorAction SilentlyContinue
     if ($toJsonCommand -ne $null) {
@@ -57,6 +61,8 @@ function Serialize($_jsonObject) {
     }
 }
 
+# Returns the content of a file formatted with JSON as an object.
+# Path: The path to the file.
 function Get-JsonContent($_path)
 {
 	if ([System.String]::IsNullOrEmpty($_path)) {
@@ -78,6 +84,9 @@ function Get-JsonContent($_path)
     Deserialize $content
 }
 
+# Serializes an object and sets the content of the file at the given path to the serialized output.
+# Path: The path of the file to write the JSON result to.
+# JsonObject: The object to serialize.
 function Set-JsonContent($_path, $jsonObject) {
 
 	if ([System.String]::IsNullOrEmpty($_path)) {
@@ -99,6 +108,9 @@ function To-HashObject($o) {
     return $ret
 }
 
+# Given two arrays of modules, The union of the two are returned.
+# OldModules: The original modules list.
+# NewModules: The new modules list used to update.
 function Add-NewModules($_oldModules, $_newModules) {
 
     if ($_oldModules -eq $null) {

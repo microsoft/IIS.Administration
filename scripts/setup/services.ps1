@@ -22,6 +22,9 @@ Param (
     $Name
 )
 
+# Checks if a given path owns a service. This is done by checking if the executable for that service is a child of the provided path.
+# Service: The target service.
+# Path: The path to test for possesion of the service.
 function IsOwner($_service, $_path) {
     if ($_service -eq $null) {
         throw "Service required."
@@ -44,6 +47,8 @@ function IsOwner($_service, $_path) {
     return $ownsSvc
 }
 
+# Retrieves the WMI interface for a service given the services name.
+# Name: The name of the service.
 function Get-ServiceAsWmiObject($_name) {
     if ([string]::IsNullOrEmpty($_name)) {
         throw "Name required."

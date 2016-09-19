@@ -40,6 +40,7 @@ Param (
 # Name of file we place installation data in
 $INSTALL_FILE = "setup.config"
 
+# Returns a map of the files that contain user configurable settings.
 function Get-UserFileMap {
     return @{
         "applicationHost.config" = "host/applicationHost.config"
@@ -50,6 +51,8 @@ function Get-UserFileMap {
     }
 }
 
+# Tests whether a setup configuration exists at the given path.
+# Path: The path to test for existence of a setup configuration.
 function Exists($_path) {
 
     if ([string]::IsNullOrEmpty($_path)) {
@@ -59,6 +62,8 @@ function Exists($_path) {
     return Test-Path (Join-Path $_path $INSTALL_FILE)
 }
 
+# Returns an object representation of the setup configuration located at the specified path.
+# Path: The parent directory of the setup configuration.
 function Get($_path) {
 
     if ([string]::IsNullOrEmpty($_path)) {
@@ -88,6 +93,9 @@ function Get($_path) {
     return $installConfig
 }
 
+# Writes the provided object into a setup configuration at the specified path.
+# ConfigObject: The object to write into the setup configuration.
+# Path: The path to a directory to hold the setup configuration.
 function Write-Config($obj, $_path) {
 
     if ([string]::IsNullOrEmpty($_path)) {
@@ -110,6 +118,11 @@ function Write-Config($obj, $_path) {
     $sw.Dispose()
 }
 
+# Sets the applicationHost.config file to host the Microsoft.IIS.Administration application given the specified settings.
+# AppHostPath: The location of the applicationHost.config file.
+# ApplicationPath: The location of the application to register in the applicationHost.config file.
+# Port: The port to listen on.
+# Version: The version of the application.
 function Write-AppHost($_appHostPath, $_applicationPath, $_port, $_version) {
 
     if ([string]::IsNullOrEmpty($_appHostPath)) {
