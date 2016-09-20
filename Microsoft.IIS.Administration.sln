@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		scripts\setup\setup.ps1 = scripts\setup\setup.ps1
 		scripts\utils.ps1 = scripts\utils.ps1
+		scripts\setup\version.json = scripts\setup\version.json
 	EndProjectSection
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration", "src\Microsoft.IIS.Administration\Microsoft.IIS.Administration.xproj", "{9C2ED81D-E4BF-4BF1-A9A0-278654B89313}"

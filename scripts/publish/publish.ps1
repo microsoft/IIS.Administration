@@ -9,10 +9,13 @@ Param(
     
     [parameter()]
     [switch]
-    $ConfigDebug
+    $ConfigDebug,
+    
+    [parameter()]
+    [switch]
+    $SkipPrompt
 )
 
-$BASE_VERSION = "1.0.0"
 $applicationName = "Microsoft.IIS.Administration"
 
 function Get-ScriptDirectory
@@ -32,30 +35,34 @@ function Get-DefaultAppSettings
 
 function Bump-Version
 {
-    $v = [System.IO.File]::ReadAllText($(Join-Path $(Get-ScriptDirectory) "version.txt"))
-    $version = [System.Version]::New($v)
+    $v = Get-VersionObj
+    $version = [System.Version]::New($v.version)
     $bumpedVersion = [System.Version]::New($version.Major, $version.Minor, $version.Build + 1)
-    [System.IO.File]::WriteAllText($(Join-Path $(Get-ScriptDirectory) "version.txt"), $bumpedVersion.ToString())
+    $v.version = $bumpedVersion.ToString()
+    [System.IO.File]::WriteAllText($(Resolve-Path Join-Path $(Get-ScriptDirectory) "..\setup\version.json").Path, $(ConvertTo-Json $v))
 }
 
-function Get-Version
+function Get-VersionObj
 {
-    $versionPath = Join-Path $(Get-ScriptDirectory) "version.txt"
+    $versionPath = $(Resolve-Path $(Join-Path $(Get-ScriptDirectory) "..\setup\version.json")).Path
     if (-not(Test-Path $versionPath)) {
-        $version = [System.Version]::New($BASE_VERSION)
-        [System.IO.File]::WriteAllText($versionPath, $version.ToString())
+        throw "Could not find version."
     }
-    return [System.IO.File]::ReadAllText($versionPath)
+    $versionFile = Get-Item $versionPath -ErrorAction Stop
+    $versionText = [System.IO.File]::ReadAllText($versionFile.FullName)
+    return ConvertFrom-Json $versionText
 }
 
 function DeletePreExistingFiles($targetPath)
 {
     $items = Get-ChildItem $targetPath
 
-	$confirmation = Read-Host "Remove the contents of $targetPath ? (y/n)"
+	if (-not($SkipPrompt)) {
+		$confirmation = Read-Host "Remove the contents of $targetPath ? (y/n)"
 
-	if($confirmation -ne 'y') {
-		return
+		if($confirmation -ne 'y') {
+			return
+		}
 	}
 
     foreach($item in $items) {    
@@ -236,9 +243,5 @@ foreach ($pluginDll in $pluginDlls) {
 	}
 }
 
-# Place version
-$publishVersion = Get-Version
-$publishVersion | Out-File (Join-Path $OutputPath "Version.txt")
-Bump-Version
-
+$publishVersion = $(Get-VersionObj).version
 Write-Host "Finished publishing $applicationName $publishVersion"

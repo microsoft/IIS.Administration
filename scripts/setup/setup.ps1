@@ -68,12 +68,15 @@ function CheckInstallParameters() {
     if ($distributableDirectory -eq $null -or !($distributableDirectory -is [System.IO.DirectoryInfo])){
         Write-Verbose "Invalid DistributablePath directory: $DistributablePath"
     }    
-    $versionInfoPath = Join-Path $DistributablePath "Version.txt"
+    $versionInfoPath = Join-Path $DistributablePath "setup\version.json"
     if($(Get-Item $versionInfoPath -ErrorAction SilentlyContinue) -eq $null) {
         throw "Cannot find version information."
     }
     try {
-        $Script:Version = Get-Content $versionInfoPath -ErrorAction Stop
+        $Script:Version = $(.\modules.ps1 Get-JsonContent -Path $versionInfoPath).version
+        if ([string]::IsNullOrEmpty($Script:Version)) {
+            throw "Could not obtain version information."
+        }
     }
     catch {
         Write-Warning "Could not obtain version information."
