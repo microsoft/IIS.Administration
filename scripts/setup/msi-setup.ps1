@@ -84,11 +84,23 @@ function Upgrade() {
         .\install.ps1 -Path $adminRoot -Port 0 -DistributablePath $Path -Version $Version -ServiceName $ServiceName -DontCopy
         $installed = $true
         .\migrate.ps1 -Source $latest -Destination $(Join-Path $adminRoot $Version)
-        .\uninstall.ps1 -Path $latest -KeepFiles
+        try {            
+            .\uninstall.ps1 -Path $latest -KeepFiles
+        }
+        catch {
+            # Uninstall must not throw
+            Write-Warning -Exception $_.exception -Message $($_.Exception.Message + [Environment]::NewLine + $_.InvocationInfo.PositionMessage)
+        }
     }
     catch {
         if ($installed) {
-            .\uninstall.ps1 -Path $(Join-Path $adminRoot $version) -KeepFiles
+            try {
+                .\uninstall.ps1 -Path $(Join-Path $adminRoot $version) -KeepFiles
+            }
+            catch {
+                # Uninstall must not throw
+                Write-Warning -Exception $_.exception -Message $($_.Exception.Message + [Environment]::NewLine + $_.InvocationInfo.PositionMessage)
+            }
         }
         throw $_
     }
@@ -134,7 +146,13 @@ try {
         "Uninstall"
         {
             CheckParameters
-            Uninstall
+            try {
+                #Uninstall must not throw
+                Uninstall
+            }
+            catch {
+                Write-Warning -Exception $_.exception -Message $($_.Exception.Message + [Environment]::NewLine + $_.InvocationInfo.PositionMessage)
+            }
         }
         default
         {

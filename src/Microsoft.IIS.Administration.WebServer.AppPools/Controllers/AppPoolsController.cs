@@ -13,7 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
     using System.Threading;
     using Web.Administration;
     using Core.Http;
-    
+    using System;
+
     public class AppPoolsController : ApiBaseController {
         private const string HIDDEN_FIELDS = "model.identity.password";
 
@@ -72,6 +73,11 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             //
             // Create response
             dynamic appPool = (dynamic) AppPoolHelper.ToJsonModel(pool, Context.Request.GetFields());
+
+            // A newly created application should default to started state
+            if (pool.State == ObjectState.Unknown) {
+                appPool.status = Enum.GetName(typeof(Status), Status.Started).ToLower();
+            }
 
             return Created((string)AppPoolHelper.GetLocation(appPool.id), appPool);
         }

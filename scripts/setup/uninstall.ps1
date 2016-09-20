@@ -43,6 +43,9 @@ function Uninstall($_path)
     if ([String]::IsNullOrEmpty($ServiceName)) {
         $ServiceName = $installedSettings.ServiceName
     }
+    if ([String]::IsNullOrEmpty($ServiceName)) {
+        $ServiceName = ""
+    }
 
     $svc = Get-Service $ServiceName -ErrorAction SilentlyContinue
 

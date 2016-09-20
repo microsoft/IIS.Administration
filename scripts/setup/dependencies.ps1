@@ -116,7 +116,7 @@ function EnableHostableWebCore {
         Enable-WindowsOptionalFeature -Online -FeatureName "IIS-HostableWebCore" -NoRestart -ErrorAction Stop
     }
     else {
-        Enable-Feature "IIS-WindowsAuthentication"
+        Enable-Feature "IIS-HostableWebCore"
     }
 }
 
