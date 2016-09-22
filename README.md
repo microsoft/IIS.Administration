@@ -18,7 +18,7 @@ Microsoft IIS Administration API
 * \<OutputDirectory>\setup\setup.ps1 Install -verbose
 
 ### Using the new API ###
-1. Navigate to https://manage.iisqa.net?api_url=localhost
+1. Navigate to https://manage.iis.net?api_url=localhost
 2. Click 'Get Access Token'
 3. Generate an access token and copy it to the clipboard
 4. Exit the access tokens window and return to the connection screen
