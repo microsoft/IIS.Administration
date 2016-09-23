@@ -28,18 +28,18 @@ function AllowWebConfigOverrides {
 
 function AddCurrentUserToIISAdministrators {
     Write-Host "Configuring local IIS Administrators group."
-    $group = .\setup\activedirectory.ps1 GetLocalGroup -Name $(.\setup\constants.ps1 IISAdministratorsGroupName)
+    $group = .\setup\security.ps1 GetLocalGroup -Name $(.\setup\globals.ps1 IISAdministratorsGroupName)
     
-    if ($group -ne $null -and (-not (.\setup\activedirectory.ps1 GroupEquals -Group $group -Name $(.\setup\constants.ps1 IISAdministratorsGroupName) -Description $(.\setup\constants.ps1 IISAdministratorsDescription) ))) {
+    if ($group -ne $null -and (-not (.\setup\security.ps1 GroupEquals -Group $group -Name $(.\setup\globals.ps1 IISAdministratorsGroupName) -Description $(.\setup\globals.ps1 IISAdministratorsDescription) ))) {
         throw "Unknown IIS Administrators group exists."
     }
     else {
         if ($group -eq $null) {
-            $group = .\setup\activedirectory.ps1 CreateLocalGroup -Name $(.\setup\constants.ps1 IISAdministratorsGroupName) -Description $(.\setup\constants.ps1 IISAdministratorsDescription)
+            $group = .\setup\security.ps1 CreateLocalGroup -Name $(.\setup\globals.ps1 IISAdministratorsGroupName) -Description $(.\setup\globals.ps1 IISAdministratorsDescription)
         }
 
-        $currentUser = .\setup\activedirectory.ps1 CurrentAdUser
-        .\setup\activedirectory.ps1 AddUserToGroup -AdPath $currentUser -Group $group
+        $currentUser = .\setup\security.ps1 CurrentAdUser
+        .\setup\security.ps1 AddUserToGroup -AdPath $currentUser -Group $group
     }
 }
 
