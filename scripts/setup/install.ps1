@@ -243,6 +243,20 @@ function rollback() {
     }
 
     #
+    # Remove setup config
+    if ($rollbackStore.createdConfigPath -ne $null) {
+    
+        $configPath = $rollbackStore.createdConfigPath
+        try {
+            Write-Host "Rolling back setup config creation"
+            .\config.ps1 Remove -Path $configPath
+        }
+        catch {
+            Write-Warning "Could not remove setup config"
+        }
+    }
+
+    #
     # Remove any certificate we may have created 
     if ($rollbackStore.createdCertThumbprint -ne $null) {
         Write-Host "Rolling back SSL certificate creation" 
@@ -434,6 +448,7 @@ function Install
 		Date = date
 		CertificateThumbprint = $cert.thumbprint
     }
+    $rollbackStore.createdConfigPath = $adminRoot
     .\config.ps1 Write-Config -ConfigObject $installObject -Path $adminRoot
     
     # Get the certificate currently bound on desired installation port if any

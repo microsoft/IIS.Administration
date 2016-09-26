@@ -5,6 +5,7 @@
 Param (
     [parameter(Mandatory=$true , Position=0)]
     [ValidateSet("Get",
+                 "Remove",
                  "Exists",
                  "Get-UserFileMap",
                  "Write-Config",
@@ -93,6 +94,14 @@ function Get($_path) {
     return $installConfig
 }
 
+# Removes the setup configuration located at the specified path.
+# Path: The parent directory of the setup configuration.
+function Remove($_path) {
+    if ($(Test-Path $_path)) {
+        Remove-Item -Force $(Join-Path $_path $INSTALL_FILE)
+    }
+}
+
 # Writes the provided object into a setup configuration at the specified path.
 # ConfigObject: The object to write into the setup configuration.
 # Path: The path to a directory to hold the setup configuration.
@@ -166,6 +175,10 @@ switch ($Command)
     "Get"
     {
         return Get $Path
+    }
+    "Remove"
+    {
+        Remove $Path
     }
     "Exists"
     {
