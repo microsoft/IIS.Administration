@@ -12,11 +12,6 @@ Microsoft IIS Administration API
 * Open another instance of the project and run the tests located in the 'test' folder
 * Tests can also be run with the CLI
 
-### Installing: ###
-* Run PowerShell as an Administrator
-* Run the Publish.ps1 script located in the scripts directory
-* \<OutputDirectory>\setup\setup.ps1 Install -verbose
-
 ### Using the new API ###
 1. Navigate to https://manage.iis.net?api_url=localhost
 2. Click 'Get Access Token'
@@ -24,9 +19,6 @@ Microsoft IIS Administration API
 4. Exit the access tokens window and return to the connection screen
 5. Paste the access token into the Access Token field of the connection screen
 6. Click 'Connect'
-
-#### Updating ####
-Running the install script will perform an in place update and will preserve user files.
 
 #### Dev Setup ####
 1. Open the solution in VS 2015, which will automatically trigger a package restore
