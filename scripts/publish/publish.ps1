@@ -70,27 +70,40 @@ function DeletePreExistingFiles($targetPath)
     }
 }
 
-function DownloadAndUnzip($url, $outputName) {
+function Extract-ZipArchive($archivePath, $outputPath) {
+    if(-not(Test-Path $archivePath)) {
+        throw "Archive not found at $archivePath"
+    }
+    if(-not(Test-Path $outputPath)) {
+        New-Item -Type Directory $outputPath | Out-Null
+    }
+
+    $fullArchivePath = $(Get-Item $archivePath).FullName
+    $fullOutputPath = $(Get-Item $outputPath).FullName
+
+    $shell = new-object -com shell.application
+    $zip = $shell.NameSpace($fullArchivePath)
+
+    foreach($item in $zip.Items()) {
+        $shell.NameSpace($fullOutputPath).copyhere($item)
+    }
+}
+
+function DownloadAndUnzip($url, $outputPath) {
 
     if ($url -eq $null) {
         throw "Url is required";
     }
 
-    if ($outputName -eq $null) {
-        throw "outputName is required";
+    if ($outputPath -eq $null) {
+        throw "outputPath is required";
     }
+
+    $fileName = [System.Guid]::NewGuid().ToString() + ".zip"
     
-    Invoke-WebRequest -Uri $url -OutFile $outputName
-    $shell = new-object -com shell.application
-    $cdir = $(Get-Item .).FullName
-    $nameSpace = Join-Path $cdir $outputName
-    $zip = $shell.NameSpace($nameSpace)
-
-    foreach($item in $zip.Items()) {
-        $shell.NameSpace($cdir).copyhere($item)
-    }
-
-    Remove-Item $outputName
+    Invoke-WebRequest -Uri $url -OutFile $fileName
+    Extract-ZipArchive $fileName $outputPath
+    Remove-Item -Force $fileName
 }
 
 function Get-IISAdministrationHost($destinationDirectory) {
@@ -105,26 +118,20 @@ function Get-IISAdministrationHost($destinationDirectory) {
 
     pushd $destinationDirectory
 
-    $url = "http://gitlab/jimmyca/Microsoft.IIS.Administration.Host/repository/archive.zip?ref=master"
-    $folderName = "host"
-    $output = "host.zip"
+    $url = "http://localhost/Microsoft.IIS.Host.1.0.0.nupkg"
+    $outputPath = "host"
 
-    mkdir $folderName -Force | Out-Null
-    cd $folderName
+    mkdir $outputPath | Out-Null
+    cd $outputPath
 
-    mkdir temp -force | Out-Null
-    pushd temp
-
-    DownloadAndUnzip $url $output
-
-    $wrapper = Get-ChildItem
-
-    Get-ChildItem $wrapper | foreach {Copy-Item $_.FullName .. -Recurse -Force}
-
-    popd
-
-    rmdir -Recurse -Force temp
-
+    DownloadAndUnzip $url "temp"
+    Get-ChildItem "temp" | %{
+        if ($_.Name -eq "Win32" -or $_.Name -eq "OneCore") {
+            Copy-Item -Recurse -Force $_.FullName .
+        }
+    }
+    Remove-Item -Recurse -Force "temp"
+    cd ..
     popd
 }
 
