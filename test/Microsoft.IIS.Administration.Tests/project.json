@@ -18,8 +18,8 @@
       "version": "1.0.0"
     },
     "Microsoft.IIS.Administration.WebServer": "1.0.0",
-    "xunit": "2.2.0-beta3-build3401",
-    "dotnet-test-xunit": "2.2.0-preview3-build1047"
+    "xunit": "2.2.0-beta3-build3316",
+    "dotnet-test-xunit": "2.2.0-preview2-build1029"
   },
   "buildOptions": {
     "copyToOutput": {
