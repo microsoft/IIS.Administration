@@ -155,9 +155,8 @@ function Create-SelfSignedCertificate($_subject, $_friendlyName, $_alternativeNa
     #
     # Create a new Private Key
     $key = new-object -com "X509Enrollment.CX509PrivateKey"
-    $key.ProviderName =  "Microsoft Enhanced RSA and AES Cryptographic Provider"    
+    $key.ProviderName =  "Microsoft RSA SChannel Cryptographic Provider"    
     # XCN_AT_SIGNATURE, The key can be used for signing
-    $key.KeySpec = 2
     $key.Length = 2048
     # MachineContext 0: Current User, 1: Local Machine
     $key.MachineContext = 1
