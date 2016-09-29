@@ -468,13 +468,13 @@ function Install
     .\net.ps1 BindCert -Hash $cert.thumbprint -Port $Port -AppId $(.\globals.ps1 IIS_HWC_APP_ID)  | Out-Null
     $rollbackStore.newBoundCertPort = $Port
 
-    $platform = "onecore"
+    $platform = "OneCore"
     if (!$(.\globals.ps1 ONECORE)) {
-        $platform = "win32"
+        $platform = "Win32"
     }
 
     # Register the Self Host exe as a service
-    $svcExePath = Join-Path $adminRoot "host\x64\$platform\Microsoft.IIS.Host.exe"
+    $svcExePath = Join-Path $adminRoot "host\$platform\x64\Microsoft.IIS.Host.exe"
     sc.exe create "$ServiceName" binpath= "$svcExePath -appHostConfig:\`"$appHostPath\`" -serviceName:\`"$ServiceName\`"" start= auto
     $rollbackStore.createdService = $ServiceName
 

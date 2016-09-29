@@ -120,8 +120,7 @@ function Migrate {
     $oldModules = .\modules.ps1 Get-JsonContent -Path $(Join-Path $Source $userFiles["modules.json"])
     $newModules = .\modules.ps1 Get-JsonContent -Path $(Join-Path $Destination $userFiles["modules.json"])
     $joined = .\modules.ps1 Add-NewModules -OldModules $oldModules.modules -NewModules $newModules.modules
-    $ms = .\modules.ps1 Deserialize -Value $joined
-    $oldModules = @{modules = $ms}
+    $oldModules = @{modules = $joined}
 
     foreach ($fileName in $userFiles.keys) {
         Copy-Item -Force -Recurse $(Join-Path $Source $userFiles[$fileName]) $(Join-Path $Destination $userFiles[$fileName]) -ErrorAction SilentlyContinue
@@ -160,12 +159,12 @@ function Migrate {
     }
 
     $platform = "onecore"
-    if (!$ONECORE) {
+    if (!$(.\globals.ps1 ONECORE)) {
         $platform = "win32"
     }
     
     # Register the Self Host exe as a service
-    $svcExePath = Join-Path $destination "host\x64\$platform\Microsoft.IIS.Host.exe"
+    $svcExePath = Join-Path $destination "host\$platform\x64\Microsoft.IIS.Host.exe"
     sc.exe create "$($sourceSettings.ServiceName)" binpath= "$svcExePath -appHostConfig:\`"$appHostPath\`" -serviceName:\`"$($sourceSvc.Name)\`"" start= auto | Out-Null
 
     if ($LASTEXITCODE -ne 0) {

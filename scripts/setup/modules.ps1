@@ -104,7 +104,11 @@ function Set-JsonContent($_path, $jsonObject) {
 
 function To-HashObject($o) {
     $ret = @{}
-    foreach ($key in $o.keys) { $ret.$key = $o.$key }
+    $keys = $o.keys
+    if ($keys -eq $null) {
+        $keys = $o | Get-Member -MemberType "NoteProperty" | %{$_.Name}
+    }
+    foreach ($key in $keys) { $ret.$key = $o.$key }
     return $ret
 }
 
@@ -142,14 +146,15 @@ function Add-NewModules($_oldModules, $_newModules) {
         }
     }
 
-    Serialize($ms)
+    $ms
 }
 
 switch ($Command)
 {
     "Add-NewModules"
     {
-        return Add-NewModules $OldModules $NewModules
+        # Do not use a return statement in order to prevent circular reference error in JavaScriptSerializer
+        Add-NewModules $OldModules $NewModules
     }
     "Get-JsonContent"
     {

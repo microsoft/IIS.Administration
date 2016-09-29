@@ -35,14 +35,14 @@ function Get-DefaultAppSettings
 
 function Bump-Version
 {
-    $v = Get-VersionObj
+    $v = Get-VersionObject
     $version = [System.Version]::New($v.version)
     $bumpedVersion = [System.Version]::New($version.Major, $version.Minor, $version.Build + 1)
     $v.version = $bumpedVersion.ToString()
     [System.IO.File]::WriteAllText($(Resolve-Path Join-Path $(Get-ScriptDirectory) "..\setup\version.json").Path, $(ConvertTo-Json $v))
 }
 
-function Get-VersionObj
+function Get-VersionObject
 {
     $versionPath = $(Resolve-Path $(Join-Path $(Get-ScriptDirectory) "..\setup\version.json")).Path
     if (-not(Test-Path $versionPath)) {
@@ -118,7 +118,7 @@ function Get-IISAdministrationHost($destinationDirectory) {
 
     pushd $destinationDirectory
 
-    $url = "http://localhost/Microsoft.IIS.Host.1.0.0.nupkg"
+    $url = "https://www.nuget.org/api/v2/package/Microsoft.IIS.Host/1.0.0-rc1"
     $outputPath = "host"
 
     mkdir $outputPath | Out-Null
@@ -233,9 +233,12 @@ Copy-Item $(Join-Path $(Get-SolutionDirectory) ThirdPartyNotices.txt) $OutputPat
 # Place Admin Host
 Get-IISAdministrationHost $OutputPath
 
+# Copy applicationHost.config
+Copy-Item $(Join-Path $(Get-SolutionDirectory) scripts/publish/applicationHost.config) $(Join-Path $OutputPath host) -Recurse -ErrorAction Stop
+
 # Remove all unnecessary files
 Get-ChildItem $OutputPath *.pdb -Recurse | Remove-Item -Force | Out-Null
- Get-ChildItem -Recurse $OutputPath "*unix" | where {$_.Name -eq "unix"} | Remove-Item -Force -Recurse
+Get-ChildItem -Recurse $OutputPath "*unix" | where {$_.Name -eq "unix"} | Remove-Item -Force -Recurse
 
 # Ensure no intersection between plugin dlls and application dlls
 $mainDlls = Get-ChildItem $applicationPath *.dll
@@ -250,5 +253,5 @@ foreach ($pluginDll in $pluginDlls) {
 	}
 }
 
-$publishVersion = $(Get-VersionObj).version
+$publishVersion = $(Get-VersionObject).version
 Write-Host "Finished publishing $applicationName $publishVersion"

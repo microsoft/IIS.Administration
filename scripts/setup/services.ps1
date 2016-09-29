@@ -37,11 +37,11 @@ function IsOwner($_service, $_path) {
 
     $reg = Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Services\$($_service.Name)"
     $imagePath = $reg.ImagePath.Substring(0, $reg.ImagePath.IndexOf(".exe") + ".exe".Length)
-    $rootIndex = $imagePath.IndexOf("\host\x64")
+    $rootIndex = $imagePath.IndexOf("\host\")
 
     if ($rootIndex -ne -1) {
         $imageRoot = $imagePath.Substring(0, $rootIndex)
-        $ownsSvc = [System.IO.Path]::GetFullPath($_path) -eq [System.IO.Path]::GetFullPath($imageRoot)
+        $ownsSvc = [System.IO.Path]::GetFullPath($_path).TrimEnd(' ', '\') -eq [System.IO.Path]::GetFullPath($imageRoot).TrimEnd(' ', '\')
     }
 
     return $ownsSvc
