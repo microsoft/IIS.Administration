@@ -12,6 +12,11 @@ Microsoft IIS Administration API
 * Open another instance of the project and run the tests located in the 'test' folder
 * Tests can also be run with the CLI
 
+### Publish and Install: ###
+* Run PowerShell as an Administrator
+* Run the Publish.ps1 script located in the scripts directory
+* \<OutputDirectory>\setup\setup.ps1 Install -verbose
+
 ### Using the new API ###
 1. Navigate to https://manage.iis.net?api_url=localhost
 2. Click 'Get Access Token'
