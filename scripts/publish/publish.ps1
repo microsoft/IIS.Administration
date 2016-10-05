@@ -3,14 +3,17 @@
 
 
 Param(    
+    # The path to place the published app
     [parameter(Mandatory=$true , Position=0)]
     [string]
     $OutputPath,
     
+    # Flag for publishing with the Debug configuration
     [parameter()]
     [switch]
     $ConfigDebug,
     
+    # Flag to automatically remove the content located at the output path
     [parameter()]
     [switch]
     $SkipPrompt
@@ -25,7 +28,7 @@ function Get-ScriptDirectory
 
 function Get-SolutionDirectory
 {
-    return Join-Path $(Get-ScriptDirectory) "../.."
+    return $(Resolve-Path $(Join-Path $(Get-ScriptDirectory) "../..")).Path
 }
 
 function Get-DefaultAppSettings
@@ -116,23 +119,26 @@ function Get-IISAdministrationHost($destinationDirectory) {
         New-Item -type directory -Path $destinationDirectory | out-null
     }
 
-    pushd $destinationDirectory
+    Push-Location $destinationDirectory
+    try {
+        $url = "https://www.nuget.org/api/v2/package/Microsoft.IIS.Host/1.0.0-rc1"
+        $outputPath = "host"
 
-    $url = "https://www.nuget.org/api/v2/package/Microsoft.IIS.Host/1.0.0-rc1"
-    $outputPath = "host"
+        mkdir $outputPath | Out-Null
+        cd $outputPath
 
-    mkdir $outputPath | Out-Null
-    cd $outputPath
-
-    DownloadAndUnzip $url "temp"
-    Get-ChildItem "temp" | %{
-        if ($_.Name -eq "Win32" -or $_.Name -eq "OneCore") {
-            Copy-Item -Recurse -Force $_.FullName .
+        DownloadAndUnzip $url "temp"
+        Get-ChildItem "temp" | %{
+            if ($_.Name -eq "Win32" -or $_.Name -eq "OneCore") {
+                Copy-Item -Recurse -Force $_.FullName .
+            }
         }
+        Remove-Item -Recurse -Force "temp"
+        cd ..
     }
-    Remove-Item -Recurse -Force "temp"
-    cd ..
-    popd
+    finally {
+        Pop-Location
+    }
 }
 
 $ProjectPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Microsoft.IIS.Administration)).Path
