@@ -13,6 +13,13 @@ Param(
     [switch]
     $ConfigDebug,
     
+    # Flag to skip restoring the projects
+    # Using this flag reduces publish time but can only be used after an initial publish
+    # Any change in dependencies will require a restore
+    [parameter()]
+    [switch]
+    $SkipRestore,
+    
     # Flag to automatically remove the content located at the output path
     [parameter()]
     [switch]
@@ -163,6 +170,10 @@ if(!$configPathExists) {
 
 try {
     dotnet -v | Out-Null
+
+	if ($LASTEXITCODE -ne 0) {
+		throw ".NET SDK not installed"
+	}
 }
 catch {
     Write-Warning $_.Exception.Message
@@ -178,6 +189,14 @@ New-Item -type Directory $applicationPath -ErrorAction Stop | out-null
 $configuration = "Release"
 if($ConfigDebug) {
 	$configuration = "Debug"
+}
+
+if (-not($SkipRestore)) {
+    dotnet restore $(Get-SolutionDirectory)
+
+	if ($LASTEXITCODE -ne 0) {
+		throw "Restore failed"
+	}
 }
 
 try {

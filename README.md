@@ -15,7 +15,7 @@ Microsoft IIS Administration API
 ### Publish and Install: ###
 * Run PowerShell as an Administrator
 * Run the Publish.ps1 script located in the scripts directory
-* \<OutputDirectory>\setup\setup.ps1 Install -verbose
+* \<OutputDirectory>\setup\setup.ps1 Install -Verbose
 
 ### Using the new API ###
 1. Navigate to https://manage.iis.net?api_url=localhost
