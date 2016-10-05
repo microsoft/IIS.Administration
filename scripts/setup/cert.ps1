@@ -76,13 +76,14 @@ function DeleteCert($_name, $_thumbprint)
     
     if (-not([System.String]::IsNullOrEmpty($_name))) {
         $files = Get-ChildItem -Recurse Cert:\LocalMachine | where {
-                     ($_.DnsNameList -ne $null -and $_.DnsNameList.Contains("$_name")) -or
+                     ($_ -is [System.Security.Cryptography.X509Certificates.X509Certificate]) -and
+                     (($_.DnsNameList -ne $null -and $_.DnsNameList.Contains("$_name")) -or
                      ($_.FriendlyName -eq $_name) -or
-                     ($_.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::DnsFromAlternativeName, $false) -eq $_name)
+                     ($_.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::DnsFromAlternativeName, $false) -eq $_name))
                  }
     }
     else {
-        $files = Get-ChildItem -Recurse Cert:\LocalMachine | where {$_.Thumbprint -eq $_thumbprint}
+        $files = Get-ChildItem -Recurse Cert:\LocalMachine | where {($_ -is [System.Security.Cryptography.X509Certificates.X509Certificate]) -and ($_.Thumbprint -eq $_thumbprint)}
     }
     foreach ($file in $files){
         $store = Get-Item $file.PSParentPath
