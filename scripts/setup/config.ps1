@@ -112,7 +112,7 @@ function Write-Config($obj, $_path) {
     }
 
     $xml = [xml]"<?xml version=`"1.0`" encoding=`"utf-8`"?><Configuration></Configuration>"
-    $xConfig = $xml.SelectSingleNode("Configuration")
+    $xConfig = $xml["Configuration"]
 
     foreach ($key in $obj.keys) {     
            

@@ -53,7 +53,16 @@ function PortAvailable($portNo)
     }
     Finally
     {
-        $tcp.Close()
+        $closeMember = $tcp | Get-Member -Name "Close"
+        $disposeMember = $tcp | Get-Member -Name "Dispose"
+    
+        # Close gone on Nano Server
+        if ($closeMember -ne $null) {
+            $tcp.Close()
+        }
+        if ($disposeMember -ne $null) {
+            $tcp.Dispose()
+        }
     }
 }
 

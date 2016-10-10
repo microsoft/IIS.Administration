@@ -89,7 +89,18 @@ function DeleteCert($_name, $_thumbprint)
         $store = Get-Item $file.PSParentPath
         $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
         $store.Remove($file)
-        $store.Close()
+
+        $closeMember = $store | Get-Member -Name "Close"
+        $disposeMember = $store | Get-Member -Name "Dispose"
+    
+        # Close gone on Nano Server
+        if ($closeMember -ne $null) {
+            #Close the reference to the certificate store.
+            $store.Close()
+        }
+        if ($disposeMember -ne $null) {
+            $store.Dispose()
+        }
     }
 }
 
