@@ -7,6 +7,9 @@ Microsoft IIS Administration API
 * Hostable Web Core enabled
 * ASP.NET Core Module installed (https://go.microsoft.com/fwlink/?LinkId=817246)
 
+### Nano Server Installation: ###
+There is a blog post to get up and running on Nano Server located at https://blogs.iis.net/adminapi/microsoft-iis-administration-on-nano-server.
+
 ### Running Tests: ###
 * Open the project in Visual Studio as an Administrator and launch without debugging
 * Open another instance of the project and run the tests located in the 'test' folder
@@ -18,7 +21,7 @@ Microsoft IIS Administration API
 * \<OutputDirectory>\setup\setup.ps1 Install -Verbose
 
 ### Using the new API ###
-1. Navigate to https://manage.iis.net?api_url=localhost
+1. Navigate to https://manage.iis.net
 2. Click 'Get Access Token'
 3. Generate an access token and copy it to the clipboard
 4. Exit the access tokens window and return to the connection screen
