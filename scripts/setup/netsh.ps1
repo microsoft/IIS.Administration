@@ -25,15 +25,8 @@ Param (
 
 $cs = '
 namespace Microsoft.IIS.Administration.Setup {
-using System;  
-using System.Diagnostics;  
-using System.Diagnostics.CodeAnalysis;  
-using System.Net;  
-using System.Runtime.InteropServices;  
-using System.Security.Cryptography.X509Certificates;  
-using System.Text;  
-using System.ComponentModel;  
-
+using System;
+using System.Runtime.InteropServices;
     public class Http {           
         public const int HTTP_INITIALIZE_CONFIG = 2;  
         public const int HTTP_SERVICE_CONFIG_SSLCERT_INFO = 1; 
