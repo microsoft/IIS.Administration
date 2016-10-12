@@ -38,7 +38,11 @@ There is a blog post to get up and running on Nano Server located at https://blo
 
 ### Intialize Api Client ###
 ```
-var apiClient = new HttpClient();
+var httpClientHandler = new HttpClientHandler()
+    {
+        Credentials = new NetworkCredential(userName, password, domain)
+    };
+var apiClient = new HttpClient(httpClientHandler);
 // Set access token for every request
 apiClient.DefaultRequestHeaders.Add("Access-Token", "Bearer {token}");
 ```
