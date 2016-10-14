@@ -5,6 +5,7 @@
 namespace Microsoft.IIS.Administration
 {
     using AspNetCore.Antiforgery.Internal;
+    using AspNetCore.Authentication.JwtBearer;
     using AspNetCore.Authorization;
     using AspNetCore.Builder;
     using AspNetCore.Hosting;
@@ -30,11 +31,15 @@ namespace Microsoft.IIS.Administration
     {
         public IConfiguration Configuration { get; set; }
 
+        public IHostingEnvironment HostingEnvironment { get; set; }
+
         public Startup(IHostingEnvironment env)
         {
+            HostingEnvironment = env;
+
             // Set up configuration sources.
             var builder = new ConfigurationBuilder();
-            builder.SetBasePath(env.ConfigRootPath());
+            builder.SetBasePath(env.GetConfigPath());
             builder.AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
@@ -44,9 +49,6 @@ namespace Microsoft.IIS.Administration
         // Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
         {
-            var hostEnv = services.BuildServiceProvider().GetRequiredService<IHostingEnvironment>();
-            string configRootPath = services.BuildServiceProvider().GetRequiredService<IHostingEnvironment>().ConfigRootPath();
-
             //
             // Configuration
             services.AddSingleton((s) => Configuration);
@@ -62,12 +64,9 @@ namespace Microsoft.IIS.Administration
 
             //
             // Load plugins
-            ModuleConfig modConfig = new ModuleConfig(Path.Combine(configRootPath, "modules.json"));
-            ModuleLoader loader = new ModuleLoader(hostEnv);
+            ModuleConfig modConfig = new ModuleConfig(HostingEnvironment.GetConfigPath("modules.json"));
+            ModuleLoader loader = new ModuleLoader(HostingEnvironment);
             LoadPlugins(loader, modConfig.Modules);
-
-            services.AddOptions();
-
 
             //
             // CORS
@@ -131,7 +130,7 @@ namespace Microsoft.IIS.Administration
 
         // Configure is called after ConfigureServices is called.
         public void Configure(IApplicationBuilder app,
-                              IHostingEnvironment env)
+                              IHttpContextAccessor contextAccessor)
         {
             //
             // Initialize the Environment
@@ -141,10 +140,10 @@ namespace Microsoft.IIS.Administration
             AdminHost.Instance.Add(this);
 
             // Context accessor
-            HttpHelper.HttpContextAccessor = app.ApplicationServices.GetRequiredService<IHttpContextAccessor>();
+            HttpHelper.HttpContextAccessor = contextAccessor;
 
             // Initalize Config
-            ConfigurationHelper.Initialize(Path.Combine(env.ConfigRootPath(), "appsettings.json"));
+            ConfigurationHelper.Initialize(HostingEnvironment.GetConfigPath("appsettings.json"));
             ConfigurationHelper.Config = Configuration;
 
 
@@ -182,7 +181,7 @@ namespace Microsoft.IIS.Administration
             app.UseUrlAuthorization(new UrlAuthorizatonOptions
             {
                 Path = "/" + Globals.API_PATH,  // /api
-                AuthenticationScheme = AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme,
+                AuthenticationScheme = JwtBearerDefaults.AuthenticationScheme,
                 PolicyName = "AccessToken"
             });
 

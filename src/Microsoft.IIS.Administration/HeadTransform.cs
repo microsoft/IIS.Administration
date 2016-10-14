@@ -33,7 +33,7 @@ namespace Microsoft.IIS.Administration
 
                     await _next(context);
 
-                    context.Response.Headers.Add(HeaderNames.ContentLength, new Extensions.Primitives.StringValues(ms.Length.ToString()));
+                    context.Response.ContentLength = ms.Length;
                     context.Request.Method = "HEAD";
                     context.Response.Body = responseStream;
                 }

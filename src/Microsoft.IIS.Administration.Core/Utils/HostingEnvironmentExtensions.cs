@@ -9,9 +9,14 @@ namespace Microsoft.IIS.Administration.Core
 
     public static class HostingEnvironmentExtensions
     {
-        public static string ConfigRootPath(this IHostingEnvironment env)
+        public static string GetConfigPath(this IHostingEnvironment env)
         {
-            return Path.GetFullPath(Path.Combine(env.WebRootPath, "..", "config"));            
+            return Path.GetFullPath(Path.Combine(env.ContentRootPath, "config"));
+        }
+
+        public static string GetConfigPath(this IHostingEnvironment env, string filename)
+        {
+            return Path.GetFullPath(Path.Combine(env.ContentRootPath, "config", filename));
         }
     }
 }
