@@ -10,8 +10,8 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
     using Web.Administration;
     using Core.Utils;
     using WorkerProcesses;
-    using Sites;
     using Core;
+    using Sites;
 
     [RequireGlobalModule("RequestMonitorModule", "Request Monitor")]
     public class RmRequestsController : ApiBaseController {

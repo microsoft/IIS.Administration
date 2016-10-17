@@ -3,6 +3,7 @@
 
 
 namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
+    using AppPools;
     using System;
     using System.Collections.Generic;
     using System.Dynamic;
@@ -10,8 +11,6 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
     using WorkerProcesses;
     using Core.Utils;
     using Web.Administration;
-    
-
 
     public static class RequestHelper {
         private static readonly Fields RefFields = new Fields("url", "id", "time_elapsed");
@@ -48,12 +47,28 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
                 throw new ArgumentNullException(nameof(site));
             }
 
-            var result = new List<Request>();
+            // Get all application pools for the site
+            Dictionary<string, ApplicationPool> pools = new Dictionary<string, ApplicationPool>();
+            foreach (var app in site.Applications) {
+                if (!string.IsNullOrEmpty(app.ApplicationPoolName) && !pools.ContainsKey(app.ApplicationPoolName)) {
+                    var pool = AppPoolHelper.GetAppPool(app.ApplicationPoolName);
+                    if (pool != null) {
+                        pools[app.ApplicationPoolName] = pool;
+                    }
+                }
+            }
 
-            foreach (var wp in WorkerProcessHelper.GetWorkerProcesses(site)) {
-                foreach (var r in GetRequests(wp, filter)) {
-                    if (r.SiteId == site.Id) {
-                        result.Add(r);
+            // Get all worker processes running in the app pools
+            List<WorkerProcess> wps = new List<WorkerProcess>();
+            foreach (var pool in pools.Values) {
+                wps.Concat(WorkerProcessHelper.GetWorkerProcesses(pool));
+            }
+
+            var result = new List<Request>();
+            foreach (var wp in wps) {
+                foreach (var req in GetRequests(wp, filter)) {
+                    if (req.SiteId == site.Id) {
+                        result.Add(req);
                     }
                 }
             }

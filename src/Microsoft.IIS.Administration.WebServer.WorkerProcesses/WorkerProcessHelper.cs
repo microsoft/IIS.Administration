@@ -33,55 +33,6 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
             return ManagementUnit.ServerManager.WorkerProcesses;
         }
 
-        public static IEnumerable<WorkerProcess> GetWorkerProcesses(Site site) {
-            if (site == null) {
-                throw new ArgumentNullException(nameof(site));
-            }
-
-            var result = new List<WorkerProcess>();
-
-            foreach (var wp in ManagementUnit.ServerManager.WorkerProcesses) {
-                foreach (var ad in wp.ApplicationDomains) {
-
-                    if (ad.Id.Contains($"/{site.Id}/")) {
-                        result.Add(wp);
-                        break;
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        public static IEnumerable<WorkerProcess> GetWorkerProcesses(Site site, Application app) {
-            if (site == null) {
-                throw new ArgumentNullException(nameof(site));
-            }
-
-            if (app == null) {
-                throw new ArgumentNullException(nameof(app));
-            }
-
-            var result = new List<WorkerProcess>();
-
-            foreach (var wp in ManagementUnit.ServerManager.WorkerProcesses) {
-                if (!wp.AppPoolName.Equals(app.ApplicationPoolName, StringComparison.OrdinalIgnoreCase)) {
-                    continue;
-                }
-
-                foreach (var ad in wp.ApplicationDomains) {
-                    if (ad.Id.Contains($"/{site.Id}/")) {
-                        if (app.Path.Equals(ad.VirtualPath, StringComparison.OrdinalIgnoreCase) ||
-                            app.Path.Equals(ad.VirtualPath.TrimEnd('/'), StringComparison.OrdinalIgnoreCase)) {
-                            result.Add(wp);
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
-
         public static void Kill(WorkerProcess wp) {
             if (wp == null) {
                 throw new ArgumentNullException(nameof(wp));

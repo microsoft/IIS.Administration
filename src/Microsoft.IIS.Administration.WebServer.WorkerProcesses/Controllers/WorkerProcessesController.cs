@@ -11,8 +11,6 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
     using Web.Administration;
     using AppPools;
     using Core.Utils;
-    using Applications;
-    using Sites;
     using Core;
 
     public class WorkerProcessesController : ApiBaseController {
@@ -35,41 +33,6 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
                 }
 
                 wps = WorkerProcessHelper.GetWorkerProcesses(pool);
-            }
-
-            //
-            // Filter by Application
-            if (wps == null) {
-                string appUuid = Context.Request.Query[Applications.Defines.IDENTIFIER];
-
-                if (!string.IsNullOrEmpty(appUuid)) {
-                    ApplicationId appId = new ApplicationId(appUuid);
-                    Site site = Sites.SiteHelper.GetSite(appId.SiteId);
-
-                    Application app = Applications.ApplicationHelper.GetApplication(appId.Path, site);
-
-                    if (app == null) {
-                        return NotFound();
-                    }
-
-                    wps = WorkerProcessHelper.GetWorkerProcesses(site, app);
-                }
-            }
-
-            //
-            // Filter by Site
-            if (wps == null) {
-                string siteUuid = Context.Request.Query[Sites.Defines.IDENTIFIER];
-
-                if (!string.IsNullOrEmpty(siteUuid)) {
-                    Site site = SiteHelper.GetSite(new SiteId(siteUuid).Id);
-
-                    if (site == null) {
-                        return NotFound();
-                    }
-
-                    wps = WorkerProcessHelper.GetWorkerProcesses(site);
-                }
             }
 
             //
