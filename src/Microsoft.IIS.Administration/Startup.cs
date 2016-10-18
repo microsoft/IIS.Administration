@@ -56,11 +56,11 @@ namespace Microsoft.IIS.Administration
 
             //
             // Logging
-            services.AddApiLogging();
+            services.AddApiLogging(Configuration, HostingEnvironment);
 
             //
             // Auditing
-            services.AddApiAuditing();
+            services.AddApiAuditing(Configuration, HostingEnvironment);
 
             //
             // Load plugins
@@ -144,7 +144,6 @@ namespace Microsoft.IIS.Administration
 
             // Initalize Config
             ConfigurationHelper.Initialize(HostingEnvironment.GetConfigPath("appsettings.json"));
-            ConfigurationHelper.Config = Configuration;
 
 
             //

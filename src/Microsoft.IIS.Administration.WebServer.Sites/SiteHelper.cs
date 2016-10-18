@@ -20,7 +20,6 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
     using System.Security.Cryptography.X509Certificates;
     using Core.Http;
     using System.Dynamic;
-    using Extensions.Configuration;
 
     public static class SiteHelper
     {
@@ -37,26 +36,12 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 throw new ApiArgumentException("name");
             }
 
-            //
-            // Check if root directory provided for site creation via application settings
-            string siteCreationRoot = ConfigurationHelper.Config.GetValue<string>("site_creation_root", string.Empty);
-
             string physicalPath = DynamicHelper.Value(model.physical_path);
-            if (!string.IsNullOrEmpty(physicalPath) || string.IsNullOrEmpty(siteCreationRoot) || !Directory.Exists(siteCreationRoot)) {
-
-                if (physicalPath == null || String.IsNullOrEmpty(physicalPath)) {
-                    throw new ApiArgumentException("physical_path", "Physical path is required.");
-                }
-                if (!Directory.Exists(System.Environment.ExpandEnvironmentVariables(physicalPath))) {
-                    throw new ApiArgumentException("physical_path", "Directory does not exist.");
-                }
+            if (physicalPath == null || String.IsNullOrEmpty(physicalPath)) {
+                throw new ApiArgumentException("physical_path");
             }
-            else {
-                physicalPath = Path.Combine(siteCreationRoot, DynamicHelper.Value(model.name));
-                
-                if(!Directory.Exists(physicalPath)) {
-                    Directory.CreateDirectory(physicalPath);
-                }
+            if (!Directory.Exists(System.Environment.ExpandEnvironmentVariables(physicalPath))) {
+                throw new ApiArgumentException("physical_path", "Directory does not exist.");
             }
             if (model.bindings == null) {
                 throw new ApiArgumentException("bindings");

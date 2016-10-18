@@ -1,7 +1,6 @@
 {
   "host_id": "",
   "host_name": "IIS Administration API",
-  "site_creation_root": null,
   "administrators": [
     "Administrators",
     "IIS Administrators"

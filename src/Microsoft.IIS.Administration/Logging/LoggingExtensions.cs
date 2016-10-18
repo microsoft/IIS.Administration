@@ -15,14 +15,11 @@ namespace Microsoft.IIS.Administration.Logging
 
     public static class LoggingExtensions
     {
-        public static IServiceCollection AddApiLogging(this IServiceCollection services)
+        public static IServiceCollection AddApiLogging(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
         {
-            var sp = services.BuildServiceProvider();
-            var config = sp.GetRequiredService<IConfiguration>();
-            var appBasePath = sp.GetRequiredService<IHostingEnvironment>().ContentRootPath;
-            var defaultLogsRoot = Path.GetFullPath(Path.Combine(appBasePath, "logs"));
+            var defaultLogsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "logs"));
 
-            var loggingConfiguration = new LoggingConfiguration(config);
+            var loggingConfiguration = new LoggingConfiguration(configuration);
             var logsRoot = loggingConfiguration.LogsRoot;
             var minLevel = loggingConfiguration.MinLevel;
 
@@ -42,21 +39,20 @@ namespace Microsoft.IIS.Administration.Logging
                 .WriteTo
                 .RollingFile(Path.Combine(logsRoot, loggingConfiguration.FileName), retainedFileCountLimit: null)
                 .CreateLogger();
-
+            
+            //
+            // Wire up logging as soon as possible
             ILoggerFactory loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
             loggerFactory.AddSerilog();
 
             return services;
         }
 
-        public static IServiceCollection AddApiAuditing(this IServiceCollection services)
+        public static IServiceCollection AddApiAuditing(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
         {
-            var sp = services.BuildServiceProvider();
-            var config = sp.GetRequiredService<IConfiguration>();
-            var appBasePath = sp.GetRequiredService<IHostingEnvironment>().ContentRootPath;
-            var defaultAuditRoot = Path.GetFullPath(Path.Combine(appBasePath, "logs"));
+            var defaultAuditRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "logs"));
 
-            var auditingConfiguration = new AuditingConfiguration(config);
+            var auditingConfiguration = new AuditingConfiguration(configuration);
             var auditRoot = auditingConfiguration.AuditingRoot;
             var minLevel = auditingConfiguration.MinLevel;
 
