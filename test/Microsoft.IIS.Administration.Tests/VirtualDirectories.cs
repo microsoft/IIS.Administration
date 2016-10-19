@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.Tests
     public class VirtualDirectories
     {
         private const string TEST_SITE_NAME = "test_vdir_site";
-        public static readonly string TEST_SITE = $"{{ \"bindings\": [ {{ \"ip_address\": \"*\", \"port\": \"50308\", \"is_https\": \"false\" }} ], \"physical_path\": \"c:\\\\sites\\\\test_site\" , \"name\": \"{TEST_SITE_NAME}\" }}";
+        public static readonly string TEST_SITE = $"{{ \"bindings\": [ {{ \"ip_address\": \"*\", \"port\": \"50308\", \"protocol\": \"http\" }} ], \"physical_path\": \"c:\\\\sites\\\\test_site\" , \"name\": \"{TEST_SITE_NAME}\" }}";
         public static string TEST_APPLICATION = "{ \"path\" : \"/test_vdir_application\", \"physical_path\" : \"c:\\\\sites\\\\test_site\\\\test_application\", \"website\" : { \"id\" : \"{site_id}\" } }";
         public static string TEST_VDIR = "{ \"path\" : \"/test_vdir\", \"physical_path\" : \"c:\\\\sites\\\\test_site\\\\test_vdir\", \"webapp\" : { \"id\" : \"{app_id}\" } }";
         ITestOutputHelper _output;

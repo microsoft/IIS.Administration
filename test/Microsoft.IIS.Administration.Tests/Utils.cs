@@ -205,6 +205,7 @@ namespace Microsoft.IIS.Administration.Tests
 
             try {
                 tcp.ConnectAsync("localhost", port).RunSynchronously();
+
                 return false;
             }
             catch {

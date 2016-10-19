@@ -50,16 +50,26 @@ namespace Microsoft.IIS.Administration.Tests
 
         public static bool Patch(this HttpClient client, string uri, string body, out string result)
         {
+            var response = PatchRaw(client, uri, body);
+            result = response.Content.ReadAsStringAsync().Result;
+            return Globals.Success(response);
+        }
+
+        public static HttpResponseMessage PatchRaw(this HttpClient client, string uri, string body)
+        {
             HttpContent content = new StringContent(body, Encoding.UTF8, "application/json");
-            HttpRequestMessage requestMessage = new HttpRequestMessage(new HttpMethod("PATCH"), uri) {
+            HttpRequestMessage requestMessage = new HttpRequestMessage(new HttpMethod("PATCH"), uri)
+            {
                 Content = content
             };
 
-            HttpResponseMessage response = client.SendAsync(requestMessage).Result;
+            return client.SendAsync(requestMessage).Result;
+        }
 
-            result = response.Content.ReadAsStringAsync().Result;
-
-            return Globals.Success(response);
+        public static HttpResponseMessage PatchRaw(this HttpClient client, string uri, object body)
+        {
+            string sBody = JsonConvert.SerializeObject(body);
+            return PatchRaw(client, uri, sBody);
         }
 
         public static bool Patch(this HttpClient client, string uri, object body, out string result)

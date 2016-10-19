@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.Tests
     public class Applications
     {
         private const string TEST_APPLICATION_SITE_NAME = "test_application_site";
-        private static readonly string TEST_APPLICATION_SITE = $"{{ \"bindings\": [ {{ \"ip_address\": \"*\", \"port\": \"50307\", \"is_https\": \"false\" }} ], \"physical_path\": \"c:\\\\sites\\\\test_site\" , \"name\": \"{TEST_APPLICATION_SITE_NAME}\" }}";
+        private static readonly string TEST_APPLICATION_SITE = $"{{ \"bindings\": [ {{ \"ip_address\": \"*\", \"port\": \"50307\", \"protocol\": \"http\" }} ], \"physical_path\": \"c:\\\\sites\\\\test_site\" , \"name\": \"{TEST_APPLICATION_SITE_NAME}\" }}";
         private static string TEST_APPLICATION = "{ \"path\" : \"/test_application\", \"physical_path\" : \"c:\\\\sites\\\\test_site\\\\test_application\", \"website\":{ \"id\" : \"{site_id}\" } }";
         ITestOutputHelper _output;
 

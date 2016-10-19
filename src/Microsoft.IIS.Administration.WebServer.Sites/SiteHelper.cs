@@ -366,10 +366,17 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             Debug.Assert(site != null);
             Debug.Assert((bool)(model != null));
 
+            //
+            // Name
             DynamicHelper.If((object)model.name, v => { site.Name = v; });
 
+            //
+            // Server Auto Start
             site.ServerAutoStart = DynamicHelper.To<bool>(model.server_auto_start) ?? site.ServerAutoStart;
 
+
+            //
+            // Physical Path
             string physicalPath = DynamicHelper.Value(model.physical_path);
 
             if(physicalPath != null) {
@@ -391,6 +398,8 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 rootVDir.PhysicalPath = physicalPath.Replace('/', '\\');  
             }
 
+            //
+            // Enabled Protocols
             string enabledProtocols = DynamicHelper.Value(model.enabled_protocols);
 
             if(enabledProtocols != null) {
@@ -401,6 +410,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 }
             }
 
+            //
             // Limits
             if(model.limits != null) {
                 dynamic limits = model.limits;
@@ -416,6 +426,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 site.Limits.ConnectionTimeout = (connectionTimeout != null) ? TimeSpan.FromSeconds(connectionTimeout.Value) : site.Limits.ConnectionTimeout;
             }
 
+            //
             // Bindings
             if(model.bindings != null) {
                 IEnumerable<dynamic> bindings = (IEnumerable<dynamic>)model.bindings;
@@ -427,74 +438,12 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 List<Binding> newBindings = new List<Binding>();
 
                 // Iterate over the bindings to create a new binding list
-                foreach(dynamic binding in bindings) {
-
-                    // Extract data from binding
-                    string ipAddress = DynamicHelper.Value(binding.ip_address);
-                    long? port = DynamicHelper.To(binding.port, 1, 65535);
-                    string hostname = DynamicHelper.Value(binding.hostname) ?? "";
-                    
-                    bool? isHttps = DynamicHelper.To<bool>(binding.is_https);
-                    string certificateHash = null;
-                    string certificateStoreName = null;
-
-                    byte[] hashBytes = null;
-
-                    // Validate that data forms valid binding
-                    if (ipAddress == null) {
-                        throw new ApiArgumentException("binding.ip_address");
-                    }
-                    else if (port == null) {
-                        throw new ApiArgumentException("binding.port");
-                    }
-                    else if (isHttps == null) {
-                        throw new ApiArgumentException("binding.is_https");
-                    }
-
-                    if (isHttps.Value) {
-
-                        if(binding.certificate == null || !(binding.certificate is JObject)) {
-                            throw new ApiArgumentException("certificate");
-                        }
-
-                        dynamic certificate = binding.certificate;
-                        string uuid = DynamicHelper.Value(certificate.id);
-
-                        if(string.IsNullOrEmpty(uuid)) {
-                            throw new ApiArgumentException("certificate.id");
-                        }
-
-                        CertificateId id = new CertificateId(uuid);
-                        certificateHash = id.Thumbprint;
-                        certificateStoreName = Enum.GetName(typeof(StoreName), id.StoreName);
-                        
-                        List<byte> bytes = new List<byte>();
-
-                        // Decode the hex string of the certificate hash into bytes
-                        for (int i = 0; i < id.Thumbprint.Length; i += 2) {
-                            bytes.Add(Convert.ToByte(id.Thumbprint.Substring(i, 2), 16));
-                        }
-
-                        hashBytes = bytes.ToArray();
-                    }
-
-                    // Create binding
-                    Binding newBinding = site.Bindings.CreateElement();
-
-                    // If format of the information is incorrect throws ArgumentException but does not populate ParamName
-                    newBinding.BindingInformation = $"{ipAddress}:{port}:{hostname}";
-                    newBinding.Protocol = isHttps.Value ? "https" : "http";
-
-                    // Attempting to get or set the certificate hash when the protocol is not https will raise an error -msdn
-                    if (isHttps.Value) {
-
-                        // The specified certificate must be in the store with a private key or else there will be an exception when we commit
-                        newBinding.CertificateHash = hashBytes;
-                        newBinding.CertificateStoreName = certificateStoreName;
-                    }
+                foreach(dynamic b in bindings) {
+                    Binding binding = site.Bindings.CreateElement();
+                    SetBinding(binding, b);
 
                     // Add to bindings list
-                    newBindings.Add(newBinding);
+                    newBindings.Add(binding);
                 }
 
                 // All bindings have been verified and added to the list
@@ -503,7 +452,8 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 newBindings.ForEach(binding => site.Bindings.Add(binding));
             }
 
-            // Set the app pool
+            //
+            // App Pool
             if(model.application_pool != null) {
 
                 // Extract the uuid from the application_pool object provided in model
@@ -533,29 +483,153 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             return site;
         }
 
+        private static void SetBinding(Binding binding, dynamic obj) {
+            string protocol = DynamicHelper.Value(obj.protocol);
+            string bindingInformation = DynamicHelper.Value(obj.binding_information);
+
+            if (protocol == null) {
+                throw new ApiArgumentException("binding.protocol");
+            }
+
+            binding.Protocol = protocol;
+
+            bool isHttp = protocol.Equals("http") || protocol.Equals("https");
+
+            if (isHttp) {
+                //
+                // HTTP Binding information provides port, ip address, and hostname
+                IPAddress ipAddress = null;
+                UInt16 port;
+                string hostname;
+
+                if (bindingInformation == null) {
+                    var ip = DynamicHelper.Value(obj.ip_address);
+                    if (ip == "*") {
+                        ipAddress = IPAddress.Any;
+                    }
+                    else if (!IPAddress.TryParse(ip, out ipAddress)) {
+                        throw new ApiArgumentException("binding.ip_address");
+                    }
+
+                    UInt16? p = (UInt16?)DynamicHelper.To(obj.port, 1, UInt16.MaxValue);
+                    if (p == null) {
+                        throw new ApiArgumentException("binding.port");
+                    }
+                    port = p.Value;
+
+                    hostname = DynamicHelper.Value(obj.hostname) ?? string.Empty;
+                }
+                else {
+                    var parts = bindingInformation.Split(':');
+                    if (parts.Length != 3) {
+                        throw new ApiArgumentException("binding.binding_information");
+                    }
+
+                    if (parts[0] == "*") {
+                        ipAddress = IPAddress.Any;
+                    }
+                    else if (!IPAddress.TryParse(parts[0], out ipAddress)) {
+                        throw new ApiArgumentException("binding.binding_information");
+                    }
+                    
+                    if (!UInt16.TryParse(parts[1], out port)) {
+                        throw new ApiArgumentException("binding.binding_information");
+                    }
+
+                    hostname = parts[2];
+                }
+
+                binding.Protocol = protocol;
+
+                // HTTPS
+                if (protocol.Equals("https")) {
+                    if (obj.certificate == null || !(obj.certificate is JObject)) {
+                        throw new ApiArgumentException("certificate");
+                    }
+
+                    dynamic certificate = obj.certificate;
+                    string uuid = DynamicHelper.Value(certificate.id);
+
+                    if (string.IsNullOrEmpty(uuid)) {
+                        throw new ApiArgumentException("certificate.id");
+                    }
+
+                    CertificateId id = new CertificateId(uuid);
+                    List<byte> bytes = new List<byte>();
+
+                    // Decode the hex string of the certificate hash into bytes
+                    for (int i = 0; i < id.Thumbprint.Length; i += 2) {
+                        bytes.Add(Convert.ToByte(id.Thumbprint.Substring(i, 2), 16));
+                    }
+
+                    // The specified certificate must be in the store with a private key or else there will be an exception when we commit
+                    binding.CertificateStoreName = Enum.GetName(typeof(StoreName), id.StoreName);
+                    binding.CertificateHash = bytes.ToArray();
+                }
+
+                var ipModel = ipAddress.Equals(IPAddress.Any) ? "*" : ipAddress.ToString();
+                binding.BindingInformation = $"{ipModel}:{port}:{hostname}";
+            }
+            else {
+                //
+                // Custom protocol
+                if (string.IsNullOrEmpty(bindingInformation)) {
+                    throw new ApiArgumentException("binding.binding_information");
+                }
+
+                binding.BindingInformation = bindingInformation;
+            }
+        }
+
         private static object ToJsonModel(Binding binding)
         {
-            X509Certificate2 targetCert = null;
-            var certs = CertificateHelper.GetCertificates(CertificateHelper.STORE_NAME, CertificateHelper.STORE_LOCATION);
+            dynamic obj = new ExpandoObject();
 
-            if(binding.Protocol.Equals("https")) {
+            obj.protocol = binding.Protocol;
+            obj.binding_information = binding.BindingInformation;
 
-                foreach(var c in certs) {
-                    string thumbprint = BitConverter.ToString(binding.CertificateHash).Replace("-", string.Empty);
-                    if (c.Thumbprint.Equals(thumbprint, StringComparison.OrdinalIgnoreCase)) {
-                        targetCert = c;
-                        break;
+            bool isHttp = binding.Protocol.Equals("http") || binding.Protocol.Equals("https");
+
+            if (isHttp) {
+                string ipAddress = null;
+                int? port = null;
+
+                if (binding.EndPoint != null && binding.EndPoint.Address != null) {
+
+                    port = binding.EndPoint.Port;
+                    if (binding.EndPoint.Address != null) {
+                        ipAddress = binding.EndPoint.Address.Equals(IPAddress.Any) ? "*" : binding.EndPoint.Address.ToString();
+                    }
+                }
+
+                obj.ip_address = ipAddress;
+                obj.port = port;
+                obj.hostname = binding.Host;
+
+                //
+                // HTTPS
+                if (binding.Protocol.Equals("https")) {
+                    X509Certificate2 cert = null;
+                    IEnumerable<X509Certificate2> certs = CertificateHelper.GetCertificates(CertificateHelper.STORE_NAME, CertificateHelper.STORE_LOCATION);
+                    string thumbprint = BitConverter.ToString(binding.CertificateHash)?.Replace("-", string.Empty);
+
+                    foreach (var c in certs) {
+                        if (c.Thumbprint.Equals(thumbprint, StringComparison.OrdinalIgnoreCase)) {
+                            cert = c;
+                            break;
+                        }
+                    }
+
+                    obj.certificate = CertificateHelper.ToJsonModelRef(cert, CertificateHelper.STORE_NAME, CertificateHelper.STORE_LOCATION);
+
+                    // Dispose
+                    foreach(var c in certs) {
+                        c.Dispose();
                     }
                 }
             }
 
-            return new {
-                ip_address = binding.EndPoint.Address.Equals(IPAddress.Any) ? "*" : binding.EndPoint.Address.ToString(),
-                port = binding.EndPoint.Port,
-                hostname = binding.Host,
-                is_https = binding.Protocol.Equals("https"),
-                certificate = CertificateHelper.ToJsonModelRef(targetCert, CertificateHelper.STORE_NAME, CertificateHelper.STORE_LOCATION)
-            };
+            return obj;
         }
 
         private static long FirstAvailableId()

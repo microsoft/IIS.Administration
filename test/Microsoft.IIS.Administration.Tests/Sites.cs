@@ -4,7 +4,7 @@
 
 namespace Microsoft.IIS.Administration.Tests
 {
-    using Microsoft.IIS.Administration.WebServer;
+    using WebServer;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
@@ -15,10 +15,12 @@ namespace Microsoft.IIS.Administration.Tests
     using Xunit;
     using Xunit.Abstractions;
     using Core.Utils;
+    using System.Net;
 
     public class Sites
     {
         private const string TEST_SITE_NAME = "test_site";
+        private const int TEST_PORT = 50306;
         private ITestOutputHelper _output;
         private static readonly object TEST_SITE = new {
             physical_path = TEST_SITE_PATH,
@@ -26,8 +28,8 @@ namespace Microsoft.IIS.Administration.Tests
             bindings = new object[] {
                 new {
                     ip_address = "*",
-                    port = 50306,
-                    is_https = false
+                    port = TEST_PORT,
+                    protocol = "http"
                 }
             }
         };
@@ -71,7 +73,7 @@ namespace Microsoft.IIS.Administration.Tests
             using (HttpClient client = ApiHttpClient.Create()) {
 
                 EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = CreateSite(client, TEST_SITE_NAME, 50306, @"c:\sites\test_site");
+                JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, @"c:\sites\test_site");
                 JObject cachedSite = new JObject(site);
 
                 WaitForStatus(client, site);
@@ -96,17 +98,18 @@ namespace Microsoft.IIS.Administration.Tests
                 limits["max_url_segments"] = limits.Value<long>("max_url_segments") - 1;
                 
                 JArray bindings = site.Value<JArray>("bindings");
-                JObject binding = (JObject)bindings.First;
-                binding["port"] = 63014;
-                binding["ip_address"] = "40.3.5.15";
-                binding["hostname"] = "testhostname";
-
-                bindings.Add(JObject.FromObject(new
-                {
+                bindings.Clear();
+                bindings.Add(JObject.FromObject(new {
+                    port = 63014,
+                    ip_address = "40.3.5.15",
+                    hostname = "testhostname",
+                    protocol = "http"
+                }));
+                bindings.Add(JObject.FromObject(new {
                     port = 63015,
                     ip_address = "*",
                     hostname = "",
-                    is_https = true,
+                    protocol = "https",
                     certificate = GetCertificate(client)
                 }));
 
@@ -127,16 +130,148 @@ namespace Microsoft.IIS.Administration.Tests
                 Assert.True(Utils.JEquals<long>(site, newSite, "limits.max_connections"));
                 Assert.True(Utils.JEquals<long>(site, newSite, "limits.max_url_segments"));
 
-                JObject oldBinding = (JObject)site.Value<JArray>("bindings").First;
-                JObject newBinding = (JObject)newSite.Value<JArray>("bindings").First;
+                for (var i = 0; i < bindings.Count; i++) {
+                    var oldBinding = (JObject)bindings[i];
+                    var newBinding = (JObject)bindings[i];
 
-                Assert.True(Utils.JEquals<string>(oldBinding, newBinding, "port"));
-                Assert.True(Utils.JEquals<string>(oldBinding, newBinding, "ip_address"));
-                Assert.True(Utils.JEquals<string>(oldBinding, newBinding, "hostname"));
+                    Assert.True(Utils.JEquals<string>(oldBinding, newBinding, "protocol"));
+                    Assert.True(Utils.JEquals<string>(oldBinding, newBinding, "port"));
+                    Assert.True(Utils.JEquals<string>(oldBinding, newBinding, "ip_address"));
+                    Assert.True(Utils.JEquals<string>(oldBinding, newBinding, "hostname"));
 
+                    if (newBinding.Value<string>("protocol").Equals("https")) {
+                        Assert.True(JToken.DeepEquals(oldBinding["certificate"], newBinding["certificate"]));
+                    }
+                }
+
+                    Assert.True(DeleteSite(client, Utils.Self(site)));
+            }
+        }
+
+        [Fact]
+        public void BindingTypes()
+        {
+            string[] httpProperties = new string[] { "ip_address", "port", "hostname", "protocol", "binding_information" };
+            string[] httpsProperties = new string[] { "ip_address", "port", "hostname", "protocol", "binding_information", "certificate" };
+            string[] othersProperties = new string[] { "protocol", "binding_information" };
+
+
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                EnsureNoSite(client, TEST_SITE_NAME);
+                JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, @"c:\sites\test_site");
+
+                var bindings = site.Value<JArray>("bindings");
+                bindings.Clear();
+                int p = 63013;
+
+                var goodBindings = new object[] {
+                    new {
+                        port = p++,
+                        ip_address = "*",
+                        hostname = "abc",
+                        protocol = "http"
+                    },
+                    new {
+                        binding_information = "128.0.3.5:" + (p++) + ":def",
+                        protocol = "http"
+                    },
+                    new {
+                        port = p++,
+                        ip_address = "*",
+                        hostname = "",
+                        protocol = "https",
+                        certificate = GetCertificate(client)
+                    },
+                    new {
+                        binding_information = "*:" + (p++) + ":def",
+                        protocol = "http"
+                    },
+                    new {
+                        binding_information = (p++) + ":*",
+                        protocol = "net.tcp"
+                    },
+                    new {
+                        binding_information = "*",
+                        protocol = "net.pipe"
+                    }
+                };
+
+                foreach (var b in goodBindings) {
+                    bindings.Add(JObject.FromObject(b));
+                }
+
+                var res = client.Patch(Utils.Self(site), site);
+                Assert.NotNull(res);
+
+                JArray newBindings = res.Value<JArray>("bindings");
+                Assert.True(bindings.Count == newBindings.Count);
+
+                for (var i = 0; i < bindings.Count; i++) {
+                    var binding = (JObject)bindings[i];
+                    foreach (var prop in binding.Properties()) {
+                        Assert.True(JToken.DeepEquals(binding[prop.Name], newBindings[i][prop.Name]));
+                    }
+
+                    string protocol = binding.Value<string>("protocol");
+
+                    switch (protocol) {
+                        case "http":
+                            Assert.True(HasExactProperties((JObject)newBindings[i], httpProperties));
+                            break;
+                        case "https":
+                            Assert.True(HasExactProperties((JObject)newBindings[i], httpsProperties));
+                            break;
+                        default:
+                            Assert.True(HasExactProperties((JObject)newBindings[i], othersProperties));
+                            break;
+                    }
+                }
+
+                var badBindings = new object[] {
+                    new {
+                        port = p++,
+                        ip_address = "*",
+                        hostname = "abc"
+                    },
+                    new {
+                        port = p++,
+                        ip_address = "",
+                        hostname = "abc",
+                        protocol = "http"
+                    },
+                    new {
+                        protocol = "http",
+                        binding_information = $":{p++}:"
+                    },
+                    new {
+                        protocol = "http",
+                        binding_information = $"127.0.4.3::"
+                    }
+                };
+
+                foreach (var badBinding in badBindings) {
+                    newBindings.Clear();
+                    newBindings.Add(JObject.FromObject(badBinding));
+                    var response = client.PatchRaw(Utils.Self(res), res);
+                    Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
+                }
 
                 Assert.True(DeleteSite(client, Utils.Self(site)));
             }
+        }
+
+        private bool HasExactProperties(JObject obj, IEnumerable<string> names) {
+            if (obj.Properties().Count() != names.Count()) {
+                return false;
+            }
+
+            foreach (var property in obj.Properties()) {
+                if (!names.Contains(property.Name)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         [Theory]
@@ -178,7 +313,7 @@ namespace Microsoft.IIS.Administration.Tests
                     new {
                         ip_address = "*",
                         port = port.ToString(),
-                        is_https = false
+                        protocol = "http"
                     }
                 }
             };
