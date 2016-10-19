@@ -11,10 +11,12 @@ namespace Microsoft.IIS.Administration.Certificates
     using System.Linq;
     using Core.Http;
     using Core.Utils;
+    using Core;
 
     public class CertificatesController : ApiBaseController
     {
         [HttpGet]
+        [ResourceInfo(Name = Defines.CertificatesName)]
         public object Get()
         {            
             List<object> refs = new List<object>();
@@ -54,6 +56,7 @@ namespace Microsoft.IIS.Administration.Certificates
         }
 
         [HttpGet]
+        [ResourceInfo(Name = Defines.CertificateName)]
         public object Get(string id)
         {
             CertificateId certId = new CertificateId(id);

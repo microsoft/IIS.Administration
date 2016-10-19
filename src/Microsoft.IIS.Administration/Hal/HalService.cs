@@ -83,8 +83,8 @@ namespace Microsoft.IIS.Administration
 
         private void SetHalContentType()
         {
-            if (!HttpHelper.Current.Response.HasStarted) {
-                HttpHelper.Current.Response.Headers[HeaderNames.ContentType] = HeaderValues.Hal;
+            if (!HttpHelper.Current.Response.HasStarted && HttpHelper.Current.Response.ContentType == null) {
+                HttpHelper.Current.Response.ContentType = HeaderValues.Hal;
             }
         }
 

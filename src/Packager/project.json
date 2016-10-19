@@ -26,7 +26,7 @@
     "Microsoft.IIS.Administration.WebServer.RequestFiltering": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.RequestMonitor": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.Scm": "1.0.0",
-    "Microsoft.IIS.Administration.WebServer.Sites": "1.0.0",
+    "Microsoft.IIS.Administration.WebServer.Sites": "1.0.1",
     "Microsoft.IIS.Administration.WebServer.SslSettings": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.StaticContent": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.Transactions": "1.0.0",
