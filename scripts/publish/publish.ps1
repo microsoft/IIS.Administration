@@ -199,19 +199,6 @@ if (-not($SkipRestore)) {
 	}
 }
 
-try {
-	$packagerPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Packager)).Path
-
-	dotnet publish $packagerPath -o "$(Join-Path $ProjectPath plugins)" --configuration $configuration
-
-	if ($LASTEXITCODE -ne 0) {
-		throw "Plugin build failed"
-	}
-}
-catch {
-	throw "Could not build plugins for publishing"
-}
-
 try{
     dotnet publish $ProjectPath --framework netcoreapp1.0 --output $applicationPath  --configuration $configuration
 
@@ -244,9 +231,19 @@ if(!(Test-Path $outputPluginsFolder)) {
     New-Item $outputPluginsFolder -ItemType Directory | Out-Null
 }
 
-# Copy the plugin dlls into the plugins directory
-# Only copying in assemblies that aren't already present
-Get-ChildItem $pluginFolder  | Copy-Item -Destination $outputPluginsFolder -Recurse -Force
+# Publish plugins to the plugins directory
+try {
+	$packagerPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Packager)).Path
+
+	dotnet publish $packagerPath -o $outputPluginsFolder --configuration $configuration
+
+	if ($LASTEXITCODE -ne 0) {
+		throw "Plugin build failed"
+	}
+}
+catch {
+	throw "Could not build plugins for publishing"
+}
 
 # Copy setup
 Copy-Item $(Join-Path $(Get-SolutionDirectory) scripts/setup) $OutputPath -Recurse -ErrorAction Stop
@@ -265,10 +262,13 @@ Copy-Item $(Join-Path $(Get-SolutionDirectory) scripts/publish/applicationHost.c
 Get-ChildItem $OutputPath *.pdb -Recurse | Remove-Item -Force | Out-Null
 Get-ChildItem -Recurse $OutputPath "*unix" | where {$_.Name -eq "unix"} | Remove-Item -Force -Recurse
 
-# Ensure no intersection between plugin dlls and application dlls
+# Remove non dlls from plugins
+Get-ChildItem $outputPluginsFolder -File | where {-not($_.Name -match ".dll$")} | Remove-Item -Force
+
 $mainDlls = Get-ChildItem $applicationPath *.dll
 $pluginDlls = Get-ChildItem $outputPluginsFolder *.dll
 
+# Ensure no intersection between plugin dlls and application dlls
 foreach ($pluginDll in $pluginDlls) {
 	foreach ($mainDll in $mainDlls) {
 		if ($mainDll.Name -eq $pluginDll.Name) {
