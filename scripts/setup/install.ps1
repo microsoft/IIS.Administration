@@ -85,7 +85,7 @@ function InstallationPreparationCheck
 {
     Write-Host "Checking installation requirements"
 
-    if (!$SkipVerification) {
+    if (!$SkipVerification) {        
         Write-Verbose "Verifying IIS is enabled"
         $iisInstalled = .\dependencies.ps1 IisEnabled
         if (!$iisInstalled) {
@@ -104,12 +104,26 @@ function InstallationPreparationCheck
         $winAuthEnabled = .\dependencies.ps1 WinAuthEnabled
         if (!$winAuthEnabled) {
             Write-Warning "IIS-WindowsAuthentication not enabled"
-			Write-Host "Enabling IIS Windows Authentication"
-			try {
+            Write-Host "Enabling IIS Windows Authentication"
+            try {
                 .\dependencies.ps1 EnableWinAuth
+            }
+            catch {
+				Write-Warning "Could not enable IIS Windows Authentication"
+				throw $_
+            }
+        }
+        Write-Verbose "Ok"
+        Write-Verbose "Verifying URL Authorization is Enabled"
+        $urlAuthEnabled = .\dependencies.ps1 UrlAuthEnabled
+        if (!$urlAuthEnabled) {
+            Write-Warning "IIS-URLAuthorization not enabled"
+			Write-Host "Enabling IIS URL Authorization"
+			try {
+                .\dependencies.ps1 EnableUrlAuth
 			}
 			catch {
-				Write-Warning "Could not enable IIS Windows Authentication"
+				Write-Warning "Could not enable IIS URL Authorization"
 				throw $_
 			}
         }
@@ -144,8 +158,8 @@ function InstallationPreparationCheck
 				    throw $_
 			    }
             }
+		    Write-Verbose "Ok"
         }
-		Write-Verbose "Ok"
     }
     # Shared framework and ANCM
     .\require.ps1 DotNetServerHosting

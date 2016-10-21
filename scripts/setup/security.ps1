@@ -190,7 +190,7 @@ function AddUserToGroup($userPath, $_group) {
         }
     }
     else {
-        $existingMember = Get-LocalGroupMember -Name $($_group.name) -Member $($userPath) -ErrorAction SilentlyContinue
+        $existingMember = Get-LocalGroupMember -Group $_group.name | where {$_.Name -eq $userPath}
 
         if ($existingMember -eq $null) {
             Add-LocalGroupMember -Name $($_group.name) -Member $($userPath)

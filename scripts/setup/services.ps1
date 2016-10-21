@@ -5,7 +5,7 @@
 Param (
     [parameter(Mandatory=$true , Position=0)]
     [ValidateSet("Is-Owner",
-                 "Get-ServiceAsWmiObject")]
+                 "Get-ServiceRegEntry")]
     [string]
     $Command,
     
@@ -47,21 +47,14 @@ function IsOwner($_service, $_path) {
     return $ownsSvc
 }
 
-# Retrieves the WMI interface for a service given the services name.
+# Retrieves registry entry for a service.
 # Name: The name of the service.
-function Get-ServiceAsWmiObject($_name) {
+function Get-ServiceRegEntry($_name) {
     if ([string]::IsNullOrEmpty($_name)) {
         throw "Name required."
     }
-
-    $query = New-Object "System.Management.WqlObjectQuery" -ArgumentList "Select * from Win32_Service where Name = '$_name'"
-    $searcher = New-Object "System.Management.ManagementObjectSearcher" -ArgumentList $query
-    $collection = $searcher.Get()
-
-    if ($collection.Count -gt 0) {
-        return $($collection | Select -First 1)
-    }
-    return $null
+    $reg = Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Services\$_name" -ErrorAction SilentlyContinue
+    return $reg
 }
 
 switch ($Command)
@@ -70,9 +63,9 @@ switch ($Command)
     {
         return IsOwner $Service $Path
     }
-    "Get-ServiceAsWmiObject"
+    "Get-ServiceRegEntry"
     {
-        return Get-ServiceAsWmiObject $Name
+        return Get-ServiceRegEntry $Name
     }
     default
     {

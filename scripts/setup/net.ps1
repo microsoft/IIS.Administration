@@ -40,30 +40,10 @@ function ValidatePort($portNo) {
 function PortAvailable($portNo)
 {
     ValidatePort($portNo)
-
-    $tcp = New-Object System.Net.Sockets.TcpClient
-    Try
-    {
-        $tcp.connect('localhost', $portNo)
-        return $false
+    $listener = ([Net.NetworkInformation.IPGlobalProperties]::GetIPGlobalProperties()).GetActiveTcpListeners() | where {
+        $_.Port -eq "$portNo"
     }
-    Catch
-    {
-        return $true
-    }
-    Finally
-    {
-        $closeMember = $tcp | Get-Member -Name "Close"
-        $disposeMember = $tcp | Get-Member -Name "Dispose"
-    
-        # Close gone on Nano Server
-        if ($closeMember -ne $null) {
-            $tcp.Close()
-        }
-        if ($disposeMember -ne $null) {
-            $tcp.Dispose()
-        }
-    }
+    return $listener -eq $null
 }
 
 # Retrieves the first available port at or after the provided start port.

@@ -4,8 +4,11 @@
 
 Param (
     [parameter(Mandatory=$true , Position=0)]
-    [ValidateSet("IisEnabled",
+    [ValidateSet("Is-NanoServer",
+                 "IisEnabled",
                  "EnableIis",
+                 "UrlAuthEnabled",
+                 "EnableUrlAuth",
                  "WinAuthEnabled",
                  "EnableWinAuth",
                  "HostableWebCoreEnabled",
@@ -21,10 +24,15 @@ $OptionalFeatureCommand = Get-Command "Get-WindowsOptionalFeature" -ErrorAction 
 #SKU == 2008 R2
 $AddFeatureCommand = Get-Command "Add-WindowsFeature" -ErrorAction SilentlyContinue
 
+function Is-NanoServer() {
+    return $(Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId -eq "ServerDataCenterNano"
+}
+
 function Enable-Feature($_featureName) {
     dism.exe /Online /Enable-Feature /FeatureName:"$_featureName"
     if ($LASTEXITCODE -ne 0) {
-        throw $(new-object "System.ComponentModel.Win32Exception" -ArgumentList $LASTEXITCODE "Error enabling $_featureName")
+        Write-Warning "Error enabling $_featureName"
+        throw $(new-object "System.ComponentModel.Win32Exception" -ArgumentList $LASTEXITCODE)
     }
 }
 
@@ -32,7 +40,8 @@ function Feature-Enabled($_featureName) {
     # Returns string[]
     $info = dism.exe /Online /Get-FeatureInfo /FeatureName:"$_featureName"
     if ($LASTEXITCODE -ne 0) {
-        throw $(new-object "System.ComponentModel.Win32Exception" -ArgumentList $LASTEXITCODE "Error checking state of $_featureName")
+        Write-Warning "Error checking state of $_featureName"
+        throw $(new-object "System.ComponentModel.Win32Exception" -ArgumentList $LASTEXITCODE)
     }
     foreach ($line in $info) {
         if ($line.StartsWith("State :")) {
@@ -51,7 +60,10 @@ function IisEnabled
     return $true
 }
 
-function EnableIis {    
+function EnableIis {
+    if (Is-NanoServer) {
+        throw "Unable to enable IIS"
+    }
     if ($OptionalFeatureCommand -ne $null) {
         # SKU > Server 2012
 
@@ -100,12 +112,38 @@ function EnableWinAuth {
     }
 }
 
-function HostableWebCoreEnabled
+function UrlAuthEnabled
 {
+    return Test-Path $env:windir\system32\inetsrv\urlauthz.dll
+}
+
+function EnableUrlAuth {    
+    if ($OptionalFeatureCommand -ne $null) {
+        $urlAuth = Get-WindowsOptionalFeature -Online -FeatureName "IIS-URLAuthorization" -Verbose:$false -ErrorAction SilentlyContinue
+
+        if ($urlAuth -eq $null) {
+            throw "Unable to enable URL Authorization"
+        }
+        
+        Enable-WindowsOptionalFeature -Online -FeatureName "IIS-URLAuthorization" -NoRestart -ErrorAction Stop
+    }
+    else {
+        Enable-Feature "IIS-URLAuthorization"
+    }
+}
+
+function HostableWebCoreEnabled {
+    # Nano Server IIS has hostable web core enabled by default. Any IIS feature that is used must be enabled separately.
+    if (Is-NanoServer) {
+        return IisEnabled
+    }
     return Feature-Enabled "IIS-HostableWebCore"
 }
 
-function EnableHostableWebCore {  
+function EnableHostableWebCore { 
+    if (Is-NanoServer) {
+        return
+    }
     if ($OptionalFeatureCommand -ne $null) {
         $hwc = Get-WindowsOptionalFeature -Online -FeatureName "IIS-HostableWebCore" -Verbose:$false -ErrorAction SilentlyContinue
 
@@ -130,6 +168,10 @@ function EnableNetFx3 {
 
 switch ($Command)
 {
+    "Is-NanoServer"
+    {
+        return Is-NanoServer
+    }
     "IisEnabled"
     {
         return IisEnabled
@@ -137,6 +179,14 @@ switch ($Command)
     "EnableIis"
     {
         return EnableIis
+    }
+    "UrlAuthEnabled"
+    {
+        return UrlAuthEnabled
+    }
+    "EnableUrlAuth"
+    {
+        return EnableUrlAuth
     }
     "WinAuthEnabled"
     {

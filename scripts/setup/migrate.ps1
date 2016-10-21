@@ -140,15 +140,15 @@ function Migrate {
     Stop-Service $destinationSvc.Name -ErrorAction Stop
 
     if ($sourceSvc -ne $null) { 
-        $svc = .\services.ps1 Get-ServiceAsWmiObject -Name $sourceSvc.Name
+        $svc = .\services.ps1 Get-ServiceRegEntry -Name $sourceSvc.Name
 
         if ($svc -eq $null) {
-            throw "Could not access service information through WMI."
+            throw "Could not access service information in registry."
         }
 
         $migrateRollback.deletedSourceSvc = $sourceSvc
-        $migrateRollback.deletedSourceSvcStartType = $sourceSvc.StartType
-        $migrateRollback.deletedSourceSvcImagePath = $svc.PathName
+        $migrateRollback.deletedSourceSvcStartType = [System.ServiceProcess.ServiceStartMode]$svc.Start
+        $migrateRollback.deletedSourceSvcImagePath = $svc.ImagePath
         
         sc.exe delete "$($sourceSvc.Name)" | Out-Null
 
@@ -173,12 +173,6 @@ function Migrate {
     $migrateRollback.createdNewService = $sourceSettings.ServiceName
 
     if ($sourceSvc -ne $null -and $destinationSvc.Name -ne $sourceSvc.Name) {
-        $svc = .\services.ps1 Get-ServiceAsWmiObject -Name $destinationSvc.Name
-
-        if ($svc -eq $null) {
-            throw "Could not access service information through WMI."
-        }
-
         sc.exe delete "$($destinationSvc.Name)" | Out-Null
 
         if ($LASTEXITCODE -ne 0) {
