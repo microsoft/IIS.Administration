@@ -147,6 +147,67 @@ namespace Microsoft.IIS.Administration.Tests
                     Assert.True(DeleteSite(client, Utils.Self(site)));
             }
         }
+        [Fact]
+        public void BindingConflict()
+        {
+            string[] httpProperties = new string[] { "ip_address", "port", "hostname", "protocol", "binding_information" };
+            string[] httpsProperties = new string[] { "ip_address", "port", "hostname", "protocol", "binding_information", "certificate" };
+            string[] othersProperties = new string[] { "protocol", "binding_information" };
+
+
+            using (HttpClient client = ApiHttpClient.Create()) {
+                EnsureNoSite(client, TEST_SITE_NAME);
+                JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, @"c:\sites\test_site");
+
+                var bindings = site.Value<JArray>("bindings");
+                bindings.Clear();
+
+                var conflictBindings = new object[] {
+                    new {
+                        port = 63015,
+                        ip_address = "*",
+                        hostname = "abc",
+                        protocol = "http"
+                    },
+                    new {
+                        port = 63015,
+                        ip_address = "*",
+                        hostname = "abc",
+                        protocol = "http"
+                    }
+                };
+
+                foreach (var b in conflictBindings) {
+                    bindings.Add(JObject.FromObject(b));
+                }
+
+                var response = client.PatchRaw(Utils.Self(site), site);
+                Assert.True(response.StatusCode == HttpStatusCode.Conflict);
+
+                conflictBindings = new object[] {
+                    new {
+                        binding_information = "35808:*",
+                        protocol = "net.tcp"
+                    },
+                    new {
+                        binding_information = "35808:*",
+                        protocol = "net.tcp"
+                    }
+                };
+
+                bindings.Clear();
+                foreach (var b in conflictBindings) {
+                    bindings.Add(JObject.FromObject(b));
+                }
+
+                response = client.PatchRaw(Utils.Self(site), site);
+                Assert.True(response.StatusCode == HttpStatusCode.Conflict);
+
+
+                Assert.True(DeleteSite(client, Utils.Self(site)));
+            }
+        }
+
 
         [Fact]
         public void BindingTypes()

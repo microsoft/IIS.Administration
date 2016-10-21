@@ -442,6 +442,13 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                     Binding binding = site.Bindings.CreateElement();
                     SetBinding(binding, b);
 
+                    foreach (Binding addedBinding in newBindings) {
+                        if (addedBinding.Protocol.Equals(binding.Protocol, StringComparison.OrdinalIgnoreCase) &&
+                            addedBinding.BindingInformation.Equals(binding.BindingInformation, StringComparison.OrdinalIgnoreCase)) {
+                            throw new AlreadyExistsException("binding");
+                        }
+                    }
+
                     // Add to bindings list
                     newBindings.Add(binding);
                 }
