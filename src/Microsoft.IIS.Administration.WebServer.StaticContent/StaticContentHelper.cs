@@ -8,12 +8,15 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
     using Core.Utils;
     using Sites;
     using System;
+    using System.Dynamic;
     using System.Globalization;
     using Web.Administration;
     using static MimeTypesGlobals;
 
     public static class StaticContentHelper
     {
+        private const string SetETagAttribute = "setEtag";
+
         public static void UpdateFeatureSettings(dynamic model, StaticContentSection section)
         {
             if(model == null) {
@@ -146,13 +149,18 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
                     break;
             }
 
-            return new {
-                control_mode = controlMode,
-                max_age = (long)cache.CacheControlMaxAge.TotalMinutes,
-                http_expires = cache.HttpExpires.ToString("r"),
-                control_custom = cache.CacheControlCustom,
-                set_e_tag = cache.SetETag
-            };
+            dynamic obj = new ExpandoObject();
+
+            obj.control_mode = controlMode;
+            obj.max_age = (long)cache.CacheControlMaxAge.TotalMinutes;
+            obj.http_expires = cache.HttpExpires.ToString("r");
+            obj.control_custom = cache.CacheControlCustom;
+
+            if (cache.Schema.HasAttribute(SetETagAttribute)) {
+                obj.set_e_tag = cache.SetETag;
+            }
+
+            return obj;
         }
     }
 }
