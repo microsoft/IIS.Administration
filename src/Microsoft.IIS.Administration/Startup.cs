@@ -149,7 +149,7 @@ namespace Microsoft.IIS.Administration
             //
             // Error handling
             //
-            app.UseMiddleware<ErrorHandler>();
+            app.UseErrorHandler();
 
             //
             // Ensure SSL

@@ -6,7 +6,6 @@ namespace Microsoft.IIS.Administration {
     using System;
     using System.Net;
     using System.Threading.Tasks;
-    using AspNetCore.Builder;
     using AspNetCore.Http;
     using Core;
     using Core.Http;
@@ -14,8 +13,6 @@ namespace Microsoft.IIS.Administration {
     using Newtonsoft.Json;
     using Serilog;
     using Serilog.Events;
-
-
 
     public class ErrorHandler {
         RequestDelegate _next;
