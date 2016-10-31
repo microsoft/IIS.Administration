@@ -129,7 +129,8 @@ function Migrate {
 
     $appHostPath = Join-Path $Destination host\applicationHost.config
     $appPath = Join-Path $Destination Microsoft.IIS.Administration
-    $Port = $sourceSettings.Port
+    $sourceAppHostPath = Join-Path $Source host\applicationHost.config
+    $Port = .\config.ps1 Get-AppHostPort -AppHostPath $sourceAppHostPath
 
     $destDir = Get-Item $Destination
 

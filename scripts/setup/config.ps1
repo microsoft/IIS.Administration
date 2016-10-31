@@ -9,7 +9,8 @@ Param (
                  "Exists",
                  "Get-UserFileMap",
                  "Write-Config",
-                 "Write-AppHost")]
+                 "Write-AppHost",
+                 "Get-AppHostPort")]
     [string]
     $Command,
     
@@ -40,6 +41,7 @@ Param (
 
 # Name of file we place installation data in
 $INSTALL_FILE = "setup.config"
+$IISAdminSiteName = "IISAdmin"
 
 # Returns a map of the files that contain user configurable settings.
 function Get-UserFileMap {
@@ -145,7 +147,6 @@ function Write-AppHost($_appHostPath, $_applicationPath, $_port, $_version) {
     }
 
     $IISAdminPoolName = "IISAdminAppPool" + $_version
-    $IISAdminSiteName = "IISAdmin"
 
     [xml]$xml = Get-Content -Path "$_appHostPath"
     $xml.configuration."system.applicationHost".applicationPools.Add.name = $IISAdminPoolName
@@ -168,6 +169,44 @@ function Write-AppHost($_appHostPath, $_applicationPath, $_port, $_version) {
     $sw = New-Object System.IO.StreamWriter -ArgumentList $_appHostPath
     $xml.Save($sw)
     $sw.Dispose()
+}
+
+# Gets the port that the IIS Administration site is configured to listen on in the applicationHost.config file.
+# AppHostPath: The location of the applicationHost.config file.
+function Get-AppHostPort($_appHostPath) {
+    if ([string]::IsNullOrEmpty($_appHostPath)) {
+        throw "AppHostPath required."
+    }
+    if (-not(Test-Path $_appHostPath)) {
+        throw "applicationHost.config not found at $_appHostPath"
+    }
+
+    
+    [xml]$xml = Get-Content -Path "$_appHostPath"
+    $sites = $xml.GetElementsByTagName("site")
+
+    $site = $null;
+    foreach ($s in $sites) {
+    if ($s.name -eq $IISAdminSiteName) { 
+            $site = $s;
+        } 
+    }
+
+    if ($site -eq $null) {
+        throw "Installation applicationHost.config does not contain IISAdmin site"
+    }
+
+    $info = $site.bindings.binding.GetAttribute("bindingInformation")
+
+    $parts = $info.Split(':')
+    $test = $null
+    if ($parts.Length -ne 3) {
+        throw "Unsupported binding information format"
+    }
+    if (-not([uint16]::TryParse($parts[1], [ref]$test))) {
+        throw "Unsupported binding information format"
+    }
+    return $parts[1]
 }
 
 switch ($Command)
@@ -195,6 +234,10 @@ switch ($Command)
     "Write-AppHost"
     {
         Write-AppHost $AppHostPath $ApplicationPath $Port $Version
+    }
+    "Get-AppHostPort"
+    {
+        return Get-AppHostPort $AppHostPath
     }
     default
     {
