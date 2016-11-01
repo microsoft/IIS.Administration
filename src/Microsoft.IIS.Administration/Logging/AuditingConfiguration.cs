@@ -4,9 +4,11 @@
 
 namespace Microsoft.IIS.Administration.Logging
 {
+    using AspNetCore.Hosting;
     using Extensions.Configuration;
     using Extensions.Logging;
     using System;
+    using System.IO;
 
     class AuditingConfiguration
     {
@@ -21,6 +23,11 @@ namespace Microsoft.IIS.Administration.Logging
             AuditingRoot = Environment.ExpandEnvironmentVariables(configuration.GetValue("auditing:path", string.Empty));
             MinLevel = LogLevel.Information;
             FileName = configuration.GetValue("auditing:file_name", "audit-{Date}.txt");
+        }
+
+        public string GetDefaultAuditRoot(IHostingEnvironment env)
+        {
+            return Path.GetFullPath(Path.Combine(env.ContentRootPath, "../../logs"));
         }
     }
 }

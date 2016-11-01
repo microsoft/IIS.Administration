@@ -4,10 +4,12 @@
 
 namespace Microsoft.IIS.Administration.Logging
 {
+    using AspNetCore.Hosting;
     using Extensions.Configuration;
     using Extensions.Logging;
     using Serilog.Events;
     using System;
+    using System.IO;
 
     class LoggingConfiguration
     {
@@ -42,6 +44,11 @@ namespace Microsoft.IIS.Administration.Logging
                 default:
                     return (LogEventLevel.Fatal + 1);
             }
+        }
+
+        public string GetDefaultLogRoot(IHostingEnvironment env)
+        {
+            return Path.GetFullPath(Path.Combine(env.ContentRootPath, "../../logs"));
         }
     }
 }

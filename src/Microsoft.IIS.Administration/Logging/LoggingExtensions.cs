@@ -17,11 +17,10 @@ namespace Microsoft.IIS.Administration.Logging
     {
         public static IServiceCollection AddApiLogging(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
         {
-            var defaultLogsRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "logs"));
-
             var loggingConfiguration = new LoggingConfiguration(configuration);
             var logsRoot = loggingConfiguration.LogsRoot;
             var minLevel = loggingConfiguration.MinLevel;
+            var defaultLogsRoot = loggingConfiguration.GetDefaultLogRoot(env);
 
             // If invalid directory was specified in the configuration. Reset to default
             if (!Directory.Exists(logsRoot)) {
@@ -50,11 +49,10 @@ namespace Microsoft.IIS.Administration.Logging
 
         public static IServiceCollection AddApiAuditing(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
         {
-            var defaultAuditRoot = Path.GetFullPath(Path.Combine(env.ContentRootPath, "logs"));
-
             var auditingConfiguration = new AuditingConfiguration(configuration);
             var auditRoot = auditingConfiguration.AuditingRoot;
             var minLevel = auditingConfiguration.MinLevel;
+            var defaultAuditRoot = auditingConfiguration.GetDefaultAuditRoot(env);
 
             // If invalid directory was specified in the configuration. Reset to default
             if (!Directory.Exists(auditRoot)) {
