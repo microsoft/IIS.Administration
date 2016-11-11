@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "description": "Microsoft.IIS.Administration.FileSystem.Core Class Library",
+  "authors": [ "Microsoft" ],
+  "frameworks": {
+    "netstandard1.6": {
+      "imports": [
+        "dotnet5.6",
+        "dnxcore50",
+        "portable-net45+win8"
+      ]
+    }
+  },
+  "dependencies": {
+    "NETStandard.Library": "1.6.0",
+    "Microsoft.IIS.Administration.Core": "1.0.0",
+    "Microsoft.AspNetCore.StaticFiles": "1.0.0"
+  }
+}

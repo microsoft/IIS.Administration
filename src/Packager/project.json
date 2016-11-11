@@ -5,8 +5,9 @@
     "emitEntryPoint": false
   },
   "dependencies": {
-    "Microsoft.IIS.Administration.Certificates": "1.0.0",
     "Microsoft.IIS.Administration.AccessManagement": "1.0.0",
+    "Microsoft.IIS.Administration.Certificates": "1.0.0",
+    "Microsoft.IIS.Administration.Files": "1.0.0",
     "Microsoft.IIS.Administration.WebServer": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.Applications": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.AppPools": "1.0.0",
@@ -16,6 +17,7 @@
     "Microsoft.IIS.Administration.WebServer.DefaultDocuments": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.Delegation": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.DirectoryBrowsing": "1.0.0",
+    "Microsoft.IIS.Administration.WebServer.Files": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.Handlers": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.HttpRequestTracing": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.HttpResponseHeaders": "1.0.0",

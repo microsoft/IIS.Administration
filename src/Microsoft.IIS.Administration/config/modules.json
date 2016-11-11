@@ -45,6 +45,10 @@
       "enabled": true
     },
     {
+      "name": "Microsoft.IIS.Administration.WebServer.Files",
+      "enabled": true
+    },
+    {
       "name": "Microsoft.IIS.Administration.WebServer.Handlers",
       "enabled": true
     },

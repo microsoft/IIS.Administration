@@ -19,7 +19,8 @@
     },
     "Microsoft.IIS.Administration.WebServer": "1.0.0",
     "xunit": "2.2.0-beta3-build3316",
-    "dotnet-test-xunit": "2.2.0-preview2-build1029"
+    "dotnet-test-xunit": "2.2.0-preview2-build1029",
+    "Microsoft.IIS.Administration.WebServer.Files": "1.0.0"
   },
   "buildOptions": {
     "copyToOutput": {

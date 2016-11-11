@@ -102,7 +102,6 @@
             type: verb,
             url: api_url,
             data: body,
-            dataType: "json",
             xhrFields: {
                 withCredentials: true
             },
@@ -115,14 +114,22 @@
                 request.setRequestHeader('Accept', 'application/hal+json');
                 request.setRequestHeader('Access-Token', 'Bearer ' + accessToken());
             },
-            success: function (json, statusText, jqhxr) {
+            success: function (response, statusText, jqhxr) {
+                _setStatus(jqhxr);
+                var contentType = jqhxr.getResponseHeader("Content-Type");
                 $("#nav-panel").show();
 
-                _setStatus(jqhxr);
+                if (contentType && contentType.indexOf("json") != -1) {
+                    var json = response;
 
-                document.getElementById('result').innerHTML = json2Html(json);
+                    document.getElementById('result').innerHTML = json2Html(json);
 
-                _json = json;
+                    _json = json;
+                }
+                else {
+                    _json = null;
+                    document.getElementById('result').innerHTML = sanitizeHtml(response);
+                }
             },
             error: function (xhr) {
                 _json = null;
@@ -173,6 +180,15 @@
         // We replace line breaks with the html <br />
         // We replace spaces with the html &nbsp;
         return JSON.stringify(json, null, 4).replace(/\n/g, "<br/>").replace(/\ \ /g, "&nbsp;&nbsp;");
+    }
+
+    function sanitizeHtml(unsafe) {
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
     }
 
 
