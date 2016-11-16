@@ -122,12 +122,14 @@
                 if (contentType && contentType.indexOf("json") != -1) {
                     var json = response;
 
+                    $('#result').css('white-space', '');
                     document.getElementById('result').innerHTML = json2Html(json);
 
                     _json = json;
                 }
                 else {
                     _json = null;
+                    $('#result').css('white-space', 'pre-wrap');
                     document.getElementById('result').innerHTML = sanitizeHtml(response);
                 }
             },

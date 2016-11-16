@@ -4,7 +4,6 @@
 
 namespace Microsoft.IIS.Administration.WebServer
 {
-    using System;
     using Web.Administration;
 
     class MgmtUnit : IManagementUnit {

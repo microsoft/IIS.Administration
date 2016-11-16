@@ -5,10 +5,12 @@
 namespace Microsoft.IIS.Administration.WebServer.Files
 {
     using Administration.Files;
+    using Core;
     using Core.Utils;
     using Sites;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Dynamic;
     using System.IO;
     using Web.Administration;
@@ -28,16 +30,21 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 fields = Fields.All;
             }
 
+            path = path.Replace('\\', '/');
             var physicalPath = GetPhysicalPath(site, path);
 
             dynamic obj = new ExpandoObject();
             var FileId = new FileId(site.Id, path);
             DirectoryInfo dirInfo = new DirectoryInfo(physicalPath);
 
+            if (!dirInfo.Exists) {
+                return null;
+            }
+
             //
             // name
             if (fields.Exists("name")) {
-                obj.name = path.Replace('\\', '/').TrimStart('/');
+                obj.name = dirInfo.Name;
             }
 
             //
@@ -55,7 +62,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // path
             if (fields.Exists("path")) {
-                obj.path = path.Replace('\\', '/');
+                obj.path = path;
             }
 
             //
@@ -65,47 +72,36 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             //
+            // created
+            if (fields.Exists("created")) {
+                obj.created = dirInfo.CreationTimeUtc;
+            }
+
+            //
             // last_modified
             if (fields.Exists("last_modified")) {
                 obj.last_modified = dirInfo.LastWriteTimeUtc;
             }
 
             //
-            // creation_date
-            if (fields.Exists("creation_date")) {
-                obj.creation_date = dirInfo.CreationTimeUtc;
-            }
-
-            //
-            // file_count
-            if (fields.Exists("file_count")) {
-                obj.file_count = dirInfo.GetFiles().Length;
-            }
-
-            //
-            // directory_count
-            if (fields.Exists("directory_count")) {
-                obj.directory_count = dirInfo.GetDirectories().Length;
+            // total_files
+            if (fields.Exists("total_files")) {
+                obj.total_files = dirInfo.GetFiles().Length + dirInfo.GetDirectories().Length + GetChildVirtualDirectories(site, path).Count;
             }
 
             //
             // parent
             if (fields.Exists("parent")) {
-                if (path == "/") {
-                    obj.parent = null;
-                }
-                else if (Directory.Exists(PathUtil.RemoveLastSegment(physicalPath))) {
-                    obj.parent = DirectoryToJsonModelRef(site, PathUtil.RemoveLastSegment(path));
-                }
+                obj.parent = GetParentJsonModelRef(site, path);
             }
 
             //
-            // site
-            if (fields.Exists("site")) {
-                obj.site = SiteHelper.ToJsonModelRef(site);
+            // website
+            if (fields.Exists("website")) {
+                obj.website = SiteHelper.ToJsonModelRef(site);
             }
 
-            return Core.Environment.Hal.Apply(Defines.FilesResource.Guid, obj, full);
+            return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
         }
 
         public static object DirectoryToJsonModelRef(Site site, string path, Fields fields = null)
@@ -118,111 +114,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
         }
 
-        public static object VirtualDirectoryToJsonModel(Site site, string path, Fields fields = null, bool full = true)
-        {
-            if (string.IsNullOrEmpty(path)) {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            if (fields == null) {
-                fields = Fields.All;
-            }
-
-            var physicalPath = GetPhysicalPath(site, path);
-
-            dynamic obj = new ExpandoObject();
-            var FileId = new FileId(site.Id, path);
-            DirectoryInfo dirInfo = new DirectoryInfo(physicalPath);
-            var app = ResolveApplication(site, path);
-            var vdir = ResolveVdir(site, path);
-
-            //
-            // name
-            if (fields.Exists("name")) {
-                obj.name = path == "/" ? site.Name : path.Replace('\\', '/').TrimStart('/');
-            }
-
-            //
-            // id
-            if (fields.Exists("id")) {
-                obj.id = FileId.Uuid;
-            }
-
-            //
-            // type
-            if (fields.Exists("type")) {
-                obj.type = Enum.GetName(typeof(FileType), FileType.VirtualDirectory).ToLower();
-            }
-
-            //
-            // path
-            if (fields.Exists("path")) {
-                obj.path = path.Replace('\\', '/');
-            }
-
-            //
-            // physical_path
-            if (fields.Exists("physical_path")) {
-                obj.physical_path = physicalPath;
-            }
-
-            //
-            // last_modified
-            if (fields.Exists("last_modified")) {
-                obj.last_modified = dirInfo.LastWriteTimeUtc;
-            }
-
-            //
-            // creation_date
-            if (fields.Exists("creation_date")) {
-                obj.creation_date = dirInfo.CreationTimeUtc;
-            }
-
-            //
-            // file_count
-            if (fields.Exists("file_count")) {
-                obj.file_count = dirInfo.GetFiles().Length;
-            }
-
-            //
-            // directory_count
-            if (fields.Exists("directory_count")) {
-                obj.directory_count = dirInfo.GetDirectories().Length;
-            }
-
-            //
-            // parent
-            if (fields.Exists("parent")) {
-                if (path == "/") {
-                    obj.parent = null;
-                }
-                else if (vdir.Path == "/") {
-                    obj.parent = DirectoryToJsonModelRef(site, vdir.Path);
-                }
-                else {
-                    obj.parent = VirtualDirectoryToJsonModelRef(site, app.Path);
-                }
-            }
-
-            //
-            // site
-            if (fields.Exists("site")) {
-                obj.site = SiteHelper.ToJsonModelRef(site);
-            }
-
-            return Core.Environment.Hal.Apply(Defines.FilesResource.Guid, obj, full);
-        }
-
-        public static object VirtualDirectoryToJsonModelRef(Site site, string path, Fields fields = null)
-        {
-            if (fields == null || !fields.HasFields) {
-                return VirtualDirectoryToJsonModel(site, path, DirectoryRefFields, false);
-            }
-            else {
-                return VirtualDirectoryToJsonModel(site, path, fields, false);
-            }
-        }
-
         public static object VirtualDirectoryToJsonModel(FullyQualifiedVirtualDirectory fullVdir, Fields fields = null, bool full = true)
         {
             if (fullVdir == null) {
@@ -232,20 +123,17 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             if (fields == null) {
                 fields = Fields.All;
             }
-
-            var virtualPath = fullVdir.Application.Path.TrimEnd('/') + fullVdir.VirtualDirectory.Path;
-            var physicalPath = GetPhysicalPath(fullVdir.Site, virtualPath);
+            
+            var physicalPath = GetPhysicalPath(fullVdir.Site, fullVdir.Path);
 
             dynamic obj = new ExpandoObject();
-            var FileId = new FileId(fullVdir.Site.Id, virtualPath);
+            var FileId = new FileId(fullVdir.Site.Id, fullVdir.Path);
             DirectoryInfo dirInfo = new DirectoryInfo(physicalPath);
-            //var app = ResolveApplication(site, path);
-            //var vdir = ResolveVdir(site, path);
 
             //
             // name
             if (fields.Exists("name")) {
-                obj.name = virtualPath == "/" ? fullVdir.Site.Name : virtualPath.TrimStart('/');
+                obj.name = fullVdir.Path == "/" ? fullVdir.Site.Name : fullVdir.Path.TrimStart('/');
             }
 
             //
@@ -257,13 +145,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // type
             if (fields.Exists("type")) {
-                obj.type = Enum.GetName(typeof(FileType), FileType.VirtualDirectory).ToLower();
+                obj.type = Enum.GetName(typeof(FileType), FileType.VDir).ToLower();
             }
 
             //
             // path
             if (fields.Exists("path")) {
-                obj.path = virtualPath;
+                obj.path = fullVdir.Path.Replace('\\', '/');
             }
 
             //
@@ -273,50 +161,47 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             //
+            // created
+            if (fields.Exists("created")) {
+                obj.created = dirInfo.CreationTimeUtc;
+            }
+
+            //
             // last_modified
             if (fields.Exists("last_modified")) {
                 obj.last_modified = dirInfo.LastWriteTimeUtc;
             }
 
             //
-            // creation_date
-            if (fields.Exists("creation_date")) {
-                obj.creation_date = dirInfo.CreationTimeUtc;
-            }
-
-            //
-            // file_count
-            if (fields.Exists("file_count")) {
-                obj.file_count = dirInfo.GetFiles().Length;
-            }
-
-            //
-            // directory_count
-            if (fields.Exists("directory_count")) {
-                obj.directory_count = dirInfo.GetDirectories().Length;
+            // total_files
+            if (fields.Exists("total_files")) {
+                obj.total_files = dirInfo.GetFiles().Length + dirInfo.GetDirectories().Length + GetChildVirtualDirectories(fullVdir.Site, fullVdir.Path).Count;
             }
 
             //
             // parent
             if (fields.Exists("parent")) {
-                if (fullVdir.Application.Path == "/") {
-                    obj.parent = null;
+                if (fullVdir.VirtualDirectory.Path != "/") {
+                    var rootVdir = fullVdir.Application.VirtualDirectories["/"];
+                    obj.parent = rootVdir == null ? null : VirtualDirectoryToJsonModelRef(new FullyQualifiedVirtualDirectory(fullVdir.Site, fullVdir.Application, rootVdir));
                 }
-                else if (fullVdir.VirtualDirectory.Path == "/") {
-                    obj.parent = DirectoryToJsonModelRef(fullVdir.Site, fullVdir.VirtualDirectory.Path);
+                else if (fullVdir.Application.Path != "/") {
+                    var rootApp = fullVdir.Site.Applications["/"];
+                    var rootVdir = rootApp == null ? null : rootApp.VirtualDirectories["/"];
+                    obj.parent = rootApp == null || rootVdir == null ? null : VirtualDirectoryToJsonModel(new FullyQualifiedVirtualDirectory(fullVdir.Site, rootApp, rootVdir));
                 }
                 else {
-                    obj.parent = VirtualDirectoryToJsonModelRef(fullVdir);
+                    obj.parent = null;
                 }
             }
 
             //
-            // site
-            if (fields.Exists("site")) {
-                obj.site = SiteHelper.ToJsonModelRef(fullVdir.Site);
+            // website
+            if (fields.Exists("website")) {
+                obj.website = SiteHelper.ToJsonModelRef(fullVdir.Site);
             }
 
-            return Core.Environment.Hal.Apply(Defines.FilesResource.Guid, obj, full);
+            return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
         }
 
         public static object VirtualDirectoryToJsonModelRef(FullyQualifiedVirtualDirectory vdir, Fields fields = null)
@@ -339,11 +224,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 fields = Fields.All;
             }
 
+            path = path.Replace('\\', '/');
             var physicalPath = GetPhysicalPath(site, path);
 
             dynamic obj = new ExpandoObject();
             var FileId = new FileId(site.Id, path);
             var fileInfo = new FileInfo(physicalPath);
+            var fileVersionInfo = FileVersionInfo.GetVersionInfo(fileInfo.FullName);
 
             //
             // name
@@ -364,9 +251,27 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             //
+            // length
+            if (fields.Exists("length")) {
+                obj.length = fileInfo.Length;
+            }
+
+            //
+            // created
+            if (fields.Exists("created")) {
+                obj.created = fileInfo.CreationTimeUtc;
+            }
+
+            //
             // last_modified
             if (fields.Exists("last_modified")) {
                 obj.last_modified = fileInfo.LastWriteTimeUtc;
+            }
+
+            //
+            // e_tag
+            if (fields.Exists("e_tag")) {
+                obj.e_tag = ETag.Create(fileInfo).Value;
             }
 
             //
@@ -382,20 +287,21 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             //
-            // parent
-            if (fields.Exists("parent")) {
-                if (path == "/") {
-                    obj.parent = null;
-                }
-                else if (Directory.Exists(PathUtil.RemoveLastSegment(physicalPath))) {
-                    obj.parent = DirectoryToJsonModelRef(site, PathUtil.RemoveLastSegment(path));
-                }
+            // version
+            if (fields.Exists("version") && fileVersionInfo.FileVersion != null) {
+                obj.version = fileVersionInfo.FileVersion;
             }
 
             //
-            // site
-            if (fields.Exists("site")) {
-                obj.site = SiteHelper.ToJsonModelRef(site);
+            // parent
+            if (fields.Exists("parent")) {
+                obj.parent = GetParentJsonModelRef(site, path);
+            }
+
+            //
+            // website
+            if (fields.Exists("website")) {
+                obj.website = SiteHelper.ToJsonModelRef(site);
             }
 
 
@@ -412,16 +318,77 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
         }
 
+        public static void UpdateFile(dynamic model, FileInfo fileInfo)
+        {
+            if (model == null) {
+                throw new ApiArgumentException("model");
+            }
+
+            string name = DynamicHelper.Value(model.name);
+
+            if (name != null) {
+                if (!IsValidFileName(name)) {
+                    throw new ApiArgumentException("name");
+                }
+                var newName = Path.Combine(fileInfo.Directory.FullName, name);
+                if (File.Exists(newName)) {
+                    throw new AlreadyExistsException("name");
+                }
+                fileInfo.MoveTo(newName);
+            }
+        }
+
+        public static void UpdateDirectory(dynamic model, DirectoryInfo directoryInfo)
+        {
+            if (model == null) {
+                throw new ApiArgumentException("model");
+            }
+
+            string name = DynamicHelper.Value(model.name);
+
+            if (name != null) {
+                if (!IsValidFileName(name)) {
+                    throw new ApiArgumentException("name");
+                }
+                if (directoryInfo.Parent != null) {
+                    var newName = Path.Combine(directoryInfo.Parent.FullName, name);
+                    if (Directory.Exists(newName)) {
+                        throw new AlreadyExistsException("name");
+                    }
+                    directoryInfo.MoveTo(newName);
+                }
+            }
+        }
+
+        public static string GetLocation(string id)
+        {
+            return $"/{Defines.FILES_PATH}/{id}";
+        }
+
         public static FileType GetFileType(Site site, string path, string physicalPath)
         {
-            if (path == "/" || !Path.Combine(FilesHelper.GetPhysicalPath(site), path.Replace('/', '\\').TrimStart('\\')).Equals(physicalPath, StringComparison.OrdinalIgnoreCase)) {
-                return FileType.VirtualDirectory;
+            // A virtual directory is a directory who's physical path is not the combination of the sites physical path and the relative path from the sites root
+            // and has same virtual path as app + vdir path
+            var app = ResolveApplication(site, path);
+            var vdir = ResolveVdir(site, path);
+            
+            var differentPhysicalPath = !Path.Combine(GetPhysicalPath(site), path.Replace('/', '\\').TrimStart('\\')).Equals(physicalPath, StringComparison.OrdinalIgnoreCase);
+
+            if (path == "/" || differentPhysicalPath && IsExactVdirPath(site, app, vdir, path)) {
+                return FileType.VDir;
             }
             else if (Directory.Exists(physicalPath)) {
                 return FileType.Directory;
             }
 
             return FileType.File;
+        }
+
+        public static bool IsExactVdirPath(Site site, Application app, VirtualDirectory vdir, string path)
+        {
+            path = path.TrimEnd('/');
+            var virtualPath = app.Path.TrimEnd('/') + vdir.Path.TrimEnd('/');
+            return path.Equals(virtualPath, StringComparison.OrdinalIgnoreCase);
         }
 
         public static Application ResolveApplication(Site site, string path)
@@ -458,8 +425,10 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             VirtualDirectory parentVdir = null;
             if (parentApp != null) {
                 var maxMatch = 0;
+                var testPath = path.TrimStart(parentApp.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+                testPath = testPath == string.Empty ? "/" : testPath;
                 foreach (var vdir in parentApp.VirtualDirectories) {
-                    var matchingPrefix = PathUtil.PrefixSegments(vdir.Path, path);
+                    var matchingPrefix = PathUtil.PrefixSegments(vdir.Path, testPath);
                     if (matchingPrefix > maxMatch) {
                         parentVdir = vdir;
                         maxMatch = matchingPrefix;
@@ -467,6 +436,18 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 }
             }
             return parentVdir;
+        }
+
+        public static FullyQualifiedVirtualDirectory ResolveFullVdir(Site site, string path)
+        {
+            VirtualDirectory vdir = null;
+
+            var app = ResolveApplication(site, path);
+            if (app != null) {
+                vdir = ResolveVdir(site, path);
+            }
+
+            return vdir == null ? null : new FullyQualifiedVirtualDirectory(site, app, vdir);
         }
 
         public static string GetPhysicalPath(Site site)
@@ -483,29 +464,18 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return root;
         }
 
-        public static string GetPhysicalPath(Application app)
-        {
-            if (app == null) {
-                throw new ArgumentNullException(nameof(app));
-            }
-
-            string root = null;
-            if (app != null && app.VirtualDirectories["/"] != null) {
-                root = app.VirtualDirectories["/"].PhysicalPath;
-            }
-            return root;
-        }
-
         public static string GetPhysicalPath(Site site, string path)
         {
             var app = ResolveApplication(site, path);
             var vdir = ResolveVdir(site, path);
+            string physicalPath = null;
 
-            var suffix = path.TrimStart(PathUtil.SEPARATORS);
-            suffix = suffix.Remove(0, app.Path.TrimStart(PathUtil.SEPARATORS).Length);
-            suffix = suffix.Remove(0, vdir.Path.TrimStart(PathUtil.SEPARATORS).Length);
+            if (vdir != null) {
+                var suffix = path.TrimStart(app.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase).TrimStart(vdir.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+                physicalPath = Path.Combine(vdir.PhysicalPath, suffix.Trim(PathUtil.SEPARATORS).Replace('/', Path.DirectorySeparatorChar));
+            }
 
-            return vdir.PhysicalPath == null ? null : Path.Combine(vdir.PhysicalPath, suffix.Trim(PathUtil.SEPARATORS).Replace('/', Path.DirectorySeparatorChar));
+            return System.Environment.ExpandEnvironmentVariables(physicalPath);
         }
 
         public static List<FullyQualifiedVirtualDirectory> GetChildVirtualDirectories(Site site, string path)
@@ -537,52 +507,33 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return vdirs;
         }
 
+        public static bool IsValidFileName(string name)
+        {
+            return !string.IsNullOrEmpty(name) &&
+                        name.IndexOfAny(Path.GetInvalidFileNameChars()) == -1 &&
+                        !name.EndsWith(".");
+        }
 
 
 
-        //private static IEnumerable<Application> GetChildApplications(Site site, string path)
-        //{
-        //    var apps = new List<Application>();
 
-        //    foreach (var app in site.Applications) {
-        //        if (PathUtil.IsParentPath(path, app.Path)) {
-        //            apps.Add(app);
-        //        }
-        //    }
+        private static object GetParentJsonModelRef(Site site, string path)
+        {
+            object parent = null;
+            if (path != "/") {
+                var parentPath = PathUtil.RemoveLastSegment(path);
+                var parentApp = ResolveApplication(site, parentPath);
+                var parentVdir = ResolveVdir(site, parentPath);
 
-        //    return apps;
-        //}
-
-        //private static IEnumerable<Application> GetParentApplications(Site site, string path)
-        //{
-        //    var apps = new List<Application>();
-
-        //    // Get all parent applications for the path
-        //    foreach (var app in site.Applications) {
-        //        if (PathUtil.IsParentPath(app.Path, path)) {
-        //            apps.Add(app);
-        //        }
-        //    }
-
-        //    return apps;
-        //}
-
-        //private static IEnumerable<VirtualDirectory> GetChildVirtualDirectories(Site site, string path)
-        //{
-        //    var vdirs = new List<VirtualDirectory>();
-        //    var apps = GetParentApplications(site, path);
-
-        //    // Get all virtual directories that are children of the path
-        //    foreach (var app in apps) {
-        //        foreach (var vdir in app.VirtualDirectories) {
-        //            var fullPath = app.Path.TrimEnd('/') + vdir.Path;
-        //            if (PathUtil.IsParentPath(path, fullPath)) {
-        //                vdirs.Add(vdir);
-        //            }
-        //        }
-        //    }
-
-        //    return vdirs;
-        //}
+                if (IsExactVdirPath(site, parentApp, parentVdir, parentPath)) {
+                    parent = VirtualDirectoryToJsonModelRef(new FullyQualifiedVirtualDirectory(site, parentApp, parentVdir));
+                }
+                else {
+                    var parentPhysicalPath = GetPhysicalPath(site, parentPath);
+                    parent = Directory.Exists(parentPhysicalPath) ? DirectoryToJsonModelRef(site, parentPath) : null;
+                }
+            }
+            return parent;
+        }
     }
 }

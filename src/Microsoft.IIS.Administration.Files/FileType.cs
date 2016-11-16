@@ -8,6 +8,6 @@ namespace Microsoft.IIS.Administration.Files
     {
         File,
         Directory,
-        VirtualDirectory
+        VDir
     }
 }

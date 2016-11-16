@@ -9,7 +9,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
     public class Defines
     {
-        //private const string DIRECTORIES_ENDPOINT = "directories";
         private const string FILES_ENDPOINT = "files";
         private const string CONTENT_ENDPOINT = "content";
 
@@ -17,6 +16,8 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         public static readonly ResDef FilesResource = new ResDef("files", new Guid("CF0CF1C6-8913-4EF0-9833-C11820689252"), FILES_ENDPOINT);
         public static readonly string FILE_IDENTIFIER = "file.id";
         public static readonly string PARENT_IDENTIFIER = "parent.id";
+        
+        public static readonly ResDef DirectoriesResource = new ResDef("directories", new Guid("E83B01EA-37A3-405F-8B5B-83D861DC9FAA"), FILES_ENDPOINT);
 
         public static readonly string CONTENT_PATH = $"{FILES_PATH}/{CONTENT_ENDPOINT}";
         public static readonly ResDef ContentResource = new ResDef("content", new Guid("345F44E5-F4B5-4289-A551-6353D3A61215"), CONTENT_ENDPOINT);

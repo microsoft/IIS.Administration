@@ -9,6 +9,7 @@ namespace Microsoft.IIS.Administration.WebServer {
 
     public interface IManagementUnit : IDisposable {
         bool Commit();
+        // ServerManager.Commit() should never be called, use IManagementUnit.Commit instead.
         ServerManager ServerManager { get; }
         string ApplicationHostConfigPath { get; }
     }

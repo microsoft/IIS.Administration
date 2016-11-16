@@ -10,7 +10,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using System.IO;
     using Web.Administration;
     using System.Threading.Tasks;
-    using FileSystem.Core;
+    using Administration.Files;
 
     public class ContentController : ApiBaseController
     {
@@ -26,11 +26,30 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             var physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
 
-            if (!File.Exists(physicalPath) || Directory.Exists(physicalPath)) {
+            if (!File.Exists(physicalPath)) {
                 return NotFound();
             }
 
-            return await Context.GetFileContentAsync(new FileInfo(physicalPath));            
+            return await Context.GetFileContentAsync(new FileInfo(physicalPath));
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> Put(string id)
+        {
+            FileId fileId = new FileId(id);
+            Site site = SiteHelper.GetSite(fileId.SiteId);
+
+            if (site == null) {
+                return NotFound();
+            }
+
+            var physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
+
+            if (!File.Exists(physicalPath)) {
+                return NotFound();
+            }
+
+            return await Context.PutFileContentAsync(new FileInfo(physicalPath));
         }
     }
 }

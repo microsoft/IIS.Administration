@@ -13,6 +13,30 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         public Application Application { get; private set; }
         public VirtualDirectory VirtualDirectory { get; private set; }
 
+        public string Path {
+            get {
+                var p = Application.Path.TrimEnd('/') + VirtualDirectory.Path.TrimEnd('/');
+                return p == string.Empty ? "/" : p;
+            }
+        }
+
+        public string Name {
+            get {
+                bool isRootApp = Application.Path == "/";
+                bool isRootVdir = VirtualDirectory.Path == "/";
+                if(isRootApp && isRootVdir) {
+                    return Site.Name;
+                }
+                else if (isRootVdir) {
+                    return Application.Path.TrimStart('/');
+                }
+                else {
+                    var parts = Path.Split('/');
+                    return parts[parts.Length - 1];
+                }
+            }
+        }
+
         public FullyQualifiedVirtualDirectory(Site site, Application app, VirtualDirectory vdir)
         {
             if (site == null) {

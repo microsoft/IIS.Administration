@@ -18,7 +18,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
     public class FilesController : ApiBaseController
     {
-
         [HttpGet]
         public object Get()
         {
@@ -53,9 +52,12 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
             
             // Virtual Directories
-            foreach (var d in FilesHelper.GetChildVirtualDirectories(site, fileId.Path)) {
-                files.Add(FilesHelper.VirtualDirectoryToJsonModelRef(site, d.Application.Path.TrimEnd('/') + d.VirtualDirectory.Path));
+            foreach (var fullVdir in FilesHelper.GetChildVirtualDirectories(site, fileId.Path)) {
+                files.Add(FilesHelper.VirtualDirectoryToJsonModelRef(fullVdir));
             }
+
+            // Set HTTP header for total count
+            this.Context.Response.SetItemsCount(files.Count);
 
             return new {
                 files = files
@@ -83,9 +85,10 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                     return FilesHelper.FileToJsonModel(site, fileId.Path);
                 case FileType.Directory:
                     return FilesHelper.DirectoryToJsonModel(site, fileId.Path);
-                case FileType.VirtualDirectory:
-                    return FilesHelper.VirtualDirectoryToJsonModel(site, fileId.Path);
-                default: throw new NotImplementedException();
+                case FileType.VDir:
+                    return FilesHelper.VirtualDirectoryToJsonModel(FilesHelper.ResolveFullVdir(site, fileId.Path));
+                default:
+                    return null;
             }
         }
 
@@ -101,7 +104,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             if (!(model.parent is JObject)) {
                 throw new ApiArgumentException("parent", ApiArgumentException.EXPECTED_OBJECT);
             }
-            // Creating a a file instance requires referencing the target feature
+            // Creating a file instance requires referencing the target feature
             string parentUuid = DynamicHelper.Value(model.parent.id);
             if (parentUuid == null) {
                 throw new ApiArgumentException("parent.id");
@@ -123,7 +126,8 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             string name = DynamicHelper.Value(model.name);
             string type = DynamicHelper.Value(model.type);
 
-            if (name == null) {
+            // Here we make sure the file name is safe. No '..', no invalid characters
+            if (name == null || !FilesHelper.IsValidFileName(name)) {
                 throw new ApiArgumentException("model.name");
             }
             if (type == null) {
@@ -131,19 +135,72 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             FileType fileType;
-            if(!Enum.TryParse(type, true, out fileType) || fileType == FileType.VirtualDirectory) {
+            if(!Enum.TryParse(type, true, out fileType) || fileType == FileType.VDir) {
                 throw new ApiArgumentException("model.type");
             }
-
+            
             if (fileType == FileType.File) {
-                // TODO sanitize name, no invalid file name characters
                 File.Create(Path.Combine(physicalPath, name)).Dispose();
             }
             else {
                 Directory.CreateDirectory(Path.Combine(physicalPath, name));
             }
 
-            return fileType == FileType.File ? FilesHelper.FileToJsonModel(site, Path.Combine(fileId.Path, name)) : FilesHelper.DirectoryToJsonModel(site, Path.Combine(fileId.Path, name));
+            return FilesHelper.GetFileType(site, fileId.Path, physicalPath) == FileType.File ? FilesHelper.FileToJsonModel(site, Path.Combine(fileId.Path, name)) : FilesHelper.DirectoryToJsonModel(site, Path.Combine(fileId.Path, name));
+        }
+
+        [HttpPatch]
+        public object Patch([FromBody] dynamic model, string id)
+        {
+            FileId fileId = new FileId(id);
+            Site site = SiteHelper.GetSite(fileId.SiteId);
+
+            if (site == null) {
+                return NotFound();
+            }
+
+            var physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
+
+            if (!File.Exists(physicalPath) && !Directory.Exists(physicalPath)) {
+                return NotFound();
+            }
+
+            switch (FilesHelper.GetFileType(site, fileId.Path, physicalPath)) {
+
+                case FileType.File:
+                    var fileInfo = new FileInfo(physicalPath);
+                    var OldFName = fileInfo.Name;
+
+                    FilesHelper.UpdateFile(model, fileInfo);
+
+                    dynamic f = FilesHelper.FileToJsonModel(site, fileId.Path.Substring(0, fileId.Path.LastIndexOf(OldFName)) + fileInfo.Name);
+
+                    if (f.id != id) {
+                        return LocationChanged(FilesHelper.GetLocation(f.id), f);
+                    }
+
+                    return f;
+
+                case FileType.Directory:
+                    var dirInfo = new DirectoryInfo(physicalPath);
+                    var oldDirName = dirInfo.Name;
+
+                    FilesHelper.UpdateDirectory(model, dirInfo);
+
+                    dynamic d = FilesHelper.DirectoryToJsonModel(site, fileId.Path.Substring(0, fileId.Path.LastIndexOf(oldDirName)) + dirInfo.Name);
+
+                    if (d.id != id) {
+                        return LocationChanged(FilesHelper.GetLocation(d.id), d);
+                    }
+
+                    return d;
+
+                case FileType.VDir:
+                    return FilesHelper.VirtualDirectoryToJsonModel(FilesHelper.ResolveFullVdir(site, fileId.Path));
+
+                default:
+                    return null;
+            }
         }
 
         [HttpDelete]
@@ -158,7 +215,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
             }
 
-            if (!string.IsNullOrEmpty(physicalPath) && (File.Exists(physicalPath) || Directory.Exists(physicalPath))) {               
+            if (!string.IsNullOrEmpty(physicalPath) && (File.Exists(physicalPath) || Directory.Exists(physicalPath))) {
                 switch (FilesHelper.GetFileType(site, fileId.Path, physicalPath)) {
                     case FileType.File:
                         File.Delete(physicalPath);
@@ -166,7 +223,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                     case FileType.Directory:
                         Directory.Delete(physicalPath);
                         break;
-                case FileType.VirtualDirectory:
+                    case FileType.VDir:
                         break;
                     default:
                         break;

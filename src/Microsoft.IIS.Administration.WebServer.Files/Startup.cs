@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         public override void Start()
         {
             ConfigureFiles();
+            ConfigureDirectories();
             ConfigureContent();
         }
 
@@ -31,7 +32,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             hal.ProvideLink(Defines.FilesResource.Guid, "self", file => new { href = $"/{Defines.FILES_PATH}/{file.id}" });
 
             // Files
-            hal.ProvideLink(Defines.FilesResource.Guid, "files", file => new { href = $"/{Defines.FILES_PATH}?{Defines.PARENT_IDENTIFIER}={file.id}" });
+            //hal.ProvideLink(Defines.FilesResource.Guid, "files", file => new { href = $"/{Defines.FILES_PATH}?{Defines.PARENT_IDENTIFIER}={file.id}" });
 
             // Site
             Environment.Hal.ProvideLink(Sites.Defines.Resource.Guid, Defines.FilesResource.Name, site => {
@@ -40,6 +41,18 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 var id = new FileId(siteId.Id, "/");
                 return new { href = $"{Defines.FILES_PATH}/{id.Uuid}" };
             });
+        }
+
+        private void ConfigureDirectories()
+        {
+            var router = Environment.Host.RouteBuilder;
+            var hal = Environment.Hal;
+
+            // Self
+            hal.ProvideLink(Defines.DirectoriesResource.Guid, "self", file => new { href = $"/{Defines.FILES_PATH}/{file.id}" });
+
+            // Directories
+            hal.ProvideLink(Defines.DirectoriesResource.Guid, "files", file => new { href = $"/{Defines.FILES_PATH}?{Defines.PARENT_IDENTIFIER}={file.id}" });
         }
 
         private void ConfigureContent()

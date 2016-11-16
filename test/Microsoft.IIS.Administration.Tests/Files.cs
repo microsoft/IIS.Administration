@@ -53,6 +53,32 @@ namespace Microsoft.IIS.Administration.Tests
         }
 
         [Fact]
+        public void ResolveVdir()
+        {
+            using (var sm = new ServerManager()) {
+                var site = sm.Sites.CreateElement();
+                var app1 = site.Applications.CreateElement();
+                app1.Path = "/app1";
+                site.Applications.Add(app1);
+                var app2 = site.Applications.CreateElement();
+                app2.Path = "/app2";
+                site.Applications.Add(app2);
+
+                var vdir = app1.VirtualDirectories.CreateElement();
+                vdir.Path = "/";
+                app1.VirtualDirectories.Add(vdir);
+                vdir = app1.VirtualDirectories.CreateElement();
+                vdir.Path = "/vdir1";
+                app1.VirtualDirectories.Add(vdir);
+
+                vdir = FilesHelper.ResolveVdir(site, "/app1/vdir1");
+                Assert.True(vdir.Path == "/vdir1");
+                vdir = FilesHelper.ResolveVdir(site, "/app1/a_folder");
+                Assert.True(vdir.Path == "/");
+            }
+        }
+
+        [Fact]
         public void IsParentPath()
         {
             Assert.True(PathUtil.IsParentPath("/", "/a"));

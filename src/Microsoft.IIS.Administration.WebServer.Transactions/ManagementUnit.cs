@@ -4,19 +4,27 @@
 
 namespace Microsoft.IIS.Administration.WebServer.Transactions
 {
-    using Microsoft.Web.Administration;
-    using Microsoft.IIS.Administration.Core;
+    using Web.Administration;
     using System;
 
     class ManagementUnit : IManagementUnit
     {
+        private string _appHostConfigPath;
+
         public Transaction Transaction{ get;}
         public bool CommitRequested { get; set; }
 
         public ManagementUnit(Transaction transaction)
         {
             this.Transaction = transaction;
-            this.ServerManager = new ServerManager(WebServer.ManagementUnit.Current.ApplicationHostConfigPath);
+            this._appHostConfigPath = WebServer.ManagementUnit.Current.ApplicationHostConfigPath;
+            this.ServerManager = new ServerManager(_appHostConfigPath);
+        }
+
+        private ManagementUnit()
+        {
+            this._appHostConfigPath = WebServer.ManagementUnit.Current.ApplicationHostConfigPath;
+            this.ServerManager = new ServerManager(_appHostConfigPath);
         }
 
         public bool Commit()
@@ -37,8 +45,13 @@ namespace Microsoft.IIS.Administration.WebServer.Transactions
 
         public string ApplicationHostConfigPath {
             get {
-                throw new NotImplementedException();
+                return _appHostConfigPath;
             }
         }
+
+        //public static ManagementUnit EmptyManagementUnit()
+        //{
+        //    return new ManagementUnit();
+        //}
     }
 }
