@@ -2,8 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-namespace Microsoft.IIS.Administration.WebServer.Transactions
+namespace Microsoft.IIS.Administration.WebServer
 {
+    using AspNetCore.Http;
     using Core;
     using System;
     using System.Threading;
@@ -17,7 +18,7 @@ namespace Microsoft.IIS.Administration.WebServer.Transactions
 
         public static Transaction Transaction { get; private set; }
 
-        public static ManagementUnit ManagementUnit { get; set; }
+        public static MgmtUnit ManagementUnit { get; set; }
 
         public static Transaction BeginTransaction()
         {
@@ -29,7 +30,7 @@ namespace Microsoft.IIS.Administration.WebServer.Transactions
                     _timer = new Timer(TimeoutCallback, null, TRANSACTION_IDLE_TIMEOUT, Timeout.Infinite);
 
                     
-                    ManagementUnit = new ManagementUnit(transaction);
+                    ManagementUnit = new MgmtUnit();
                     Transaction = transaction;
                 }
             }
@@ -90,6 +91,12 @@ namespace Microsoft.IIS.Administration.WebServer.Transactions
                     ManagementUnit = null;
                 }
             }
+        }
+
+        public static string GetTransactionId(this HttpContext context)
+        {
+            string transactioId = context.Request.Headers[Defines.TRANSACTION_HEADER];
+            return string.IsNullOrEmpty(transactioId) ? null : transactioId;
         }
 
         private static void TimeoutCallback(object stateInfo)

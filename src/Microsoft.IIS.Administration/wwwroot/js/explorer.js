@@ -102,6 +102,7 @@
             type: verb,
             url: api_url,
             data: body,
+            dataType: 'text',
             xhrFields: {
                 withCredentials: true
             },
@@ -120,16 +121,16 @@
                 $("#nav-panel").show();
 
                 if (contentType && contentType.indexOf("json") != -1) {
-                    var json = response;
+                    var json = JSON.parse(response);
 
-                    $('#result').css('white-space', '');
+                    wrapResult(false);
                     document.getElementById('result').innerHTML = json2Html(json);
 
                     _json = json;
                 }
                 else {
                     _json = null;
-                    $('#result').css('white-space', 'pre-wrap');
+                    wrapResult(true);
                     document.getElementById('result').innerHTML = sanitizeHtml(response);
                 }
             },
@@ -168,7 +169,6 @@
         }
     }
 
-
     function json2Html(o) {
         var json = jQuery.extend(true, {}, o);
 
@@ -182,6 +182,10 @@
         // We replace line breaks with the html <br />
         // We replace spaces with the html &nbsp;
         return JSON.stringify(json, null, 4).replace(/\n/g, "<br/>").replace(/\ \ /g, "&nbsp;&nbsp;");
+    }
+
+    function wrapResult(val) {
+        val ? $('#result').css('white-space', 'pre-wrap') : $('#result').css('white-space', '');
     }
 
     function sanitizeHtml(unsafe) {

@@ -2,7 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-namespace Microsoft.IIS.Administration.WebServer.Transactions {
+namespace Microsoft.IIS.Administration.WebServer {
     using System;
 
 
@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.Transactions {
                 state = Enum.GetName(typeof(TransactionState), t.State)
             };
 
-            return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj);
+            return Core.Environment.Hal.Apply(Defines.TransactionsResource.Guid, obj);
         }
 
         public static string GetLocation(string id) {
@@ -23,7 +23,7 @@ namespace Microsoft.IIS.Administration.WebServer.Transactions {
                 throw new ArgumentNullException(nameof(id));
             }
 
-            return $"/{Defines.PATH}/{id}";
+            return $"/{Defines.TRANSACTIONS_PATH}/{id}";
         }
     }
 }

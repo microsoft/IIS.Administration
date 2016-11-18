@@ -42,7 +42,8 @@ namespace Microsoft.IIS.Administration
             builder.SetBasePath(env.GetConfigPath());
             builder.AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables();
-            Configuration = builder.Build();
+            Configuration = ConfigurationHelper.Configuration = builder.Build();
+
         }
 
         // This method gets called by a runtime.

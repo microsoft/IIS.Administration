@@ -14,12 +14,33 @@ namespace Microsoft.IIS.Administration.WebServer
 
         public override void Start()
         {
-            Environment.Host.ApplicationBuilder.UseMiddleware<Injector>();
+            ConfigureWebServer();
+            ConfigureTransactions();
+        }
 
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "webserver" });
+        public void ConfigureWebServer()
+        {
+            var app = Environment.Host.ApplicationBuilder;
+            var router = Environment.Host.RouteBuilder;
+            var hal = Environment.Hal;
 
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", _ => new { href = $"/{Defines.PATH}" });
-            Environment.Hal.ProvideLink(Globals.ApiResource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}" });
+            app.UseMiddleware<Injector>();
+
+            router.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "webserver" });
+
+            hal.ProvideLink(Defines.Resource.Guid, "self", _ => new { href = $"/{Defines.PATH}" });
+            hal.ProvideLink(Globals.ApiResource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}" });
+        }
+
+        public void ConfigureTransactions()
+        {
+            var router = Environment.Host.RouteBuilder;
+            var hal = Environment.Hal;
+
+            router.MapWebApiRoute(Defines.TransactionsResource.Guid, $"{Defines.TRANSACTIONS_PATH}/{{id?}}", new { controller = "transactions" }, skipEdge: true);
+            hal.ProvideLink(Defines.TransactionsResource.Guid, "self", trans => new { href = TransactionHelper.GetLocation(trans.id) });
+
+            hal.ProvideLink(Defines.Resource.Guid, Defines.TransactionsResource.Name, _ => new { href = $"/{Defines.TRANSACTIONS_PATH}" });
         }
     }
 }

@@ -5,6 +5,8 @@
 namespace Microsoft.IIS.Administration.WebServer
 {
     using AspNetCore.Http;
+    using Core;
+    using System;
     using System.Threading.Tasks;
 
     public class Injector
@@ -17,18 +19,58 @@ namespace Microsoft.IIS.Administration.WebServer
             _next = next;
         }
 
-        public async Task Invoke(HttpContext context ) {
-
-            bool webServerTargetted = context.Request.Path.StartsWithSegments(WEBSERVER_PATH);
-
-            // Don't inject management unit if one already exists or the request isn't targetting the webserver
-            if (context.GetManagementUnit() != null || !webServerTargetted) {
+        public async Task Invoke(HttpContext context)
+        {
+            if (!IsWebServerRequest(context)) {
                 await _next(context);
+                return;
+            }
+
+            if (context.GetTransactionId() != null) {
+                await ProceedTransaction(context);
             }
             else {
-                using (var mu = new MgmtUnit()) {
-                    context.SetManagementUnit(mu);
+                await ProceedNoTransaction(context);
+            }
+        }
+
+
+
+        private static bool IsWebServerRequest(HttpContext context)
+        {
+            // Transaction processing is limited to webserver
+            return context.Request.Path.StartsWithSegments(WEBSERVER_PATH);
+        }
+
+        private async Task ProceedTransaction(HttpContext context)
+        {
+            string transactionId = context.GetTransactionId();
+
+            //RefreshActiveTransaction will defer the timeout for the transaction if it returns a non null transaction
+            var activeTransaction = Store.KeepAliveTransaction();
+
+            if (activeTransaction == null || !activeTransaction.Id.Equals(transactionId)) {
+                throw new NotFoundException("transaction");
+            }
+
+            if (Store.ManagementUnit == null) {
+                throw new Exception("Management unit not found");
+            }
+
+            //Set the IManagementUnit stored in the context to be the TransactionManagementUnit
+            context.SetManagementUnit(Store.ManagementUnit);
+
+            await _next(context);
+        }
+
+        private async Task ProceedNoTransaction(HttpContext context)
+        {
+            using (var mu = new MgmtUnit()) {
+                context.SetManagementUnit(mu);
+                try {
                     await _next(context);
+                }
+                finally {
                     context.SetManagementUnit(null);
                 }
             }

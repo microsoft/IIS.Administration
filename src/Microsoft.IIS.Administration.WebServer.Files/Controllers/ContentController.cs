@@ -7,13 +7,19 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using Core.Http;
     using AspNetCore.Mvc;
     using Sites;
-    using System.IO;
     using Web.Administration;
     using System.Threading.Tasks;
     using Administration.Files;
 
     public class ContentController : ApiBaseController
     {
+        private FileService _fileService;
+
+        public ContentController()
+        {
+            _fileService = new FileService();
+        }
+
         [HttpGet]
         public async Task<IActionResult> Get(string id)
         {
@@ -25,12 +31,12 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             var physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
-
-            if (!File.Exists(physicalPath)) {
+            
+            if (!_fileService.FileExists(physicalPath)) {
                 return NotFound();
             }
 
-            return await Context.GetFileContentAsync(new FileInfo(physicalPath));
+            return await Context.GetFileContentAsync(_fileService.GetFileInfo(physicalPath));
         }
 
         [HttpPut]
@@ -44,12 +50,12 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             var physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
-
-            if (!File.Exists(physicalPath)) {
+            
+            if (!_fileService.FileExists(physicalPath)) {
                 return NotFound();
             }
 
-            return await Context.PutFileContentAsync(new FileInfo(physicalPath));
+            return await Context.PutFileContentAsync(_fileService.GetFileInfo(physicalPath));
         }
     }
 }

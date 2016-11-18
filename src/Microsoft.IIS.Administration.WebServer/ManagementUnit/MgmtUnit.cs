@@ -4,14 +4,19 @@
 
 namespace Microsoft.IIS.Administration.WebServer
 {
+    using Core;
+    using Core.Http;
     using Web.Administration;
 
     class MgmtUnit : IManagementUnit {
         public ServerManager ServerManager { get; private set; }
 
-        public MgmtUnit() {
-            ServerManager = new ServerManager(ApplicationHostConfigPath);
+        public MgmtUnit()
+        {
+            this.ServerManager = new ServerManager(ApplicationHostConfigPath);
         }
+
+        public bool CommitRequested { get; private set; }
 
         public string ApplicationHostConfigPath {
             get {
@@ -22,8 +27,25 @@ namespace Microsoft.IIS.Administration.WebServer
         }
 
         public bool Commit() {
-            ServerManager.CommitChanges();
-            return true;
+
+            var activeTransaction = Store.Transaction;
+
+            if (activeTransaction != null) {
+                var requestTransactionId = HttpHelper.Current.GetTransactionId();
+
+                if (requestTransactionId == null || !requestTransactionId.Equals(activeTransaction.Id)) {
+                    throw new NotFoundException("transaction");
+                }
+            }
+
+            if (activeTransaction == null) {
+                ServerManager.CommitChanges();
+                return true;
+            }
+            else {
+                CommitRequested = true;
+                return false;
+            }
         }
 
         public void Dispose() {

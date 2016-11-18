@@ -9,7 +9,11 @@ namespace Microsoft.IIS.Administration.Core.Http {
         public const string AcceptPatch = "Accept-Patch";
         public const string CorsPrefix = "Access-Control";
         public const string ContentLength = "Content-Length";
+        public const string ContentRange = "Content-Range";
         public const string ContentType = "Content-Type";
+        public const string IfMatch = "If-Match";
+        public const string IfRange = "If-Range";
+        public const string Range = "Range";
         public const string Total_Count = "X-Total-Count";
         public const string Access_Token = "Access-Token";
         public const string X_Forwarded_Proto = "X-Forwarded-Proto";

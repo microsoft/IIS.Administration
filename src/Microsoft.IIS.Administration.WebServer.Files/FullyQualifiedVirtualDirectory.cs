@@ -7,7 +7,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using System;
     using Web.Administration;
 
-    public class FullyQualifiedVirtualDirectory
+    class Vdir
     {
         public Site Site { get; private set; }
         public Application Application { get; private set; }
@@ -37,7 +37,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
         }
 
-        public FullyQualifiedVirtualDirectory(Site site, Application app, VirtualDirectory vdir)
+        public Vdir(Site site, Application app, VirtualDirectory vdir)
         {
             if (site == null) {
                 throw new ArgumentNullException(nameof(site));

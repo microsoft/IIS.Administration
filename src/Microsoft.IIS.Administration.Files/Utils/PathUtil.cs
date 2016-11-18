@@ -10,7 +10,7 @@ namespace Microsoft.IIS.Administration.Files
     {
         public static readonly char[] SEPARATORS = new char[] { '/', '\\' };
 
-        public static int PrefixSegments(string prefix, string path)
+        public static int PrefixSegments(string prefix, string path, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
         {
             if (prefix == null) {
                 throw new ArgumentNullException(nameof(prefix));
@@ -30,7 +30,7 @@ namespace Microsoft.IIS.Administration.Files
             }
             
             int index = 0;
-            while (pathParts.Length > index && prefixParts.Length > index && prefixParts[index].Equals(pathParts[index], StringComparison.OrdinalIgnoreCase)) {
+            while (pathParts.Length > index && prefixParts.Length > index && prefixParts[index].Equals(pathParts[index], stringComparison)) {
                 index++;
             }
             
@@ -72,9 +72,17 @@ namespace Microsoft.IIS.Administration.Files
 
         public static string RemoveLastSegment(string path)
         {
+            if (path == null) {
+                throw new ArgumentNullException(nameof(path));
+            }
+            if (!path.StartsWith("/") || path == "/") {
+                throw new ArgumentException(nameof(path));
+            }
+
             var parts = path.TrimEnd(SEPARATORS).Split(SEPARATORS);
             parts[parts.Length - 1] = string.Empty;
-            return string.Join("/", parts);
+            var ret = string.Join("/", parts);
+            return ret == "/" ? ret : ret.TrimEnd('/');
         }
     }
 }

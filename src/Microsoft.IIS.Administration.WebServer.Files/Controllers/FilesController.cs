@@ -4,20 +4,28 @@
 
 namespace Microsoft.IIS.Administration.WebServer.Files
 {
-    using Core.Http;
-    using AspNetCore.Mvc;
-    using Sites;
-    using System.IO;
-    using Web.Administration;
-    using System.Collections.Generic;
-    using System;
-    using Core;
-    using Newtonsoft.Json.Linq;
-    using Core.Utils;
     using Administration.Files;
+    using AspNetCore.Mvc;
+    using Core;
+    using Core.Http;
+    using Core.Utils;
+    using Newtonsoft.Json.Linq;
+    using Sites;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Net;
+    using Web.Administration;
 
     public class FilesController : ApiBaseController
     {
+        private FileService _fileService;
+
+        public FilesController()
+        {
+            _fileService = new FileService();
+        }
+
         [HttpGet]
         public object Get()
         {
@@ -36,12 +44,12 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             string physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
-            if (!Directory.Exists(physicalPath)) {
+            if (!_fileService.DirectoryExists(physicalPath)) {
                 return NotFound();
             }
 
             var files = new List<object>();
-            var dInfo = new DirectoryInfo(physicalPath);            
+            var dInfo = _fileService.GetDirectoryInfo(physicalPath);
 
             // Files & directories
             foreach (var f in dInfo.GetFiles()) {
@@ -75,8 +83,8 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             var physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
-
-            if (!File.Exists(physicalPath) && !Directory.Exists(physicalPath)) {
+            
+            if (!_fileService.FileExists(physicalPath) && !_fileService.DirectoryExists(physicalPath)) {
                 return NotFound();
             }
 
@@ -104,7 +112,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             if (!(model.parent is JObject)) {
                 throw new ApiArgumentException("parent", ApiArgumentException.EXPECTED_OBJECT);
             }
-            // Creating a file instance requires referencing the target feature
+
+            //
+            // Check Id
             string parentUuid = DynamicHelper.Value(model.parent.id);
             if (parentUuid == null) {
                 throw new ApiArgumentException("parent.id");
@@ -118,32 +128,35 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             var physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
-
-            if (!Directory.Exists(physicalPath)) {
+            
+            if (!_fileService.DirectoryExists(physicalPath)) {
                 return NotFound();
             }
 
+            //
+            // Check Name
             string name = DynamicHelper.Value(model.name);
-            string type = DynamicHelper.Value(model.type);
-
-            // Here we make sure the file name is safe. No '..', no invalid characters
-            if (name == null || !FilesHelper.IsValidFileName(name)) {
+            
+            if (!FilesHelper.IsValidFileName(name)) {
                 throw new ApiArgumentException("model.name");
             }
-            if (type == null) {
-                throw new ApiArgumentException("model.type");
-            }
+
+            //
+            // Check Type
+            string type = DynamicHelper.Value(model.type);
 
             FileType fileType;
-            if(!Enum.TryParse(type, true, out fileType) || fileType == FileType.VDir) {
+            if(type == null || !Enum.TryParse(type, true, out fileType) || fileType == FileType.VDir) {
                 throw new ApiArgumentException("model.type");
             }
             
+            //
+            // Create
             if (fileType == FileType.File) {
-                File.Create(Path.Combine(physicalPath, name)).Dispose();
+                _fileService.CreateFile(Path.Combine(physicalPath, name));
             }
             else {
-                Directory.CreateDirectory(Path.Combine(physicalPath, name));
+                _fileService.CreateDirectory(Path.Combine(physicalPath, name));
             }
 
             return FilesHelper.GetFileType(site, fileId.Path, physicalPath) == FileType.File ? FilesHelper.FileToJsonModel(site, Path.Combine(fileId.Path, name)) : FilesHelper.DirectoryToJsonModel(site, Path.Combine(fileId.Path, name));
@@ -160,47 +173,31 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             var physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
-
-            if (!File.Exists(physicalPath) && !Directory.Exists(physicalPath)) {
+            
+            if (!_fileService.FileExists(physicalPath) && !_fileService.DirectoryExists(physicalPath)) {
                 return NotFound();
             }
-
+            
+            dynamic result = null;
             switch (FilesHelper.GetFileType(site, fileId.Path, physicalPath)) {
 
                 case FileType.File:
-                    var fileInfo = new FileInfo(physicalPath);
-                    var OldFName = fileInfo.Name;
-
-                    FilesHelper.UpdateFile(model, fileInfo);
-
-                    dynamic f = FilesHelper.FileToJsonModel(site, fileId.Path.Substring(0, fileId.Path.LastIndexOf(OldFName)) + fileInfo.Name);
-
-                    if (f.id != id) {
-                        return LocationChanged(FilesHelper.GetLocation(f.id), f);
-                    }
-
-                    return f;
+                    result = PatchFile(model, site, fileId, physicalPath);
+                    break;
 
                 case FileType.Directory:
-                    var dirInfo = new DirectoryInfo(physicalPath);
-                    var oldDirName = dirInfo.Name;
-
-                    FilesHelper.UpdateDirectory(model, dirInfo);
-
-                    dynamic d = FilesHelper.DirectoryToJsonModel(site, fileId.Path.Substring(0, fileId.Path.LastIndexOf(oldDirName)) + dirInfo.Name);
-
-                    if (d.id != id) {
-                        return LocationChanged(FilesHelper.GetLocation(d.id), d);
-                    }
-
-                    return d;
-
-                case FileType.VDir:
-                    return FilesHelper.VirtualDirectoryToJsonModel(FilesHelper.ResolveFullVdir(site, fileId.Path));
+                    result = PatchDirectory(model, site, fileId, physicalPath);
+                    break;
 
                 default:
-                    return null;
+                    return new StatusCodeResult((int)HttpStatusCode.MethodNotAllowed);
             }
+
+            if (result.id != id) {
+                    return LocationChanged(FilesHelper.GetLocation(result.id), result);
+            }
+
+            return result;
         }
 
         [HttpDelete]
@@ -215,13 +212,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
             }
 
-            if (!string.IsNullOrEmpty(physicalPath) && (File.Exists(physicalPath) || Directory.Exists(physicalPath))) {
+            if (!string.IsNullOrEmpty(physicalPath) && (_fileService.FileExists(physicalPath) || _fileService.DirectoryExists(physicalPath))) {
                 switch (FilesHelper.GetFileType(site, fileId.Path, physicalPath)) {
                     case FileType.File:
-                        File.Delete(physicalPath);
+                        _fileService.DeleteFile(physicalPath);
                         break;
                     case FileType.Directory:
-                        Directory.Delete(physicalPath);
+                        _fileService.DeleteDirectory(physicalPath);
                         break;
                     case FileType.VDir:
                         break;
@@ -230,6 +227,30 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 }
             }
             return new NoContentResult();
+        }
+
+
+
+        private object PatchFile(dynamic model, Site site, FileId fileId, string physicalPath)
+        {
+            var OldFName = _fileService.GetName(physicalPath);
+
+            physicalPath = FilesHelper.UpdateFile(model, physicalPath);
+
+            var newPath = fileId.Path.Substring(0, fileId.Path.LastIndexOf(OldFName)) + _fileService.GetName(physicalPath);
+
+            return FilesHelper.FileToJsonModel(site, newPath);
+        }
+
+        private object PatchDirectory(dynamic model, Site site, FileId fileId, string physicalPath)
+        {
+            var oldDirName = _fileService.GetName(physicalPath);
+
+            physicalPath = FilesHelper.UpdateDirectory(model, physicalPath);
+
+            var newPath = fileId.Path.Substring(0, fileId.Path.LastIndexOf(oldDirName)) + _fileService.GetName(physicalPath);
+
+            return FilesHelper.DirectoryToJsonModel(site, newPath);
         }
     }
 }

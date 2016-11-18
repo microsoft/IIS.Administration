@@ -9,9 +9,9 @@ namespace Microsoft.IIS.Administration.Files
 
     public class ETag
     {
-        public string Value { get; private set; }
-
         private ETag() { }
+
+        public string Value { get; private set; }
 
         public static ETag Create(FileInfo info)
         {
