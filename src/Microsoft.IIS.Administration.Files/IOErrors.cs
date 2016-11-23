@@ -4,10 +4,8 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    public class AllowedRoot
+    public static class IOErrors
     {
-        public string Name { get; set; }
-        public string Path { get; set; }
-        public bool Read_Only { get; set; }
+        public const int FileInUse = unchecked((int)0x80070020);
     }
 }

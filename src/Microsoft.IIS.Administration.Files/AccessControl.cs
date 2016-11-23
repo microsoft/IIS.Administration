@@ -5,11 +5,10 @@
 namespace Microsoft.IIS.Administration.Files
 {
     using Core;
-    using Extensions.Configuration;
     using System;
     using System.IO;
 
-    class AccessControl
+    class AccessControl : IAccessControl
     {
         private FileOptions _options;
 
@@ -17,8 +16,7 @@ namespace Microsoft.IIS.Administration.Files
         {
             get {
                 if (_options == null) {
-                    var options = FileOptions.EmptyOptions();
-                    ConfigurationBinder.Bind(ConfigurationHelper.Configuration.GetSection("files"), options);
+                    FileOptions options = FileOptions.FromConfiguration(ConfigurationHelper.Configuration);
 
                     for (var i = 0; i < options.Allowed_Roots.Count; i++) {
                         options.Allowed_Roots[i].Path = System.Environment.ExpandEnvironmentVariables(options.Allowed_Roots[i].Path);
@@ -38,16 +36,26 @@ namespace Microsoft.IIS.Administration.Files
 
         public bool IsAccessAllowed(string path, FileAccess fileAccess)
         {
-            if (Options.WildCardRoot != null && (Options.WildCardRoot.Read_Only == false || fileAccess == FileAccess.Read)) {
-                return true;
+            var absolutePath = Path.GetFullPath(System.Environment.ExpandEnvironmentVariables(path));
+
+            //
+            // Path must be absolute with no environment variables
+            if (!absolutePath.Equals(path)) {
+                return false;
             }
 
-            path = Path.GetFullPath(System.Environment.ExpandEnvironmentVariables(path));
-
-            foreach (var root in _options.Allowed_Roots) {
-                if (!(root.Read_Only && fileAccess != FileAccess.Read) && path.StartsWith(root.Path, StringComparison.OrdinalIgnoreCase)) {
-                    return true;
+            //
+            // Best match
+            foreach (var root in Options.Allowed_Roots) {
+                if (absolutePath.StartsWith(root.Path, StringComparison.OrdinalIgnoreCase)) {
+                    return !(root.Read_Only && fileAccess != FileAccess.Read);
                 }
+            }
+
+            //
+            // Fall back to wildcard
+            if (Options.WildCardRoot != null && (Options.WildCardRoot.Read_Only == false || fileAccess == FileAccess.Read)) {
+                return true;
             }
 
             return false;

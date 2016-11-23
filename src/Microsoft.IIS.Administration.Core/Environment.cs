@@ -4,8 +4,6 @@
 
 namespace Microsoft.IIS.Administration.Core
 {
-    using System;
-
     public static class Environment
     {
         public static IAdminHost Host
@@ -19,6 +17,5 @@ namespace Microsoft.IIS.Administration.Core
             get;
             set;
         }
-
     }
 }

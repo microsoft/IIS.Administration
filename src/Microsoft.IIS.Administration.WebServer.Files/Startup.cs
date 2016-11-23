@@ -9,6 +9,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using Sites;
     using Web.Administration;
     using Core.Http;
+    using Administration.Files;
 
     public class Startup : BaseModule
     {
@@ -19,6 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             ConfigureFiles();
             ConfigureDirectories();
             ConfigureContent();
+            ConfigureDownloads();
         }
 
         private void ConfigureFiles()
@@ -30,9 +32,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             // Self
             hal.ProvideLink(Defines.FilesResource.Guid, "self", file => new { href = $"/{Defines.FILES_PATH}/{file.id}" });
-
-            // Files
-            //hal.ProvideLink(Defines.FilesResource.Guid, "files", file => new { href = $"/{Defines.FILES_PATH}?{Defines.PARENT_IDENTIFIER}={file.id}" });
 
             // Site
             Environment.Hal.ProvideLink(Sites.Defines.Resource.Guid, Defines.FilesResource.Name, site => {
@@ -63,6 +62,18 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             router.MapWebApiRoute(Defines.ContentResource.Guid, $"{Defines.CONTENT_PATH}/{{id?}}", new { controller = "content" });
             
             hal.ProvideLink(Defines.FilesResource.Guid, Defines.ContentResource.Name, file => new { href = $"/{Defines.CONTENT_PATH}/{file.id}" });
+        }
+
+        private void ConfigureDownloads()
+        {
+            var router = Environment.Host.RouteBuilder;
+            var hal = Environment.Hal;
+
+            router.MapWebApiRoute(Defines.DownloadResource.Guid, $"{Defines.DOWNLOAD_PATH}/{{id?}}", new { controller = "wsdownloads" });
+
+            if (Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(IDownloadService)) != null) {
+                hal.ProvideLink(Defines.FilesResource.Guid, Defines.DownloadResource.Name, file => new { href = $"{Defines.DOWNLOAD_PATH}" });
+            }
         }
     }
 }

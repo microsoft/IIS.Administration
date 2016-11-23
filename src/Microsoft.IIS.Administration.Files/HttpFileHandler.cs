@@ -10,6 +10,7 @@ namespace Microsoft.IIS.Administration.Files
     using Core.Http;
     using Core.Utils;
     using System;
+    using System.Globalization;
     using System.IO;
     using System.Net;
     using System.Security.Cryptography;
@@ -21,11 +22,14 @@ namespace Microsoft.IIS.Administration.Files
         private const string RangePrefix = "bytes=";
         private const string ContentRangePrefix = "bytes ";
         private FileInfo _file;
-        private FileService _service;
+        private IFileProvider _service;
         private HttpContext _context;
 
-        public HttpFileHandler(HttpContext context, FileInfo fileInfo)
+        public HttpFileHandler(IFileProvider fileProvider, HttpContext context, FileInfo fileInfo)
         {
+            if (fileProvider == null) {
+                throw new ArgumentNullException(nameof(fileProvider));
+            }
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
             }
@@ -35,39 +39,28 @@ namespace Microsoft.IIS.Administration.Files
 
             this._context = context;
             this._file = fileInfo;
-            this._service = new FileService();
+            this._service = fileProvider;
         }
 
-        public async Task<IActionResult> GetFileContentAsync()
+        public async Task<IActionResult> GetFileContent()
         {
-            bool isRangeRequest;
             int start = -1, finish = -1;
             var etag = ETag.Create(_file);
-            isRangeRequest = _context.Request.Headers.ContainsKey(HeaderNames.Range);
+            bool isRangeRequest = _context.Request.Headers.ContainsKey(HeaderNames.Range);
 
             // Validate
             if (isRangeRequest) {
                 ValidateRange(out start, out finish);
             }
 
-            //
-            // Content Type
-            _context.Response.ContentType = "application/octet-stream";
+            AddFileContentHeaders(etag);
 
-            //
-            // Content-Disposition (file name)
-            _context.Response.Headers.Add("Content-Disposition", $"inline;filename={UrlEncoder.Default.Encode(_file.Name)}");
-            
-            //
-            // Accept Ranges
-            _context.Response.Headers.Add("Accept-Ranges", "bytes");
-
-            //
-            // ETag
-            _context.Response.Headers.Add("ETag", etag.Value);
+            if (IsCachedIfModifiedSince() || IsCachedIfNoneMatch(etag)) {
+                return new StatusCodeResult((int)HttpStatusCode.NotModified);
+            }
 
             // If the entity tag does not match, then the server SHOULD return the entire entity using a 200 (OK) response.
-            if (isRangeRequest && ValidateIfRange(_context.Request.Headers, etag)) {
+            if (isRangeRequest && IsValidIfRange(etag)) {
                 await RangeContentResponse(_context, _file, start, finish);
             }
             else {
@@ -77,12 +70,15 @@ namespace Microsoft.IIS.Administration.Files
             return new EmptyResult();
         }
 
-        public async Task<IActionResult> PutFileContentAsync()
+        public async Task<IActionResult> PutFileContent()
         {
             int start = -1, finish = -1, outOf = -1;
+            var etag = ETag.Create(_file);
             bool isRangeRequest = _context.Request.Headers.ContainsKey(HeaderNames.ContentRange);
 
             ValidateIfMatch();
+            ValidateIfNoneMatch(etag);
+            ValidateIfUnmodifiedSince();
 
             if (isRangeRequest) {
                 ValidateContentRange(out start, out finish, out outOf);
@@ -90,26 +86,28 @@ namespace Microsoft.IIS.Administration.Files
 
             var tempCopy = await GetTempCopy(_file.FullName);
 
-            if (isRangeRequest) {
-                try {
-                    using (var stream = _service.GetFile(tempCopy, FileMode.Open, FileAccess.Write, FileShare.Read)) {
-                    var length = finish - start + 1;
-                    stream.Seek(start, SeekOrigin.Begin);
-                        await CopyRangeAsync(_context.Request.Body, stream, 0, length);
+            try {
+                if (isRangeRequest) {
+                    try {
+                        using (var stream = _service.GetFile(tempCopy, FileMode.Open, FileAccess.Write, FileShare.Read)) {
+                            var length = finish - start + 1;
+                            stream.Seek(start, SeekOrigin.Begin);
+                            await CopyRangeAsync(_context.Request.Body, stream, 0, length);
+                        }
                     }
+                    catch (IndexOutOfRangeException) {
+                        throw new ApiArgumentException(HeaderNames.ContentLength);
+                    }
+                    SwapFiles(tempCopy, _file.FullName);
                 }
-                catch (IndexOutOfRangeException) {
-                    _service.DeleteFile(tempCopy);
-                    throw new ApiArgumentException(HeaderNames.ContentLength);
+                else {
+                    using (var stream = _service.GetFile(tempCopy, FileMode.Truncate, FileAccess.Write, FileShare.Read)) {
+                        await _context.Request.Body.CopyToAsync(stream);
+                    }
+                    SwapFiles(tempCopy, _file.FullName);
                 }
-                SwapFiles(tempCopy, _file.FullName);
-                _service.DeleteFile(tempCopy);
             }
-            else {
-                using (var stream = _service.GetFile(tempCopy, FileMode.Truncate, FileAccess.Write, FileShare.Read)) {
-                    await _context.Request.Body.CopyToAsync(stream);
-                }
-                SwapFiles(tempCopy, _file.FullName);
+            finally {
                 _service.DeleteFile(tempCopy);
             }
 
@@ -117,22 +115,138 @@ namespace Microsoft.IIS.Administration.Files
             return new EmptyResult();
         }
 
-
-
-        private static bool ValidateIfRange(IHeaderDictionary headers, ETag etag)
+        public IActionResult GetFileContentHeaders()
         {
+            int start = -1, finish = -1;
+            var etag = ETag.Create(_file);
+            bool isRangeRequest = _context.Request.Headers.ContainsKey(HeaderNames.Range);
+
+            // Validate
+            if (isRangeRequest) {
+                ValidateRange(out start, out finish);
+            }
+
+            AddFileContentHeaders(etag);
+
+            //
+            // Content Length
+            if (isRangeRequest) {
+                _context.Response.ContentLength = finish - start + 1;
+            }
+            else {
+                _context.Response.ContentLength = _file.Length;
+            }
+
+            if (IsCachedIfModifiedSince() || IsCachedIfNoneMatch(etag)) {
+                return new StatusCodeResult((int)HttpStatusCode.NotModified);
+            }
+
+            return new EmptyResult();
+        }
+
+
+
+        private void AddFileContentHeaders(ETag etag)
+        {
+            //
+            // Content Type
+            _context.Response.ContentType = "application/octet-stream";
+
+            //
+            // Content-Disposition (file name)
+            _context.Response.Headers.Add("Content-Disposition", $"inline;filename={UrlEncoder.Default.Encode(_file.Name)}");
+
+            //
+            // Accept Ranges
+            _context.Response.Headers.Add("Accept-Ranges", "bytes");
+
+            //
+            // Last Modified
+            _context.Response.Headers.Add("Last-Modified", _file.LastWriteTimeUtc.ToString("r"));
+
+            //
+            // ETag
+            _context.Response.Headers.Add(HeaderNames.ETag, etag.Value);
+
+            if (IsCachedIfModifiedSince()) {
+
+                //
+                // Date
+                if (!_context.Response.Headers.ContainsKey(HeaderNames.Date)) {
+                    _context.Response.Headers.Add(HeaderNames.Date, DateTime.UtcNow.ToString());
+                }
+            }
+        }
+
+        private bool IsCachedIfModifiedSince()
+        {
+            bool result = false;
+            DateTime ifModifiedSince = default(DateTime);
+            IHeaderDictionary reqHeaders = _context.Request.Headers;
+
+            // Trim milliseconds
+            var lastModified = _file.LastWriteTimeUtc.AddTicks( - (_file.LastWriteTimeUtc.Ticks % TimeSpan.TicksPerSecond));
+            
+
+            if (reqHeaders.ContainsKey(HeaderNames.IfModifiedSince)
+                    && DateTime.TryParse(reqHeaders[HeaderNames.IfModifiedSince],
+                                         CultureInfo.InvariantCulture,
+                                         DateTimeStyles.AssumeUniversal,
+                                         out ifModifiedSince)
+                    && ifModifiedSince.ToUniversalTime() >= lastModified) {
+                        result = true;
+                    }
+
+            return result;
+        }
+
+        private bool IsCachedIfNoneMatch(ETag etag)
+        {
+            var headers = _context.Request.Headers;
+
+            var isIfNoneMatch = headers.ContainsKey(HeaderNames.IfNoneMatch);
+            return isIfNoneMatch && (headers[HeaderNames.IfNoneMatch].Equals(etag.Value) || headers[HeaderNames.IfNoneMatch].Equals("*"));
+        }
+
+        private bool IsValidIfRange(ETag etag)
+        {
+            var headers = _context.Request.Headers;
+
             bool isIfRange = headers.ContainsKey(HeaderNames.IfRange);
-            return !isIfRange || isIfRange && headers[HeaderNames.IfRange].Equals(etag.Value);
+            return !isIfRange || headers[HeaderNames.IfRange].Equals(etag.Value);
         }
 
         private void ValidateIfMatch()
         {
-            if (_context.Request.Headers.ContainsKey(HeaderNames.IfMatch)) {
-                var ifMatch = _context.Request.Headers[HeaderNames.IfMatch].ToString().Trim();
+            var headers = _context.Request.Headers;
 
-                if (!_file.Exists || !ifMatch.Equals(ETag.Create(_file).Value)) {
+            if (headers.ContainsKey(HeaderNames.IfMatch)) {
+                var ifMatch = headers[HeaderNames.IfMatch].ToString().Trim();
+
+                if (!ifMatch.Equals(ETag.Create(_file).Value)) {
                     throw new PreconditionFailedException(HeaderNames.IfMatch);
                 }
+            }
+        }
+
+        private void ValidateIfUnmodifiedSince()
+        {
+            var headers = _context.Request.Headers;
+            DateTime unmodifiedSince;
+
+            if (headers.ContainsKey(HeaderNames.IfUnmodifiedSince) && DateTime.TryParse(headers[HeaderNames.IfUnmodifiedSince], out unmodifiedSince)) {
+                unmodifiedSince = unmodifiedSince.ToUniversalTime();
+
+                if (_file.LastWriteTimeUtc > unmodifiedSince) {
+                    throw new PreconditionFailedException(HeaderNames.IfUnmodifiedSince);
+                }
+            }
+        }
+
+        private void ValidateIfNoneMatch(ETag etag)
+        {
+            if (IsCachedIfNoneMatch(etag)) {
+                throw new PreconditionFailedException(HeaderNames.IfNoneMatch);
             }
         }
 

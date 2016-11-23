@@ -13,14 +13,35 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
     public class ContentController : ApiBaseController
     {
-        private FileService _fileService;
+        private IFileProvider _fileService;
 
         public ContentController()
         {
-            _fileService = new FileService();
+            _fileService = FileProvider.Default;
         }
 
-        [HttpGet]
+        [HttpHead]
+        public IActionResult Head(string id)
+        {
+            FileId fileId = new FileId(id);
+            Site site = SiteHelper.GetSite(fileId.SiteId);
+
+            if (site == null) {
+                return NotFound();
+            }
+
+            var physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
+
+            if (!_fileService.FileExists(physicalPath)) {
+                return NotFound();
+            }
+
+            AddHttpLinkHeader(fileId);
+
+            return Context.GetFileContentHeaders(_fileService, _fileService.GetFileInfo(physicalPath));
+        }
+
+        
         public async Task<IActionResult> Get(string id)
         {
             FileId fileId = new FileId(id);
@@ -36,7 +57,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 return NotFound();
             }
 
-            return await Context.GetFileContentAsync(_fileService.GetFileInfo(physicalPath));
+            AddHttpLinkHeader(fileId);
+
+            return await Context.GetFileContentAsync(_fileService, _fileService.GetFileInfo(physicalPath));
         }
 
         [HttpPut]
@@ -55,7 +78,16 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 return NotFound();
             }
 
-            return await Context.PutFileContentAsync(_fileService.GetFileInfo(physicalPath));
+            AddHttpLinkHeader(fileId);
+
+            return await Context.PutFileContentAsync(_fileService, _fileService.GetFileInfo(physicalPath));
+        }
+
+
+
+        private void AddHttpLinkHeader(FileId fileId)
+        {
+            Context.Response.Headers.Add("Link", $"</{Defines.FILES_PATH}/{fileId.Uuid}>; rel=\"meta\"; title=\"file metadata\", </{Defines.CONTENT_PATH}/{fileId.Uuid}>; rel=\"self\"; title=\"self\"");
         }
     }
 }

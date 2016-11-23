@@ -68,6 +68,7 @@ namespace Microsoft.IIS.Administration
             ModuleConfig modConfig = new ModuleConfig(HostingEnvironment.GetConfigPath("modules.json"));
             ModuleLoader loader = new ModuleLoader(HostingEnvironment);
             LoadPlugins(loader, modConfig.Modules);
+            AdminHost.Instance.ConfigureModules(services);
 
             //
             // CORS
@@ -80,13 +81,12 @@ namespace Microsoft.IIS.Administration
             //
             // Authentication
             services.AddAuthentication();
-            services.AddAuthorization(o =>
-            {
+            services.AddAuthorization(o => {
                 o.AddPolicy("AccessToken", p => p.RequireAuthenticatedUser().RequireClaim(Core.Security.ClaimTypes.AccessToken));
 
                 o.AddPolicy("Administrators", p => p.RequireAuthenticatedUser().RequireRole("Administrators"));
 
-                o.AddPolicy("AdministrativeGroup", p => p.RequireAuthenticatedUser().RequireAssertion(authContext => 
+                o.AddPolicy("AdministrativeGroup", p => p.RequireAuthenticatedUser().RequireAssertion(authContext =>
                     IsUserInAdministrators(authContext, Configuration)
                 ));
             });
@@ -98,8 +98,12 @@ namespace Microsoft.IIS.Administration
             services.AddAntiforgery(o =>
             {
                 o.RequireSsl = true;
-                o.CookieName = o.FormFieldName = Core.Http.HeaderNames.XSRF_TOKEN;
+                o.CookieName = o.FormFieldName = HeaderNames.XSRF_TOKEN;
             });
+
+            //
+            // Caching
+            services.AddMemoryCache();
             
             //
             // MVC
@@ -215,7 +219,7 @@ namespace Microsoft.IIS.Administration
             // Add MVC
             // 
             app.UseMvc(routes => {
-                AdminHost.Instance.InitiateModules(routes, app);
+                AdminHost.Instance.StartModules(routes, app);
                 InitiateFeatures(routes);
 
                 // Ensure routes meant to be extended do not block child routes

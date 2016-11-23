@@ -6,11 +6,11 @@ namespace Microsoft.IIS.Administration.WebServer.Transactions
 {
     using AspNetCore.Mvc;
     using Core;
+    using Core.Http;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Web.Http;
 
-    public class TransactionsController : ApiController
+    public class TransactionsController : ApiBaseController
     {
         [HttpGet]
         [ResourceInfo(Name = Defines.TransactionsName)]

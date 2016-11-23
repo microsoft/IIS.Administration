@@ -41,7 +41,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             Site site = logId.SiteId == null ? null : SiteHelper.GetSite(logId.SiteId.Value);
 
             if (logId.SiteId != null && site == null) {
-                return new StatusCodeResult((int)HttpStatusCode.NotFound);
+                return NotFound();
             }
 
             return LoggingHelper.ToJsonModel(site, logId.Path);

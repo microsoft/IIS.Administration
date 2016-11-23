@@ -13,9 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         private const uint PATH_INDEX = 0;
         private const uint SITE_ID_NUM_INDEX = 1;
 
-        public string Path { get; private set; }
-        public long SiteId { get; private set; }
-        public string Uuid { get; private set; }
+        private string _path;
 
         public FileId(string uuid)
         {
@@ -43,5 +41,27 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             this.Uuid = Core.Utils.Uuid.Encode($"{this.Path}{DELIMITER}{this.SiteId}", PURPOSE);
         }
+
+        public string Path {
+            get {
+                return _path;
+            }
+            private set {
+                if (!value.StartsWith("/")) {
+                    throw new ArgumentException(nameof(value));
+                }
+
+                var absolute = System.IO.Path.GetFullPath(value);
+                var slashIndex = absolute.IndexOf('\\');
+
+                if (!absolute.Substring(slashIndex, absolute.Length - slashIndex).Equals(value.Replace('/', '\\'))) {
+                    throw new ArgumentException(nameof(value));
+                }
+                this._path = value;
+            }
+        }
+
+        public long SiteId { get; private set; }
+        public string Uuid { get; private set; }
     }
 }

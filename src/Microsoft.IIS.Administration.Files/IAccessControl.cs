@@ -4,10 +4,10 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    public class AllowedRoot
+    using System.IO;
+
+    public interface IAccessControl
     {
-        public string Name { get; set; }
-        public string Path { get; set; }
-        public bool Read_Only { get; set; }
+        bool IsAccessAllowed(string path, FileAccess fileAccess);
     }
 }

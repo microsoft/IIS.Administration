@@ -4,10 +4,12 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    public class AllowedRoot
+    public interface IDownloadService
     {
-        public string Name { get; set; }
-        public string Path { get; set; }
-        public bool Read_Only { get; set; }
+        Download Create(string physicalPath, int? timeout = null);
+
+        void Remove(string id);
+
+        Download Get(string id);
     }
 }

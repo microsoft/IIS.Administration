@@ -19,14 +19,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
     public class FilesController : ApiBaseController
     {
-        private FileService _fileService;
+        private IFileProvider _fileService;
 
         public FilesController()
         {
-            _fileService = new FileService();
+            _fileService = FileProvider.Default;
         }
-
-        [HttpGet]
+        
         public object Get()
         {
             string parentUuid = Context.Request.Query[Defines.PARENT_IDENTIFIER];
@@ -51,17 +50,22 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             var files = new List<object>();
             var dInfo = _fileService.GetDirectoryInfo(physicalPath);
 
-            // Files & directories
+            //
+            // Files
             foreach (var f in dInfo.GetFiles()) {
                 files.Add(FilesHelper.FileToJsonModelRef(site, Path.Combine(fileId.Path, f.Name)));
             }
+
+            //
+            // Directories
             foreach (var d in dInfo.GetDirectories()) {
                 files.Add(FilesHelper.DirectoryToJsonModelRef(site, Path.Combine(fileId.Path, d.Name)));
             }
             
+            //
             // Virtual Directories
             foreach (var fullVdir in FilesHelper.GetChildVirtualDirectories(site, fileId.Path)) {
-                files.Add(FilesHelper.VirtualDirectoryToJsonModelRef(fullVdir));
+                files.Add(FilesHelper.VdirToJsonModelRef(fullVdir));
             }
 
             // Set HTTP header for total count
@@ -72,7 +76,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             };
         }
 
-        [HttpGet]
+        
         public object Get(string id)
         {
             FileId fileId = new FileId(id);
@@ -88,16 +92,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 return NotFound();
             }
 
-            switch (FilesHelper.GetFileType(site, fileId.Path, physicalPath)) {
-                case FileType.File:
-                    return FilesHelper.FileToJsonModel(site, fileId.Path);
-                case FileType.Directory:
-                    return FilesHelper.DirectoryToJsonModel(site, fileId.Path);
-                case FileType.VDir:
-                    return FilesHelper.VirtualDirectoryToJsonModel(FilesHelper.ResolveFullVdir(site, fileId.Path));
-                default:
-                    return null;
-            }
+            return FilesHelper.ToJsonModel(site, fileId.Path);
         }
 
         [HttpPost]
@@ -130,7 +125,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             var physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
             
             if (!_fileService.DirectoryExists(physicalPath)) {
-                return NotFound();
+                throw new NotFoundException(physicalPath);
             }
 
             //
@@ -159,7 +154,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 _fileService.CreateDirectory(Path.Combine(physicalPath, name));
             }
 
-            return FilesHelper.GetFileType(site, fileId.Path, physicalPath) == FileType.File ? FilesHelper.FileToJsonModel(site, Path.Combine(fileId.Path, name)) : FilesHelper.DirectoryToJsonModel(site, Path.Combine(fileId.Path, name));
+            return FilesHelper.ToJsonModel(site, Path.Combine(fileId.Path, name));
         }
 
         [HttpPatch]

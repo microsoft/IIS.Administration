@@ -9,6 +9,10 @@
       "enabled": true
     },
     {
+      "name": "Microsoft.IIS.Administration.Files",
+      "enabled": true
+    },
+    {
       "name": "Microsoft.IIS.Administration.WebServer",
       "enabled": true
     },

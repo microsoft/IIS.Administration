@@ -16,12 +16,47 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
     public static class FilesHelper
     {
-        private static readonly Fields DirectoryRefFields = new Fields("name", "id", "type", "path", "physical_path");
-        private static readonly Fields FileRefFields = new Fields("name", "id", "type", "path", "physical_path");
+        private static readonly Fields RefFields = new Fields("name", "id", "type", "path", "physical_path");
 
-        private static FileService _service = new FileService();
+        private static IFileProvider _service = FileProvider.Default;
 
-        public static object DirectoryToJsonModel(Site site, string path, Fields fields = null, bool full = true)
+        public static object ToJsonModel(Site site, string path, Fields fields = null, bool full = true)
+        {
+            var physicalPath = GetPhysicalPath(site, path);
+
+            if (physicalPath != null) {
+
+                var fileType = GetFileType(site, path, physicalPath);
+
+                switch (fileType) {
+
+                    case FileType.File:
+                        return FileToJsonModel(site, path, fields, full);
+
+                    case FileType.Directory:
+                        return DirectoryToJsonModel(site, path, fields, full);
+
+                    case FileType.VDir:
+                        var app = ResolveApplication(site, path);
+                        var vdir = ResolveVdir(site, path);
+                        return VdirToJsonModel(new Vdir(site, app, vdir), fields, full);
+                }
+            }
+
+            return null;
+        }
+
+        public static object ToJsonModelRef(Site site, string path, Fields fields = null)
+        {
+            if (fields == null || !fields.HasFields) {
+                return ToJsonModel(site, path, RefFields, false);
+            }
+            else {
+                return ToJsonModel(site, path, fields, false);
+            }
+        }
+
+        internal static object DirectoryToJsonModel(Site site, string path, Fields fields = null, bool full = true)
         {
             if (string.IsNullOrEmpty(path)) {
                 throw new ArgumentNullException(nameof(path));
@@ -105,17 +140,17 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
         }
 
-        public static object DirectoryToJsonModelRef(Site site, string path, Fields fields = null)
+        internal static object DirectoryToJsonModelRef(Site site, string path, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
-                return DirectoryToJsonModel(site, path, DirectoryRefFields, false);
+                return DirectoryToJsonModel(site, path, RefFields, false);
             }
             else {
                 return DirectoryToJsonModel(site, path, fields, false);
             }
         }
 
-        public static object FileToJsonModel(Site site, string path, Fields fields = null, bool full = true)
+        internal static object FileToJsonModel(Site site, string path, Fields fields = null, bool full = true)
         {
             if (string.IsNullOrEmpty(path)) {
                 throw new ArgumentNullException(nameof(path));
@@ -152,9 +187,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             //
-            // length
-            if (fields.Exists("length")) {
-                obj.length = fileInfo.Length;
+            // size
+            if (fields.Exists("size")) {
+                obj.size = fileInfo.Length;
             }
 
             //
@@ -209,9 +244,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return Core.Environment.Hal.Apply(Defines.FilesResource.Guid, obj, full);
         }
 
-        internal static object VirtualDirectoryToJsonModel(Vdir fullVdir, Fields fields = null, bool full = true)
+        internal static object VdirToJsonModel(Vdir vdir, Fields fields = null, bool full = true)
         {
-            if (fullVdir == null) {
+            if (vdir == null) {
                 return null;
             }
 
@@ -219,16 +254,16 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 fields = Fields.All;
             }
 
-            var physicalPath = GetPhysicalPath(fullVdir.Site, fullVdir.Path);
+            var physicalPath = GetPhysicalPath(vdir.Site, vdir.Path);
 
             dynamic obj = new ExpandoObject();
-            var FileId = new FileId(fullVdir.Site.Id, fullVdir.Path);
+            var FileId = new FileId(vdir.Site.Id, vdir.Path);
             var dirInfo = _service.GetDirectoryInfo(physicalPath);
 
             //
             // name
             if (fields.Exists("name")) {
-                obj.name = fullVdir.Path == "/" ? fullVdir.Site.Name : fullVdir.Path.TrimStart('/');
+                obj.name = vdir.Path == "/" ? vdir.Site.Name : vdir.Path.TrimStart('/');
             }
 
             //
@@ -246,7 +281,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // path
             if (fields.Exists("path")) {
-                obj.path = fullVdir.Path.Replace('\\', '/');
+                obj.path = vdir.Path.Replace('\\', '/');
             }
 
             //
@@ -270,20 +305,20 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // total_files
             if (fields.Exists("total_files")) {
-                obj.total_files = dirInfo.GetFiles().Length + dirInfo.GetDirectories().Length + GetChildVirtualDirectories(fullVdir.Site, fullVdir.Path).Count;
+                obj.total_files = dirInfo.GetFiles().Length + dirInfo.GetDirectories().Length + GetChildVirtualDirectories(vdir.Site, vdir.Path).Count;
             }
 
             //
             // parent
             if (fields.Exists("parent")) {
-                if (fullVdir.VirtualDirectory.Path != "/") {
-                    var rootVdir = fullVdir.Application.VirtualDirectories["/"];
-                    obj.parent = rootVdir == null ? null : VirtualDirectoryToJsonModelRef(new Vdir(fullVdir.Site, fullVdir.Application, rootVdir));
+                if (vdir.VirtualDirectory.Path != "/") {
+                    var rootVdir = vdir.Application.VirtualDirectories["/"];
+                    obj.parent = rootVdir == null ? null : VdirToJsonModelRef(new Vdir(vdir.Site, vdir.Application, rootVdir));
                 }
-                else if (fullVdir.Application.Path != "/") {
-                    var rootApp = fullVdir.Site.Applications["/"];
+                else if (vdir.Application.Path != "/") {
+                    var rootApp = vdir.Site.Applications["/"];
                     var rootVdir = rootApp == null ? null : rootApp.VirtualDirectories["/"];
-                    obj.parent = rootApp == null || rootVdir == null ? null : VirtualDirectoryToJsonModel(new Vdir(fullVdir.Site, rootApp, rootVdir));
+                    obj.parent = rootApp == null || rootVdir == null ? null : VdirToJsonModel(new Vdir(vdir.Site, rootApp, rootVdir));
                 }
                 else {
                     obj.parent = null;
@@ -293,33 +328,33 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // website
             if (fields.Exists("website")) {
-                obj.website = SiteHelper.ToJsonModelRef(fullVdir.Site);
+                obj.website = SiteHelper.ToJsonModelRef(vdir.Site);
             }
 
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
         }
 
-        internal static object VirtualDirectoryToJsonModelRef(Vdir vdir, Fields fields = null)
+        internal static object VdirToJsonModelRef(Vdir vdir, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
-                return VirtualDirectoryToJsonModel(vdir, DirectoryRefFields, false);
+                return VdirToJsonModel(vdir, RefFields, false);
             }
             else {
-                return VirtualDirectoryToJsonModel(vdir, fields, false);
+                return VdirToJsonModel(vdir, fields, false);
             }
         }
 
-        public static object FileToJsonModelRef(Site site, string path, Fields fields = null)
+        internal static object FileToJsonModelRef(Site site, string path, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
-                return FileToJsonModel(site, path, FileRefFields, false);
+                return FileToJsonModel(site, path, RefFields, false);
             }
             else {
                 return FileToJsonModel(site, path, fields, false);
             }
         }
 
-        public static string UpdateFile(dynamic model, string physicalPath)
+        internal static string UpdateFile(dynamic model, string physicalPath)
         {
             if (model == null) {
                 throw new ApiArgumentException("model");
@@ -342,7 +377,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return physicalPath;
         }
 
-        public static string UpdateDirectory(dynamic model, string directoryPath)
+        internal static string UpdateDirectory(dynamic model, string directoryPath)
         {
             if (model == null) {
                 throw new ApiArgumentException("model");
@@ -372,7 +407,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return $"/{Defines.FILES_PATH}/{id}";
         }
 
-        public static FileType GetFileType(Site site, string path, string physicalPath)
+        internal static FileType GetFileType(Site site, string path, string physicalPath)
         {
             // A virtual directory is a directory who's physical path is not the combination of the sites physical path and the relative path from the sites root
             // and has same virtual path as app + vdir path
@@ -480,9 +515,10 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             if (vdir != null) {
                 var suffix = path.TrimStart(app.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase).TrimStart(vdir.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
                 physicalPath = Path.Combine(vdir.PhysicalPath, suffix.Trim(PathUtil.SEPARATORS).Replace('/', Path.DirectorySeparatorChar));
+                physicalPath = System.Environment.ExpandEnvironmentVariables(physicalPath);
             }
 
-            return System.Environment.ExpandEnvironmentVariables(physicalPath);
+            return physicalPath;
         }
 
         internal static List<Vdir> GetChildVirtualDirectories(Site site, string path)
@@ -509,6 +545,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                             vdirs.Add(new Vdir(site, app, vdir));
                         }
                     }
+                    break;
                 }
             }
             return vdirs;
@@ -533,7 +570,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 var parentVdir = ResolveVdir(site, parentPath);
 
                 if (IsExactVdirPath(site, parentApp, parentVdir, parentPath)) {
-                    parent = VirtualDirectoryToJsonModelRef(new Vdir(site, parentApp, parentVdir));
+                    parent = VdirToJsonModelRef(new Vdir(site, parentApp, parentVdir));
                 }
                 else {
                     var parentPhysicalPath = GetPhysicalPath(site, parentPath);

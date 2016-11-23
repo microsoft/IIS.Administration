@@ -11,8 +11,14 @@ namespace Microsoft.IIS.Administration.Core.Http {
         public const string ContentLength = "Content-Length";
         public const string ContentRange = "Content-Range";
         public const string ContentType = "Content-Type";
+        public const string Date = "Date";
+        public const string ETag = "ETag";
         public const string IfMatch = "If-Match";
+        public const string IfModifiedSince = "If-Modified-Since";
+        public const string IfNoneMatch = "If-None-Match";
         public const string IfRange = "If-Range";
+        public const string IfUnmodifiedSince = "If-Unmodified-Since";
+        public const string Location = "Location";
         public const string Range = "Range";
         public const string Total_Count = "X-Total-Count";
         public const string Access_Token = "Access-Token";

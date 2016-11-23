@@ -4,12 +4,16 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
+    using Extensions.Configuration;
     using System.Collections.Generic;
+    using System.Linq;
 
     public class FileOptions
     {
         private bool _searchedForAll;
         private AllowedRoot _allPaths;
+
+        private FileOptions() { }
 
         public List<AllowedRoot> Allowed_Roots { get; set; }
 
@@ -35,6 +39,30 @@ namespace Microsoft.IIS.Administration.Files
             return new FileOptions() {
                 Allowed_Roots = new List<AllowedRoot>()
             };
+        }
+
+        public static FileOptions FromConfiguration(IConfiguration configuration)
+        {
+            FileOptions options = null;
+
+            if (configuration.GetSection("files").GetChildren().Count() > 0) {
+                options = EmptyOptions();
+                ConfigurationBinder.Bind(configuration.GetSection("files"), options);
+            }
+
+            return options ?? FileOptions.DefaultOptions();
+        }
+
+        public static FileOptions DefaultOptions()
+        {
+            var options = EmptyOptions();
+
+            options.Allowed_Roots.Add(new AllowedRoot() {
+                Path = @"%SystemDrive%\inetpub\wwwroot",
+                Read_Only = false
+            });
+
+            return options;
         }
     }
 }

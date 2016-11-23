@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration
     using AspNetCore.Mvc.Filters;
     using System;
     using System.IO;
+    using System.Net;
     using System.Threading.Tasks;
 
     class HeadTransform
@@ -35,7 +36,7 @@ namespace Microsoft.IIS.Administration
                     try {
                         await _next(context);
 
-                        if (context.Response.StatusCode == StatusCodes.Status404NotFound && !context.Items.ContainsKey(FOUND_ACTION)) {
+                        if (context.Response.StatusCode == (int)HttpStatusCode.NotFound && !context.Items.ContainsKey(FOUND_ACTION)) {
                             context.Request.Method = "GET";
                             context.Response.StatusCode = status;
 

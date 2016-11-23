@@ -2,9 +2,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-namespace Microsoft.IIS.Administration.Files
+namespace Microsoft.IIS.Administration.WebServer.Files
 {
-    public enum FileType
+    enum FileType
     {
         File,
         Directory,

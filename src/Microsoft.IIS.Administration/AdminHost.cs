@@ -4,11 +4,12 @@
 
 namespace Microsoft.IIS.Administration
 {
+    using AspNetCore.Builder;
     using AspNetCore.Routing;
+    using Core;
+    using Extensions.DependencyInjection;
     using System;
     using System.Collections.Generic;
-    using Core;
-    using AspNetCore.Builder;
     using System.Linq;
     using System.Reflection;
 
@@ -44,14 +45,30 @@ namespace Microsoft.IIS.Administration
             _modules.Add(module);
         }
 
-        public void InitiateModules(IRouteBuilder routes, IApplicationBuilder applicationBuilder)
+        public void ConfigureModules(IServiceCollection services)
+        {
+            if (services == null) {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            //
+            // Configure modules
+            foreach (IModule module in _modules) {
+                var sa = module as IServiceCollectionAccessor;
+                if (sa != null) {
+                    sa.Use(services);
+                }
+            }
+        }
+
+        public void StartModules(IRouteBuilder routes, IApplicationBuilder applicationBuilder)
         {
             if (routes == null) {
-                throw new ArgumentNullException("routes");
+                throw new ArgumentNullException(nameof(routes));
             }
 
             if (applicationBuilder == null) {
-                throw new ArgumentNullException("applicationBuilder");
+                throw new ArgumentNullException(nameof(applicationBuilder));
             }
 
             _routeBuilder = routes;
@@ -63,7 +80,7 @@ namespace Microsoft.IIS.Administration
 
             //
             // Start modules
-            foreach (IModule module in this._modules) {
+            foreach (IModule module in _modules) {
                 module.Start();
             }
 
