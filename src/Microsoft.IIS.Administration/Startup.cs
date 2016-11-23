@@ -116,6 +116,8 @@ namespace Microsoft.IIS.Administration
                 // Remove when https://github.com/aspnet/Mvc/issues/4960 is resolved
                 o.Filters.Add(typeof(Fix4960ActionFilter));
 
+                o.Filters.Add(typeof(ActionFoundFilter));
+
                 o.Filters.Add(typeof(ResourceInfoFilter));
 
                 RemoveFilter<UnsupportedContentTypeFilter>(o);
