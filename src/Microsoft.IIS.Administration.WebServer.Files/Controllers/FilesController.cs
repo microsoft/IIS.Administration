@@ -154,7 +154,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 _fileService.CreateDirectory(Path.Combine(physicalPath, name));
             }
 
-            return FilesHelper.ToJsonModel(site, Path.Combine(fileId.Path, name));
+            dynamic file = FilesHelper.ToJsonModel(site, Path.Combine(fileId.Path, name));
+
+            return Created(FilesHelper.GetLocation(file.id), file);
         }
 
         [HttpPatch]

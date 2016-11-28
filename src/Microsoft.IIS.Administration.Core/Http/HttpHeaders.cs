@@ -7,8 +7,10 @@ namespace Microsoft.IIS.Administration.Core.Http {
     public static class HeaderNames {
 
         public const string AcceptPatch = "Accept-Patch";
+        public const string AcceptRanges = "Accept-Ranges";
         public const string CorsPrefix = "Access-Control";
         public const string ContentLength = "Content-Length";
+        public const string ContentDisposition = "Content-Disposition";
         public const string ContentRange = "Content-Range";
         public const string ContentType = "Content-Type";
         public const string Date = "Date";
@@ -18,6 +20,7 @@ namespace Microsoft.IIS.Administration.Core.Http {
         public const string IfNoneMatch = "If-None-Match";
         public const string IfRange = "If-Range";
         public const string IfUnmodifiedSince = "If-Unmodified-Since";
+        public const string LastModified = "Last-Modified";
         public const string Location = "Location";
         public const string Range = "Range";
         public const string Total_Count = "X-Total-Count";

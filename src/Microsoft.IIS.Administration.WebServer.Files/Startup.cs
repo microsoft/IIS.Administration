@@ -38,7 +38,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 var siteId = new SiteId((string)site.id);
                 Site s = SiteHelper.GetSite(siteId.Id);
                 var id = new FileId(siteId.Id, "/");
-                return new { href = $"{Defines.FILES_PATH}/{id.Uuid}" };
+                return new { href = $"/{Defines.FILES_PATH}/{id.Uuid}" };
             });
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             router.MapWebApiRoute(Defines.DownloadResource.Guid, $"{Defines.DOWNLOAD_PATH}/{{id?}}", new { controller = "wsdownloads" });
 
             if (Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(IDownloadService)) != null) {
-                hal.ProvideLink(Defines.FilesResource.Guid, Defines.DownloadResource.Name, file => new { href = $"{Defines.DOWNLOAD_PATH}" });
+                hal.ProvideLink(Defines.FilesResource.Guid, Defines.DownloadResource.Name, file => new { href = $"/{Defines.DOWNLOAD_PATH}" });
             }
         }
     }

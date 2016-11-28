@@ -14,7 +14,6 @@ namespace Microsoft.IIS.Administration.Files
     using System.IO;
     using System.Net;
     using System.Security.Cryptography;
-    using System.Text.Encodings.Web;
     using System.Threading.Tasks;
 
     public class HttpFileHandler
@@ -24,8 +23,9 @@ namespace Microsoft.IIS.Administration.Files
         private FileInfo _file;
         private IFileProvider _service;
         private HttpContext _context;
+        private IHeaderDictionary _customHeaders;
 
-        public HttpFileHandler(IFileProvider fileProvider, HttpContext context, FileInfo fileInfo)
+        public HttpFileHandler(IFileProvider fileProvider, HttpContext context, FileInfo fileInfo, IHeaderDictionary customHeaders = null)
         {
             if (fileProvider == null) {
                 throw new ArgumentNullException(nameof(fileProvider));
@@ -40,6 +40,7 @@ namespace Microsoft.IIS.Administration.Files
             this._context = context;
             this._file = fileInfo;
             this._service = fileProvider;
+            this._customHeaders = customHeaders;
         }
 
         public async Task<IActionResult> GetFileContent()
@@ -154,15 +155,15 @@ namespace Microsoft.IIS.Administration.Files
 
             //
             // Content-Disposition (file name)
-            _context.Response.Headers.Add("Content-Disposition", $"inline;filename={UrlEncoder.Default.Encode(_file.Name)}");
+            _context.Response.Headers.SetContentDisposition(false, _file.Name);
 
             //
             // Accept Ranges
-            _context.Response.Headers.Add("Accept-Ranges", "bytes");
+            _context.Response.Headers.Add(HeaderNames.AcceptRanges, "bytes");
 
             //
             // Last Modified
-            _context.Response.Headers.Add("Last-Modified", _file.LastWriteTimeUtc.ToString("r"));
+            _context.Response.Headers.Add(HeaderNames.LastModified, _file.LastWriteTimeUtc.ToString("r"));
 
             //
             // ETag
@@ -174,6 +175,17 @@ namespace Microsoft.IIS.Administration.Files
                 // Date
                 if (!_context.Response.Headers.ContainsKey(HeaderNames.Date)) {
                     _context.Response.Headers.Add(HeaderNames.Date, DateTime.UtcNow.ToString());
+                }
+            }
+
+            SetCustomHeaders();
+        }
+
+        private void SetCustomHeaders()
+        {
+            if (_customHeaders != null) {
+                foreach (var header in _customHeaders) {
+                    _context.Response.Headers[header.Key] = header.Value;
                 }
             }
         }
@@ -369,19 +381,7 @@ namespace Microsoft.IIS.Administration.Files
 
         private async Task<string> GetTempCopy(string path)
         {
-            var bytes = new byte[4];
-            string tempFileName = null, tempFilePath = null;
-
-            var parts = path.Split(PathUtil.SEPARATORS);
-            var fileName = parts[parts.Length - 1];
-
-            do {
-                tempFileName = GetTempName(fileName);
-            }
-            while (_service.FileExists(tempFileName));
-
-            parts[parts.Length - 1] = tempFileName;
-            tempFilePath = string.Join(Path.DirectorySeparatorChar.ToString(), parts);
+            string tempFilePath = GetTempFilePath(path);
             await _service.CopyFile(path, tempFilePath, true);
 
             return tempFilePath;
@@ -389,23 +389,28 @@ namespace Microsoft.IIS.Administration.Files
 
         private void SwapFiles(string pathA, string pathB)
         {
-            string tempFileName = null;
-            string fileAName = null;
-
-            var parts = pathA.Split(PathUtil.SEPARATORS);
-            fileAName = parts[parts.Length - 1];
-
-            do {
-                tempFileName = GetTempName(fileAName);
-            }
-            while (_service.FileExists(tempFileName));
-
-            parts[parts.Length - 1] = tempFileName;
-
-            var fileATempPath = string.Join(Path.DirectorySeparatorChar.ToString(), parts);
+            var fileATempPath = GetTempFilePath(pathA);
             _service.MoveFile(pathA, fileATempPath);
             _service.MoveFile(pathB, pathA);
             _service.MoveFile(fileATempPath, pathB);
+        }
+
+        private string GetTempFilePath(string path)
+        {
+            string tempFileName = null;
+            var parts = path.Split(PathUtil.SEPARATORS);
+            var fileName = parts[parts.Length - 1];
+
+            parts[parts.Length - 1] = string.Empty;
+            var parentPath = string.Join(Path.DirectorySeparatorChar.ToString(), parts);
+
+            do {
+                tempFileName = GetTempName(fileName);
+            }
+            while (_service.FileExists(Path.Combine(parentPath, tempFileName)));
+
+            parts[parts.Length - 1] = tempFileName;
+            return string.Join(Path.DirectorySeparatorChar.ToString(), parts);
         }
 
         private static string GetTempName(string name)

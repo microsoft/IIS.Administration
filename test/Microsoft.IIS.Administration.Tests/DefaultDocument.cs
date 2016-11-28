@@ -94,6 +94,7 @@ namespace Microsoft.IIS.Administration.Tests
                 Assert.NotNull(directoryFeature);
 
                 CreateAndRemoveFile(client, directoryFeature, fileName);
+                Assert.True(client.Delete(Utils.Self(site)));
             }
         }
 

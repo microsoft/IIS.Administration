@@ -49,6 +49,51 @@
             }
         });
 
+        $("#files input").change(function (evt) {
+
+            var self = $(this).parent('.file-upload');
+
+            self.find('.state').html('');
+            self.find(".name").html('');
+
+            var file = evt.target.files[0]
+            var reader = new FileReader();
+
+            if (!file) {
+                return;
+            }
+
+            self.find(".name").html(file.name);
+
+            reader.onload = function (e) {
+                $.ajax({
+                    type: "PUT",
+                    url: $("#urlgo").val(),
+                    data: e.target.result,
+                    dataType: 'text',
+                    processData: false,
+                    contentType: 'text/plain; charset=UTF-8',
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    beforeSend: function (request) {
+                        _setStatus({});
+                        request.setRequestHeader('Access-Token', 'Bearer ' + accessToken());
+                    },
+                    success: function (response, statusText, jqhxr) {
+                        _setStatus(jqhxr);
+                        self.find('.state').html("Success");
+                    },
+                    error: function (jqhxr) {
+                        _setStatus(jqhxr);
+                        self.find('.state').html("Failed");
+                    }
+                })
+            };
+
+            reader.readAsArrayBuffer(file);
+        });
+
         $(window).on('hashchange', function (e) {
             var hash = window.location.hash.substring(1);
             if (hash && hash != "/") {
@@ -103,6 +148,7 @@
             url: api_url,
             data: body,
             dataType: 'text',
+            processData: false,
             xhrFields: {
                 withCredentials: true
             },
@@ -117,21 +163,28 @@
             },
             success: function (response, statusText, jqhxr) {
                 _setStatus(jqhxr);
-                var contentType = jqhxr.getResponseHeader("Content-Type");
-                $("#nav-panel").show();
 
-                if (contentType && contentType.indexOf("json") != -1) {
+                var contentType = jqhxr.getResponseHeader("Content-Type");
+                var contentDisposition = jqhxr.getResponseHeader("Content-Disposition");
+                var location = jqhxr.getResponseHeader("Location");
+                var pragma = jqhxr.getResponseHeader("Pragma");
+
+                $("#nav-panel").show();
+                showFileUpload(false);
+
+                if (location && pragma && pragma.toLowerCase() === "attachment") {
+                    window.location = window.location.origin + location;
+                }
+                else if (contentType && contentType.indexOf("json") != -1) {
                     var json = JSON.parse(response);
 
-                    wrapResult(false);
                     document.getElementById('result').innerHTML = json2Html(json);
 
                     _json = json;
                 }
-                else {
-                    _json = null;
-                    wrapResult(true);
-                    document.getElementById('result').innerHTML = sanitizeHtml(response);
+
+                if (contentDisposition && filesSupported()) {
+                    showFileUpload(true);
                 }
             },
             error: function (xhr) {
@@ -197,7 +250,6 @@
              .replace(/'/g, "&#039;");
     }
 
-
     function _json2Html(o) {
         for (var i in o) {
             if (!(o instanceof Array)) {
@@ -236,5 +288,24 @@
         }
 
         return o;
+    }
+
+    function filesSupported() {
+        return window.File && window.FileReader && window.FileList && window.Blob;
+    }
+
+    function showFileUpload(val) {
+        var self = $("#files");
+
+        if (val) {
+            self.show();
+        }
+        else {
+            self.hide();
+            self.find('.state').html('');
+            self.find(".name").html('');
+            var input = self.find("input");
+            input.replaceWith(input.val('').clone(true));
+        }
     }
 }());

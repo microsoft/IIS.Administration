@@ -77,6 +77,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             var dl = _downloadService.Create(physicalPath, ttl);
 
+            // Inform client location points to downloadable attachment
+            Context.Response.Headers.Add("Pragma", "attachment");
+
             return Created(dl.Href, null);
         }
     }

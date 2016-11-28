@@ -183,6 +183,18 @@ b {
     font-weight:bold;
 }
 
+#files {
+    display: none;
+}
+
+.file-upload label {
+    display: inline-block;
+}
+
+.file-upload input {
+    display: none;
+}
+
 
 #response {
     padding-bottom: 20px;

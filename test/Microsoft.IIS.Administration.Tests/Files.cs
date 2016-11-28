@@ -5,13 +5,20 @@
 namespace Microsoft.IIS.Administration.Tests
 {
     using Administration.Files;
+    using Newtonsoft.Json.Linq;
     using System;
+    using System.IO;
+    using System.Net;
+    using System.Net.Http;
     using Web.Administration;
     using WebServer.Files;
     using Xunit;
 
     public class Files
     {
+        private const string TEST_SITE_NAME = "File Test Site";
+        private const string WEBSERVER_FILES_PATH = "/api/webserver/files";
+
         [Fact]
         public void ResolveApplication()
         {
@@ -242,6 +249,46 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.Equal(PathUtil.RemoveLastSegment(@"/abc/def\ghi"), "/abc/def");
             Assert.Equal(PathUtil.RemoveLastSegment(@"/abc/def\ghi/"), "/abc/def");
             Assert.Equal(PathUtil.RemoveLastSegment(@"/abc/def\ghi\"), "/abc/def");
+        }
+
+        [Fact]
+        public void CreateEditDeleteFile()
+        {
+            const string testFileName = "TEST_FILE.txt";
+
+            if (File.Exists(Path.Combine(Sites.TEST_SITE_PATH, testFileName))) {
+                File.Delete(Path.Combine(Sites.TEST_SITE_PATH, testFileName));
+            }
+
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                Sites.EnsureNoSite(client, TEST_SITE_NAME);
+                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50311, Sites.TEST_SITE_PATH);
+
+                var rootDir = Utils.FollowLink(client, site, "files");
+
+                object newFile = new {
+                    type = "file",
+                    parent = rootDir,
+                    name = testFileName
+                };
+
+                var fileMetadata = client.Post($"{Configuration.TEST_SERVER_URL}{WEBSERVER_FILES_PATH}", newFile);
+
+                Assert.True(fileMetadata != null);
+
+                var testContent = "Microsoft.IIS.Administration.Test.Files";
+                var res = client.PutAsync(Utils.GetLink(fileMetadata, "content"), new StringContent(testContent)).Result;
+
+                Assert.True(res.StatusCode == HttpStatusCode.OK);
+
+                string result = null;
+                Assert.True(client.Get(Utils.GetLink(fileMetadata, "content"), out result));
+                Assert.True(result == testContent);
+
+                Assert.True(client.Delete(Utils.Self(fileMetadata)));
+                Assert.True(client.Delete(Utils.Self(site)));
+            }
         }
     }
 }

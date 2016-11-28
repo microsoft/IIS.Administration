@@ -11,23 +11,23 @@ namespace Microsoft.IIS.Administration.Files
 
     public static class HttpContextFileExtensions
     {
-        public static async Task<IActionResult> GetFileContentAsync(this HttpContext context, IFileProvider fileProvider, FileInfo fileInfo)
+        public static async Task<IActionResult> GetFileContentAsync(this HttpContext context, IFileProvider fileProvider, FileInfo fileInfo, IHeaderDictionary headers = null)
         {
-            var handler = new HttpFileHandler(fileProvider, context, fileInfo);
+            var handler = new HttpFileHandler(fileProvider, context, fileInfo, headers);
 
             return await handler.GetFileContent();
         }
 
-        public static async Task<IActionResult> PutFileContentAsync(this HttpContext context, IFileProvider fileProvider, FileInfo fileInfo)
+        public static async Task<IActionResult> PutFileContentAsync(this HttpContext context, IFileProvider fileProvider, FileInfo fileInfo, IHeaderDictionary headers = null)
         {
-            var handler = new HttpFileHandler(fileProvider, context, fileInfo);
+            var handler = new HttpFileHandler(fileProvider, context, fileInfo, headers);
 
             return await handler.PutFileContent();
         }
 
-        public static IActionResult GetFileContentHeaders(this HttpContext context, IFileProvider fileProvider, FileInfo fileInfo)
+        public static IActionResult GetFileContentHeaders(this HttpContext context, IFileProvider fileProvider, FileInfo fileInfo, IHeaderDictionary headers = null)
         {
-            var handler = new HttpFileHandler(fileProvider, context, fileInfo);
+            var handler = new HttpFileHandler(fileProvider, context, fileInfo, headers);
 
             return handler.GetFileContentHeaders();
         }
