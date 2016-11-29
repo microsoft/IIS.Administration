@@ -120,7 +120,8 @@ function Migrate {
     $oldModules = .\modules.ps1 Get-JsonContent -Path $(Join-Path $Source $userFiles["modules.json"])
     $newModules = .\modules.ps1 Get-JsonContent -Path $(Join-Path $Destination $userFiles["modules.json"])
     $joined = .\modules.ps1 Add-NewModules -OldModules $oldModules.modules -NewModules $newModules.modules
-    $oldModules = @{modules = $joined}
+    $filtered = .\modules.ps1 Remove-DeprecatedModules -Modules $joined
+    $oldModules = @{modules = $filtered}
 
     foreach ($fileName in $userFiles.keys) {
         Copy-Item -Force -Recurse $(Join-Path $Source $userFiles[$fileName]) $(Join-Path $Destination $userFiles[$fileName]) -ErrorAction SilentlyContinue

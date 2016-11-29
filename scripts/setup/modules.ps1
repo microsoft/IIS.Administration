@@ -8,7 +8,9 @@ Param (
                  "Serialize",
                  "Deserialize",
                  "Add-NewModules",
-                 "Set-JsonContent")]
+                 "Remove-DeprecatedModules",
+                 "Set-JsonContent",
+                 "Remove-Property")]
     [string]
     $Command,
     
@@ -25,6 +27,10 @@ Param (
     $NewModules,
     
     [parameter()]
+    [System.Array]
+    $Modules,
+    
+    [parameter()]
     [System.Object]
     $JsonObject,
     
@@ -32,6 +38,9 @@ Param (
     [string]
     $Value
 )
+
+# Modules no longer in use
+$DEPRECATED_MODULES = @("Microsoft.IIS.Administration.WebServer.Transactions")
 
 # Returns an object representation parsed from the given string.
 # Value: The string value to parse.
@@ -87,29 +96,32 @@ function Get-JsonContent($_path)
 # Serializes an object and sets the content of the file at the given path to the serialized output.
 # Path: The path of the file to write the JSON result to.
 # JsonObject: The object to serialize.
-function Set-JsonContent($_path, $jsonObject) {
+function Set-JsonContent($_path, $_jsonObject) {
 
 	if ([System.String]::IsNullOrEmpty($_path)) {
 		throw "Path required"
 	}
 
-    if ($jsonObject -eq $null) {
+    if ($_jsonObject -eq $null) {
         throw "JsonObject required"
     }
 
     New-Item -Type File $_path -Force -ErrorAction Stop | Out-Null
     
-    Serialize $jsonObject | Out-File $_path -ErrorAction Stop
+    Serialize $_jsonObject | Out-File $_path -ErrorAction Stop
 }
 
-function To-HashObject($o) {
-    $ret = @{}
-    $keys = $o.keys
-    if ($keys -eq $null) {
-        $keys = $o | Get-Member -MemberType "NoteProperty" | %{$_.Name}
+# Removes a property from an object
+# $JsonObject: The object to remove the property from
+# $Value: The name of the property to remove
+function Remove-Property($_jsonObject, $_key) {
+    if (($_jsonObject | Get-Member "Remove" -MemberType Method) -ne $null) {
+        $_jsonObject.Remove($_key)
     }
-    foreach ($key in $keys) { $ret.$key = $o.$key }
-    return $ret
+    else {
+        $_jsonObject = $($_jsonObject | Select-Object -Property * -ExcludeProperty $_key)
+    }
+    return $_jsonObject
 }
 
 # Given two arrays of modules, The union of the two are returned.
@@ -149,12 +161,49 @@ function Add-NewModules($_oldModules, $_newModules) {
     $ms
 }
 
+
+# Given an array of modules, returns a filtered array containing no deprecated modules.
+# Modules: The list of modules.
+function Remove-DeprecatedModules($_modules) {
+    $ms = New-Object "System.Collections.ArrayList"
+    foreach ($module in $_modules) {
+        if (-not(_Contains $DEPRECATED_MODULES $module.name)) {
+            $ms.Add($(To-HashObject($module))) | out-null
+        }
+    }
+
+    $ms
+}
+
+function To-HashObject($o) {
+    $ret = @{}
+    $keys = $o.keys
+    if ($keys -eq $null) {
+        $keys = $o | Get-Member -MemberType "NoteProperty" | %{$_.Name}
+    }
+    foreach ($key in $keys) { $ret.$key = $o.$key }
+    return $ret
+}
+
+function _Contains($arr, $val) {
+    foreach ($item in $arr) {
+        if ($item -eq $val) {
+            return $true
+        }
+    }
+    return $false
+}
+
 switch ($Command)
 {
     "Add-NewModules"
     {
         # Do not use a return statement in order to prevent circular reference error in JavaScriptSerializer
         Add-NewModules $OldModules $NewModules
+    }
+    "Remove-DeprecatedModules"
+    {
+        Remove-DeprecatedModules $Modules
     }
     "Get-JsonContent"
     {
@@ -171,6 +220,10 @@ switch ($Command)
     "Deserialize"
     {
         Deserialize $Value
+    }
+    "Remove-Property"
+    {
+        Remove-Property $JsonObject $Value
     }
     default
     {

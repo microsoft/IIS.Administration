@@ -162,18 +162,31 @@ function Uninstall() {
         throw "Cannot find setup.config file for uninstall. Cannot continue"
     }
 
-    
+    # Previous installations if any
     foreach ($child in $children) {
-        if (-not(.\config.ps1 Exists -Path $child.FullName)) {
-            Remove-Item -Recurse -Force $child.FullName -ErrorAction SilentlyContinue
+        if ($(.\config.ps1 Exists -Path $child.FullName) -and -not($(Get-ScriptDirectory).StartsWith($child.FullName)) ) {
+            .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding -DeleteGroup:$DeleteGroup
         }
     }
     
     $children = Get-ChildItem $adminRoot | where {$_ -is [System.IO.DirectoryInfo]}
 
+    # Current installation
     foreach ($child in $children) {
-        .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding -DeleteGroup:$DeleteGroup
-    }    
+        if (.\config.ps1 Exists -Path $child.FullName) {
+            .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding -DeleteGroup:$DeleteGroup
+            break
+        }
+    }
+    
+    $children = Get-ChildItem $adminRoot | where {$_ -is [System.IO.DirectoryInfo]}
+
+    # Other directories
+    foreach ($child in $children) {
+        # Some directories are being used by the service, and cannot be removed until the service has been uninstalled
+        Remove-Item -Recurse -Force $child.FullName -ErrorAction SilentlyContinue
+    }
+
     
     $dir = Get-Item $adminRoot -ErrorAction SilentlyContinue
     if ($dir -ne $null) {
