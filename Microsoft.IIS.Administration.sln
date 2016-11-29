@@ -50,8 +50,6 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administratio
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.IPRestrictions", "src\Microsoft.IIS.Administration.WebServer.IPRestrictions\Microsoft.IIS.Administration.WebServer.IPRestrictions.xproj", "{C6DEA80E-89EA-40C1-80A7-035D30454B5C}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Transactions", "src\Microsoft.IIS.Administration.WebServer.Transactions\Microsoft.IIS.Administration.WebServer.Transactions.xproj", "{7E4F866D-6CAC-4ABE-A0C0-A534FEF8C200}"
-EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Delegation", "src\Microsoft.IIS.Administration.WebServer.Delegation\Microsoft.IIS.Administration.WebServer.Delegation.xproj", "{40D9A548-0A74-4BFA-A291-EFFBD3ADE426}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Handlers", "src\Microsoft.IIS.Administration.WebServer.Handlers\Microsoft.IIS.Administration.WebServer.Handlers.xproj", "{F2049AF9-0457-405F-8A50-3DEC0CB428BE}"
@@ -154,10 +152,6 @@ Global
 		{C6DEA80E-89EA-40C1-80A7-035D30454B5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6DEA80E-89EA-40C1-80A7-035D30454B5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6DEA80E-89EA-40C1-80A7-035D30454B5C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7E4F866D-6CAC-4ABE-A0C0-A534FEF8C200}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7E4F866D-6CAC-4ABE-A0C0-A534FEF8C200}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7E4F866D-6CAC-4ABE-A0C0-A534FEF8C200}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7E4F866D-6CAC-4ABE-A0C0-A534FEF8C200}.Release|Any CPU.Build.0 = Release|Any CPU
 		{40D9A548-0A74-4BFA-A291-EFFBD3ADE426}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{40D9A548-0A74-4BFA-A291-EFFBD3ADE426}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40D9A548-0A74-4BFA-A291-EFFBD3ADE426}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -243,7 +237,6 @@ Global
 		{4F45F2E0-D81A-4EF9-BA74-7BEC57516914} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{8C6CC5D4-DE7F-488B-BC4C-F7C34CF9BA71} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{C6DEA80E-89EA-40C1-80A7-035D30454B5C} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
-		{7E4F866D-6CAC-4ABE-A0C0-A534FEF8C200} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{40D9A548-0A74-4BFA-A291-EFFBD3ADE426} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{F2049AF9-0457-405F-8A50-3DEC0CB428BE} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{704450D2-5386-45A2-9475-3A9F585317BE} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}

@@ -105,10 +105,6 @@
       "enabled": true
     },
     {
-      "name": "Microsoft.IIS.Administration.WebServer.Transactions",
-      "enabled": true
-    },
-    {
       "name": "Microsoft.IIS.Administration.WebServer.VirtualDirectories",
       "enabled": true
     },

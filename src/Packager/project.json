@@ -31,7 +31,6 @@
     "Microsoft.IIS.Administration.WebServer.Sites": "1.0.1",
     "Microsoft.IIS.Administration.WebServer.SslSettings": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.StaticContent": "1.0.0",
-    "Microsoft.IIS.Administration.WebServer.Transactions": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.VirtualDirectories": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.WorkerProcesses": "1.0.0",
     "Microsoft.NETCore.App": {
