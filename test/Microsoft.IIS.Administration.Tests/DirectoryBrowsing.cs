@@ -23,7 +23,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
 
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50310, @"c:\sites\test_site");
+                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50310, Sites.TEST_SITE_PATH);
                 JObject feature = GetDirectoryBrowsingFeatrue(client, site.Value<string>("name"), null);
                 Assert.NotNull(feature);
 

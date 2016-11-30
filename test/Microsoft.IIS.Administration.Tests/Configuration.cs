@@ -30,12 +30,18 @@ namespace Microsoft.IIS.Administration.Tests {
         }
         public static string TEST_ROOT_PATH {
             get {
-                return _config.Value<string>("test_root_path");
+                var val = _config.Value<string>("test_root_path");
+
+                if (string.IsNullOrEmpty(val)) {
+                    val = System.AppContext.BaseDirectory;
+                }
+
+                return val;
             }
         }
 
         private static void Initialize() {
-            var content = File.ReadAllText("test.config.json");
+            var content = File.ReadAllText(Path.Combine(System.AppContext.BaseDirectory, "test.config.json"));
             _config = JObject.Parse(content);
         }
     }

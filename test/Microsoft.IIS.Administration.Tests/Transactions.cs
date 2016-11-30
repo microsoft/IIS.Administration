@@ -25,7 +25,7 @@ namespace Microsoft.IIS.Administration.Tests
                 Sites.EnsureNoSite(client, TRANSACTION_SITE_NAME);
 
                 // Create the site we will be manipulating to test transactions
-                JObject site = Sites.CreateSite(client, TRANSACTION_SITE_NAME, 50000, @"c:\sites\test_site");
+                JObject site = Sites.CreateSite(client, TRANSACTION_SITE_NAME, 50000, Sites.TEST_SITE_PATH);
                 Assert.NotNull(site);
 
                 // Cache the value of the property we will be manipulating through a transaciton
@@ -110,7 +110,7 @@ namespace Microsoft.IIS.Administration.Tests
                 Sites.EnsureNoSite(client, TRANSACTION_SITE_NAME);
 
                 // Create the site we will be manipulating to test transactions
-                JObject site = Sites.CreateSite(client, TRANSACTION_SITE_NAME, 50000, @"c:\sites\test_site");
+                JObject site = Sites.CreateSite(client, TRANSACTION_SITE_NAME, 50000, Sites.TEST_SITE_PATH);
                 Assert.NotNull(site);
                 
                 // Create a transaction

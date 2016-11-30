@@ -16,25 +16,15 @@ namespace Microsoft.IIS.Administration.Tests
     using Xunit.Abstractions;
     using Core.Utils;
     using System.Net;
+    using System.IO;
 
     public class Sites
     {
         private const string TEST_SITE_NAME = "test_site";
         private const int TEST_PORT = 50306;
         private ITestOutputHelper _output;
-        private static readonly object TEST_SITE = new {
-            physical_path = TEST_SITE_PATH,
-            name = TEST_SITE_NAME,
-            bindings = new object[] {
-                new {
-                    ip_address = "*",
-                    port = TEST_PORT,
-                    protocol = "http"
-                }
-            }
-        };
 
-        public const string TEST_SITE_PATH = @"c:\sites\test_site";
+        public static readonly string TEST_SITE_PATH = Path.Combine(Configuration.TEST_ROOT_PATH, TEST_SITE_NAME);
         public static readonly string SITE_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/websites";
         public static readonly string CertificatesUrl = $"{Configuration.TEST_SERVER_URL}/api/certificates";
 
@@ -48,13 +38,11 @@ namespace Microsoft.IIS.Administration.Tests
         {
             using (HttpClient client = ApiHttpClient.Create()) {
 
-                _output.WriteLine($"Running tests with site: {TEST_SITE}");
-
                 EnsureNoSite(client, TEST_SITE_NAME);
+                
+                JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, TEST_SITE_PATH);
+                Assert.NotNull(site);
 
-                JObject site;
-
-                Assert.True(CreateSite(client, JsonConvert.SerializeObject(TEST_SITE), out site));
                 _output.WriteLine("Create Site success.");
 
                 string testSiteUri = $"{SITE_URL}/{site.Value<string>("id")}";
@@ -73,7 +61,7 @@ namespace Microsoft.IIS.Administration.Tests
             using (HttpClient client = ApiHttpClient.Create()) {
 
                 EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, @"c:\sites\test_site");
+                JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, Configuration.TEST_ROOT_PATH);
                 JObject cachedSite = new JObject(site);
 
                 WaitForStatus(client, site);
@@ -81,7 +69,7 @@ namespace Microsoft.IIS.Administration.Tests
                 Assert.True(site != null);
 
                 site["server_auto_start"] = !site.Value<bool>("server_auto_start");
-                site["physical_path"] = @"c:\sites";
+                site["physical_path"] = Configuration.TEST_ROOT_PATH;
                 site["enabled_protocols"] = "test_protocol";
 
                 // If site status is unknown then we don't know if it will be started or stopped when it becomes available
@@ -157,7 +145,7 @@ namespace Microsoft.IIS.Administration.Tests
 
             using (HttpClient client = ApiHttpClient.Create()) {
                 EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, @"c:\sites\test_site");
+                JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, TEST_SITE_PATH);
 
                 var bindings = site.Value<JArray>("bindings");
                 bindings.Clear();
@@ -220,7 +208,7 @@ namespace Microsoft.IIS.Administration.Tests
             using (HttpClient client = ApiHttpClient.Create()) {
 
                 EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, @"c:\sites\test_site");
+                JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, TEST_SITE_PATH);
 
                 var bindings = site.Value<JArray>("bindings");
                 bindings.Clear();
@@ -349,7 +337,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        public static bool CreateSite(HttpClient client, string testSite, out JObject site)
+        private static bool CreateSite(HttpClient client, string testSite, out JObject site, bool createDirectoryIfNotExist = true)
         {
             site = null;
             HttpContent content = new StringContent(testSite, Encoding.UTF8, "application/json");
@@ -364,8 +352,11 @@ namespace Microsoft.IIS.Administration.Tests
             return true;
         }
 
-        public static JObject CreateSite(HttpClient client, string name, int port, string physicalPath)
+        public static JObject CreateSite(HttpClient client, string name, int port, string physicalPath, bool createDirectoryIfNotExist = true)
         {
+            if (createDirectoryIfNotExist && !Directory.Exists(physicalPath)) {
+                Directory.CreateDirectory(physicalPath);
+            }
 
             var site = new {
                 name = name,

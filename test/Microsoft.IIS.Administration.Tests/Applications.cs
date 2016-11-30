@@ -7,6 +7,7 @@ namespace Microsoft.IIS.Administration.Tests
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
+    using System.IO;
     using System.Net.Http;
     using System.Text;
     using Xunit;
@@ -15,12 +16,10 @@ namespace Microsoft.IIS.Administration.Tests
     public class Applications
     {
         private const string TEST_APPLICATION_SITE_NAME = "test_application_site";
-        private static readonly string TEST_APPLICATION_SITE = $"{{ \"bindings\": [ {{ \"ip_address\": \"*\", \"port\": \"50307\", \"protocol\": \"http\" }} ], \"physical_path\": \"c:\\\\sites\\\\test_site\" , \"name\": \"{TEST_APPLICATION_SITE_NAME}\" }}";
-        private static string TEST_APPLICATION = "{ \"path\" : \"/test_application\", \"physical_path\" : \"c:\\\\sites\\\\test_site\\\\test_application\", \"website\":{ \"id\" : \"{site_id}\" } }";
         ITestOutputHelper _output;
 
         public static readonly string APPLICATION_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/webapps";
-        public static readonly string TEST_APPLICATION_PATH = $@"{Sites.TEST_SITE_PATH}\test_application";
+        public static readonly string TEST_APPLICATION_PHYSICAL_PATH = Path.Combine(Sites.TEST_SITE_PATH, "test_application");
 
 
         public Applications(ITestOutputHelper output)
@@ -33,20 +32,15 @@ namespace Microsoft.IIS.Administration.Tests
         {
             bool pass = false;
             using (HttpClient client = ApiHttpClient.Create()) { 
-                _output.WriteLine($"Running Application tests with application {TEST_APPLICATION}");
-
-                JObject site;
+                JObject site = null;
 
                 Sites.EnsureNoSite(client, TEST_APPLICATION_SITE_NAME);
+                site = Sites.CreateSite(client, TEST_APPLICATION_SITE_NAME, 50307, Sites.TEST_SITE_PATH);
 
-                if (Sites.CreateSite(client, TEST_APPLICATION_SITE, out site)) {
+                if (site != null) {
+                    JObject testApp = CreateApplication(client, "/test_application", TEST_APPLICATION_PHYSICAL_PATH, site);
 
-                    // Set up the application json with the newly created site uuid
-                    string testApplication = TEST_APPLICATION.Replace("{site_id}", site.Value<string>("id"));
-
-                    JObject testApp;
-
-                    if (CreateApplication(client, testApplication, out testApp)) {
+                    if (testApp != null) {
 
                         string testAppUri = Utils.Self(testApp);
 
@@ -63,7 +57,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        public static bool CreateApplication(HttpClient client, string application, out JObject result)
+        private static bool CreateApplication(HttpClient client, string application, out JObject result)
         {
             result = null;
 
@@ -79,8 +73,12 @@ namespace Microsoft.IIS.Administration.Tests
             return true;
         }
 
-        public static JObject CreateApplication(HttpClient client, string path, string physicalPath, JObject parentSite)
+        public static JObject CreateApplication(HttpClient client, string path, string physicalPath, JObject parentSite, bool createDirectoryIfNotExist = true)
         {
+            if (createDirectoryIfNotExist && !Directory.Exists(physicalPath)) {
+                Directory.CreateDirectory(physicalPath);
+            }
+
             var app = new {
                 path = path,
                 physical_path = physicalPath,

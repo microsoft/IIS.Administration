@@ -23,7 +23,10 @@
   },
   "buildOptions": {
     "copyToOutput": {
-      "include": [ "xunit.runner.json" ]
+      "include": [
+        "xunit.runner.json",
+        "test.config.json"
+      ]
     }
   }
 }

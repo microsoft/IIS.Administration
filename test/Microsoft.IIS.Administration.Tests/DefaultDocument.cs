@@ -7,6 +7,7 @@ namespace Microsoft.IIS.Administration.Tests
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using Xunit;
@@ -69,21 +70,27 @@ namespace Microsoft.IIS.Administration.Tests
                 CreateAndRemoveFile(client, siteFeature, fileName);
 
                 // Application Scope
-                JObject app = Applications.CreateApplication(client, "test_app", Applications.TEST_APPLICATION_PATH, site);
+                JObject app = Applications.CreateApplication(client, "test_app", Applications.TEST_APPLICATION_PHYSICAL_PATH, site);
                 JObject appFeature = GetDefaultDocumentFeature(client, site.Value<string>("name"), app.Value<string>("path"));
                 Assert.NotNull(appFeature);
 
                 CreateAndRemoveFile(client, appFeature, fileName);
 
                 // Vdir Scope
-                JObject vdir = VirtualDirectories.CreateVdir(client, "test_vdir", VirtualDirectories.TEST_VDIR_PATH, site);
+                JObject vdir = VirtualDirectories.CreateVdir(client, "test_vdir", VirtualDirectories.TEST_VDIR_PHYSICAL_PATH, site, true);
                 JObject vdirFeature = GetDefaultDocumentFeature(client, site.Value<string>("name"), vdir.Value<string>("path"));
                 Assert.NotNull(vdirFeature);
 
                 CreateAndRemoveFile(client, vdirFeature, fileName);
 
                 // Directory Scope
-                JObject directoryFeature = GetDefaultDocumentFeature(client, site.Value<string>("name"), "/test_directory");
+                var dirName = "test_directory";
+                var dirPath = Path.Combine(Sites.TEST_SITE_PATH, dirName);
+                if (!Directory.Exists(dirPath)) {
+                    Directory.CreateDirectory(dirPath);
+                }
+
+                JObject directoryFeature = GetDefaultDocumentFeature(client, site.Value<string>("name"), $"/{dirName}");
                 Assert.NotNull(directoryFeature);
 
                 CreateAndRemoveFile(client, directoryFeature, fileName);

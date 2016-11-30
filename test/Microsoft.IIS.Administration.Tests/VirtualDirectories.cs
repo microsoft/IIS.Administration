@@ -7,6 +7,7 @@ namespace Microsoft.IIS.Administration.Tests
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
+    using System.IO;
     using System.Net.Http;
     using System.Text;
     using Xunit;
@@ -15,13 +16,11 @@ namespace Microsoft.IIS.Administration.Tests
     public class VirtualDirectories
     {
         private const string TEST_SITE_NAME = "test_vdir_site";
-        public static readonly string TEST_SITE = $"{{ \"bindings\": [ {{ \"ip_address\": \"*\", \"port\": \"50308\", \"protocol\": \"http\" }} ], \"physical_path\": \"c:\\\\sites\\\\test_site\" , \"name\": \"{TEST_SITE_NAME}\" }}";
-        public static string TEST_APPLICATION = "{ \"path\" : \"/test_vdir_application\", \"physical_path\" : \"c:\\\\sites\\\\test_site\\\\test_application\", \"website\" : { \"id\" : \"{site_id}\" } }";
-        public static string TEST_VDIR = "{ \"path\" : \"/test_vdir\", \"physical_path\" : \"c:\\\\sites\\\\test_site\\\\test_vdir\", \"webapp\" : { \"id\" : \"{app_id}\" } }";
         ITestOutputHelper _output;
 
         public static readonly string VDIR_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/virtual-directories";
-        public static readonly string TEST_VDIR_PATH = $@"{Sites.TEST_SITE_PATH}\test_vdir";
+        public static readonly string TEST_VDIR_PATH = "/test_vdir";
+        public static readonly string TEST_VDIR_PHYSICAL_PATH = Path.Combine(Sites.TEST_SITE_PATH, "test_vdir");
 
         public VirtualDirectories(ITestOutputHelper output)
         {
@@ -33,26 +32,21 @@ namespace Microsoft.IIS.Administration.Tests
         {
             bool pass = false;
             using (HttpClient client = ApiHttpClient.Create()) {
-                _output.WriteLine($"Running Virtual Directory tests with Virtual Directory {TEST_VDIR}");
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
 
-                JObject site;
+                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50308, Sites.TEST_SITE_PATH);
 
-                if (Sites.CreateSite(client, TEST_SITE, out site)) {
+                if (site != null) {
 
-                    string app = TEST_APPLICATION.Replace("{site_id}", site.Value<string>("id"));
+                    JObject testApp = Applications.CreateApplication(client, "/test_vdir_application", Applications.TEST_APPLICATION_PHYSICAL_PATH, site);
 
-                    JObject testApp;
+                    if (testApp != null) {
 
-                    if (Applications.CreateApplication(client, app, out testApp)) {
+                        JObject vdir = CreateVdir(client, TEST_VDIR_PATH, TEST_VDIR_PHYSICAL_PATH, testApp, false);
+                        if (vdir != null) {
 
-                        string vdir = TEST_VDIR.Replace("{app_id}", testApp.Value<string>("id"));
-
-                        JObject jVdir;
-                        if (CreateVdir(client, vdir, out jVdir)) {
-
-                            string vdirUri = Utils.Self(jVdir);
+                            string vdirUri = Utils.Self(vdir);
 
                             pass = VdirExists(client, vdirUri);
 
@@ -70,7 +64,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        public static bool CreateVdir(HttpClient client, string virtualDirectory, out JObject result)
+        private static bool CreateVdir(HttpClient client, string virtualDirectory, out JObject result)
         {
             result = null;
 
@@ -85,8 +79,12 @@ namespace Microsoft.IIS.Administration.Tests
             return true;
         }
 
-        public static JObject CreateVdir(HttpClient client, string path, string physicalPath, JObject parent, bool forSite = true)
+        public static JObject CreateVdir(HttpClient client, string path, string physicalPath, JObject parent, bool forSite, bool createDirectoryIfNotExist = true)
         {
+            if (createDirectoryIfNotExist && ! Directory.Exists(physicalPath)) {
+                Directory.CreateDirectory(physicalPath);
+            }
+
             object vdir = null;
             if(forSite) {
                 vdir = new {

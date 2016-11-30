@@ -110,7 +110,7 @@ namespace Microsoft.IIS.Administration.Tests
             using (HttpClient client = ApiHttpClient.Create()) {
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50310, @"c:\sites\test_site");
+                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50310, Sites.TEST_SITE_PATH);
 
                 foreach (DelegatableFeature f in features) {
 
