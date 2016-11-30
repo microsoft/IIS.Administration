@@ -492,20 +492,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return vdir == null ? null : new Vdir(site, app, vdir);
         }
 
-        public static string GetPhysicalPath(Site site)
-        {
-            if (site == null) {
-                throw new ArgumentNullException(nameof(site));
-            }
-
-            string root = null;
-            var rootApp = site.Applications["/"];
-            if (rootApp != null && rootApp.VirtualDirectories["/"] != null) {
-                root = rootApp.VirtualDirectories["/"].PhysicalPath;
-            }
-            return root;
-        }
-
         public static string GetPhysicalPath(Site site, string path)
         {
             var app = ResolveApplication(site, path);
@@ -515,7 +501,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             if (vdir != null) {
                 var suffix = path.TrimStart(app.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase).TrimStart(vdir.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
                 physicalPath = Path.Combine(vdir.PhysicalPath, suffix.Trim(PathUtil.SEPARATORS).Replace('/', Path.DirectorySeparatorChar));
-                physicalPath = System.Environment.ExpandEnvironmentVariables(physicalPath);
+                physicalPath = PathUtil.GetFullPath(physicalPath);
             }
 
             return physicalPath;
@@ -559,7 +545,20 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         }
 
 
+        
+        private static string GetPhysicalPath(Site site)
+        {
+            if (site == null) {
+                throw new ArgumentNullException(nameof(site));
+            }
 
+            string root = null;
+            var rootApp = site.Applications["/"];
+            if (rootApp != null && rootApp.VirtualDirectories["/"] != null) {
+                root = PathUtil.GetFullPath(rootApp.VirtualDirectories["/"].PhysicalPath);
+            }
+            return root;
+        }
 
         private static object GetParentJsonModelRef(Site site, string path)
         {

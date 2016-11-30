@@ -85,5 +85,14 @@ namespace Microsoft.IIS.Administration.Files
             var ret = string.Join("/", parts);
             return ret == "/" ? ret : ret.TrimEnd('/');
         }
+
+        public static string GetFullPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            return Path.GetFullPath(Environment.ExpandEnvironmentVariables(path));
+        }
     }
 }

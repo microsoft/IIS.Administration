@@ -35,12 +35,16 @@ namespace Microsoft.IIS.Administration.Files
 
         public string GetName(string path)
         {
+            RequestAccess(path, FileAccess.Read);
+
             var info = new FileInfo(path);
             return info.Name;
         }
 
         public string GetParentPath(string path)
         {
+            RequestAccess(path, FileAccess.Read);
+
             var info = new FileInfo(path);
             return info.Directory?.FullName;
         }

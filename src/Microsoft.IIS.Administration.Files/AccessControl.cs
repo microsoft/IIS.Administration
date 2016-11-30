@@ -29,7 +29,7 @@ namespace Microsoft.IIS.Administration.Files
                     FileOptions options = FileOptions.FromConfiguration(_configuration);
 
                     for (var i = 0; i < options.Allowed_Roots.Count; i++) {
-                        options.Allowed_Roots[i].Path = Environment.ExpandEnvironmentVariables(options.Allowed_Roots[i].Path);
+                        options.Allowed_Roots[i].Path = PathUtil.GetFullPath(options.Allowed_Roots[i].Path);
                     }
 
                     // Sort
@@ -46,11 +46,11 @@ namespace Microsoft.IIS.Administration.Files
 
         public bool IsAccessAllowed(string path, FileAccess fileAccess)
         {
-            var absolutePath = Path.GetFullPath(Environment.ExpandEnvironmentVariables(path));
+            var absolutePath = PathUtil.GetFullPath(path);
 
             //
             // Path must be absolute with no environment variables
-            if (!absolutePath.Equals(path)) {
+            if (!absolutePath.Equals(path, StringComparison.OrdinalIgnoreCase)) {
                 return false;
             }
 
