@@ -38,7 +38,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             AddHttpLinkHeader(fileId);
 
-            return Context.GetFileContentHeaders(_fileService, _fileService.GetFileInfo(physicalPath));
+            return Context.GetFileContentHeaders(physicalPath, _fileService);
         }
 
         
@@ -59,7 +59,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             AddHttpLinkHeader(fileId);
 
-            return await Context.GetFileContentAsync(_fileService, _fileService.GetFileInfo(physicalPath));
+            return await Context.GetFileContentAsync(physicalPath, _fileService);
         }
 
         [HttpPut]
@@ -80,7 +80,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             AddHttpLinkHeader(fileId);
 
-            return await Context.PutFileContentAsync(_fileService, _fileService.GetFileInfo(physicalPath));
+            return await Context.PutFileContentAsync(physicalPath, _fileService);
         }
 
 

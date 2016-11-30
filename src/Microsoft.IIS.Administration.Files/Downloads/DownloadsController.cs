@@ -28,7 +28,7 @@ namespace Microsoft.IIS.Administration.Files
                 return NotFound();
             }
 
-            return Context.GetFileContentHeaders(_fileProvider, _fileProvider.GetFileInfo(dl.PhysicalPath));
+            return Context.GetFileContentHeaders(dl.PhysicalPath, _fileProvider);
         }
 
         [HttpGet]
@@ -40,7 +40,7 @@ namespace Microsoft.IIS.Administration.Files
                 return NotFound();
             }
 
-            return await Context.GetFileContentAsync(_fileProvider, _fileProvider.GetFileInfo(dl.PhysicalPath));
+            return await Context.GetFileContentAsync(dl.PhysicalPath, _fileProvider);
         }
 
         [HttpDelete]

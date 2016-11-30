@@ -25,7 +25,7 @@ namespace Microsoft.IIS.Administration.Files
         private HttpContext _context;
         private IHeaderDictionary _customHeaders;
 
-        public HttpFileHandler(IFileProvider fileProvider, HttpContext context, FileInfo fileInfo, IHeaderDictionary customHeaders = null)
+        public HttpFileHandler(IFileProvider fileProvider, HttpContext context, string filePath, IHeaderDictionary customHeaders = null)
         {
             if (fileProvider == null) {
                 throw new ArgumentNullException(nameof(fileProvider));
@@ -33,14 +33,15 @@ namespace Microsoft.IIS.Administration.Files
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
             }
-            if (fileInfo == null) {
-                throw new ArgumentNullException(nameof(fileInfo));
+            if (string.IsNullOrEmpty(filePath)) {
+                throw new ArgumentNullException(nameof(filePath));
             }
 
-            this._context = context;
-            this._file = fileInfo;
-            this._service = fileProvider;
-            this._customHeaders = customHeaders;
+            _context = context;
+            _service = fileProvider;
+            _customHeaders = customHeaders;
+
+            _file = _service.GetFileInfo(filePath);
         }
 
         public async Task<IActionResult> GetFileContent()

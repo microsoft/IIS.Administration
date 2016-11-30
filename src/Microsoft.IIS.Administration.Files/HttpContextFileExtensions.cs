@@ -6,28 +6,27 @@ namespace Microsoft.IIS.Administration.Files
 {
     using AspNetCore.Http;
     using AspNetCore.Mvc;
-    using System.IO;
     using System.Threading.Tasks;
 
     public static class HttpContextFileExtensions
     {
-        public static async Task<IActionResult> GetFileContentAsync(this HttpContext context, IFileProvider fileProvider, FileInfo fileInfo, IHeaderDictionary headers = null)
+        public static async Task<IActionResult> GetFileContentAsync(this HttpContext context, string filePath, IFileProvider fileProvider, IHeaderDictionary headers = null)
         {
-            var handler = new HttpFileHandler(fileProvider, context, fileInfo, headers);
+            var handler = new HttpFileHandler(fileProvider, context, filePath, headers);
 
             return await handler.GetFileContent();
         }
 
-        public static async Task<IActionResult> PutFileContentAsync(this HttpContext context, IFileProvider fileProvider, FileInfo fileInfo, IHeaderDictionary headers = null)
+        public static async Task<IActionResult> PutFileContentAsync(this HttpContext context, string filePath, IFileProvider fileProvider, IHeaderDictionary headers = null)
         {
-            var handler = new HttpFileHandler(fileProvider, context, fileInfo, headers);
+            var handler = new HttpFileHandler(fileProvider, context, filePath, headers);
 
             return await handler.PutFileContent();
         }
 
-        public static IActionResult GetFileContentHeaders(this HttpContext context, IFileProvider fileProvider, FileInfo fileInfo, IHeaderDictionary headers = null)
+        public static IActionResult GetFileContentHeaders(this HttpContext context, string filePath, IFileProvider fileProvider, IHeaderDictionary headers = null)
         {
-            var handler = new HttpFileHandler(fileProvider, context, fileInfo, headers);
+            var handler = new HttpFileHandler(fileProvider, context, filePath, headers);
 
             return handler.GetFileContentHeaders();
         }
