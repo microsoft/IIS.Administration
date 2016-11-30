@@ -10,29 +10,9 @@ namespace Microsoft.IIS.Administration.Files
 
     public class FileOptions
     {
-        private bool _searchedForAll;
-        private AllowedRoot _allPaths;
-
         private FileOptions() { }
 
         public List<AllowedRoot> Allowed_Roots { get; set; }
-
-        public AllowedRoot WildCardRoot {
-            get {
-                if (_searchedForAll) {
-                    return _allPaths;
-                }
-
-                foreach (var allowedRoot in Allowed_Roots) {
-                    if (allowedRoot.Path.Equals("*")) {
-                        _allPaths = allowedRoot;
-                        _searchedForAll = true;
-                    }
-                }
-
-                return _allPaths;
-            }
-        }
 
         public static FileOptions EmptyOptions()
         {
@@ -50,7 +30,7 @@ namespace Microsoft.IIS.Administration.Files
                 ConfigurationBinder.Bind(configuration.GetSection("files"), options);
             }
 
-            return options ?? FileOptions.DefaultOptions();
+            return options ?? DefaultOptions();
         }
 
         public static FileOptions DefaultOptions()
@@ -58,7 +38,7 @@ namespace Microsoft.IIS.Administration.Files
             var options = EmptyOptions();
 
             options.Allowed_Roots.Add(new AllowedRoot() {
-                Path = @"%SystemDrive%\inetpub\wwwroot",
+                Path = @"%SystemDrive%\inetpub",
                 Read_Only = false
             });
 

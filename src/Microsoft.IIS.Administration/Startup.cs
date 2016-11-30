@@ -94,7 +94,6 @@ namespace Microsoft.IIS.Administration
             //
             // Antiforgery
             services.TryAddSingleton<IAntiforgeryTokenStore, AntiForgeryTokenStore>();
-            services.AddAntiforgery();
             services.AddAntiforgery(o =>
             {
                 o.RequireSsl = true;

@@ -25,7 +25,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         {
             _fileService = FileProvider.Default;
         }
-        
+
+        [HttpGet]
+        [ResourceInfo(Name = Defines.FilesName)]
         public object Get()
         {
             string parentUuid = Context.Request.Query[Defines.PARENT_IDENTIFIER];
@@ -76,7 +78,8 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             };
         }
 
-        
+        [HttpGet]
+        [ResourceInfo(Name = Defines.FileName)]
         public object Get(string id)
         {
             FileId fileId = new FileId(id);
@@ -96,6 +99,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         }
 
         [HttpPost]
+        [ResourceInfo(Name = Defines.FileName)]
         public object Post([FromBody] dynamic model)
         {
             if (model == null) {
@@ -160,6 +164,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         }
 
         [HttpPatch]
+        [ResourceInfo(Name = Defines.FileName)]
         public object Patch([FromBody] dynamic model, string id)
         {
             FileId fileId = new FileId(id);

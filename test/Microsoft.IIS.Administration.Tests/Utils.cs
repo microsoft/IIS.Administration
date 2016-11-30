@@ -10,7 +10,7 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
-    using Microsoft.IIS.Administration.Core.Http;
+    using Core.Http;
     using System.IO;
     using System.Net.Sockets;
     using System.Net;

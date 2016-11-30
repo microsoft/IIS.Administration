@@ -8,6 +8,6 @@ namespace Microsoft.IIS.Administration.Files
     {
         public string Name { get; set; }
         public string Path { get; set; }
-        public bool Read_Only { get; set; }
+        public bool Read_Only { get; set; } = true;
     }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.IIS.Administration.Files
     {
         private const string PATH_UNLISTED = "Access Denied";
         private const string PATH_IS_READ_ONLY = "Read-Only";
-        private static IFileProvider _Default = new FileProvider(new AccessControl());
+        private static IFileProvider _Default = new FileProvider(new AccessControl(ConfigurationHelper.Configuration));
 
         private IAccessControl _accessControl;
 

@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         private const string CONTENT_ENDPOINT = "content";
         private const string DOWNLOADS_ENDPOINT = "downloads";
 
+        public const string FilesName = "Microsoft.WebServer.Files";
+        public const string FileName = "Microsoft.WebServer.File";
         public static readonly string FILES_PATH = $"{WebServer.Defines.PATH}/{FILES_ENDPOINT}";
         public static readonly ResDef FilesResource = new ResDef("files", new Guid("CF0CF1C6-8913-4EF0-9833-C11820689252"), FILES_ENDPOINT);
         public static readonly string FILE_IDENTIFIER = "file.id";

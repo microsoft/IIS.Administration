@@ -5,6 +5,7 @@
 namespace Microsoft.IIS.Administration.Files
 {
     using System;
+    using System.IO;
 
     public static class PathUtil
     {
@@ -18,8 +19,8 @@ namespace Microsoft.IIS.Administration.Files
             if (path == null) {
                 throw new ArgumentNullException(nameof(path));
             }
-            if (!prefix.StartsWith("/") || !path.StartsWith("/")) {
-                throw new ArgumentException("Paths must begin with '/'.");
+            if (!Path.IsPathRooted(prefix) || !Path.IsPathRooted(path)) {
+                throw new ArgumentException("Paths must be rooted.");
             }
 
             var prefixParts = prefix.TrimEnd(SEPARATORS).Split(SEPARATORS);
