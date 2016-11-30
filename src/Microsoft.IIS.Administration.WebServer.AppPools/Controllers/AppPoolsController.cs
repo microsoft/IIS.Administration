@@ -68,16 +68,13 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             // Refresh
             pool = AppPoolHelper.GetAppPool(pool.Name);
 
-            WaitForPoolStatusResolve(pool);
-
             //
             // Create response
             dynamic appPool = (dynamic) AppPoolHelper.ToJsonModel(pool, Context.Request.GetFields());
 
             // A newly created application should default to started state
-            if (pool.State == ObjectState.Unknown) {
-                appPool.status = Enum.GetName(typeof(Status), Status.Started).ToLower();
-            }
+            var state = WaitForPoolStatusResolve(pool);
+            appPool.status = Enum.GetName(typeof(Status), state == Status.Unknown ? Status.Started : state).ToLower();
 
             return Created((string)AppPoolHelper.GetLocation(appPool.id), appPool);
         }
@@ -157,14 +154,13 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
         }
 
 
-        private void WaitForPoolStatusResolve(ApplicationPool pool)
+        private Status WaitForPoolStatusResolve(ApplicationPool pool)
         {
             // Delay to get proper status of newly created pool
             int n = 10;
             for (int i = 0; i < n; i++) {
                 try {
-                    StatusExtensions.FromObjectState(pool.State);
-                    break;
+                    return StatusExtensions.FromObjectState(pool.State);
                 }
                 catch (COMException) {
                     if (i < n - 1) {
@@ -172,6 +168,8 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
                     }
                 }
             }
+
+            return Status.Unknown;
         }
 
         private void EnsureAppPoolIdentityAllowed(ApplicationPool pool) {
