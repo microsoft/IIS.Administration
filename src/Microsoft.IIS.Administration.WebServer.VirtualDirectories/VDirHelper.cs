@@ -17,6 +17,8 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
     public static class VDirHelper
     {
         private static readonly Fields RefFields = new Fields("location", "id", "path");
+        private const string PasswordAttribute = "password";
+        private const string UserNameAttribute = "userName";
 
         public static VirtualDirectory CreateVDir(Application app, dynamic model)
         {
@@ -203,8 +205,23 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
                 }
 
                 DynamicHelper.If((object)identity.logon_method, v => vdir.LogonMethod = ToLogonMethod(v));
-                vdir.Password = DynamicHelper.Value(identity.password) ?? vdir.Password;
-                vdir.UserName = DynamicHelper.Value(identity.username) ?? vdir.UserName;
+
+                string username = DynamicHelper.Value(identity.username);
+                string password = DynamicHelper.Value(identity.password);
+
+                if (password != null) {
+                    vdir.Password = password;
+                }
+
+                if (username != null) {
+
+                    vdir.UserName = username;
+
+                    if (username == string.Empty) {
+                        vdir.GetAttribute(UserNameAttribute).Delete();
+                        vdir.GetAttribute(PasswordAttribute).Delete();
+                    }
+                }
             }
         }
 
