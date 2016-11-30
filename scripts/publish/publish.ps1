@@ -38,11 +38,6 @@ function Get-SolutionDirectory
     return $(Resolve-Path $(Join-Path $(Get-ScriptDirectory) "../..")).Path
 }
 
-function Get-DefaultAppSettings
-{
-    return [System.IO.File]::ReadAllText($(Join-Path $(Get-ScriptDirectory) "defaultAppSettings.json"))
-}
-
 function Bump-Version
 {
     $v = Get-VersionObject
@@ -220,8 +215,11 @@ if(!$outputConfigPathExists) {
 
 copy (Join-Path $configFolderPath "modules.json") $outputConfigPath  -Force -ErrorAction Stop;
 
-$defaultAppSettingsContent = Get-DefaultAppSettings
+$defaultAppSettingsContent = [System.IO.File]::ReadAllText($(Join-Path $(Get-ScriptDirectory) "defaultAppSettings.json"))
 $defaultAppSettingsContent | Out-File (Join-Path $outputConfigPath "appsettings.json")
+
+$emptyApiKeysContent = [System.IO.File]::ReadAllText($(Join-Path $(Get-ScriptDirectory) "empty-api-keys.json"))
+$emptyApiKeysContent | Out-File (Join-Path $outputConfigPath "api-keys.json")
 
 # Dlls required for plugins reside in the plugins folder at dev time
 $pluginFolder = Join-Path $ProjectPath "plugins"
