@@ -2,9 +2,6 @@ version: 1.0.{build}
 clone_folder: '%solution_dir%'
 init:
 - ps: >-
-    iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'));
-
-
     npm install -g bower;
 environment:
   solution_dir: c:\src\repos\IIS.Administration
