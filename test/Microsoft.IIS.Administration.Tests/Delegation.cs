@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.Tests
 
     public class Delegation
     {
+        public static readonly string DelegationSectionsUri = $"{Configuration.TEST_SERVER_URL}/api/webserver/feature-delegation";
+
         private const string TEST_SITE_NAME = "delegation_test_site";
 
         [Fact]
@@ -55,12 +57,6 @@ namespace Microsoft.IIS.Administration.Tests
                     Name = "authorization",
                     Path = webServerPath + "/authorization",
                     EditablePropertyName = "bypass_login_pages",
-                    EditableType = typeof(bool)
-                },
-                new DelegatableFeature {
-                    Name = "compression",
-                    Path = webServerPath + "/http-response-compression",
-                    EditablePropertyName = "do_disk_space_limitting",
                     EditableType = typeof(bool)
                 },
                 new DelegatableFeature {
@@ -183,13 +179,12 @@ namespace Microsoft.IIS.Administration.Tests
         [Fact]
         public void ManipulateSections()
         {
-            string delegationSectionsUri = $"{Configuration.TEST_SERVER_URL}/api/webserver/feature-delegation";
 
             using (HttpClient client = ApiHttpClient.Create()) {
 
                 string result;
 
-                Assert.True(client.Get(delegationSectionsUri, out result));
+                Assert.True(client.Get(DelegationSectionsUri, out result));
 
                 JObject delegation = JsonConvert.DeserializeObject<JObject>(result);
 

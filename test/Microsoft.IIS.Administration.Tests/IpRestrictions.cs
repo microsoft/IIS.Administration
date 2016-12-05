@@ -19,6 +19,7 @@ namespace Microsoft.IIS.Administration.Tests
             using (HttpClient client = ApiHttpClient.Create()) {
 
                 JObject ipRes = GetIpRestrictionsFeature(client, null, null);
+                ipRes.Remove("enabled");
                 JObject cachedFeature = new JObject(ipRes);
 
                 ipRes["allow_unlisted"] = !ipRes.Value<bool>("allow_unlisted");

@@ -18,6 +18,18 @@ namespace Microsoft.IIS.Administration.Tests
             return Globals.Success(responseMessage);
         }
 
+        public static JObject Get(this HttpClient client, string uri)
+        {
+            string result = null;
+            JObject ret = null;
+
+            if (client.Get(uri, out result)) {
+                ret = JsonConvert.DeserializeObject<JObject>(result);
+            }
+
+            return ret;
+        }
+
         public static bool Post(this HttpClient client, string uri, string body, out string result)
         {
             HttpContent content = new StringContent(body, Encoding.UTF8, "application/json");
