@@ -1,6 +1,8 @@
 Microsoft IIS Administration API
 --------------------------------
 
+[![Build status](https://ci.appveyor.com/api/projects/status/l62ov4c6fbdi6vrq/branch/dev?svg=true)](https://ci.appveyor.com/project/jimmyca15/iis-administration-ed6b3/branch/dev)
+
 ### Requirements: ###
 * IIS installed
 * Windows authentication enabled
