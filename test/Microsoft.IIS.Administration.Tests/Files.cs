@@ -262,12 +262,12 @@ namespace Microsoft.IIS.Administration.Tests
 
             using (HttpClient client = ApiHttpClient.Create()) {
 
-                Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50311, Sites.TEST_SITE_PATH);
+                JObject site = Sites.GetSite(client, "Default Web Site");
 
                 var rootDir = Utils.FollowLink(client, site, "files");
 
-                object newFile = new {
+                object newFile = new
+                {
                     type = "file",
                     parent = rootDir,
                     name = testFileName
@@ -287,7 +287,6 @@ namespace Microsoft.IIS.Administration.Tests
                 Assert.True(result == testContent);
 
                 Assert.True(client.Delete(Utils.Self(fileMetadata)));
-                Assert.True(client.Delete(Utils.Self(site)));
             }
         }
     }
