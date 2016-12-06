@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
     using Core.Http;
     using System.Collections.Generic;
     using System.Dynamic;
-    using System.Linq;
+    using Files;
 
     public static class ApplicationHelper {
 
@@ -283,8 +283,14 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
             string physicalPath = DynamicHelper.Value(model.physical_path);
 
             if (physicalPath != null) {
+                
+                var expanded = System.Environment.ExpandEnvironmentVariables(physicalPath);
 
-                if (!Directory.Exists(System.Environment.ExpandEnvironmentVariables(physicalPath))) {
+                if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                    throw new ForbiddenPathException(physicalPath);
+                }
+
+                if (!Directory.Exists(expanded)) {
                     throw new ApiArgumentException("physical_path", "Directory does not exist.");
                 }
 

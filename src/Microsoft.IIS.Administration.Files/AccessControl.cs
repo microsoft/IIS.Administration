@@ -4,16 +4,18 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
+    using Core;
     using Extensions.Configuration;
     using System;
     using System.IO;
+    using System.Linq;
 
-    class AccessControl : IAccessControl
+    public class AccessControl : IAccessControl
     {
         private FileOptions _options;
         private IConfiguration _configuration;
 
-        public AccessControl(IConfiguration configuration)
+        internal AccessControl(IConfiguration configuration)
         {
             if (configuration == null) {
                 throw new ArgumentNullException(nameof(configuration));
@@ -22,18 +24,20 @@ namespace Microsoft.IIS.Administration.Files
             _configuration = configuration;
         }
 
+        public static IAccessControl Default { get; } = new AccessControl(ConfigurationHelper.Configuration);
+
         private FileOptions Options
         {
             get {
                 if (_options == null) {
                     FileOptions options = FileOptions.FromConfiguration(_configuration);
 
-                    for (var i = 0; i < options.Allowed_Roots.Count; i++) {
-                        options.Allowed_Roots[i].Path = PathUtil.GetFullPath(options.Allowed_Roots[i].Path);
+                    for (var i = 0; i < options.Roots.Count; i++) {
+                        options.Roots[i].Path = PathUtil.GetFullPath(options.Roots[i].Path);
                     }
 
                     // Sort
-                    options.Allowed_Roots.Sort((item1, item2) => {
+                    options.Roots.Sort((item1, item2) => {
                         return item1.Path.Length - item2.Path.Length;                        
                     });
 
@@ -44,25 +48,32 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
-        public bool IsAccessAllowed(string path, FileAccess fileAccess)
+        public FileAccess GetFileAccess(string path)
         {
             var absolutePath = PathUtil.GetFullPath(path);
+            FileAccess allowedAccess = 0;
 
             //
             // Path must be absolute with no environment variables
             if (!absolutePath.Equals(path, StringComparison.OrdinalIgnoreCase)) {
-                return false;
+                return allowedAccess;
             }
 
             //
             // Best match
-            foreach (var root in Options.Allowed_Roots) {
+            foreach (var root in Options.Roots) {
                 if (PathStartsWith(absolutePath, root.Path)) {
-                    return !(root.Read_Only && fileAccess != FileAccess.Read);
+
+                    if (root.Permissions.Any(p => p.Equals("read", StringComparison.OrdinalIgnoreCase))) {
+                        allowedAccess |= FileAccess.Read;
+                    }
+                    if (root.Permissions.Any(p => p.Equals("write", StringComparison.OrdinalIgnoreCase))) {
+                        allowedAccess |= FileAccess.Write;
+                    }
                 }
             }
 
-            return false;
+            return allowedAccess;
         }
 
 

@@ -8,6 +8,6 @@ namespace Microsoft.IIS.Administration.Files
 
     public interface IAccessControl
     {
-        bool IsAccessAllowed(string path, FileAccess fileAccess);
+        FileAccess GetFileAccess(string path);
     }
 }

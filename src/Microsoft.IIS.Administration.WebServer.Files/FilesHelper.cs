@@ -19,6 +19,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         private static readonly Fields RefFields = new Fields("name", "id", "type", "path", "physical_path");
 
         private static IFileProvider _service = FileProvider.Default;
+        private static IAccessControl _acessControl = AccessControl.Default;
 
         public static object ToJsonModel(Site site, string path, Fields fields = null, bool full = true)
         {
@@ -108,6 +109,12 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             //
+            // permissions
+            if (fields.Exists("permission")) {
+                obj.permissions = GetPermissions(physicalPath);
+            }
+
+            //
             // created
             if (fields.Exists("created")) {
                 obj.created = dirInfo.CreationTimeUtc;
@@ -187,6 +194,24 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             //
+            // path
+            if (fields.Exists("path")) {
+                obj.path = path.Replace('\\', '/');
+            }
+
+            //
+            // physical_path
+            if (fields.Exists("physical_path")) {
+                obj.physical_path = physicalPath;
+            }
+
+            //
+            // permissions
+            if (fields.Exists("permission")) {
+                obj.permissions = GetPermissions(physicalPath);
+            }
+
+            //
             // size
             if (fields.Exists("size")) {
                 obj.size = fileInfo.Length;
@@ -208,18 +233,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // e_tag
             if (fields.Exists("e_tag")) {
                 obj.e_tag = ETag.Create(fileInfo).Value;
-            }
-
-            //
-            // path
-            if (fields.Exists("path")) {
-                obj.path = path.Replace('\\', '/');
-            }
-
-            //
-            // physical_path
-            if (fields.Exists("physical_path")) {
-                obj.physical_path = physicalPath;
             }
 
             //
@@ -288,6 +301,12 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // physical_path
             if (fields.Exists("physical_path")) {
                 obj.physical_path = physicalPath;
+            }
+
+            //
+            // permissions
+            if (fields.Exists("permission")) {
+                obj.permissions = GetPermissions(physicalPath);
             }
 
             //
@@ -363,14 +382,19 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             string name = DynamicHelper.Value(model.name);
 
             if (name != null) {
+
                 if (!IsValidFileName(name)) {
                     throw new ApiArgumentException("name");
                 }
+
                 var newPath = Path.Combine(_service.GetParentPath(physicalPath), name);
+
                 if (_service.FileExists(newPath)) {
                     throw new AlreadyExistsException("name");
                 }
+
                 _service.MoveFile(physicalPath, newPath);
+
                 physicalPath = newPath;
             }
 
@@ -386,15 +410,21 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             string name = DynamicHelper.Value(model.name);
 
             if (name != null) {
+
                 if (!IsValidFileName(name)) {
                     throw new ApiArgumentException("name");
                 }
+
                 if (_service.GetParentPath(directoryPath) != null) {
+
                     var newPath = Path.Combine(_service.GetParentPath(directoryPath), name);
+
                     if (_service.DirectoryExists(newPath)) {
                         throw new AlreadyExistsException("name");
                     }
+
                     _service.MoveDirectory(directoryPath, newPath);
+
                     directoryPath = newPath;
                 }
             }
@@ -577,6 +607,22 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 }
             }
             return parent;
+        }
+
+        private static IEnumerable<string> GetPermissions(string physicalPath)
+        {
+            List<string> permissions = new List<string>();
+            var allowedAccess = _acessControl.GetFileAccess(physicalPath);
+
+            // Manually add flags to avoid the ReadWrite flag being added
+            if (allowedAccess.HasFlag(FileAccess.Read)) {
+                permissions.Add("read");
+            }
+            if (allowedAccess.HasFlag(FileAccess.Write)) {
+                permissions.Add("write");
+            }
+
+            return permissions;
         }
     }
 }

@@ -13,8 +13,6 @@ namespace Microsoft.IIS.Administration.Files
     public class FileProvider : IFileProvider
     {
         private const string PATH_UNLISTED = "Access Denied";
-        private const string PATH_IS_READ_ONLY = "Read-Only";
-        private static IFileProvider _Default = new FileProvider(new AccessControl(ConfigurationHelper.Configuration));
 
         private IAccessControl _accessControl;
 
@@ -27,15 +25,11 @@ namespace Microsoft.IIS.Administration.Files
             _accessControl = accessControl;
         }
 
-        public static IFileProvider Default {
-            get {
-                return _Default;
-            }
-        }
+        public static IFileProvider Default { get; } = new FileProvider(AccessControl.Default);
 
         public string GetName(string path)
         {
-            RequestAccess(path, FileAccess.Read);
+            EnsureAccess(path, FileAccess.Read);
 
             var info = new FileInfo(path);
             return info.Name;
@@ -43,7 +37,7 @@ namespace Microsoft.IIS.Administration.Files
 
         public string GetParentPath(string path)
         {
-            RequestAccess(path, FileAccess.Read);
+            EnsureAccess(path, FileAccess.Read);
 
             var info = new FileInfo(path);
             return info.Directory?.FullName;
@@ -51,36 +45,36 @@ namespace Microsoft.IIS.Administration.Files
 
         public Stream GetFile(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
         {
-            RequestAccess(path, fileAccess);
+            EnsureAccess(path, fileAccess);
 
             return PerformIO(p => new FileStream(p, fileMode, fileAccess, fileShare), path);
         }
 
         public FileInfo GetFileInfo(string path)
         {
-            RequestAccess(path, FileAccess.Read);
+            EnsureAccess(path, FileAccess.Read);
 
             return PerformIO(p => new FileInfo(p), path);
         }
 
         public FileVersionInfo GetFileVersionInfo(string path)
         {
-            RequestAccess(path, FileAccess.Read);
+            EnsureAccess(path, FileAccess.Read);
 
             return PerformIO(p => FileVersionInfo.GetVersionInfo(p), path);
         }
 
         public DirectoryInfo GetDirectoryInfo(string path)
         {
-            RequestAccess(path, FileAccess.Read);
+            EnsureAccess(path, FileAccess.Read);
 
             return new DirectoryInfo(path);
         }
 
         public async Task CopyFile(string sourcePath, string destPath, bool copyMetadata = false)
         {
-            RequestAccess(sourcePath, FileAccess.Read);
-            RequestAccess(destPath, FileAccess.ReadWrite);
+            EnsureAccess(sourcePath, FileAccess.Read);
+            EnsureAccess(destPath, FileAccess.ReadWrite);
 
             using (var srcStream = GetFile(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
                 using (var destStream = GetFile(destPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read)) {
@@ -99,37 +93,37 @@ namespace Microsoft.IIS.Administration.Files
 
         public void MoveFile(string sourcePath, string destPath)
         {
-            RequestAccess(sourcePath, FileAccess.ReadWrite);
-            RequestAccess(destPath, FileAccess.ReadWrite);
+            EnsureAccess(sourcePath, FileAccess.ReadWrite);
+            EnsureAccess(destPath, FileAccess.ReadWrite);
 
             PerformIO(p => File.Move(sourcePath, destPath), null);
         }
 
         public void MoveDirectory(string sourcePath, string destPath)
         {
-            RequestAccess(sourcePath, FileAccess.ReadWrite);
-            RequestAccess(destPath, FileAccess.ReadWrite);
+            EnsureAccess(sourcePath, FileAccess.ReadWrite);
+            EnsureAccess(destPath, FileAccess.ReadWrite);
 
             PerformIO(p => Directory.Move(sourcePath, destPath), null);
         }
 
         public void DeleteFile(string path)
         {
-            RequestAccess(path, FileAccess.ReadWrite);
+            EnsureAccess(path, FileAccess.ReadWrite);
 
             PerformIO(p => File.Delete(p), path);
         }
 
         public void DeleteDirectory(string path)
         {
-            RequestAccess(path, FileAccess.ReadWrite);
+            EnsureAccess(path, FileAccess.ReadWrite);
 
             PerformIO(p => Directory.Delete(p, true), path);
         }
 
         public FileInfo CreateFile(string path)
         {
-            RequestAccess(path, FileAccess.ReadWrite);
+            EnsureAccess(path, FileAccess.ReadWrite);
 
             return PerformIO(p => {
                 File.Create(p).Dispose();
@@ -139,33 +133,41 @@ namespace Microsoft.IIS.Administration.Files
 
         public DirectoryInfo CreateDirectory(string path)
         {
-            RequestAccess(path, FileAccess.ReadWrite);
+            EnsureAccess(path, FileAccess.ReadWrite);
 
             return PerformIO(p => Directory.CreateDirectory(p), path);
         }
 
         public bool FileExists(string path)
         {
-            RequestAccess(path, FileAccess.Read);
+            EnsureAccess(path, FileAccess.Read);
 
             return PerformIO(p => File.Exists(p), path);
         }
 
         public bool DirectoryExists(string path)
         {
-            RequestAccess(path, FileAccess.Read);
+            EnsureAccess(path, FileAccess.Read);
 
             return PerformIO(p => Directory.Exists(p), path);
         }
 
-
-
-        private void RequestAccess(string path, FileAccess fileAccess)
+        public bool IsAccessAllowed(string path, FileAccess requestedAccess)
         {
-            if (!_accessControl.IsAccessAllowed(path, fileAccess)) {
+            var allowedAccess = _accessControl.GetFileAccess(path);
 
-                if (fileAccess != FileAccess.Read && _accessControl.IsAccessAllowed(path, FileAccess.Read)) {
-                    throw new ForbiddenPathException(path, PATH_IS_READ_ONLY);
+            return (!requestedAccess.HasFlag(FileAccess.Read) || allowedAccess.HasFlag(FileAccess.Read))
+                                         && (!requestedAccess.HasFlag(FileAccess.Write) || allowedAccess.HasFlag(FileAccess.Write));
+        }
+
+
+
+        private void EnsureAccess(string path, FileAccess fileAccess)
+        {
+            if (!IsAccessAllowed(path, fileAccess)) {
+
+                if (fileAccess != FileAccess.Read && IsAccessAllowed(path, FileAccess.Read)) {
+                    throw new ForbiddenPathException(path, ForbiddenPathException.PATH_IS_READ_ONLY);
                 }
 
                 throw new ForbiddenPathException(path);

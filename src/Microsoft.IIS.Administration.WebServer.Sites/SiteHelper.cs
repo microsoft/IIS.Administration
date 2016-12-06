@@ -20,6 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
     using System.Security.Cryptography.X509Certificates;
     using Core.Http;
     using System.Dynamic;
+    using Files;
 
     public static class SiteHelper
     {
@@ -380,8 +381,14 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             string physicalPath = DynamicHelper.Value(model.physical_path);
 
             if(physicalPath != null) {
+                
+                var expanded = System.Environment.ExpandEnvironmentVariables(physicalPath);
 
-                if (!Directory.Exists(System.Environment.ExpandEnvironmentVariables(physicalPath))) {
+                if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                    throw new ForbiddenPathException(physicalPath);
+                }
+
+                if (!Directory.Exists(expanded)) {
                     throw new ApiArgumentException("physical_path", "Directory does not exist.");
                 }
 
@@ -395,7 +402,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                     throw new ApiArgumentException("site/physical_path", "Root virtual directory does not exist.");
                 }
 
-                rootVDir.PhysicalPath = physicalPath.Replace('/', '\\');  
+                rootVDir.PhysicalPath = physicalPath.Replace('/', '\\');
             }
 
             //

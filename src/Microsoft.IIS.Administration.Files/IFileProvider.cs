@@ -39,5 +39,7 @@ namespace Microsoft.IIS.Administration.Files
         bool FileExists(string path);
 
         bool DirectoryExists(string path);
+
+        bool IsAccessAllowed(string path, FileAccess requestedAccess);
     }
 }

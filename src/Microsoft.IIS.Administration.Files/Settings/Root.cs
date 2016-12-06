@@ -4,10 +4,12 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    public class AllowedRoot
+    using System.Collections.Generic;
+
+    public class Root
     {
-        public string Name { get; set; }
+        public string Alias { get; set; }
         public string Path { get; set; }
-        public bool Read_Only { get; set; } = true;
+        public List<string> Permissions { get; set; } = new List<string>();
     }
 }

@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
     using System.IO;
     using System.Dynamic;
     using Newtonsoft.Json.Linq;
+    using Files;
 
     public static class VDirHelper
     {
@@ -191,9 +192,17 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             string physicalPath = DynamicHelper.Value(model.physical_path);
 
             if(physicalPath != null) {
-                if (!Directory.Exists(System.Environment.ExpandEnvironmentVariables(physicalPath))) {
+                
+                var expanded = System.Environment.ExpandEnvironmentVariables(physicalPath);
+
+                if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                    throw new ForbiddenPathException(physicalPath);
+                }
+
+                if (!Directory.Exists(expanded)) {
                     throw new ApiArgumentException("physical_path", "Directory does not exist.");
                 }
+
                 vdir.PhysicalPath = physicalPath.Replace('/', '\\');
             }
 

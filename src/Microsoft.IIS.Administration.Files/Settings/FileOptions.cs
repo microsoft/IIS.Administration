@@ -12,12 +12,12 @@ namespace Microsoft.IIS.Administration.Files
     {
         private FileOptions() { }
 
-        public List<AllowedRoot> Allowed_Roots { get; set; }
+        public List<Root> Roots { get; set; }
 
         public static FileOptions EmptyOptions()
         {
             return new FileOptions() {
-                Allowed_Roots = new List<AllowedRoot>()
+                Roots = new List<Root>()
             };
         }
 
@@ -37,9 +37,11 @@ namespace Microsoft.IIS.Administration.Files
         {
             var options = EmptyOptions();
 
-            options.Allowed_Roots.Add(new AllowedRoot() {
+            options.Roots.Add(new Root() {
                 Path = @"%SystemDrive%\inetpub",
-                Read_Only = false
+                Permissions = new List<string> {
+                    "read"
+                }
             });
 
             return options;

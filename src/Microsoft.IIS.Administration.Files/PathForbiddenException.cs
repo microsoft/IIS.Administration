@@ -11,6 +11,7 @@ namespace Microsoft.IIS.Administration.Files
 
     public class ForbiddenPathException : Exception, IError
     {
+        public const string PATH_IS_READ_ONLY = "Read-Only";
         private string _path;
 
         public ForbiddenPathException(string path, Exception innerException = null) : base(string.Empty, innerException) {
