@@ -92,7 +92,55 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ArgumentNullException(nameof(path));
             }
 
-            return Path.GetFullPath(Environment.ExpandEnvironmentVariables(path));
+            var expanded = Environment.ExpandEnvironmentVariables(path);
+
+            if (!Path.IsPathRooted(expanded)) {
+                throw new ArgumentException("Path must be rooted.", nameof(path));
+            }
+
+            return Path.GetFullPath(expanded);
+        }
+
+        public static bool IsFullPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            var fullPath = GetFullPath(path);
+
+            return path.Equals(fullPath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool PathStartsWith(string path, string prefix)
+        {
+            if (string.IsNullOrEmpty(path)) {
+                throw new ArgumentNullException(nameof(path));
+            }
+            if (string.IsNullOrEmpty(prefix)) {
+                throw new ArgumentNullException(nameof(prefix));
+            }
+
+            if (prefix.Length > path.Length) {
+                return false;
+            }
+
+            var separators = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+
+            var testParts = path.Split(separators);
+            var prefixParts = prefix.TrimEnd(separators).Split(separators);
+
+            if (prefixParts.Length > testParts.Length) {
+                return false;
+            }
+
+            for (var i = 0; i < prefixParts.Length; i++) {
+                if (!prefixParts[i].Equals(testParts[i], StringComparison.OrdinalIgnoreCase)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

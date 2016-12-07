@@ -40,22 +40,22 @@ namespace Microsoft.IIS.Administration.Tests
                 app.Path = "/ac/b";
                 site.Applications.Add(app);
 
-                app = FilesHelper.ResolveApplication(site, "/");
+                app = WebServer.Files.FilesHelper.ResolveApplication(site, "/");
                 Assert.True(app.Path == "/");
 
-                app = FilesHelper.ResolveApplication(site, "/ac");
+                app = WebServer.Files.FilesHelper.ResolveApplication(site, "/ac");
                 Assert.True(app.Path == "/");
 
-                app = FilesHelper.ResolveApplication(site, "/a");
+                app = WebServer.Files.FilesHelper.ResolveApplication(site, "/a");
                 Assert.True(app.Path == "/a");
 
-                app = FilesHelper.ResolveApplication(site, "/a/c");
+                app = WebServer.Files.FilesHelper.ResolveApplication(site, "/a/c");
                 Assert.True(app.Path == "/a");
 
-                app = FilesHelper.ResolveApplication(site, "/a/bc");
+                app = WebServer.Files.FilesHelper.ResolveApplication(site, "/a/bc");
                 Assert.True(app.Path == "/a");
 
-                app = FilesHelper.ResolveApplication(site, "/a/b/c");
+                app = WebServer.Files.FilesHelper.ResolveApplication(site, "/a/b/c");
                 Assert.True(app.Path == "/a/b");
             }
         }
@@ -79,9 +79,9 @@ namespace Microsoft.IIS.Administration.Tests
                 vdir.Path = "/vdir1";
                 app1.VirtualDirectories.Add(vdir);
 
-                vdir = FilesHelper.ResolveVdir(site, "/app1/vdir1");
+                vdir = WebServer.Files.FilesHelper.ResolveVdir(site, "/app1/vdir1");
                 Assert.True(vdir.Path == "/vdir1");
-                vdir = FilesHelper.ResolveVdir(site, "/app1/a_folder");
+                vdir = WebServer.Files.FilesHelper.ResolveVdir(site, "/app1/a_folder");
                 Assert.True(vdir.Path == "/");
             }
         }
@@ -122,19 +122,19 @@ namespace Microsoft.IIS.Administration.Tests
                 app2.VirtualDirectories.Add(vdir2b);
                 site.Applications.Add(app2);
 
-                Assert.True(FilesHelper.IsExactVdirPath(site, app1, vdir1a, "/app1/"));
-                Assert.True(FilesHelper.IsExactVdirPath(site, app1, vdir1a, "/app1"));
-                Assert.True(FilesHelper.IsExactVdirPath(site, app1, vdir1b, "/app1/vdir1b"));
-                Assert.True(FilesHelper.IsExactVdirPath(site, app1, vdir1b, "/app1/vdir1b/"));
+                Assert.True(WebServer.Files.FilesHelper.IsExactVdirPath(site, app1, vdir1a, "/app1/"));
+                Assert.True(WebServer.Files.FilesHelper.IsExactVdirPath(site, app1, vdir1a, "/app1"));
+                Assert.True(WebServer.Files.FilesHelper.IsExactVdirPath(site, app1, vdir1b, "/app1/vdir1b"));
+                Assert.True(WebServer.Files.FilesHelper.IsExactVdirPath(site, app1, vdir1b, "/app1/vdir1b/"));
 
-                Assert.True(FilesHelper.IsExactVdirPath(site, app2, vdir2a, "/app2"));
-                Assert.True(FilesHelper.IsExactVdirPath(site, app2, vdir2a, "/app2/"));
-                Assert.True(FilesHelper.IsExactVdirPath(site, app2, vdir2b, "/app2/vdir2b"));
-                Assert.True(FilesHelper.IsExactVdirPath(site, app2, vdir2b, "/app2/vdir2b/"));
+                Assert.True(WebServer.Files.FilesHelper.IsExactVdirPath(site, app2, vdir2a, "/app2"));
+                Assert.True(WebServer.Files.FilesHelper.IsExactVdirPath(site, app2, vdir2a, "/app2/"));
+                Assert.True(WebServer.Files.FilesHelper.IsExactVdirPath(site, app2, vdir2b, "/app2/vdir2b"));
+                Assert.True(WebServer.Files.FilesHelper.IsExactVdirPath(site, app2, vdir2b, "/app2/vdir2b/"));
 
-                Assert.False(FilesHelper.IsExactVdirPath(site, app1, vdir1a, "/app1/folder"));
-                Assert.False(FilesHelper.IsExactVdirPath(site, app1, vdir1b, "/app1/vdir1b/folder"));
-                Assert.False(FilesHelper.IsExactVdirPath(site, app1, vdir1b, "/app2/vdir1b"));
+                Assert.False(WebServer.Files.FilesHelper.IsExactVdirPath(site, app1, vdir1a, "/app1/folder"));
+                Assert.False(WebServer.Files.FilesHelper.IsExactVdirPath(site, app1, vdir1b, "/app1/vdir1b/folder"));
+                Assert.False(WebServer.Files.FilesHelper.IsExactVdirPath(site, app1, vdir1b, "/app2/vdir1b"));
             }
         }
 
@@ -168,13 +168,13 @@ namespace Microsoft.IIS.Administration.Tests
                 vdir1a.PhysicalPath = vdir1aPhysicalPath;
                 vdir1b.PhysicalPath = vdir1bPhysicalPath;
 
-                Assert.Equal(FilesHelper.GetPhysicalPath(site, "/"), rootVdirPhysicalPath);
-                Assert.Equal(FilesHelper.GetPhysicalPath(site, "/abc/defg"), rootVdirPhysicalPath + @"\abc\defg");
-                Assert.Equal(FilesHelper.GetPhysicalPath(site, "/app1"), vdir1aPhysicalPath);
-                Assert.Equal(FilesHelper.GetPhysicalPath(site, "/app1/abc/defg"), vdir1aPhysicalPath + @"\abc\defg");
-                Assert.Equal(FilesHelper.GetPhysicalPath(site, "/app1/vdir1bc/abc/defg"), vdir1aPhysicalPath + @"\vdir1bc\abc\defg");
-                Assert.Equal(FilesHelper.GetPhysicalPath(site, "/app1/vdir1b"), vdir1bPhysicalPath);
-                Assert.Equal(FilesHelper.GetPhysicalPath(site, "/app1/vdir1b/abc/defg"), vdir1bPhysicalPath + @"\abc\defg");
+                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/"), rootVdirPhysicalPath);
+                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/abc/defg"), rootVdirPhysicalPath + @"\abc\defg");
+                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1"), vdir1aPhysicalPath);
+                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/abc/defg"), vdir1aPhysicalPath + @"\abc\defg");
+                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/vdir1bc/abc/defg"), vdir1aPhysicalPath + @"\vdir1bc\abc\defg");
+                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/vdir1b"), vdir1bPhysicalPath);
+                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/vdir1b/abc/defg"), vdir1bPhysicalPath + @"\abc\defg");
             }
         }
 
@@ -207,11 +207,11 @@ namespace Microsoft.IIS.Administration.Tests
             };
 
             foreach (var name in goodFileNames) {
-                Assert.True(FilesHelper.IsValidFileName(name));
+                Assert.True(WebServer.Files.FilesHelper.IsValidFileName(name));
             }
 
             foreach (var name in badFileNames) {
-                Assert.False(FilesHelper.IsValidFileName(name));
+                Assert.False(WebServer.Files.FilesHelper.IsValidFileName(name));
             }
         }
 

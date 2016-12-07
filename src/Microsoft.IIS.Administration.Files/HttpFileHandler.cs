@@ -74,6 +74,8 @@ namespace Microsoft.IIS.Administration.Files
 
         public async Task<IActionResult> PutFileContent()
         {
+            _service.EnsureAccess(_file.FullName, FileAccess.Write);
+
             int start = -1, finish = -1, outOf = -1;
             var etag = ETag.Create(_file);
             bool isRangeRequest = _context.Request.Headers.ContainsKey(HeaderNames.ContentRange);

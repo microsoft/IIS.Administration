@@ -6,10 +6,8 @@ namespace Microsoft.IIS.Administration.Files
 {
     using System.Collections.Generic;
 
-    public class Root
+    public interface IFileOptions
     {
-        public string Alias { get; set; }
-        public string Path { get; set; }
-        public List<string> Permissions { get; set; } = new List<string>();
+        List<Location> Locations { get; set; }
     }
 }

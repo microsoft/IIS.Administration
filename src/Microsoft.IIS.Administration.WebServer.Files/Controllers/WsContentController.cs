@@ -11,11 +11,11 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using System.Threading.Tasks;
     using Administration.Files;
 
-    public class ContentController : ApiBaseController
+    public class WsContentController : ApiBaseController
     {
         private IFileProvider _fileService;
 
-        public ContentController()
+        public WsContentController()
         {
             _fileService = FileProvider.Default;
         }

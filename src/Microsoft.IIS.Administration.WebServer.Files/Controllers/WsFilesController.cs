@@ -17,11 +17,11 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using System.Net;
     using Web.Administration;
 
-    public class FilesController : ApiBaseController
+    public class WsFilesController : ApiBaseController
     {
         private IFileProvider _fileService;
 
-        public FilesController()
+        public WsFilesController()
         {
             _fileService = FileProvider.Default;
         }

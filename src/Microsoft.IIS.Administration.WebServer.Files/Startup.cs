@@ -28,7 +28,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.FilesResource.Guid, $"{Defines.FILES_PATH}/{{id?}}", new { controller = "files" });
+            router.MapWebApiRoute(Defines.FilesResource.Guid, $"{Defines.FILES_PATH}/{{id?}}", new { controller = "wsfiles" });
 
             // Self
             hal.ProvideLink(Defines.FilesResource.Guid, "self", file => new { href = $"/{Defines.FILES_PATH}/{file.id}" });
@@ -59,7 +59,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.ContentResource.Guid, $"{Defines.CONTENT_PATH}/{{id?}}", new { controller = "content" });
+            router.MapWebApiRoute(Defines.ContentResource.Guid, $"{Defines.CONTENT_PATH}/{{id?}}", new { controller = "wscontent" });
             
             hal.ProvideLink(Defines.FilesResource.Guid, Defines.ContentResource.Name, file => new { href = $"/{Defines.CONTENT_PATH}/{file.id}" });
         }

@@ -4,6 +4,7 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
@@ -21,6 +22,12 @@ namespace Microsoft.IIS.Administration.Files
         FileVersionInfo GetFileVersionInfo(string path);
 
         DirectoryInfo GetDirectoryInfo(string path);
+
+        IEnumerable<FileInfo> GetFiles(string path, string searchPattern);
+
+        IEnumerable<DirectoryInfo> GetDirectories(string path, string searchPattern);
+
+        IEnumerable<FileSystemInfo> GetChildren(string path, string searchPattern);
 
         Task CopyFile(string sourcePath, string destPath, bool copyMetadata = false);
 

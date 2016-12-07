@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{5504DA5E-B
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{361F8099-C420-4274-A6EB-45BFD232E1CE}"
 	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
 		scripts\Configure-DevEnvironment.ps1 = scripts\Configure-DevEnvironment.ps1
 		global.json = global.json
 		scripts\publish\publish.ps1 = scripts\publish\publish.ps1

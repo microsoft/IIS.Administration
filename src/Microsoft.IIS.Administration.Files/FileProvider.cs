@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration.Files
 {
     using Core;
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Threading.Tasks;
@@ -29,52 +30,73 @@ namespace Microsoft.IIS.Administration.Files
 
         public string GetName(string path)
         {
-            EnsureAccess(path, FileAccess.Read);
-
-            var info = new FileInfo(path);
-            return info.Name;
+            return PerformIO(p => new FileInfo(path).Name , path);
         }
 
         public string GetParentPath(string path)
         {
-            EnsureAccess(path, FileAccess.Read);
-
-            var info = new FileInfo(path);
-            return info.Directory?.FullName;
+            return PerformIO(p => new FileInfo(path).Directory?.FullName, path);
         }
 
         public Stream GetFile(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
         {
-            EnsureAccess(path, fileAccess);
+            this.EnsureAccess(path, fileAccess);
 
             return PerformIO(p => new FileStream(p, fileMode, fileAccess, fileShare), path);
         }
 
         public FileInfo GetFileInfo(string path)
         {
-            EnsureAccess(path, FileAccess.Read);
+            this.EnsureAccess(path, FileAccess.Read);
 
             return PerformIO(p => new FileInfo(p), path);
         }
 
         public FileVersionInfo GetFileVersionInfo(string path)
         {
-            EnsureAccess(path, FileAccess.Read);
+            this.EnsureAccess(path, FileAccess.Read);
 
             return PerformIO(p => FileVersionInfo.GetVersionInfo(p), path);
         }
 
         public DirectoryInfo GetDirectoryInfo(string path)
         {
-            EnsureAccess(path, FileAccess.Read);
+            this.EnsureAccess(path, FileAccess.Read);
 
             return new DirectoryInfo(path);
         }
 
+        public IEnumerable<FileInfo> GetFiles(string path, string searchPattern)
+        {
+            this.EnsureAccess(path, FileAccess.Read);
+
+            return PerformIO(p => {
+                return new DirectoryInfo(p).GetFiles(searchPattern);
+            }, path);
+        }
+
+        public IEnumerable<DirectoryInfo> GetDirectories(string path, string searchPattern)
+        {
+            this.EnsureAccess(path, FileAccess.Read);
+
+            return PerformIO(p => {
+                return new DirectoryInfo(p).GetDirectories(searchPattern);
+            }, path);
+        }
+
+        public IEnumerable<FileSystemInfo> GetChildren(string path, string searchPattern)
+        {
+            this.EnsureAccess(path, FileAccess.Read);
+
+            return PerformIO(p => {
+                return new DirectoryInfo(p).GetFileSystemInfos(searchPattern);
+            }, path);
+        }
+
         public async Task CopyFile(string sourcePath, string destPath, bool copyMetadata = false)
         {
-            EnsureAccess(sourcePath, FileAccess.Read);
-            EnsureAccess(destPath, FileAccess.ReadWrite);
+            this.EnsureAccess(sourcePath, FileAccess.Read);
+            this.EnsureAccess(destPath, FileAccess.ReadWrite);
 
             using (var srcStream = GetFile(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
                 using (var destStream = GetFile(destPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read)) {
@@ -93,37 +115,37 @@ namespace Microsoft.IIS.Administration.Files
 
         public void MoveFile(string sourcePath, string destPath)
         {
-            EnsureAccess(sourcePath, FileAccess.ReadWrite);
-            EnsureAccess(destPath, FileAccess.ReadWrite);
+            this.EnsureAccess(sourcePath, FileAccess.ReadWrite);
+            this.EnsureAccess(destPath, FileAccess.ReadWrite);
 
             PerformIO(p => File.Move(sourcePath, destPath), null);
         }
 
         public void MoveDirectory(string sourcePath, string destPath)
         {
-            EnsureAccess(sourcePath, FileAccess.ReadWrite);
-            EnsureAccess(destPath, FileAccess.ReadWrite);
+            this.EnsureAccess(sourcePath, FileAccess.ReadWrite);
+            this.EnsureAccess(destPath, FileAccess.ReadWrite);
 
             PerformIO(p => Directory.Move(sourcePath, destPath), null);
         }
 
         public void DeleteFile(string path)
         {
-            EnsureAccess(path, FileAccess.ReadWrite);
+            this.EnsureAccess(path, FileAccess.ReadWrite);
 
             PerformIO(p => File.Delete(p), path);
         }
 
         public void DeleteDirectory(string path)
         {
-            EnsureAccess(path, FileAccess.ReadWrite);
+            this.EnsureAccess(path, FileAccess.ReadWrite);
 
             PerformIO(p => Directory.Delete(p, true), path);
         }
 
         public FileInfo CreateFile(string path)
         {
-            EnsureAccess(path, FileAccess.ReadWrite);
+            this.EnsureAccess(path, FileAccess.ReadWrite);
 
             return PerformIO(p => {
                 File.Create(p).Dispose();
@@ -133,21 +155,21 @@ namespace Microsoft.IIS.Administration.Files
 
         public DirectoryInfo CreateDirectory(string path)
         {
-            EnsureAccess(path, FileAccess.ReadWrite);
+            this.EnsureAccess(path, FileAccess.ReadWrite);
 
             return PerformIO(p => Directory.CreateDirectory(p), path);
         }
 
         public bool FileExists(string path)
         {
-            EnsureAccess(path, FileAccess.Read);
+            this.EnsureAccess(path, FileAccess.Read);
 
             return PerformIO(p => File.Exists(p), path);
         }
 
         public bool DirectoryExists(string path)
         {
-            EnsureAccess(path, FileAccess.Read);
+            this.EnsureAccess(path, FileAccess.Read);
 
             return PerformIO(p => Directory.Exists(p), path);
         }
@@ -161,19 +183,7 @@ namespace Microsoft.IIS.Administration.Files
         }
 
 
-
-        private void EnsureAccess(string path, FileAccess fileAccess)
-        {
-            if (!IsAccessAllowed(path, fileAccess)) {
-
-                if (fileAccess != FileAccess.Read && IsAccessAllowed(path, FileAccess.Read)) {
-                    throw new ForbiddenPathException(path, ForbiddenPathException.PATH_IS_READ_ONLY);
-                }
-
-                throw new ForbiddenPathException(path);
-            }
-        }
-
+        
         private void PerformIO(Action<string> action, string path)
         {
             PerformIO<object>(p => {
@@ -196,6 +206,21 @@ namespace Microsoft.IIS.Administration.Files
             }
             catch (UnauthorizedAccessException) {
                 throw new UnauthorizedArgumentException(path);
+            }
+        }
+    }
+
+    public static class FileProviderExtensions
+    {
+        public static void EnsureAccess(this IFileProvider provider, string path, FileAccess fileAccess)
+        {
+            if (!provider.IsAccessAllowed(path, fileAccess)) {
+
+                if (fileAccess != FileAccess.Read && provider.IsAccessAllowed(path, FileAccess.Read)) {
+                    throw new ForbiddenPathException(path, ForbiddenPathException.PATH_IS_READ_ONLY);
+                }
+
+                throw new ForbiddenPathException(path);
             }
         }
     }

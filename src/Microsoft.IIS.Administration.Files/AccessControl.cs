@@ -12,10 +12,10 @@ namespace Microsoft.IIS.Administration.Files
 
     public class AccessControl : IAccessControl
     {
-        private FileOptions _options;
+        private IFileOptions _options;
         private IConfiguration _configuration;
 
-        internal AccessControl(IConfiguration configuration)
+        private AccessControl(IConfiguration configuration)
         {
             if (configuration == null) {
                 throw new ArgumentNullException(nameof(configuration));
@@ -26,21 +26,11 @@ namespace Microsoft.IIS.Administration.Files
 
         public static IAccessControl Default { get; } = new AccessControl(ConfigurationHelper.Configuration);
 
-        private FileOptions Options
+        private IFileOptions Options
         {
             get {
                 if (_options == null) {
-                    FileOptions options = FileOptions.FromConfiguration(_configuration);
-
-                    for (var i = 0; i < options.Roots.Count; i++) {
-                        options.Roots[i].Path = PathUtil.GetFullPath(options.Roots[i].Path);
-                    }
-
-                    // Sort
-                    options.Roots.Sort((item1, item2) => {
-                        return item2.Path.Length - item1.Path.Length;                        
-                    });
-
+                    IFileOptions options = FileOptions.FromConfiguration(_configuration);
                     _options = options;
                 }
 
@@ -61,14 +51,14 @@ namespace Microsoft.IIS.Administration.Files
 
             //
             // Best match
-            foreach (var root in Options.Roots) {
-                if (PathStartsWith(absolutePath, root.Path)) {
+            foreach (var location in Options.Locations) {
+                if (PathUtil.PathStartsWith(absolutePath, location.Path)) {
 
-                    if (root.Permissions.Any(p => p.Equals("read", StringComparison.OrdinalIgnoreCase))) {
+                    if (location.Permissions.Any(p => p.Equals("read", StringComparison.OrdinalIgnoreCase))) {
                         allowedAccess |= FileAccess.Read;
                     }
 
-                    if (root.Permissions.Any(p => p.Equals("write", StringComparison.OrdinalIgnoreCase))) {
+                    if (location.Permissions.Any(p => p.Equals("write", StringComparison.OrdinalIgnoreCase))) {
                         allowedAccess |= FileAccess.Write;
                     }
 
@@ -77,32 +67,6 @@ namespace Microsoft.IIS.Administration.Files
             }
 
             return allowedAccess;
-        }
-
-
-
-        private bool PathStartsWith(string path, string prefix)
-        {
-            if (prefix.Length > path.Length) {
-                return false;
-            }
-
-            var separators = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
-
-            var testParts = path.Split(separators);
-            var prefixParts = prefix.TrimEnd(separators).Split(separators);
-
-            if (prefixParts.Length > testParts.Length) {
-                return false;
-            }
-
-            for (var i = 0; i < prefixParts.Length; i++) {
-                if (!prefixParts[i].Equals(testParts[i], StringComparison.OrdinalIgnoreCase)) {
-                    return false;
-                }
-            }
-
-            return true;
         }
     }
 }
