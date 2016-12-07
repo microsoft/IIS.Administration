@@ -38,7 +38,7 @@ namespace Microsoft.IIS.Administration.Files
 
                     // Sort
                     options.Roots.Sort((item1, item2) => {
-                        return item1.Path.Length - item2.Path.Length;                        
+                        return item2.Path.Length - item1.Path.Length;                        
                     });
 
                     _options = options;
@@ -67,9 +67,12 @@ namespace Microsoft.IIS.Administration.Files
                     if (root.Permissions.Any(p => p.Equals("read", StringComparison.OrdinalIgnoreCase))) {
                         allowedAccess |= FileAccess.Read;
                     }
+
                     if (root.Permissions.Any(p => p.Equals("write", StringComparison.OrdinalIgnoreCase))) {
                         allowedAccess |= FileAccess.Write;
                     }
+
+                    break;
                 }
             }
 
