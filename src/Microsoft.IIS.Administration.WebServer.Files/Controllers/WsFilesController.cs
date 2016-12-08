@@ -49,32 +49,39 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 return NotFound();
             }
 
-            var files = new List<object>();
-            var dInfo = _fileService.GetDirectoryInfo(physicalPath);
+            var dirInfo = _fileService.GetDirectoryInfo(physicalPath);
+
+            var fields = Context.Request.GetFields();
+            var files = new Dictionary<string, object>();
 
             //
-            // Files
-            foreach (var f in dInfo.GetFiles()) {
-                files.Add(FilesHelper.FileToJsonModelRef(site, Path.Combine(fileId.Path, f.Name)));
+            // Virtual Directories
+            foreach (var vdir in FilesHelper.GetVdirs(site, fileId.Path)) {
+                files.Add(vdir.Path, FilesHelper.VdirToJsonModelRef(vdir, fields));
             }
 
             //
             // Directories
-            foreach (var d in dInfo.GetDirectories()) {
-                files.Add(FilesHelper.DirectoryToJsonModelRef(site, Path.Combine(fileId.Path, d.Name)));
+            foreach (var d in dirInfo.GetDirectories()) {
+                string path = Path.Combine(fileId.Path, d.Name);
+
+                if (!files.ContainsKey(path)) {
+                    files.Add(path, FilesHelper.DirectoryToJsonModelRef(site, path, fields));
+                }
             }
-            
+
             //
-            // Virtual Directories
-            foreach (var fullVdir in FilesHelper.GetChildVirtualDirectories(site, fileId.Path)) {
-                files.Add(FilesHelper.VdirToJsonModelRef(fullVdir));
+            // Files
+            foreach (var f in dirInfo.GetFiles()) {
+                string path = Path.Combine(fileId.Path, f.Name);
+                files.Add(path, FilesHelper.FileToJsonModelRef(site, path, fields));
             }
 
             // Set HTTP header for total count
             this.Context.Response.SetItemsCount(files.Count);
 
             return new {
-                files = files
+                files = files.Values
             };
         }
 
@@ -95,10 +102,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 return NotFound();
             }
 
-            return FilesHelper.ToJsonModel(site, fileId.Path);
+            var fields = Context.Request.GetFields();
+
+            return FilesHelper.ToJsonModel(site, fileId.Path, fields);
         }
 
         [HttpPost]
+        [Audit]
         [ResourceInfo(Name = Defines.FileName)]
         public object Post([FromBody] dynamic model)
         {
@@ -148,7 +158,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             if(type == null || !Enum.TryParse(type, true, out fileType) || fileType == FileType.VDir) {
                 throw new ApiArgumentException("model.type");
             }
-            
+
+            var fields = Context.Request.GetFields();
+
             //
             // Create
             if (fileType == FileType.File) {
@@ -158,12 +170,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 _fileService.CreateDirectory(Path.Combine(physicalPath, name));
             }
 
-            dynamic file = FilesHelper.ToJsonModel(site, Path.Combine(fileId.Path, name));
+            dynamic file = FilesHelper.ToJsonModel(site, Path.Combine(fileId.Path, name), fields);
 
             return Created(FilesHelper.GetLocation(file.id), file);
         }
 
         [HttpPatch]
+        [Audit]
         [ResourceInfo(Name = Defines.FileName)]
         public object Patch([FromBody] dynamic model, string id)
         {
@@ -203,6 +216,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         }
 
         [HttpDelete]
+        [Audit]
         public IActionResult Delete(string id)
         {
 
@@ -235,24 +249,26 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
         private object PatchFile(dynamic model, Site site, FileId fileId, string physicalPath)
         {
+            var fields = Context.Request.GetFields();
             var OldFName = _fileService.GetName(physicalPath);
 
             physicalPath = FilesHelper.UpdateFile(model, physicalPath);
 
             var newPath = fileId.Path.Substring(0, fileId.Path.LastIndexOf(OldFName)) + _fileService.GetName(physicalPath);
 
-            return FilesHelper.FileToJsonModel(site, newPath);
+            return FilesHelper.FileToJsonModel(site, newPath, fields);
         }
 
         private object PatchDirectory(dynamic model, Site site, FileId fileId, string physicalPath)
         {
+            var fields = Context.Request.GetFields();
             var oldDirName = _fileService.GetName(physicalPath);
 
             physicalPath = FilesHelper.UpdateDirectory(model, physicalPath);
 
             var newPath = fileId.Path.Substring(0, fileId.Path.LastIndexOf(oldDirName)) + _fileService.GetName(physicalPath);
 
-            return FilesHelper.DirectoryToJsonModel(site, newPath);
+            return FilesHelper.DirectoryToJsonModel(site, newPath, fields);
         }
     }
 }

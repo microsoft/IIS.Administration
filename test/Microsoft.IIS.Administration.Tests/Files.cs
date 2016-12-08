@@ -5,13 +5,16 @@
 namespace Microsoft.IIS.Administration.Tests
 {
     using Administration.Files;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using System.Text;
     using Web.Administration;
-    using WebServer.Files;
     using Xunit;
 
     public class Files
@@ -256,37 +259,69 @@ namespace Microsoft.IIS.Administration.Tests
         {
             const string testFileName = "TEST_FILE.txt";
 
-            if (File.Exists(Path.Combine(Sites.TEST_SITE_PATH, testFileName))) {
-                File.Delete(Path.Combine(Sites.TEST_SITE_PATH, testFileName));
-            }
-
             using (HttpClient client = ApiHttpClient.Create()) {
 
                 JObject site = Sites.GetSite(client, "Default Web Site");
 
+                var physicalPath = site.Value<string>("physical_path");
+
+                if (File.Exists(Path.Combine(physicalPath, testFileName))) {
+                    File.Delete(Path.Combine(physicalPath, testFileName));
+                }
+
                 var rootDir = Utils.FollowLink(client, site, "files");
 
-                object newFile = new
-                {
+                object newFile = new {
                     type = "file",
                     parent = rootDir,
                     name = testFileName
                 };
 
-                var fileMetadata = client.Post($"{Configuration.TEST_SERVER_URL}{WEBSERVER_FILES_PATH}", newFile);
+                // Create web file
+                var webFile = client.Post($"{Configuration.TEST_SERVER_URL}{WEBSERVER_FILES_PATH}", newFile);
 
-                Assert.True(fileMetadata != null);
+                Assert.True(webFile != null);
 
-                var testContent = "Microsoft.IIS.Administration.Test.Files";
-                var res = client.PutAsync(Utils.GetLink(fileMetadata, "content"), new StringContent(testContent)).Result;
+                try {
+                    //
+                    // Get physical file info
+                    var fileInfo = Utils.FollowLink(client, webFile.Value<JObject>("file_info"), "self");
 
-                Assert.True(res.StatusCode == HttpStatusCode.OK);
+                    // Update content of file
+                    var testContent = "Microsoft.IIS.Administration.Test.Files";
+                    var res = client.PutAsync(Utils.GetLink(fileInfo, "content"), new StringContent(testContent)).Result;
 
-                string result = null;
-                Assert.True(client.Get(Utils.GetLink(fileMetadata, "content"), out result));
-                Assert.True(result == testContent);
+                    Assert.True(res.StatusCode == HttpStatusCode.OK);
 
-                Assert.True(client.Delete(Utils.Self(fileMetadata)));
+                    // Get updated content of file
+                    string result = null;
+                    Assert.True(client.Get(Utils.GetLink(fileInfo, "content"), out result));
+                    Assert.True(result == testContent);
+
+                    var downloadsHref = Utils.GetLink(fileInfo, "downloads");
+
+                    var dl = new {
+                        file = fileInfo
+                    };
+
+                    // Create download link for file
+                    res = client.PostAsync(downloadsHref, new StringContent(JsonConvert.SerializeObject(dl), Encoding.UTF8, "application/json")).Result;
+                    Assert.True(res.StatusCode == HttpStatusCode.Created);
+
+                    IEnumerable<string> locationHeader;
+                    Assert.True(res.Headers.TryGetValues("location", out locationHeader));
+                    var location = locationHeader.First();
+
+                    // Download file
+                    Assert.True(client.Get($"{Configuration.TEST_SERVER_URL}{location}", out result));
+                    Assert.True(result == testContent);
+                }
+                finally {
+
+                    Assert.True(client.Delete(Utils.Self(webFile)));
+
+                }
+
             }
         }
     }

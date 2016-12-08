@@ -107,9 +107,13 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ArgumentNullException(nameof(path));
             }
 
-            var fullPath = GetFullPath(path);
+            var expanded = Environment.ExpandEnvironmentVariables(path);
 
-            return path.Equals(fullPath, StringComparison.OrdinalIgnoreCase);
+            if (!Path.IsPathRooted(expanded)) {
+                return false;
+            }
+
+            return path.Equals(Path.GetFullPath(expanded), StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool PathStartsWith(string path, string prefix)

@@ -41,15 +41,15 @@ namespace Microsoft.IIS.Administration.Files
                 }
 
                 //
-                // Files
-                foreach (var f in _provider.GetFiles(fileId.PhysicalPath, "*")) {
-                    files.Add(FilesHelper.FileToJsonModelRef(f, fields));
-                }
-
-                //
                 // Directories
                 foreach (var d in _provider.GetDirectories(fileId.PhysicalPath, "*")) {
                     files.Add(FilesHelper.DirectoryToJsonModelRef(d, fields));
+                }
+
+                //
+                // Files
+                foreach (var f in _provider.GetFiles(fileId.PhysicalPath, "*")) {
+                    files.Add(FilesHelper.FileToJsonModelRef(f, fields));
                 }
             }
             else {
@@ -84,6 +84,7 @@ namespace Microsoft.IIS.Administration.Files
         }
 
         [HttpPost]
+        [Audit]
         [ResourceInfo(Name = Defines.FileName)]
         public object Post([FromBody] dynamic model)
         {
@@ -152,6 +153,7 @@ namespace Microsoft.IIS.Administration.Files
         }
 
         [HttpPatch]
+        [Audit]
         [ResourceInfo(Name = Defines.FileName)]
         public object Patch([FromBody] dynamic model, string id)
         {
@@ -184,6 +186,7 @@ namespace Microsoft.IIS.Administration.Files
         }
 
         [HttpDelete]
+        [Audit]
         public IActionResult Delete(string id)
         {
             FileId fileId = FileId.FromUuid(id);

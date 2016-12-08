@@ -8,8 +8,6 @@ namespace Microsoft.IIS.Administration.Files
     using Extensions.Configuration;
     using System;
     using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
 
     public class AccessControl : IAccessControl
     {

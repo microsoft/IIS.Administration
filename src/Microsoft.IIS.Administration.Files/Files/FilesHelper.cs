@@ -7,7 +7,6 @@ namespace Microsoft.IIS.Administration.Files
     using Core;
     using Core.Utils;
     using System;
-    using System.Collections.Generic;
     using System.Dynamic;
     using System.IO;
 
@@ -112,7 +111,7 @@ namespace Microsoft.IIS.Administration.Files
             //
             // parent
             if (fields.Exists("parent")) {
-                obj.parent = GetParentJsonModelRef(info.FullName);
+                obj.parent = GetParentJsonModelRef(info.FullName, fields.Filter("parent"));
             }
 
             //
@@ -200,7 +199,7 @@ namespace Microsoft.IIS.Administration.Files
             //
             // parent
             if (fields.Exists("parent")) {
-                obj.parent = GetParentJsonModelRef(info.FullName);
+                obj.parent = GetParentJsonModelRef(info.FullName, fields.Filter("parent"));
             }
 
             //
@@ -304,15 +303,15 @@ namespace Microsoft.IIS.Administration.Files
             throw new FileNotFoundException();
         }
 
-        private static object GetParentJsonModelRef(string physicalPath)
+        private static object GetParentJsonModelRef(string physicalPath, Fields fields = null)
         {
             object ret = null;
 
             var parentPath = _service.GetParentPath(physicalPath);
 
             if (parentPath != null && _service.IsAccessAllowed(parentPath, FileAccess.Read)) {
-                ret = GetFileType(parentPath) == FileType.File ? FileToJsonModelRef(_service.GetFileInfo(parentPath))
-                                                                    : DirectoryToJsonModelRef(_service.GetDirectoryInfo(parentPath));
+                ret = GetFileType(parentPath) == FileType.File ? FileToJsonModelRef(_service.GetFileInfo(parentPath), fields)
+                                                                    : DirectoryToJsonModelRef(_service.GetDirectoryInfo(parentPath), fields);
             }
 
             return ret;

@@ -9,7 +9,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using Sites;
     using Web.Administration;
     using Core.Http;
-    using Administration.Files;
 
     public class Startup : BaseModule
     {
@@ -19,8 +18,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         {
             ConfigureFiles();
             ConfigureDirectories();
-            ConfigureContent();
-            ConfigureDownloads();
         }
 
         private void ConfigureFiles()
@@ -52,28 +49,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             // Directories
             hal.ProvideLink(Defines.DirectoriesResource.Guid, "files", file => new { href = $"/{Defines.FILES_PATH}?{Defines.PARENT_IDENTIFIER}={file.id}" });
-        }
-
-        private void ConfigureContent()
-        {
-            var router = Environment.Host.RouteBuilder;
-            var hal = Environment.Hal;
-
-            router.MapWebApiRoute(Defines.ContentResource.Guid, $"{Defines.CONTENT_PATH}/{{id?}}", new { controller = "wscontent" });
-            
-            hal.ProvideLink(Defines.FilesResource.Guid, Defines.ContentResource.Name, file => new { href = $"/{Defines.CONTENT_PATH}/{file.id}" });
-        }
-
-        private void ConfigureDownloads()
-        {
-            var router = Environment.Host.RouteBuilder;
-            var hal = Environment.Hal;
-
-            router.MapWebApiRoute(Defines.DownloadResource.Guid, $"{Defines.DOWNLOAD_PATH}/{{id?}}", new { controller = "wsdownloads" });
-
-            if (Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(IDownloadService)) != null) {
-                hal.ProvideLink(Defines.FilesResource.Guid, Defines.DownloadResource.Name, file => new { href = $"/{Defines.DOWNLOAD_PATH}" });
-            }
         }
     }
 }

@@ -25,9 +25,9 @@ namespace Microsoft.IIS.Administration.Files
         public static readonly ResDef ContentResource = new ResDef("content", new Guid("84EB3443-E4F5-452C-A9C1-98682868927A"), CONTENT_ENDPOINT);
 
         public static readonly string API_DOWNLOAD_PATH = $"{FILES_PATH}/{DOWNLOADS_ENDPOINT}";
-        public static readonly ResDef ApiDownloadResource = new ResDef("download", new Guid("A5F6DE75-3C3E-4BEA-9B16-B6692011BB46"), DOWNLOADS_ENDPOINT);
+        public static readonly ResDef ApiDownloadResource = new ResDef("downloads", new Guid("A5F6DE75-3C3E-4BEA-9B16-B6692011BB46"), DOWNLOADS_ENDPOINT);
 
         public static readonly string DOWNLOAD_PATH = $"{DOWNLOADS_ENDPOINT}";
-        public static readonly ResDef DownloadResource = new ResDef("download", new Guid("{9DAF09F0-197B-4164-81D5-B6A25154883A}"), DOWNLOADS_ENDPOINT);
+        public static readonly ResDef DownloadResource = new ResDef("downloads", new Guid("{9DAF09F0-197B-4164-81D5-B6A25154883A}"), DOWNLOADS_ENDPOINT);
     }
 }
