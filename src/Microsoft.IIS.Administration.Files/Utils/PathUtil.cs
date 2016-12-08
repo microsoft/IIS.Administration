@@ -142,5 +142,12 @@ namespace Microsoft.IIS.Administration.Files
 
             return true;
         }
+
+        public static bool IsValidFileName(string name)
+        {
+            return !string.IsNullOrEmpty(name) &&
+                        name.IndexOfAny(Path.GetInvalidFileNameChars()) == -1 &&
+                        !name.EndsWith(".");
+        }
     }
 }

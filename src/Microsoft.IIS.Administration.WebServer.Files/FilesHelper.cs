@@ -109,12 +109,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             //
-            // permissions
-            if (fields.Exists("permission")) {
-                obj.permissions = GetPermissions(physicalPath);
-            }
-
-            //
             // created
             if (fields.Exists("created")) {
                 obj.created = dirInfo.CreationTimeUtc;
@@ -142,6 +136,12 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // website
             if (fields.Exists("website")) {
                 obj.website = SiteHelper.ToJsonModelRef(site);
+            }
+
+            //
+            // claims
+            if (fields.Exists("claims")) {
+                obj.claims = _acessControl.GetClaims(physicalPath);
             }
 
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
@@ -206,12 +206,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             //
-            // permissions
-            if (fields.Exists("permission")) {
-                obj.permissions = GetPermissions(physicalPath);
-            }
-
-            //
             // size
             if (fields.Exists("size")) {
                 obj.size = fileInfo.Length;
@@ -251,6 +245,12 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // website
             if (fields.Exists("website")) {
                 obj.website = SiteHelper.ToJsonModelRef(site);
+            }
+
+            //
+            // claims
+            if (fields.Exists("claims")) {
+                obj.claims = _acessControl.GetClaims(physicalPath);
             }
 
 
@@ -304,12 +304,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             //
-            // permissions
-            if (fields.Exists("permission")) {
-                obj.permissions = GetPermissions(physicalPath);
-            }
-
-            //
             // created
             if (fields.Exists("created")) {
                 obj.created = dirInfo.CreationTimeUtc;
@@ -350,6 +344,12 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 obj.website = SiteHelper.ToJsonModelRef(vdir.Site);
             }
 
+            //
+            // claims
+            if (fields.Exists("claims")) {
+                obj.claims = _acessControl.GetClaims(physicalPath);
+            }
+
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
         }
 
@@ -383,7 +383,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             if (name != null) {
 
-                if (!IsValidFileName(name)) {
+                if (!PathUtil.IsValidFileName(name)) {
                     throw new ApiArgumentException("name");
                 }
 
@@ -411,7 +411,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             if (name != null) {
 
-                if (!IsValidFileName(name)) {
+                if (!PathUtil.IsValidFileName(name)) {
                     throw new ApiArgumentException("name");
                 }
 
@@ -567,13 +567,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return vdirs;
         }
 
-        public static bool IsValidFileName(string name)
-        {
-            return !string.IsNullOrEmpty(name) &&
-                        name.IndexOfAny(Path.GetInvalidFileNameChars()) == -1 &&
-                        !name.EndsWith(".");
-        }
-
 
         
         private static string GetPhysicalPath(Site site)
@@ -607,22 +600,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 }
             }
             return parent;
-        }
-
-        private static IEnumerable<string> GetPermissions(string physicalPath)
-        {
-            List<string> permissions = new List<string>();
-            var allowedAccess = _acessControl.GetFileAccess(physicalPath);
-
-            // Manually add flags to avoid the ReadWrite flag being added
-            if (allowedAccess.HasFlag(FileAccess.Read)) {
-                permissions.Add("read");
-            }
-            if (allowedAccess.HasFlag(FileAccess.Write)) {
-                permissions.Add("write");
-            }
-
-            return permissions;
         }
     }
 }

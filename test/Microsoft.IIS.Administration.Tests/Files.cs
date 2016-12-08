@@ -207,11 +207,11 @@ namespace Microsoft.IIS.Administration.Tests
             };
 
             foreach (var name in goodFileNames) {
-                Assert.True(WebServer.Files.FilesHelper.IsValidFileName(name));
+                Assert.True(PathUtil.IsValidFileName(name));
             }
 
             foreach (var name in badFileNames) {
-                Assert.False(WebServer.Files.FilesHelper.IsValidFileName(name));
+                Assert.False(PathUtil.IsValidFileName(name));
             }
         }
 

@@ -4,10 +4,11 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
+    using System.Collections.Generic;
     using System.IO;
 
     public interface IAccessControl
     {
-        FileAccess GetFileAccess(string path);
+        IEnumerable<string> GetClaims(string path);
     }
 }

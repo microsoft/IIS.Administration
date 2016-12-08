@@ -136,7 +136,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // Check Name
             string name = DynamicHelper.Value(model.name);
             
-            if (!FilesHelper.IsValidFileName(name)) {
+            if (!PathUtil.IsValidFileName(name)) {
                 throw new ApiArgumentException("model.name");
             }
 

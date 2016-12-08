@@ -35,7 +35,7 @@ namespace Microsoft.IIS.Administration.Files
 
             options.Locations.Add(new Location() {
                 Path = @"%SystemDrive%\inetpub",
-                Permissions = new List<string> {
+                Claims = new List<string> {
                     "read"
                 }
             });

@@ -12,9 +12,11 @@ namespace Microsoft.IIS.Administration.Files
         private const string FILES_ENDPOINT = "files";
         private const string CONTENT_ENDPOINT = "content";
         private const string DOWNLOADS_ENDPOINT = "downloads";
-
+        
+        public const string FilesName = "Microsoft.IIS.Administration.Files";
+        public const string FileName = "Microsoft.IIS.Administration.File";
         public static readonly string FILES_PATH = $"{Globals.API_PATH}/{FILES_ENDPOINT}";
-        public static readonly ResDef FilesResource = new ResDef("file", new Guid("FCA009EA-34A9-4C88-A270-1F65AFF885DA"), FILES_ENDPOINT);
+        public static readonly ResDef FilesResource = new ResDef("files", new Guid("FCA009EA-34A9-4C88-A270-1F65AFF885DA"), FILES_ENDPOINT);
         public const string PARENT_IDENTIFIER = "parent.id";
 
         public static readonly ResDef DirectoriesResource = new ResDef("directories", new Guid("0EC91657-563C-42B1-8080-CBCAEB963314"), FILES_ENDPOINT);

@@ -9,6 +9,7 @@ namespace Microsoft.IIS.Administration.Files
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
 
     public class FileProvider : IFileProvider
@@ -176,10 +177,10 @@ namespace Microsoft.IIS.Administration.Files
 
         public bool IsAccessAllowed(string path, FileAccess requestedAccess)
         {
-            var allowedAccess = _accessControl.GetFileAccess(path);
+            var claims = _accessControl.GetClaims(path);
 
-            return (!requestedAccess.HasFlag(FileAccess.Read) || allowedAccess.HasFlag(FileAccess.Read))
-                                         && (!requestedAccess.HasFlag(FileAccess.Write) || allowedAccess.HasFlag(FileAccess.Write));
+            return (!requestedAccess.HasFlag(FileAccess.Read) || claims.Contains("read", StringComparer.OrdinalIgnoreCase))
+                                         && (!requestedAccess.HasFlag(FileAccess.Write) || claims.Contains("write", StringComparer.OrdinalIgnoreCase));
         }
 
 

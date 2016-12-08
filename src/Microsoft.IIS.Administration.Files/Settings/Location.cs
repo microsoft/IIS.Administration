@@ -10,6 +10,6 @@ namespace Microsoft.IIS.Administration.Files
     {
         public string Alias { get; set; }
         public string Path { get; set; }
-        public List<string> Permissions { get; set; } = new List<string>();
+        public List<string> Claims { get; set; } = new List<string>();
     }
 }
