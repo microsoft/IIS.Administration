@@ -64,7 +64,7 @@ namespace Microsoft.IIS.Administration.Files
         {
             this.EnsureAccess(path, FileAccess.Read);
 
-            return new DirectoryInfo(path);
+            return PerformIO(p => new DirectoryInfo(p), path);
         }
 
         public IEnumerable<FileInfo> GetFiles(string path, string searchPattern)
@@ -99,19 +99,23 @@ namespace Microsoft.IIS.Administration.Files
             this.EnsureAccess(sourcePath, FileAccess.Read);
             this.EnsureAccess(destPath, FileAccess.ReadWrite);
 
-            using (var srcStream = GetFile(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
-                using (var destStream = GetFile(destPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read)) {
-                    await srcStream.CopyToAsync(destStream);
+            await PerformIO(async p => {
+
+                using (var srcStream = GetFile(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+                    using (var destStream = GetFile(destPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read)) {
+                        await srcStream.CopyToAsync(destStream);
+                    }
                 }
-            }
 
-            if (copyMetadata) {
-                var sourceFileInfo = new FileInfo(sourcePath);
-                var destFileInfo = new FileInfo(destPath);
+                if (copyMetadata) {
+                    var sourceFileInfo = new FileInfo(sourcePath);
+                    var destFileInfo = new FileInfo(destPath);
 
-                destFileInfo.CreationTime = sourceFileInfo.CreationTime;
-                destFileInfo.CreationTimeUtc = sourceFileInfo.CreationTimeUtc;
-            }
+                    destFileInfo.CreationTime = sourceFileInfo.CreationTime;
+                    destFileInfo.CreationTimeUtc = sourceFileInfo.CreationTimeUtc;
+                }
+
+            }, sourcePath);
         }
 
         public void MoveFile(string sourcePath, string destPath)
@@ -213,15 +217,17 @@ namespace Microsoft.IIS.Administration.Files
 
     public static class FileProviderExtensions
     {
+        private const string PATH_IS_READ_ONLY = "Read-Only";
+
         public static void EnsureAccess(this IFileProvider provider, string path, FileAccess fileAccess)
         {
             if (!provider.IsAccessAllowed(path, fileAccess)) {
 
                 if (fileAccess != FileAccess.Read && provider.IsAccessAllowed(path, FileAccess.Read)) {
-                    throw new ForbiddenPathException(path, ForbiddenPathException.PATH_IS_READ_ONLY);
+                    throw new ForbiddenArgumentException(path, PATH_IS_READ_ONLY);
                 }
 
-                throw new ForbiddenPathException(path);
+                throw new ForbiddenArgumentException(path);
             }
         }
     }

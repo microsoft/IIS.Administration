@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.Tests
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using Xunit;
@@ -69,6 +70,12 @@ namespace Microsoft.IIS.Administration.Tests
         [Fact]
         public void ChangeAllProperties()
         {
+            var testLogDirectoryPath = Path.Combine(@"%systemdrive%\inetpub", "logstest");
+
+            if (!Directory.Exists(Environment.ExpandEnvironmentVariables(testLogDirectoryPath))) {
+                Directory.CreateDirectory(Environment.ExpandEnvironmentVariables(testLogDirectoryPath));
+            }
+
             using (HttpClient client = ApiHttpClient.Create())
             {
                 // Web Server Scope
@@ -113,7 +120,7 @@ namespace Microsoft.IIS.Administration.Tests
                             feature["enabled"] = !feature.Value<bool>("enabled");
                             feature["log_file_encoding"] = feature.Value<string>("log_file_encoding") == "utf-8" ? "ansi" : "utf-8";
 
-                            feature["directory"] = System.IO.Path.Combine(feature.Value<string>("directory"), "test");
+                            feature["directory"] = testLogDirectoryPath;
 
                             rollover["period"] = rollover.Value<string>("period") == "daily" ? "weekly" : "daily";
                             rollover["truncate_size"] = rollover.Value<long>("truncate_size") - 1;

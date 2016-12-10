@@ -111,7 +111,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
-            if(mapping == null) {
+            if (mapping == null) {
                 throw new ArgumentNullException("mapping");
             }
             
@@ -129,14 +129,14 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
 
         public static void DeleteMapping(Mapping mapping, HandlersSection section)
         {
-            if(mapping == null) {
+            if (mapping == null) {
                 return;
             }
 
             // To remove it we must first make sure we pulled it from this exact section
             mapping = section.Mappings.FirstOrDefault(m => m.Name.Equals(mapping.Name, StringComparison.OrdinalIgnoreCase));
 
-            if(mapping != null) {
+            if (mapping != null) {
 
                 try {
                     section.Mappings.Remove(mapping);
@@ -154,13 +154,11 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
 
         internal static object ToJsonModel(Mapping mapping, Site site, string path, Fields fields = null, bool full = true)
         {
-            if (mapping == null)
-            {
+            if (mapping == null) {
                 return null;
             }
 
-            if (fields == null)
-            {
+            if (fields == null) {
                 fields = Fields.All;
             }
 
@@ -168,8 +166,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
 
             //
             // name
-            if (fields.Exists("name"))
-            {
+            if (fields.Exists("name")) {
                 obj.name = mapping.Name;
             }
 
@@ -179,78 +176,67 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
 
             //
             // path
-            if (fields.Exists("path"))
-            {
+            if (fields.Exists("path")) {
                 obj.path = mapping.Path;
             }
 
             //
             // verbs
-            if (fields.Exists("verbs"))
-            {
+            if (fields.Exists("verbs")) {
                 obj.verbs = mapping.Verb;
             }
 
             //
             // type
-            if (fields.Exists("type"))
-            {
+            if (fields.Exists("type")) {
                 obj.type = mapping.Type;
             }
 
             //
             // modules
-            if (fields.Exists("modules"))
-            {
+            if (fields.Exists("modules")) {
                 obj.modules = mapping.Modules;
             }
 
             //
             // script_processor
-            if (fields.Exists("script_processor"))
-            {
+            if (fields.Exists("script_processor")) {
                 obj.script_processor = mapping.ScriptProcessor;
             }
 
             //
             // resource_type
-            if (fields.Exists("resource_type"))
-            {
+            if (fields.Exists("resource_type")) {
                 obj.resource_type = Enum.GetName(typeof(ResourceType), mapping.ResourceType).ToLower();
             }
 
             //
             // require_access
-            if (fields.Exists("require_access"))
-            {
+            if (fields.Exists("require_access")) {
                 obj.require_access = Enum.GetName(typeof(HandlerRequiredAccess), mapping.RequireAccess).ToLower();
             }
 
             //
             // allow_path_info
-            if (fields.Exists("allow_path_info"))
-            {
+            if (fields.Exists("allow_path_info")) {
                 obj.allow_path_info = mapping.AllowPathInfo;
             }
 
             //
             // precondition
-            if (fields.Exists("precondition"))
-            {
+            if (fields.Exists("precondition")) {
                 obj.precondition = mapping.PreCondition;
             }
 
             //
             // response_buffer_limit
-            if (fields.Exists("response_buffer_limit"))
-            {
+            if (fields.Exists("response_buffer_limit")) {
                 obj.response_buffer_limit = mapping.ResponseBufferLimit;
             }
 
             //
             // handler
-            if (fields.Exists("handler"))
-            {
+            if (fields.Exists("handler")) {
                 obj.handler = HandlersHelper.ToJsonModelRef(site, path);
             }
 

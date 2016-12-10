@@ -5,7 +5,6 @@
 namespace Microsoft.IIS.Administration.WebServer.Modules
 {
     using System;
-    using System.Collections;
     using Web.Administration;
     using System.Collections.Generic;
     using Core.Utils;
@@ -14,6 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
     using Sites;
     using System.IO;
     using System.Dynamic;
+    using Files;
 
     public static class ModuleHelper
     {
@@ -35,9 +35,8 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             if (string.IsNullOrEmpty(image)) {
                 throw new ApiArgumentException("image");
             }
-            if(!File.Exists(System.Environment.ExpandEnvironmentVariables(image))) {
-                throw new NotFoundException("image");
-            }
+
+            AssertCanUseImage(image);
 
             var globalCollection = GetGlobalModulesCollection();
 
@@ -294,13 +293,8 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
 
             string image = DynamicHelper.Value(model.image);
 
-            if(image != null)
-            {
-                if (!File.Exists(System.Environment.ExpandEnvironmentVariables(image)))
-                {
-                    throw new NotFoundException("image");
-                }
-
+            if (image != null) {
+                AssertCanUseImage(image);
                 globalModule.Image = image;
             }
 
@@ -317,22 +311,6 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             }
 
             return globalModule;
-        }
-
-        public static void EnableOrdering(Site site, string path) {
-            ModulesSection section = GetModulesSection(site, path);
-
-            // Make all the inherited modules local be re-adding them to config
-            ICollection modules = section.Modules;
-            Module[] list = new Module[modules.Count];
-
-            modules.CopyTo(list, 0);
-
-            section.Modules.Clear();
-
-            foreach (Module action in list) {
-                section.Modules.AddCopy(action);
-            }
         }
 
         public static bool GlobalModuleExists(string moduleName)
@@ -508,50 +486,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
 
         #endregion
 
-        public static void MoveModuleDown(string moduleName, Site site, string path)
-        {
-            if (String.IsNullOrEmpty(moduleName)) {
-                throw new ArgumentNullException("moduleName");
-            }
-
-            EnableOrdering(site, path);
-            
-            ModuleCollection serverCollection = GetModulesCollection(site, path);
-
-            Module action = null;
-            if (!ExistsModule(moduleName, serverCollection, out action)) {
-                throw new Exception(ModulesErrors.ModuleNotPresentError);
-            }
-
-            int index = serverCollection.IndexOf(action);
-            if (index != serverCollection.Count - 1) {
-                serverCollection.Remove(action);
-                serverCollection.AddCopyAt(index + 1, action);
-            }
-        }
-
-        public static void MoveModuleUp(string moduleName, Site site, string path)
-        {
-            if (String.IsNullOrEmpty(moduleName)) {
-                throw new ArgumentNullException("moduleName");
-            }
-
-            EnableOrdering(site, path);
-
-            ModuleCollection serverCollection = GetModulesCollection(site, path);
-
-            Module action = null;
-            if (!ExistsModule(moduleName, serverCollection, out action)) {
-                throw new Exception(ModulesErrors.ModuleNotPresentError);
-            }
-
-            int index = serverCollection.IndexOf(action);
-            if (index != 0) {
-                serverCollection.Remove(action);
-                serverCollection.AddCopyAt(index - 1, action);
-            }
-        }
-
+        
         public static ModulesSection GetModulesSection(Site site, string path, string configPath = null)
         {
             return (ModulesSection)ManagementUnit.GetConfigSection(site?.Id,
@@ -615,6 +550,19 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             return $"/{Defines.MODULES_PATH}/{id}";
         }
 
+
+
+        private static void AssertCanUseImage(string path)
+        {
+            var expanded = System.Environment.ExpandEnvironmentVariables(path);
+
+            if (!PathUtil.IsFullPath(expanded)) {
+                throw new ApiArgumentException("image");
+            }
+            if (!File.Exists(expanded)) {
+                throw new NotFoundException("image");
+            }
+        }
 
         private static bool ExistsModule(string moduleName, ModuleCollection collection,
                                   out Module action)

@@ -28,6 +28,11 @@ namespace Microsoft.IIS.Administration.Files
                 return NotFound();
             }
 
+            if (!_fileProvider.FileExists(dl.PhysicalPath)) {
+                _downloadService.Remove(dl.Id);
+                return NotFound();
+            }
+
             return Context.GetFileContentHeaders(dl.PhysicalPath, _fileProvider);
         }
 
@@ -37,6 +42,11 @@ namespace Microsoft.IIS.Administration.Files
             var dl = _downloadService.Get(id);
 
             if (dl == null) {
+                return NotFound();
+            }
+
+            if (!_fileProvider.FileExists(dl.PhysicalPath)) {
+                _downloadService.Remove(dl.Id);
                 return NotFound();
             }
 

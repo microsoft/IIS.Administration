@@ -195,12 +195,14 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
                 
                 var expanded = System.Environment.ExpandEnvironmentVariables(physicalPath);
 
-                if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
-                    throw new ForbiddenPathException(physicalPath);
+                if (!PathUtil.IsFullPath(expanded)) {
+                    throw new ApiArgumentException("physical_path");
                 }
-
+                if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                    throw new ForbiddenArgumentException("physical_path", physicalPath);
+                }
                 if (!Directory.Exists(expanded)) {
-                    throw new ApiArgumentException("physical_path", "Directory does not exist.");
+                    throw new NotFoundException("physical_path");
                 }
 
                 vdir.PhysicalPath = physicalPath.Replace('/', '\\');

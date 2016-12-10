@@ -3,6 +3,7 @@
 
 
 namespace Microsoft.IIS.Administration.Core.Http {
+    using System.Dynamic;
     using System.Net;
 
 
@@ -92,6 +93,22 @@ namespace Microsoft.IIS.Administration.Core.Http {
                 name = paramName,
                 status = (int)HttpStatusCode.Unauthorized
             };
+        }
+
+        public static dynamic ForbiddenArgumentError(string paramName, string message = null)
+        {
+            dynamic obj = new ExpandoObject();
+
+            obj.title = "Forbidden";
+            obj.name = paramName;
+
+            if (!string.IsNullOrEmpty(message)) {
+                obj.detail = message;
+            }
+
+            obj.status = (int)HttpStatusCode.Forbidden;
+
+            return obj;
         }
     }
 }

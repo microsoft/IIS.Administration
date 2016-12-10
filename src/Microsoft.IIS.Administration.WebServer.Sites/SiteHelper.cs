@@ -36,13 +36,8 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             if (DynamicHelper.Value(model.name) == null) {
                 throw new ApiArgumentException("name");
             }
-
-            string physicalPath = DynamicHelper.Value(model.physical_path);
-            if (physicalPath == null || String.IsNullOrEmpty(physicalPath)) {
+            if (string.IsNullOrEmpty(DynamicHelper.Value(model.physical_path))) {
                 throw new ApiArgumentException("physical_path");
-            }
-            if (!Directory.Exists(System.Environment.ExpandEnvironmentVariables(physicalPath))) {
-                throw new ApiArgumentException("physical_path", "Directory does not exist.");
             }
             if (model.bindings == null) {
                 throw new ApiArgumentException("bindings");
@@ -54,7 +49,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             Site site = sm.Sites.CreateElement();
 
             // Initialize the new sites physical path. This is only touched during creation
-            site.Applications.Add("/", physicalPath.Replace('/', '\\'));
+            site.Applications.Add("/", string.Empty);
 
             // Initialize new site settings
             SetToDefaults(site, sm.SiteDefaults);
@@ -384,25 +379,26 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 
                 var expanded = System.Environment.ExpandEnvironmentVariables(physicalPath);
 
-                if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
-                    throw new ForbiddenPathException(physicalPath);
+                if (!PathUtil.IsFullPath(expanded)) {
+                    throw new ApiArgumentException("physical_path");
                 }
-
+                if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                    throw new ForbiddenArgumentException("physical_path", physicalPath);
+                }
                 if (!Directory.Exists(expanded)) {
-                    throw new ApiArgumentException("physical_path", "Directory does not exist.");
+                    throw new NotFoundException("physical_path");
                 }
 
                 var rootApp = site.Applications["/"];
-                if(rootApp == null) {
-                    throw new ApiArgumentException("site/physical_path", "Root application does not exist.");
-                }
+                if(rootApp != null) {
 
-                var rootVDir = rootApp.VirtualDirectories["/"];
-                if(rootVDir == null) {
-                    throw new ApiArgumentException("site/physical_path", "Root virtual directory does not exist.");
-                }
+                    var rootVDir = rootApp.VirtualDirectories["/"];
 
-                rootVDir.PhysicalPath = physicalPath.Replace('/', '\\');
+                    if (rootVDir != null) {
+
+                        rootVDir.PhysicalPath = physicalPath.Replace('/', '\\');
+                    }
+                }
             }
 
             //

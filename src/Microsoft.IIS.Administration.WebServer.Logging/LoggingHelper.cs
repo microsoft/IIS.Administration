@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
     using Sites;
     using System.IO;
     using System.Dynamic;
+    using Files;
 
     public static class LoggingHelper
     {
@@ -135,9 +136,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
                 o.custom_log_fields = customLogFields;
             }
 
-            o.rollover = new
-            {
-
+            o.rollover = new {
                 period = period,
                 truncate_size = truncateSize,
                 use_local_time = useLocalTime,
@@ -238,7 +237,10 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
                         CentralBinaryLogFile bFile = logSection.CentralBinaryLogFile;
                         
-                        DynamicHelper.If((object)bSettings.directory, v => bFile.Directory = v);
+                        DynamicHelper.If((object)bSettings.directory, v => {
+                            EnsureCanUseDirectory(v);
+                            bFile.Directory = v;
+                        });
                         
                         if(rollover != null) {
                             DynamicHelper.If<LoggingRolloverPeriod>((object)PeriodFromRepresentation(rollover.period), v => bFile.Period = v);
@@ -253,7 +255,10 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
                         CentralW3CLogFile wFile = logSection.CentralW3CLogFile;
                         
-                        DynamicHelper.If((object)wSettings.directory, v => wFile.Directory = v);
+                        DynamicHelper.If((object)wSettings.directory, v => {
+                            EnsureCanUseDirectory(v);
+                            wFile.Directory = v;
+                        });
 
                         if(rollover != null) {
                             DynamicHelper.If<LoggingRolloverPeriod>((object)PeriodFromRepresentation(rollover.period), v => wFile.Period = v);
@@ -304,7 +309,10 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
                 if (logSection.CentralLogFileMode == CentralLogFileMode.Site) {
                     dynamic siteSettings = model;
                     
-                    DynamicHelper.If((object)siteSettings.directory, v => siteLogFile.Directory = v);
+                    DynamicHelper.If((object)siteSettings.directory, v => {
+                        EnsureCanUseDirectory(v);
+                        siteLogFile.Directory = v;
+                    });
 
                     if(rollover != null) {
                         DynamicHelper.If<LoggingRolloverPeriod>((object)PeriodFromRepresentation(rollover.period), v => siteLogFile.Period = v);
@@ -503,6 +511,23 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
         public static string GetLocation(string id)
         {
             return $"/{Defines.PATH}/{id}";
+        }
+
+
+
+        private static void EnsureCanUseDirectory(string path)
+        {
+            var expanded = System.Environment.ExpandEnvironmentVariables(path);
+
+            if (!PathUtil.IsFullPath(expanded)) {
+                throw new ApiArgumentException("directory");
+            }
+            if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                throw new ForbiddenArgumentException("directory", expanded);
+            }
+            if (!Directory.Exists(expanded)) {
+                throw new NotFoundException("directory");
+            }
         }
 
         private class CustomField {

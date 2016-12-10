@@ -39,6 +39,8 @@ namespace Microsoft.IIS.Administration.Tests
 
                     AllowOverride(client, siteFeature);
                     TestScopedFeature(client, siteFeature);
+
+                    client.Delete(Utils.Self(siteFeature));
                 }
                 finally {
                     Sites.EnsureNoSite(client, site.Value<string>("name"));

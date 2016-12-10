@@ -4,6 +4,7 @@
 
 (function () {
     var _json;
+    var _editableFile = false;
 
     $(document).ready(function () {
         //
@@ -33,7 +34,7 @@
         $("#nav-panel .verbs a").click(function () {
             var verb = $(this).attr("id").replace("verb-", "").toUpperCase();
 
-            if (verb != "POST" && _json && _json._links && _json._links.self) {
+            if (verb != "POST" && verb != "PUT" && _json && _json._links && _json._links.self) {
                 window.location.hash = _json._links.self.href;
             }
             
@@ -63,36 +64,76 @@
                 return;
             }
 
-            self.find(".name").html(file.name);
-
-            reader.onload = function (e) {
-                $.ajax({
-                    type: "PUT",
-                    url: $("#urlgo").val(),
-                    data: e.target.result,
-                    dataType: 'text',
-                    processData: false,
-                    contentType: 'text/plain; charset=UTF-8',
-                    xhrFields: {
-                        withCredentials: true
-                    },
-                    beforeSend: function (request) {
-                        _setStatus({});
-                        request.setRequestHeader('Access-Token', 'Bearer ' + accessToken());
-                    },
-                    success: function (response, statusText, jqhxr) {
-                        _setStatus(jqhxr);
-                        self.find('.state').html("Success");
-                    },
-                    error: function (jqhxr) {
-                        _setStatus(jqhxr);
-                        self.find('.state').html("Failed");
-                    }
-                })
-            };
-
-            reader.readAsArrayBuffer(file);
+            self.find('.state').html("In Progress");
+            uploadFile(file, $("#urlgo").val(),
+                function (response, statusText, jqhxr) {
+                    _setStatus(jqhxr);
+                    self.find('.state').html("Success");
+                },
+                function (jqhxr) {
+                    _setStatus(jqhxr);
+                    self.find('.state').html("Failed");
+                });
         });
+
+        function uploadFile(file, url, success, error) {
+            var chunkSize = 1024 * 1024 / 2; // Half a megabyte;
+
+            var initialLength = file.size < chunkSize ? file.size : chunkSize;
+
+            readFile(file, 0, initialLength, function (data) {
+                _uploadFileChunked(file, url, 0, initialLength, data, chunkSize, file.size, success, error);
+            });
+
+        }
+
+        function _uploadFileChunked(file, url, start, length, data, chunkSize, totalSize, success, error) {
+            var reader = new FileReader();
+
+            $.ajax({
+                type: "PUT",
+                url: url,
+                data: data,
+                dataType: 'text',
+                processData: false,
+                contentType: 'text/plain;',
+                xhrFields: {
+                    withCredentials: true
+                },
+                beforeSend: function (request) {
+                    request.setRequestHeader('Access-Token', 'Bearer ' + accessToken());
+                    request.setRequestHeader('Content-Range', 'bytes ' + start + '-' + (start + length - 1) + '/' + totalSize);
+                },
+                success: function (response, statusText, jqhxr) {
+                    start = start + length;
+
+                    if (start >= totalSize) {
+                        success(response, statusText, jqhxr);
+                    }
+                    else {
+                        var l = totalSize - start < chunkSize ? totalSize - start : chunkSize;
+
+                        readFile(file, start, l, function (d) {
+                            _uploadFileChunked(file, url, start, l, d, chunkSize, totalSize, success, error);
+                        })
+                    }
+                },
+                error: function (jqhxr) {
+                    error(jqhxr);
+                }
+            })
+        }
+
+        function readFile(file, start, length, callback) {
+            var reader = new FileReader();
+
+            var slice = file.slice(start, start + length);
+
+            reader.readAsArrayBuffer(slice);
+            reader.onload = function (e) {
+                callback(e.target.result);
+            }
+        }
 
         $(window).on('hashchange', function (e) {
             var hash = window.location.hash.substring(1);
@@ -122,14 +163,20 @@
 
         $elem.addClass("selected").siblings().removeClass("selected");
 
-        if (verb == "POST" || verb == "PUT" || verb == "PATCH") {
+        if (verb == "PUT" && _editableFile) {
+            showFileUpload(true);
+            $("#request-panel").hide();
+        }
+        else if (verb == "POST" || verb == "PUT" || verb == "PATCH") {
             // POST, PUT and PATCH require body
             $("#request-panel").show();
             $("#request-panel > textarea").trigger("input").focus()[0].setSelectionRange(3, 3);
+            showFileUpload(false);
         }
         else {
             // Hide request entity body panel for GET and DELETE
             $("#request-panel").hide();
+            showFileUpload(false);
         }
     }
 
@@ -163,14 +210,13 @@
             },
             success: function (response, statusText, jqhxr) {
                 _setStatus(jqhxr);
+                _editableFile = false;
+                $("#nav-panel").show();
 
                 var contentType = jqhxr.getResponseHeader("Content-Type");
                 var contentDisposition = jqhxr.getResponseHeader("Content-Disposition");
                 var location = jqhxr.getResponseHeader("Location");
                 var pragma = jqhxr.getResponseHeader("Pragma");
-
-                $("#nav-panel").show();
-                showFileUpload(false);
 
                 if (location && pragma && pragma.toLowerCase() === "attachment") {
                     window.location = window.location.origin + location;
@@ -184,7 +230,8 @@
                 }
 
                 if (contentDisposition && filesSupported()) {
-                    showFileUpload(true);
+                    _editableFile = true;
+                    _json = null;
                 }
             },
             error: function (xhr) {

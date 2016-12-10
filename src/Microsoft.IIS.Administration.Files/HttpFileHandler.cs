@@ -205,9 +205,9 @@ namespace Microsoft.IIS.Administration.Files
 
             if (reqHeaders.ContainsKey(HeaderNames.IfModifiedSince)
                     && DateTime.TryParse(reqHeaders[HeaderNames.IfModifiedSince],
-                                         CultureInfo.InvariantCulture,
-                                         DateTimeStyles.AssumeUniversal,
-                                         out ifModifiedSince)
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal,
+                    out ifModifiedSince)
                     && ifModifiedSince.ToUniversalTime() >= lastModified) {
                         result = true;
                     }

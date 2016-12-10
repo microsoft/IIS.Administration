@@ -11,6 +11,46 @@ namespace Microsoft.IIS.Administration.Files
     {
         public static readonly char[] SEPARATORS = new char[] { '/', '\\' };
 
+        /// <summary>
+        /// Expands environment variables and normalizes the path. The path must be rooted.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">Thrown when path is null or empty.</exception>
+        /// <exception cref="ArgumentException">Thrown when the path is not rooted.</exception>
+        /// <returns>Fully expanded normalized path.</returns>
+        public static string GetFullPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            var expanded = Environment.ExpandEnvironmentVariables(path);
+
+            if (!Path.IsPathRooted(expanded)) {
+                throw new ArgumentException("Path must be rooted.", nameof(path));
+            }
+
+            return Path.GetFullPath(expanded);
+        }
+
+        /// <summary>
+        /// Tests whether a path is rooted, normalized, and expanded.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">Thrown when path is null or empty.</exception>
+        public static bool IsFullPath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            var expanded = Environment.ExpandEnvironmentVariables(path);
+
+            if (!Path.IsPathRooted(expanded)) {
+                return false;
+            }
+
+            return path.Equals(Path.GetFullPath(expanded), StringComparison.OrdinalIgnoreCase);
+        }
+
         public static int PrefixSegments(string prefix, string path, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
         {
             if (prefix == null) {
@@ -84,36 +124,6 @@ namespace Microsoft.IIS.Administration.Files
             parts[parts.Length - 1] = string.Empty;
             var ret = string.Join("/", parts);
             return ret == "/" ? ret : ret.TrimEnd('/');
-        }
-
-        public static string GetFullPath(string path)
-        {
-            if (string.IsNullOrEmpty(path)) {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            var expanded = Environment.ExpandEnvironmentVariables(path);
-
-            if (!Path.IsPathRooted(expanded)) {
-                throw new ArgumentException("Path must be rooted.", nameof(path));
-            }
-
-            return Path.GetFullPath(expanded);
-        }
-
-        public static bool IsFullPath(string path)
-        {
-            if (string.IsNullOrEmpty(path)) {
-                throw new ArgumentNullException(nameof(path));
-            }
-
-            var expanded = Environment.ExpandEnvironmentVariables(path);
-
-            if (!Path.IsPathRooted(expanded)) {
-                return false;
-            }
-
-            return path.Equals(Path.GetFullPath(expanded), StringComparison.OrdinalIgnoreCase);
         }
 
         public static bool PathStartsWith(string path, string prefix)

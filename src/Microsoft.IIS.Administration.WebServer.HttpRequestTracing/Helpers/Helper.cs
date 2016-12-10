@@ -6,8 +6,10 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 {
     using Core;
     using Core.Utils;
+    using Files;
     using Newtonsoft.Json.Linq;
     using Sites;
+    using System.IO;
     using Web.Administration;
 
     public static class Helper
@@ -80,7 +82,24 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
             // Only editable at site level
             if (site != null && path == "/") {
-                    DynamicHelper.If((object)model.directory, v => site.TraceFailedRequestsLogging.Directory = v);
+
+                    DynamicHelper.If((object)model.directory, v => {
+
+                        var expanded = System.Environment.ExpandEnvironmentVariables(v);
+
+                        if (!PathUtil.IsFullPath(expanded)) {
+                            throw new ApiArgumentException("directory");
+                        }
+                        if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                            throw new ForbiddenArgumentException("directory", expanded);
+                        }
+                        if (!Directory.Exists(expanded)) {
+                            throw new NotFoundException("directory");
+                        }
+
+                        site.TraceFailedRequestsLogging.Directory = v;
+                    });
+
                     DynamicHelper.If<bool>((object)model.enabled, v => site.TraceFailedRequestsLogging.Enabled = v);
                     DynamicHelper.If((object)model.maximum_number_trace_files, 1, 10000, v => site.TraceFailedRequestsLogging.MaxLogFiles = v);
             }

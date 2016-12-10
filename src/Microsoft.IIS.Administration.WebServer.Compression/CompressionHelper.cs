@@ -6,12 +6,13 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 {
     using Core;
     using Core.Utils;
+    using Files;
     using Sites;
     using System.IO;
     using Web.Administration;
 
     public static class CompressionHelper
-    {        
+    {
         public static void UpdateSettings(dynamic model, Site site, string path, string configPath = null) {
             if (model == null) {
                 throw new ApiArgumentException("model");
@@ -22,7 +23,24 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 
             try {
 
-                DynamicHelper.If((object) model.directory, v => section.Directory = v);
+                DynamicHelper.If((object) model.directory, v => {
+
+                    var expanded = System.Environment.ExpandEnvironmentVariables(v);
+
+                    if (!PathUtil.IsFullPath(expanded)) {
+                        throw new ApiArgumentException("directory");
+                    }
+                    if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                        throw new ForbiddenArgumentException("directory", expanded);
+                    }
+                    if (!Directory.Exists(expanded)) {
+                        throw new NotFoundException("directory");
+                    }
+
+                    section.Directory = v;
+
+                });
+
                 DynamicHelper.If<bool>((object)model.do_disk_space_limitting, v => section.DoDiskSpaceLimiting = v);
                 DynamicHelper.If((object)model.max_disk_space_usage, 0, uint.MaxValue, v => section.MaxDiskSpaceUsage = v);
                 DynamicHelper.If((object)model.min_file_size, 0, uint.MaxValue, v => section.MinFileSizeForComp = v);

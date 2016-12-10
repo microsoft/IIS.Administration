@@ -9,6 +9,7 @@ namespace Microsoft.IIS.Administration.WebServer.Delegation
     using Sites;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using Web.Administration;
 
@@ -105,8 +106,16 @@ namespace Microsoft.IIS.Administration.WebServer.Delegation
         private static void FillWithSubSections(List<ConfigurationSection> sectionList, SectionGroup group, string groupXPath, Configuration configuration, string location)
         {
             foreach (SectionDefinition section in group.Sections) {
+                var sectionPath = $"{groupXPath}/{section.Name}";
+                ConfigurationSection sect = null;
 
-                var sect = location == null ? configuration.GetSection($"{groupXPath}/{section.Name}") : configuration.GetSection($"{groupXPath}/{section.Name}", location);
+                try {
+                    sect = location == null ? configuration.GetSection(sectionPath) : configuration.GetSection(sectionPath, location);
+                }
+                catch (FileLoadException e) {
+                    throw new LockedException(sectionPath, e);
+                }
+
                 sectionList.Add(sect);
             }
 

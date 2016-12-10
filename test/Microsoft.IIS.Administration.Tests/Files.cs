@@ -19,7 +19,8 @@ namespace Microsoft.IIS.Administration.Tests
 
     public class Files
     {
-        private const string TEST_SITE_NAME = "File Test Site";
+        private const string TEST_FILE_NAME = "TEST_FILE.txt";
+        private const string FILE_TEST_SITE_NAME = "File Test Site";
         private const string WEBSERVER_FILES_PATH = "/api/webserver/files";
 
         [Fact]
@@ -257,16 +258,14 @@ namespace Microsoft.IIS.Administration.Tests
         [Fact]
         public void CreateEditDeleteFile()
         {
-            const string testFileName = "TEST_FILE.txt";
-
             using (HttpClient client = ApiHttpClient.Create()) {
 
                 JObject site = Sites.GetSite(client, "Default Web Site");
 
                 var physicalPath = site.Value<string>("physical_path");
 
-                if (File.Exists(Path.Combine(physicalPath, testFileName))) {
-                    File.Delete(Path.Combine(physicalPath, testFileName));
+                if (File.Exists(Path.Combine(physicalPath, TEST_FILE_NAME))) {
+                    File.Delete(Path.Combine(physicalPath, TEST_FILE_NAME));
                 }
 
                 var rootDir = Utils.FollowLink(client, site, "files");
@@ -274,7 +273,7 @@ namespace Microsoft.IIS.Administration.Tests
                 object newFile = new {
                     type = "file",
                     parent = rootDir,
-                    name = testFileName
+                    name = TEST_FILE_NAME
                 };
 
                 // Create web file
@@ -317,12 +316,121 @@ namespace Microsoft.IIS.Administration.Tests
                     Assert.True(result == testContent);
                 }
                 finally {
-
                     Assert.True(client.Delete(Utils.Self(webFile)));
-
                 }
-
             }
+        }
+
+        [Fact]
+        public void RangeUploadDownload()
+        {
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                JObject site = Sites.GetSite(client, "Default Web Site");
+
+                // Create web file
+                var webFile = CreateWebFile(client, site, TEST_FILE_NAME);
+
+                try {
+                    //
+                    // Get physical file info
+                    var fileInfo = Utils.FollowLink(client, webFile.Value<JObject>("file_info"), "self");
+
+                    var chunkSize = 4096;
+                    var totalFileSize = 1024 * 1024;
+                    HttpRequestMessage req;
+                    HttpResponseMessage res;
+
+                    for (var i = 0; i < totalFileSize; i+= chunkSize) {
+                        req = new HttpRequestMessage(HttpMethod.Put, Utils.GetLink(fileInfo, "content"));
+
+                        var currentChunkSize = totalFileSize - i < chunkSize ? totalFileSize - i : chunkSize;
+                        var slice = GetFileSlice(i, currentChunkSize);
+
+                        req.Content = new ByteArrayContent(slice);
+
+                        req.Content.Headers.Add("Content-Range", $"bytes {i}-{i + currentChunkSize - 1}/{totalFileSize}");
+
+                        res = client.SendAsync(req).Result;
+
+                        Assert.True(Globals.Success(res));
+                    }
+
+                    req = new HttpRequestMessage(HttpMethod.Get, Utils.GetLink(fileInfo, "content"));
+
+                    res = client.SendAsync(req).Result;
+
+                    Assert.True(Globals.Success(res));
+
+                    var resultBytes = res.Content.ReadAsByteArrayAsync().Result;
+
+                    Assert.True(resultBytes.SequenceEqual(GetFileSlice(0, totalFileSize)));
+
+                    var download = new byte[totalFileSize];
+
+                    //
+                    // Range download
+                    for (var i = 0; i < totalFileSize; i += chunkSize) {
+                        req = new HttpRequestMessage(HttpMethod.Get, Utils.GetLink(fileInfo, "content"));
+
+                        var currentChunkSize = totalFileSize - i < chunkSize ? totalFileSize - i : chunkSize;
+
+                        req.Headers.Add("Range", $"bytes={i}-{i + currentChunkSize - 1}");
+
+                        res = client.SendAsync(req).Result;
+
+                        Assert.True(Globals.Success(res));
+
+                        resultBytes = res.Content.ReadAsByteArrayAsync().Result;
+                        resultBytes.CopyTo(download, i);
+                    }
+
+                    Assert.True(download.SequenceEqual(GetFileSlice(0, totalFileSize)));
+                }
+                finally {
+                    Assert.True(client.Delete(Utils.Self(webFile)));
+                }
+            }
+        }
+
+
+
+        private byte[] GetFileSlice(int start, int length)
+        {
+            var mod = byte.MaxValue + 1;
+            var ret = new byte[length];
+            byte initial = (byte)(start % mod);
+
+            for (var i = 0; i < length; i++) {
+                ret[i] = (byte)((initial + i) % mod);
+            }
+
+            return ret;
+        }
+
+        private JObject CreateWebFile(HttpClient client, JObject site, string fileName, string fileType = "file", bool deleteIfExists = true)
+        {
+            var physicalPath = site.Value<string>("physical_path");
+
+            if (deleteIfExists && File.Exists(Path.Combine(physicalPath, TEST_FILE_NAME))) {
+                File.Delete(Path.Combine(physicalPath, TEST_FILE_NAME));
+            }
+
+            var rootDir = Utils.FollowLink(client, site, "files");
+
+            object newFile = new
+            {
+                type = fileType,
+                parent = rootDir,
+                name = fileName
+            };
+
+            // Create web file
+            var webFile = client.Post($"{Configuration.TEST_SERVER_URL}{WEBSERVER_FILES_PATH}", newFile);
+
+            Assert.True(webFile != null);
+
+            return webFile;
         }
     }
 }

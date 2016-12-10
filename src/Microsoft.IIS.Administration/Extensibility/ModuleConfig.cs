@@ -73,7 +73,7 @@ namespace Microsoft.IIS.Administration
     /// </summary>
     class ModulesConfigData
     {
-        public ModuleConfigData[] modules;
+        public ModuleConfigData[] modules = null;
         public ModulesConfigData() { }
     }
 
