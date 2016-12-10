@@ -93,9 +93,6 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
                         if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
                             throw new ForbiddenArgumentException("directory", expanded);
                         }
-                        if (!Directory.Exists(expanded)) {
-                            throw new NotFoundException("directory");
-                        }
 
                         site.TraceFailedRequestsLogging.Directory = v;
                     });

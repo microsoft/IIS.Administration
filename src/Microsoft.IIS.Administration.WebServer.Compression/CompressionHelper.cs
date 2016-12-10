@@ -33,9 +33,6 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
                     if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
                         throw new ForbiddenArgumentException("directory", expanded);
                     }
-                    if (!Directory.Exists(expanded)) {
-                        throw new NotFoundException("directory");
-                    }
 
                     section.Directory = v;
 

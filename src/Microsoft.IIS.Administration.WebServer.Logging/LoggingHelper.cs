@@ -525,9 +525,6 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
                 throw new ForbiddenArgumentException("directory", expanded);
             }
-            if (!Directory.Exists(expanded)) {
-                throw new NotFoundException("directory");
-            }
         }
 
         private class CustomField {
