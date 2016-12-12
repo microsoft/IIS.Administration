@@ -1,5 +1,5 @@
 {
-  "version": "1.0.2",
+  "version": "1.0.3",
   "commands": {
     "web": "Microsoft.AspNet.Server.Kestrel"
   },
@@ -32,7 +32,7 @@
     "Microsoft.AspNetCore.StaticFiles": "1.0.0",
     "Microsoft.AspNetCore.Diagnostics": "1.0.0",
 
-    "Microsoft.IIS.Administration.Core": "1.0.0"
+    "Microsoft.IIS.Administration.Core": "1.0.1"
   },
 
   "tools": {

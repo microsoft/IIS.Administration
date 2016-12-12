@@ -13,6 +13,6 @@
   },
   "dependencies": {
     "Microsoft.IIS.Administration.Files": "1.0.0",
-    "Microsoft.IIS.Administration.WebServer.VirtualDirectories": "1.0.0"
+    "Microsoft.IIS.Administration.WebServer.VirtualDirectories": "1.0.1"
   }
 }

@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Microsoft.IIS.Administration.WebServer Class Library",
   "authors": [ "Microsoft" ],
   "buildOptions": {
@@ -16,6 +16,6 @@
   },
   "dependencies": {
     "Microsoft.Web.Administration": "10.0.0-rc1",
-    "Microsoft.IIS.Administration.Core": "1.0.0"
+    "Microsoft.IIS.Administration.Core": "1.0.1"
   }
 }

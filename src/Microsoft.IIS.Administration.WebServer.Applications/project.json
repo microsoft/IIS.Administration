@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Microsoft.IIS.Administration.WebServer.Application Class Library",
   "authors": [ "Microsoft" ],
   "frameworks": {
@@ -12,6 +12,6 @@
     }
   },
   "dependencies": {
-    "Microsoft.IIS.Administration.WebServer.Sites": "1.0.1"
+    "Microsoft.IIS.Administration.WebServer.Sites": "1.0.2"
   }
 }

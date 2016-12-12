@@ -12,6 +12,6 @@
     }
   },
   "dependencies": {
-    "Microsoft.IIS.Administration.Core": "1.0.0"
+    "Microsoft.IIS.Administration.Core": "1.0.1"
   }
 }

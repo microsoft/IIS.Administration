@@ -7,7 +7,6 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using Core;
     using Core.Utils;
     using Files;
-    using Newtonsoft.Json.Linq;
     using Sites;
     using System.IO;
     using Web.Administration;

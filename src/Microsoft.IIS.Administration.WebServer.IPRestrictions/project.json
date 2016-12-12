@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Microsoft.IIS.Administration.WebServer.IPRestrictions Class Library",
   "authors": [ "Microsoft" ],
   "frameworks": {
@@ -12,7 +12,7 @@
     }
   },
   "dependencies": {
-    "Microsoft.IIS.Administration.WebServer.Applications": "1.0.0",
+    "Microsoft.IIS.Administration.WebServer.Applications": "1.0.1",
     "System.Collections.NonGeneric": "4.0.1"
   }
 }
