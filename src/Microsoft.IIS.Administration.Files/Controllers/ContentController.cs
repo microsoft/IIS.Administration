@@ -31,6 +31,7 @@ namespace Microsoft.IIS.Administration.Files
             return Context.GetFileContentHeaders(fileId.PhysicalPath, _fileProvider);
         }
 
+        [HttpGet]
         public async Task<IActionResult> Get(string id)
         {
             FileId fileId = FileId.FromUuid(id);

@@ -13,7 +13,7 @@ namespace Microsoft.IIS.Administration.Certificates
 
     public static class CertificateHelper
     {
-        private static readonly Fields RefFields = new Fields("name", "id", "issued_by", "valid_to", "thumbprint");
+        private static readonly Fields RefFields = new Fields("name", "id", "issued_by", "subject", "valid_to", "thumbprint");
 
         public const StoreName STORE_NAME = StoreName.My;
         public const StoreLocation STORE_LOCATION = StoreLocation.LocalMachine;
