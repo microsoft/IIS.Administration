@@ -43,6 +43,12 @@ function AddCurrentUserToIISAdministrators {
     }
 }
 
+function SetEnvironmentVariables {
+	if ($env:iis_admin_solution_dir -eq $null) {
+		setx iis_admin_solution_dir $((Resolve-Path (Join-Path $scriptDir "..")).Path) /m
+	}
+}
+
 try {
     Push-Location $scriptDir
 
@@ -51,6 +57,8 @@ try {
 
 	# Synchronize behavior with production scenario.
     AddCurrentUserToIISAdministrators
+
+    SetEnvironmentVariables
 }
 finally {
     Pop-Location
