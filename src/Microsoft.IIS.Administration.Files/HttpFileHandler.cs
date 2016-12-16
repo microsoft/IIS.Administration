@@ -5,10 +5,10 @@
 namespace Microsoft.IIS.Administration.Files
 {
     using AspNetCore.Http;
-    using AspNetCore.Mvc;
     using Core;
     using Core.Http;
     using Core.Utils;
+    using Serilog;
     using System;
     using System.Globalization;
     using System.IO;
@@ -44,7 +44,7 @@ namespace Microsoft.IIS.Administration.Files
             _file = _service.GetFileInfo(filePath);
         }
 
-        public async Task<IActionResult> GetFileContent()
+        public async Task WriteFileContent()
         {
             int start = -1, finish = -1;
             var etag = ETag.Create(_file);
@@ -58,7 +58,7 @@ namespace Microsoft.IIS.Administration.Files
             AddFileContentHeaders(etag);
 
             if (IsCachedIfModifiedSince() || IsCachedIfNoneMatch(etag)) {
-                return new StatusCodeResult((int)HttpStatusCode.NotModified);
+                _context.Response.StatusCode = (int)HttpStatusCode.NotModified;
             }
 
             // If the entity tag does not match, then the server SHOULD return the entire entity using a 200 (OK) response.
@@ -68,58 +68,54 @@ namespace Microsoft.IIS.Administration.Files
             else {
                 await FullContentResponse(_context, _file.FullName);
             }
-
-            return new EmptyResult();
         }
 
-        public async Task<IActionResult> PutFileContent()
+        public async Task PutFileContent()
         {
             _service.EnsureAccess(_file.FullName, FileAccess.Write);
 
-            int start = -1, finish = -1, outOf = -1;
+            int start, finish, outOf;
             var etag = ETag.Create(_file);
-            bool isRangeRequest = _context.Request.Headers.ContainsKey(HeaderNames.ContentRange);
 
             ValidateIfMatch();
             ValidateIfNoneMatch(etag);
             ValidateIfUnmodifiedSince();
+            ValidateContentRange(out start, out finish, out outOf);
 
-            if (isRangeRequest) {
-                ValidateContentRange(out start, out finish, out outOf);
-            }
-
-            var tempCopy = await GetTempCopy(_file.FullName);
+            string path = await CreateTempCopy(_file.FullName);
 
             try {
-                if (isRangeRequest) {
-                    try {
-                        using (var stream = _service.GetFile(tempCopy, FileMode.Open, FileAccess.Write, FileShare.Read)) {
-                            var length = finish - start + 1;
-                            stream.Seek(start, SeekOrigin.Begin);
-                            await CopyRangeAsync(_context.Request.Body, stream, 0, length);
-                        }
+                using (var stream = _service.GetFile(path, FileMode.Open, FileAccess.Write, FileShare.Read)) {
+
+                    if (start >= 0) {
+                        //
+                        // Range request
+
+                        int length = finish - start + 1;
+                        stream.Seek(start, SeekOrigin.Begin);
                     }
-                    catch (IndexOutOfRangeException) {
-                        throw new ApiArgumentException(HeaderNames.ContentLength);
-                    }
-                    SwapFiles(tempCopy, _file.FullName);
+                    
+                    await _context.Request.Body.CopyToAsync(stream);
+
+                    //
+                    // https://github.com/dotnet/corefx/blob/ec2a6190efa743ab600317f44d757433e44e859b/src/System.IO.FileSystem/src/System/IO/FileStream.Win32.cs#L1687
+                    // Unlike Flush(), FlushAsync() always flushes to disk. This is intentional.
+                    stream.Flush();
                 }
-                else {
-                    using (var stream = _service.GetFile(tempCopy, FileMode.Truncate, FileAccess.Write, FileShare.Read)) {
-                        await _context.Request.Body.CopyToAsync(stream);
-                    }
-                    SwapFiles(tempCopy, _file.FullName);
-                }
+
+                SwapFiles(path, _file.FullName);
+            }
+            catch (IndexOutOfRangeException) {
+                throw new ApiArgumentException(HeaderNames.ContentLength);
             }
             finally {
-                _service.DeleteFile(tempCopy);
+                _service.DeleteFile(path);
             }
 
-            _context.Response.StatusCode = (int)HttpStatusCode.OK;
-            return new EmptyResult();
+            _context.Response.StatusCode = (int) HttpStatusCode.OK;
         }
 
-        public IActionResult GetFileContentHeaders()
+        public void WriteFileContentHeaders()
         {
             int start = -1, finish = -1;
             var etag = ETag.Create(_file);
@@ -142,10 +138,8 @@ namespace Microsoft.IIS.Administration.Files
             }
 
             if (IsCachedIfModifiedSince() || IsCachedIfNoneMatch(etag)) {
-                return new StatusCodeResult((int)HttpStatusCode.NotModified);
+                _context.Response.StatusCode = (int)HttpStatusCode.NotModified;
             }
-
-            return new EmptyResult();
         }
 
 
@@ -298,6 +292,12 @@ namespace Microsoft.IIS.Administration.Files
             // Validate
             // Content-Range: bytes {start}-{finish}/{outOf}
 
+            start = finish = outOf = -1;
+
+            if (!_context.Request.Headers.ContainsKey(HeaderNames.ContentRange)) {
+                return;
+            }
+
             int index;
             string sstart = null, sfinish = null, soutOf = null, range = null;
             range = this._context.Request.Headers[HeaderNames.ContentRange].ToString().Trim(' ');
@@ -350,7 +350,12 @@ namespace Microsoft.IIS.Administration.Files
             context.Response.Headers.Add(HeaderNames.ContentRange, $"{start}-{finish}/{fileInfo.Length}");
 
             using (Stream stream = _service.GetFile(fileInfo.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
-                await CopyRangeAsync(stream, context.Response.Body, start, finish - start + 1);
+                try {
+                    await CopyRangeAsync(stream, context.Response.Body, start, finish - start + 1);
+                }
+                catch(IndexOutOfRangeException) {
+                    throw new ApiArgumentException(HeaderNames.Range);
+                }
             }
         }
 
@@ -382,7 +387,7 @@ namespace Microsoft.IIS.Administration.Files
             while (position <= finish);
         }
 
-        private async Task<string> GetTempCopy(string path)
+        private async Task<string> CreateTempCopy(string path)
         {
             string tempFilePath = GetTempFilePath(path);
             await _service.CopyFile(path, tempFilePath, true);

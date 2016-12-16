@@ -337,8 +337,8 @@ namespace Microsoft.IIS.Administration.Tests
                     // Get physical file info
                     var fileInfo = Utils.FollowLink(client, webFile.Value<JObject>("file_info"), "self");
 
-                    var chunkSize = 4096;
-                    var totalFileSize = 1024 * 1024;
+                    var chunkSize = 1024 * 1024;
+                    var totalFileSize = 1024 * 1024 * 10;
                     HttpRequestMessage req;
                     HttpResponseMessage res;
 

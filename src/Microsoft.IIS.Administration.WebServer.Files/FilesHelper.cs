@@ -435,6 +435,28 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return physicalPath;
         }
 
+        internal static bool IsValidPath(string path)
+        {
+            if (path == null || !path.StartsWith("/")) {
+                return false;
+            }
+
+            var segs = path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            foreach (var seg in segs) {
+                if (seg.IndexOfAny(Path.GetInvalidFileNameChars()) != -1) {
+                    return false;
+                }
+            }
+
+            var absolute = PathUtil.GetFullPath(path);
+            var slashIndex = absolute.IndexOf(Path.DirectorySeparatorChar);
+            if (!absolute.Substring(slashIndex, absolute.Length - slashIndex).Equals(path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar))) {
+                return false;
+            }
+
+            return true;
+        }
+
         internal static IEnumerable<Vdir> GetVdirs(Site site, string path)
         {
             var vdirs = new List<Vdir>();

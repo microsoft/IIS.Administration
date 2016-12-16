@@ -31,8 +31,8 @@ namespace Microsoft.IIS.Administration.Files
             string parentUuid = Context.Request.Query[Defines.PARENT_IDENTIFIER];
             string name = Context.Request.Query["name"];
             string physicalPath = Context.Request.Query["physical_path"];
-            var files = new List<object>();
 
+            var files = new List<object>();
             Fields fields = Context.Request.GetFields();
 
             if (!string.IsNullOrEmpty(name)) {

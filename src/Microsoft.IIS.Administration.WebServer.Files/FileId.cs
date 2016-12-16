@@ -4,7 +4,6 @@
 
 namespace Microsoft.IIS.Administration.WebServer.Files
 {
-    using Administration.Files;
     using System;
 
     public class FileId
@@ -48,14 +47,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 return _path;
             }
             private set {
-                if (!value.StartsWith("/")) {
-                    throw new ArgumentException(nameof(value));
-                }
-
-                var absolute = PathUtil.GetFullPath(value);
-                var slashIndex = absolute.IndexOf('\\');
-
-                if (!absolute.Substring(slashIndex, absolute.Length - slashIndex).Equals(value.Replace('/', '\\'))) {
+                if (!FilesHelper.IsValidPath(value)) {
                     throw new ArgumentException(nameof(value));
                 }
                 this._path = value;

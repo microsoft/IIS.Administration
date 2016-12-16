@@ -32,76 +32,20 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         public object Get()
         {
             string parentUuid = Context.Request.Query[Defines.PARENT_IDENTIFIER];
-            string name = Context.Request.Query["name"];
-            string path = Context.Request.Query["path"];
+            string nameFilter = Context.Request.Query["name"];
+            string pathFilter = Context.Request.Query["path"];
 
-            if (!string.IsNullOrEmpty(name)) {
-                if (name.IndexOfAny(Path.GetInvalidFileNameChars()) != -1) {
+            if (!string.IsNullOrEmpty(nameFilter)) {
+                if (nameFilter.IndexOfAny(Path.GetInvalidFileNameChars()) != -1) {
                     throw new ApiArgumentException("name");
                 }
             }
 
-            Site site = null;
-
-            if (path != null) {
-                site = SiteHelper.ResolveSite();
-            }
-            else {
-                if (string.IsNullOrEmpty(parentUuid)) {
-                    return NotFound();
-                }
-
-                var fileId = new FileId(parentUuid);
-
-                site = SiteHelper.GetSite(fileId.SiteId);
-                path = fileId.Path;
+            if (pathFilter != null) {
+                return GetByPath(pathFilter);
             }
 
-            if (site == null) {
-                return NotFound();
-            }
-
-            string physicalPath = FilesHelper.GetPhysicalPath(site, path);
-            if (!_fileService.DirectoryExists(physicalPath)) {
-                return NotFound();
-            }
-
-            var fields = Context.Request.GetFields();
-            var dirInfo = _fileService.GetDirectoryInfo(physicalPath);
-
-            var files = new Dictionary<string, object>();
-
-            //
-            // Virtual Directories
-            foreach (var vdir in FilesHelper.GetVdirs(site, path)) {
-                if (string.IsNullOrEmpty(name) || vdir.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) != -1) {
-                    files.Add(vdir.Path, FilesHelper.VdirToJsonModelRef(vdir, fields));
-                }
-            }
-
-            //
-            // Directories
-            foreach (var d in dirInfo.GetDirectories(string.IsNullOrEmpty(name) ? "*" : $"*{name}*")) {
-                string p = Path.Combine(path, d.Name);
-
-                if (!files.ContainsKey(p)) {
-                    files.Add(p, FilesHelper.DirectoryToJsonModelRef(site, p, fields));
-                }
-            }
-
-            //
-            // Files
-            foreach (var f in dirInfo.GetFiles(string.IsNullOrEmpty(name) ? "*" : $"*{name}*")) {
-                string p = Path.Combine(path, f.Name);
-                files.Add(p, FilesHelper.FileToJsonModelRef(site, p, fields));
-            }
-
-            // Set HTTP header for total count
-            this.Context.Response.SetItemsCount(files.Count());
-
-            return new {
-                files = files.Values
-            };
+            return GetByParent(parentUuid, nameFilter);
         }
 
         [HttpGet]
@@ -288,6 +232,97 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             var newPath = fileId.Path.Substring(0, fileId.Path.LastIndexOf(oldDirName)) + _fileService.GetName(physicalPath);
 
             return FilesHelper.DirectoryToJsonModel(site, newPath, fields);
+        }
+
+        private object GetByParent(string parentUuid, string nameFilter)
+        {
+            if (string.IsNullOrEmpty(parentUuid)) {
+                return NotFound();
+            }
+
+            var fileId = new FileId(parentUuid);
+
+            Site site = SiteHelper.GetSite(fileId.SiteId);
+
+            if (site == null) {
+                return NotFound();
+            }
+
+            string physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
+
+            if (!_fileService.DirectoryExists(physicalPath)) {
+                return NotFound();
+            }
+
+            var fields = Context.Request.GetFields();
+            var dirInfo = _fileService.GetDirectoryInfo(physicalPath);
+
+            var files = new Dictionary<string, object>();
+
+            //
+            // Virtual Directories
+            foreach (var vdir in FilesHelper.GetVdirs(site, fileId.Path)) {
+                if (string.IsNullOrEmpty(nameFilter) || vdir.Name.IndexOf(nameFilter, StringComparison.OrdinalIgnoreCase) != -1) {
+                    files.Add(vdir.Path, FilesHelper.VdirToJsonModelRef(vdir, fields));
+                }
+            }
+
+            //
+            // Directories
+            foreach (var d in dirInfo.GetDirectories(string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
+                string p = Path.Combine(fileId.Path, d.Name);
+
+                if (!files.ContainsKey(p)) {
+                    files.Add(p, FilesHelper.DirectoryToJsonModelRef(site, p, fields));
+                }
+            }
+
+            //
+            // Files
+            foreach (var f in dirInfo.GetFiles(string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
+                string p = Path.Combine(fileId.Path, f.Name);
+                files.Add(p, FilesHelper.FileToJsonModelRef(site, p, fields));
+            }
+
+            // Set HTTP header for total count
+            this.Context.Response.SetItemsCount(files.Count());
+
+            return new
+            {
+                files = files.Values
+            };
+        }
+
+        private object GetByPath(string path)
+        {
+            if (!FilesHelper.IsValidPath(path)) {
+                throw new ApiArgumentException("path");
+            }
+
+            Site site = SiteHelper.ResolveSite();
+
+            if (site == null) {
+                return NotFound();
+            }
+
+            string physicalPath = FilesHelper.GetPhysicalPath(site, path);
+
+            var fields = Context.Request.GetFields();
+            var dirInfo = _fileService.GetDirectoryInfo(physicalPath);
+
+            var files = new List<object>();
+
+            if (_fileService.DirectoryExists(physicalPath) || _fileService.FileExists(physicalPath)) {
+                files.Add(FilesHelper.ToJsonModelRef(site, path, fields));
+            }
+
+            // Set HTTP header for total count
+            this.Context.Response.SetItemsCount(files.Count());
+
+            return new
+            {
+                files = files
+            };
         }
     }
 }
