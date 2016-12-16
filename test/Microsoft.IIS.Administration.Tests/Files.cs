@@ -441,7 +441,70 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
+        [Fact]
+        public void CreateRenameFile()
+        {
+            using (HttpClient client = ApiHttpClient.Create()) {
+                JObject site = Sites.GetSite(client, "Default Web Site");
+                JObject target = null;
 
+                try {
+                    var webFile = CreateWebFile(client, site, TEST_FILE_NAME);
+                    target = RenameSitesFile(client, site, webFile, "updated_test_file_name.txt");
+                }
+                finally {
+                    client.Delete(Utils.Self(target));
+                }
+            }
+        }
+
+        [Fact]
+        public void CreateRenameDirectory()
+        {
+            using (HttpClient client = ApiHttpClient.Create()) {
+                JObject site = Sites.GetSite(client, "Default Web Site");
+                JObject target = null;
+
+                try {
+                    var webFile = CreateWebFile(client, site, TEST_FILE_NAME, "directory");
+                    target = RenameSitesFile(client, site, webFile, "updated_test_folder_name");
+                }
+                finally {
+                    client.Delete(Utils.Self(target));
+                }
+            }
+        }
+
+
+
+        private JObject RenameSitesFile(HttpClient client, JObject site, JObject file, string newName)
+        {
+            var target = file;
+            var originalName = target.Value<string>("name");
+
+            var rootVdir = Utils.FollowLink(client, site, "files");
+
+            var files = Utils.FollowLink(client, rootVdir, "files")["files"].ToObject<IEnumerable<JObject>>();
+
+            target = files.FirstOrDefault(f => f.Value<string>("name").Equals(originalName, StringComparison.OrdinalIgnoreCase));
+
+            Assert.NotNull(target);
+
+            var alteredName = newName;
+            target["name"] = alteredName;
+
+            target = client.Patch(Utils.Self(target), target);
+
+            Assert.True(target != null);
+            Assert.True(target.Value<string>("name").Equals(alteredName));
+
+            files = Utils.FollowLink(client, rootVdir, "files")["files"].ToObject<IEnumerable<JObject>>();
+            target = files.FirstOrDefault(f => f.Value<string>("name").Equals(alteredName, StringComparison.OrdinalIgnoreCase));
+
+            Assert.NotNull(target);
+
+            return target;
+        }
 
         private async Task<bool> MockUploadFile(HttpClient client, JObject file, int fileSize)
         {

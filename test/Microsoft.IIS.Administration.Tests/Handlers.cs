@@ -123,7 +123,7 @@ namespace Microsoft.IIS.Administration.Tests
 
         private JObject GetHandler(HttpClient client, JObject feature, string handlerName)
         {
-            var handlers = Utils.FollowLink(client, feature, "entries")["entries"].ToObject<IEnumerable<JObject>>(); ;
+            var handlers = Utils.FollowLink(client, feature, "entries")["entries"].ToObject<IEnumerable<JObject>>();
             return handlers.FirstOrDefault(h => h.Value<string>("name").Equals(handlerName, StringComparison.OrdinalIgnoreCase));
         }
 
