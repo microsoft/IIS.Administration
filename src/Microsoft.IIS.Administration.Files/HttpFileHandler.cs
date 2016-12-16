@@ -360,7 +360,7 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ArgumentOutOfRangeException(nameof(length));
             }
 
-            const int bufferSize = 32 * 64;
+            const int bufferSize = 4096;
             byte[] buffer = new byte[bufferSize];
             int position = start, finish = start + length - 1, read, copyAmount;
 

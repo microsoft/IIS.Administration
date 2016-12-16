@@ -29,9 +29,17 @@ namespace Microsoft.IIS.Administration.Files
         public object Get()
         {
             string parentUuid = Context.Request.Query[Defines.PARENT_IDENTIFIER];
+            string name = Context.Request.Query["name"];
+            string physicalPath = Context.Request.Query["physical_path"];
             var files = new List<object>();
 
             Fields fields = Context.Request.GetFields();
+
+            if (!string.IsNullOrEmpty(name)) {
+                if (name.IndexOfAny(Path.GetInvalidFileNameChars()) != -1) {
+                    throw new ApiArgumentException("name");
+                }
+            }
 
             if (parentUuid != null) {
                 var fileId = FileId.FromUuid(parentUuid);
@@ -40,25 +48,13 @@ namespace Microsoft.IIS.Administration.Files
                     return NotFound();
                 }
 
-                //
-                // Directories
-                foreach (var d in _provider.GetDirectories(fileId.PhysicalPath, "*")) {
-                    files.Add(FilesHelper.DirectoryToJsonModelRef(d, fields));
-                }
-
-                //
-                // Files
-                foreach (var f in _provider.GetFiles(fileId.PhysicalPath, "*")) {
-                    files.Add(FilesHelper.FileToJsonModelRef(f, fields));
-                }
+                FillWithChildren(files, fileId.PhysicalPath, $"*{name}*", fields);
+            }
+            else if (!string.IsNullOrEmpty(physicalPath)) {
+                FillFromPhysicalPath(files, physicalPath, fields);
             }
             else {
-                foreach (var location in _options.Locations) {
-                    if (_provider.IsAccessAllowed(location.Path, FileAccess.Read)) {
-                        var model = FilesHelper.DirectoryToJsonModelRef(_provider.GetDirectoryInfo(location.Path), fields);
-                        files.Add(FilesHelper.DirectoryToJsonModelRef(_provider.GetDirectoryInfo(location.Path), fields));
-                    }
-                }
+                FillFromLocations(files, name, fields);
             }
 
             // Set HTTP header for total count
@@ -207,7 +203,43 @@ namespace Microsoft.IIS.Administration.Files
             return new NoContentResult();
         }
 
+        
 
+        private void FillWithChildren(List<object> models, string physicalPath, string nameFilter, Fields fields)
+        {
+            //
+            // Directories
+            foreach (var d in _provider.GetDirectories(physicalPath, nameFilter)) {
+                models.Add(FilesHelper.DirectoryToJsonModelRef(d, fields));
+            }
+
+            //
+            // Files
+            foreach (var f in _provider.GetFiles(physicalPath, nameFilter)) {
+                models.Add(FilesHelper.FileToJsonModelRef(f, fields));
+            }
+        }
+
+        private void FillFromPhysicalPath(List<object> models, string physicalPath, Fields fields)
+        {
+            if (_provider.FileExists(physicalPath)) {
+                models.Add(FilesHelper.FileToJsonModelRef(_provider.GetFileInfo(physicalPath), fields));
+            }
+            else if (_provider.DirectoryExists(physicalPath)) {
+                models.Add(FilesHelper.DirectoryToJsonModelRef(_provider.GetDirectoryInfo(physicalPath), fields));
+            }
+        }
+
+        private void FillFromLocations(List<object> models, string nameFilter, Fields fields)
+        {
+            foreach (var location in _options.Locations) {
+                if (_provider.IsAccessAllowed(location.Path, FileAccess.Read) && 
+                        (string.IsNullOrEmpty(nameFilter) || new FileInfo(location.Path).Name.IndexOf(nameFilter, StringComparison.OrdinalIgnoreCase) != -1)) {
+
+                    models.Add(FilesHelper.DirectoryToJsonModelRef(_provider.GetDirectoryInfo(location.Path), fields));
+                }
+            }
+        }
 
         private object PatchFile(dynamic model, FileId fileId)
         {

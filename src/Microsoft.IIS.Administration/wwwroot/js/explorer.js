@@ -88,8 +88,6 @@
         }
 
         function _uploadFileChunked(file, url, start, length, data, chunkSize, totalSize, success, error) {
-            var reader = new FileReader();
-
             $.ajax({
                 type: "PUT",
                 url: url,

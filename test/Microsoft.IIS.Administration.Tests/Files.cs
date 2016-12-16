@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net;
     using System.Net.Http;
     using System.Text;
+    using System.Threading.Tasks;
     using Web.Administration;
     using Xunit;
 
@@ -393,7 +394,94 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
+        [Fact]
+        public void UploadMultipleFiles()
+        {
+            var mockFileNames = new List<string>();
 
+            for (var i = 0; i < 15; i++) {
+                mockFileNames.Add($"{TEST_FILE_NAME}{i}");
+            }
+
+
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                JObject site = Sites.GetSite(client, "Default Web Site");
+
+                var webFiles = new List<JObject>();
+                var fileInfos = new List<JObject>();
+
+                try {
+                    foreach (var name in mockFileNames) {
+                        webFiles.Add(CreateWebFile(client, site, name));
+                    }
+                    foreach (var webFile in webFiles) {
+                        fileInfos.Add(Utils.FollowLink(client, webFile.Value<JObject>("file_info"), "self"));
+                    }
+
+                    var uploads = new List<Task<bool>>();
+                    foreach (var fileInfo in fileInfos) {
+                        uploads.Add(MockUploadFile(client, fileInfo, 1024 * 1024 * 5));
+                    }
+
+                    Task.WaitAll(uploads.ToArray());
+
+                    foreach (var upload in uploads) {
+                        Assert.True(upload.Result);
+                    }
+                }
+                finally {
+                    foreach (JObject webFile in webFiles) {
+                        if (webFile != null) {
+                            client.Delete(Utils.Self(webFile));
+                        }
+                    }
+                }
+                
+            }
+        }
+
+
+
+        private async Task<bool> MockUploadFile(HttpClient client, JObject file, int fileSize)
+        {
+            const int chunkSize = 1024 * 1024 / 2;
+
+            var initialSize = chunkSize < fileSize ? chunkSize : fileSize;
+
+            return await UploadFileChunked(client, Utils.GetLink(file, "content"), GetFileSlice(0, initialSize), 0, chunkSize, fileSize);
+        }
+
+        private async Task<bool> UploadFileChunked(HttpClient client, string url, byte[] content, int start, int chunkSize, int totalSize)
+        {
+            var length = content.Length;
+            HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Put, url);
+
+            req.Content = new ByteArrayContent(content);
+
+            req.Content.Headers.Add("Content-Range", $"bytes {start}-{start + length - 1}/{totalSize}");
+
+            var task = client.SendAsync(req);
+
+            HttpResponseMessage res = await task;
+
+            bool success = Globals.Success(res);
+
+            if (!success) {
+                return false;
+            }
+
+            start = start + length;
+
+            if (start >= totalSize) {
+                return true;
+            }
+
+            var l = totalSize - start < chunkSize ? totalSize - start : chunkSize;
+            content = GetFileSlice(start, l);
+
+            return await UploadFileChunked(client, url, content, start, chunkSize, totalSize);
+        }
 
         private byte[] GetFileSlice(int start, int length)
         {

@@ -67,8 +67,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 fields = Fields.All;
             }
 
-            path = path.Replace('\\', '/');
             var physicalPath = GetPhysicalPath(site, path);
+
+            path = path.Replace('\\', '/');
 
             dynamic obj = new ExpandoObject();
             var FileId = new FileId(site.Id, path);
@@ -76,7 +77,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // name
             if (fields.Exists("name")) {
-                obj.name = _service.GetName(path);
+                obj.name = new DirectoryInfo(path).Name;
             }
 
             //
@@ -100,7 +101,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // parent
             if (fields.Exists("parent")) {
-                obj.parent = GetParentJsonModelRef(site, path);
+                obj.parent = GetParentJsonModelRef(site, path, fields.Filter("parent"));
             }
 
             //
@@ -147,7 +148,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // name
             if (fields.Exists("name")) {
-                obj.name = _service.GetName(physicalPath);
+                obj.name = new FileInfo(physicalPath).Name;
             }
 
             //
@@ -165,13 +166,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // path
             if (fields.Exists("path")) {
-                obj.path = path.Replace('\\', '/');
+                obj.path = path;
             }
 
             //
             // parent
             if (fields.Exists("parent")) {
-                obj.parent = GetParentJsonModelRef(site, path);
+                obj.parent = GetParentJsonModelRef(site, path, fields.Filter("parent"));
             }
 
             //
@@ -188,6 +189,16 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
 
             return Core.Environment.Hal.Apply(Defines.FilesResource.Guid, obj, full);
+        }
+
+        internal static object FileToJsonModelRef(Site site, string path, Fields fields = null)
+        {
+            if (fields == null || !fields.HasFields) {
+                return FileToJsonModel(site, path, RefFields, false);
+            }
+            else {
+                return FileToJsonModel(site, path, fields, false);
+            }
         }
 
         internal static object VdirToJsonModel(Vdir vdir, Fields fields = null, bool full = true)
@@ -232,18 +243,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // parent
             if (fields.Exists("parent")) {
-                if (vdir.VirtualDirectory.Path != "/") {
-                    var rootVdir = vdir.Application.VirtualDirectories["/"];
-                    obj.parent = rootVdir == null ? null : VdirToJsonModelRef(new Vdir(vdir.Site, vdir.Application, rootVdir));
-                }
-                else if (vdir.Application.Path != "/") {
-                    var rootApp = vdir.Site.Applications["/"];
-                    var rootVdir = rootApp == null ? null : rootApp.VirtualDirectories["/"];
-                    obj.parent = rootApp == null || rootVdir == null ? null : VdirToJsonModel(new Vdir(vdir.Site, rootApp, rootVdir));
-                }
-                else {
-                    obj.parent = null;
-                }
+                obj.parent = GetParentVdirJsonModelRef(vdir, fields.Filter("parent"));
             }
 
             //
@@ -268,16 +268,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
             else {
                 return VdirToJsonModel(vdir, fields, false);
-            }
-        }
-
-        internal static object FileToJsonModelRef(Site site, string path, Fields fields = null)
-        {
-            if (fields == null || !fields.HasFields) {
-                return FileToJsonModel(site, path, RefFields, false);
-            }
-            else {
-                return FileToJsonModel(site, path, fields, false);
             }
         }
 
@@ -357,7 +347,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             if (path == "/" || differentPhysicalPath && IsExactVdirPath(site, app, vdir, path)) {
                 return FileType.VDir;
             }
-            else if (_service.DirectoryExists(physicalPath)) {
+            else if (Directory.Exists(physicalPath)) {
                 return FileType.Directory;
             }
 
@@ -491,7 +481,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return root;
         }
 
-        private static object GetParentJsonModelRef(Site site, string path)
+        private static object GetParentJsonModelRef(Site site, string path, Fields fields = null)
         {
             object parent = null;
             if (path != "/") {
@@ -504,10 +494,30 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 }
                 else {
                     var parentPhysicalPath = GetPhysicalPath(site, parentPath);
-                    parent = _service.DirectoryExists(parentPhysicalPath) ? DirectoryToJsonModelRef(site, parentPath) : null;
+                    parent = Directory.Exists(parentPhysicalPath) ? DirectoryToJsonModelRef(site, parentPath, fields) : null;
                 }
             }
             return parent;
+        }
+
+        private static object GetParentVdirJsonModelRef(Vdir vdir, Fields fields = null)
+        {
+            object ret = null;
+
+            if (vdir.VirtualDirectory.Path != "/") {
+                var rootVdir = vdir.Application.VirtualDirectories["/"];
+                ret = rootVdir == null ? null : VdirToJsonModelRef(new Vdir(vdir.Site, vdir.Application, rootVdir));
+            }
+            else if (vdir.Application.Path != "/") {
+                var rootApp = vdir.Site.Applications["/"];
+                var rootVdir = rootApp == null ? null : rootApp.VirtualDirectories["/"];
+                ret = rootApp == null || rootVdir == null ? null : VdirToJsonModelRef(new Vdir(vdir.Site, rootApp, rootVdir), fields);
+            }
+            else {
+                ret = null;
+            }
+
+            return ret;
         }
     }
 }

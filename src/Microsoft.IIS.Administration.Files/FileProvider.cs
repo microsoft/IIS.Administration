@@ -67,6 +67,13 @@ namespace Microsoft.IIS.Administration.Files
             return PerformIO(p => new DirectoryInfo(p), path);
         }
 
+        public FileSystemInfo GetFileSystemInfo(string path)
+        {
+            this.EnsureAccess(path, FileAccess.Read);
+
+            return PerformIO(p => new FileInfo(p), path);
+        }
+
         public IEnumerable<FileInfo> GetFiles(string path, string searchPattern)
         {
             this.EnsureAccess(path, FileAccess.Read);

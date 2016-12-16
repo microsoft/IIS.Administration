@@ -23,6 +23,8 @@ namespace Microsoft.IIS.Administration.Files
 
         DirectoryInfo GetDirectoryInfo(string path);
 
+        FileSystemInfo GetFileSystemInfo(string path);
+
         IEnumerable<FileInfo> GetFiles(string path, string searchPattern);
 
         IEnumerable<DirectoryInfo> GetDirectories(string path, string searchPattern);
