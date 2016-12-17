@@ -42,7 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             if (pathFilter != null) {
-                return GetByPath(pathFilter);
+                return GetByPath(pathFilter == string.Empty ? "/" : pathFilter);
             }
 
             return GetByParent(parentUuid, nameFilter);
@@ -310,19 +310,11 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             var fields = Context.Request.GetFields();
             var dirInfo = _fileService.GetDirectoryInfo(physicalPath);
 
-            var files = new List<object>();
-
-            if (_fileService.DirectoryExists(physicalPath) || _fileService.FileExists(physicalPath)) {
-                files.Add(FilesHelper.ToJsonModelRef(site, path, fields));
+            if (!_fileService.DirectoryExists(physicalPath) && !_fileService.FileExists(physicalPath)) {
+                throw new NotFoundException("path");
             }
 
-            // Set HTTP header for total count
-            this.Context.Response.SetItemsCount(files.Count());
-
-            return new
-            {
-                files = files
-            };
+            return FilesHelper.ToJsonModel(site, path, fields);
         }
     }
 }
