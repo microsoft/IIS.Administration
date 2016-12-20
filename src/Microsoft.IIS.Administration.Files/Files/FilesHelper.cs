@@ -10,6 +10,7 @@ namespace Microsoft.IIS.Administration.Files
     using System.Collections.Generic;
     using System.Dynamic;
     using System.IO;
+    using System.Linq;
 
     public static class FilesHelper
     {
@@ -110,9 +111,11 @@ namespace Microsoft.IIS.Administration.Files
 
             //
             // total_files
-            if (fields.Exists("total_files")) {
+            // We check for the 'full' flag to avoid unauthorized exception when referencing directories
+            // Listing a directories content requires extra permissions
+            if (fields.Exists("total_files") && full) {
                 if (_service.IsAccessAllowed(info.FullName, FileAccess.Read)) {
-                    obj.total_files = info.Exists ? info.GetFiles().Length + info.GetDirectories().Length : 0;
+                    obj.total_files = info.Exists ? _service.GetFiles(info.FullName, "*").Count() + _service.GetDirectories(info.FullName, "*").Count() : 0;
                 }
             }
 

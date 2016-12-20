@@ -104,7 +104,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             //
             // Directories
-            foreach (var d in dirInfo.GetDirectories(string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
+            foreach (var d in _fileService.GetDirectories(dirInfo.FullName, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
                 string p = Path.Combine(fileId.Path, d.Name);
 
                 if (!files.ContainsKey(p)) {
@@ -114,7 +114,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             //
             // Files
-            foreach (var f in dirInfo.GetFiles(string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
+            foreach (var f in _fileService.GetFiles(dirInfo.FullName, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
                 string p = Path.Combine(fileId.Path, f.Name);
                 files.Add(p, FilesHelper.FileToJsonModelRef(site, p, fields));
             }
