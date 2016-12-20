@@ -97,7 +97,7 @@ namespace Microsoft.IIS.Administration.Files
             //
             // name
             name = DynamicHelper.Value(model.name);
-            if (string.IsNullOrEmpty(name) || Path.IsPathRooted(name)) {
+            if (string.IsNullOrEmpty(name) || !PathUtil.IsValidFileName(name) || Path.IsPathRooted(name)) {
                 throw new ApiArgumentException("name");
             }
 
