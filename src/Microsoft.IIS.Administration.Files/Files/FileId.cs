@@ -6,7 +6,6 @@ namespace Microsoft.IIS.Administration.Files
 {
     using Core;
     using System;
-    using System.IO;
 
     public class FileId
     {
@@ -29,7 +28,7 @@ namespace Microsoft.IIS.Administration.Files
             var physicalPath = info[PHYSICAL_PATH_INDEX];
 
             if (!PathUtil.IsFullPath(physicalPath)) {
-                throw new NotFoundException(nameof(physicalPath));
+                throw new NotFoundException("file.id");
             }
 
             return new FileId() {

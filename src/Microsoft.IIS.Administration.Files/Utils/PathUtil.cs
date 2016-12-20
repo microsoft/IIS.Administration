@@ -9,7 +9,8 @@ namespace Microsoft.IIS.Administration.Files
 
     public static class PathUtil
     {
-        public static readonly char[] SEPARATORS = new char[] { '/', '\\' };
+        public static readonly char[] SEPARATORS = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+        public static readonly char[] InvalidFileNameChars = Path.GetInvalidFileNameChars();
 
         /// <summary>
         /// Expands environment variables and normalizes the path. The path must be rooted.
@@ -160,7 +161,7 @@ namespace Microsoft.IIS.Administration.Files
         public static bool IsValidFileName(string name)
         {
             return !string.IsNullOrEmpty(name) &&
-                        name.IndexOfAny(Path.GetInvalidFileNameChars()) == -1 &&
+                        name.IndexOfAny(InvalidFileNameChars) == -1 &&
                         !name.EndsWith(".");
         }
     }

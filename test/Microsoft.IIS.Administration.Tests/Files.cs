@@ -22,6 +22,7 @@ namespace Microsoft.IIS.Administration.Tests
     {
         private const string TEST_FILE_NAME = "TEST_FILE.txt";
         private const string FILE_TEST_SITE_NAME = "File Test Site";
+        private const string FILES_PATH = "/api/files";
         private const string WEBSERVER_FILES_PATH = "/api/webserver/files";
 
         [Fact]
@@ -263,22 +264,8 @@ namespace Microsoft.IIS.Administration.Tests
 
                 JObject site = Sites.GetSite(client, "Default Web Site");
 
-                var physicalPath = site.Value<string>("physical_path");
-
-                if (File.Exists(Path.Combine(physicalPath, TEST_FILE_NAME))) {
-                    File.Delete(Path.Combine(physicalPath, TEST_FILE_NAME));
-                }
-
-                var rootDir = Utils.FollowLink(client, site, "files");
-
-                object newFile = new {
-                    type = "file",
-                    parent = rootDir,
-                    name = TEST_FILE_NAME
-                };
-
                 // Create web file
-                var webFile = client.Post($"{Configuration.TEST_SERVER_URL}{WEBSERVER_FILES_PATH}", newFile);
+                var webFile = CreateWebFile(client, site, TEST_FILE_NAME);
 
                 Assert.True(webFile != null);
 
@@ -317,7 +304,58 @@ namespace Microsoft.IIS.Administration.Tests
                     Assert.True(result == testContent);
                 }
                 finally {
-                    Assert.True(client.Delete(Utils.Self(webFile)));
+                    Assert.True(client.Delete(Utils.Self(webFile.Value<JObject>("file_info"))));
+                }
+            }
+        }
+
+        [Fact]
+        public void CopyFile()
+        {
+            string copyName = "TEST_FILE_NAME_COPY.txt";
+            string testContent = "Test content for copying files.";
+            JObject copyInfo = null;
+
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                JObject site = Sites.GetSite(client, "Default Web Site");
+
+                var webFile = CreateWebFile(client, site, TEST_FILE_NAME);
+
+                var physicalPath = Environment.ExpandEnvironmentVariables(webFile["file_info"].Value<string>("physical_path"));
+                File.WriteAllText(physicalPath, testContent);
+
+                try {
+                    var fileInfo = Utils.FollowLink(client, webFile.Value<JObject>("file_info"), "self");
+                    var parent = fileInfo.Value<JObject>("parent");
+
+                    var copy = new
+                    {
+                        name = copyName,
+                        parent = parent,
+                        file = fileInfo
+                    };
+
+                    copyInfo = client.Post(Utils.GetLink(fileInfo, "copy"), copy);
+
+                    Assert.NotNull(copyInfo);
+
+                    var copyParent = new DirectoryInfo(physicalPath).Parent.FullName;
+                    var copyPhysicalPath = Environment.ExpandEnvironmentVariables(copyInfo.Value<string>("physical_path"));
+
+                    Assert.True(copyPhysicalPath.Equals(Path.Combine(copyParent, copyName)));
+
+                    var copyContent = File.ReadAllText(copyPhysicalPath);
+
+                    Assert.Equal(copyContent, testContent);
+                }
+                finally {
+                    if (webFile != null && webFile["file_info"] != null) {
+                        Assert.True(client.Delete(Utils.Self(webFile.Value<JObject>("file_info"))));
+                    }
+                    if (copyInfo != null) {
+                        Assert.True(client.Delete(Utils.Self(copyInfo)));
+                    }
                 }
             }
         }
@@ -389,7 +427,7 @@ namespace Microsoft.IIS.Administration.Tests
                     Assert.True(download.SequenceEqual(GetFileSlice(0, totalFileSize)));
                 }
                 finally {
-                    Assert.True(client.Delete(Utils.Self(webFile)));
+                    Assert.True(client.Delete(Utils.Self(webFile.Value<JObject>("file_info"))));
                 }
             }
         }
@@ -433,7 +471,7 @@ namespace Microsoft.IIS.Administration.Tests
                 finally {
                     foreach (JObject webFile in webFiles) {
                         if (webFile != null) {
-                            client.Delete(Utils.Self(webFile));
+                            Assert.True(client.Delete(Utils.Self(webFile.Value<JObject>("file_info"))));
                         }
                     }
                 }
@@ -445,15 +483,23 @@ namespace Microsoft.IIS.Administration.Tests
         public void CreateRenameFile()
         {
             using (HttpClient client = ApiHttpClient.Create()) {
-                JObject site = Sites.GetSite(client, "Default Web Site");
                 JObject target = null;
+                string updatedName = "updated_test_file_name.txt";
+                JObject site = Sites.GetSite(client, "Default Web Site");
 
                 try {
                     var webFile = CreateWebFile(client, site, TEST_FILE_NAME);
-                    target = RenameSitesFile(client, site, webFile, "updated_test_file_name.txt");
+
+                    var physicalPath = Path.Combine(Environment.ExpandEnvironmentVariables(site.Value<string>("physical_path")), updatedName);
+
+                    if (File.Exists(physicalPath)) {
+                        File.Delete(physicalPath);
+                    }
+
+                    target = RenameSitesFile(client, site, webFile, updatedName);
                 }
                 finally {
-                    client.Delete(Utils.Self(target));
+                    Assert.True(client.Delete(Utils.Self(target.Value<JObject>("file_info"))));
                 }
             }
         }
@@ -462,15 +508,22 @@ namespace Microsoft.IIS.Administration.Tests
         public void CreateRenameDirectory()
         {
             using (HttpClient client = ApiHttpClient.Create()) {
-                JObject site = Sites.GetSite(client, "Default Web Site");
                 JObject target = null;
+                string updatedName = "updated_test_folder_name";
+                JObject site = Sites.GetSite(client, "Default Web Site");
 
                 try {
                     var webFile = CreateWebFile(client, site, TEST_FILE_NAME, "directory");
-                    target = RenameSitesFile(client, site, webFile, "updated_test_folder_name");
+                    var physicalPath = Path.Combine(Environment.ExpandEnvironmentVariables(site.Value<string>("physical_path")), updatedName);
+
+                    if (Directory.Exists(physicalPath)) {
+                        Directory.Delete(physicalPath);
+                    }
+
+                    target = RenameSitesFile(client, site, webFile, updatedName);
                 }
                 finally {
-                    client.Delete(Utils.Self(target));
+                    Assert.True(client.Delete(Utils.Self(target.Value<JObject>("file_info"))));
                 }
             }
         }
@@ -490,20 +543,22 @@ namespace Microsoft.IIS.Administration.Tests
 
             Assert.NotNull(target);
 
+            var targetFileInfo = Utils.FollowLink(client, Utils.FollowLink(client, target, "self").Value<JObject>("file_info"), "self");
+
             var alteredName = newName;
-            target["name"] = alteredName;
+            targetFileInfo["name"] = alteredName;
 
-            target = client.Patch(Utils.Self(target), target);
+            targetFileInfo = client.Patch(Utils.Self(targetFileInfo), targetFileInfo);
 
-            Assert.True(target != null);
-            Assert.True(target.Value<string>("name").Equals(alteredName));
+            Assert.True(targetFileInfo != null);
+            Assert.True(targetFileInfo.Value<string>("name").Equals(alteredName));
 
             files = Utils.FollowLink(client, rootVdir, "files")["files"].ToObject<IEnumerable<JObject>>();
             target = files.FirstOrDefault(f => f.Value<string>("name").Equals(alteredName, StringComparison.OrdinalIgnoreCase));
 
             Assert.NotNull(target);
 
-            return target;
+            return Utils.FollowLink(client, target, "self");
         }
 
         private async Task<bool> MockUploadFile(HttpClient client, JObject file, int fileSize)
@@ -562,26 +617,41 @@ namespace Microsoft.IIS.Administration.Tests
         private JObject CreateWebFile(HttpClient client, JObject site, string fileName, string fileType = "file", bool deleteIfExists = true)
         {
             var physicalPath = site.Value<string>("physical_path");
+            physicalPath = Path.Combine(Environment.ExpandEnvironmentVariables(physicalPath), TEST_FILE_NAME);
 
-            if (deleteIfExists && File.Exists(Path.Combine(physicalPath, TEST_FILE_NAME))) {
-                File.Delete(Path.Combine(physicalPath, TEST_FILE_NAME));
+            if (deleteIfExists) {
+                if (File.Exists(physicalPath)) {
+                    File.Delete(physicalPath);
+                }
+                if (Directory.Exists(physicalPath)) {
+                    Directory.Delete(physicalPath);
+                }
             }
 
             var rootDir = Utils.FollowLink(client, site, "files");
+            var rootDirFileInfo = Utils.FollowLink(client, rootDir.Value<JObject>("file_info"), "self");
 
             object newFile = new
             {
                 type = fileType,
-                parent = rootDir,
+                parent = rootDirFileInfo,
                 name = fileName
             };
 
             // Create web file
-            var webFile = client.Post($"{Configuration.TEST_SERVER_URL}{WEBSERVER_FILES_PATH}", newFile);
+            var file = client.Post($"{Configuration.TEST_SERVER_URL}{FILES_PATH}", newFile);
 
-            Assert.True(webFile != null);
+            Assert.True(file != null);
 
-            return webFile;
+            var siteFiles = Utils.FollowLink(client, rootDir, "files");
+
+            file = siteFiles.Value<JArray>("files").ToObject<IEnumerable<JObject>>().FirstOrDefault(f =>
+                f.Value<string>("name").Equals(file.Value<string>("name"))
+            );
+
+            Assert.True(file != null);
+
+            return Utils.FollowLink(client, file, "self");
         }
     }
 }

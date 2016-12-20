@@ -32,14 +32,14 @@ namespace Microsoft.IIS.Administration.Files
             ConfigureFiles();
             ConfigureApiDownloads();
             ConfigureContent();
+            ConfigureCopy();
         }
 
-        
+
 
         private void ConfigureDownloads()
         {
             var router = Environment.Host.RouteBuilder;
-            var hal = Environment.Hal;
 
             router.MapWebApiRoute(Defines.DownloadResource.Guid, $"{Defines.DOWNLOAD_PATH}/{{id?}}", new { controller = "downloads" });
         }
@@ -82,6 +82,16 @@ namespace Microsoft.IIS.Administration.Files
             router.MapWebApiRoute(Defines.ApiDownloadResource.Guid, $"{Defines.API_DOWNLOAD_PATH}/{{id?}}", new { controller = "FileDownloads" });
 
             hal.ProvideLink(Defines.FilesResource.Guid, Defines.ApiDownloadResource.Name, file => new { href = $"/{Defines.API_DOWNLOAD_PATH}" });
+        }
+
+        private void ConfigureCopy()
+        {
+            var router = Environment.Host.RouteBuilder;
+            var hal = Environment.Hal;
+
+            router.MapWebApiRoute(Defines.CopyResource.Guid, $"{Defines.COPY_PATH}", new { controller = "copy" });
+
+            hal.ProvideLink(Defines.FilesResource.Guid, Defines.CopyResource.Name, file => new { href = $"/{Defines.COPY_PATH}" });
         }
     }
 }

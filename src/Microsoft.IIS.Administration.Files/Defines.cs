@@ -12,7 +12,8 @@ namespace Microsoft.IIS.Administration.Files
         private const string FILES_ENDPOINT = "files";
         private const string CONTENT_ENDPOINT = "content";
         private const string DOWNLOADS_ENDPOINT = "downloads";
-        
+        private const string COPY_ENDPOINT = "copy";
+
         public const string FilesName = "Microsoft.IIS.Administration.Files";
         public const string FileName = "Microsoft.IIS.Administration.File";
         public static readonly string FILES_PATH = $"{Globals.API_PATH}/{FILES_ENDPOINT}";
@@ -27,7 +28,10 @@ namespace Microsoft.IIS.Administration.Files
         public static readonly string API_DOWNLOAD_PATH = $"{FILES_PATH}/{DOWNLOADS_ENDPOINT}";
         public static readonly ResDef ApiDownloadResource = new ResDef("downloads", new Guid("A5F6DE75-3C3E-4BEA-9B16-B6692011BB46"), DOWNLOADS_ENDPOINT);
 
+        public static readonly string COPY_PATH = $"{FILES_PATH}/{COPY_ENDPOINT}";
+        public static readonly ResDef CopyResource = new ResDef("copy", new Guid("D86F5D18-EA37-419A-879E-B4BC2A6E11C4"), COPY_ENDPOINT);
+
         public static readonly string DOWNLOAD_PATH = $"{DOWNLOADS_ENDPOINT}";
-        public static readonly ResDef DownloadResource = new ResDef("downloads", new Guid("{9DAF09F0-197B-4164-81D5-B6A25154883A}"), DOWNLOADS_ENDPOINT);
+        public static readonly ResDef DownloadResource = new ResDef("downloads", new Guid("9DAF09F0-197B-4164-81D5-B6A25154883A"), DOWNLOADS_ENDPOINT);
     }
 }

@@ -271,65 +271,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
         }
 
-        internal static string UpdateFile(dynamic model, string physicalPath)
-        {
-            if (model == null) {
-                throw new ApiArgumentException("model");
-            }
-
-            string name = DynamicHelper.Value(model.name);
-
-            if (name != null) {
-
-                if (!PathUtil.IsValidFileName(name)) {
-                    throw new ApiArgumentException("name");
-                }
-
-                var newPath = Path.Combine(_service.GetParentPath(physicalPath), name);
-
-                if (_service.FileExists(newPath)) {
-                    throw new AlreadyExistsException("name");
-                }
-
-                _service.MoveFile(physicalPath, newPath);
-
-                physicalPath = newPath;
-            }
-
-            return physicalPath;
-        }
-
-        internal static string UpdateDirectory(dynamic model, string directoryPath)
-        {
-            if (model == null) {
-                throw new ApiArgumentException("model");
-            }
-
-            string name = DynamicHelper.Value(model.name);
-
-            if (name != null) {
-
-                if (!PathUtil.IsValidFileName(name)) {
-                    throw new ApiArgumentException("name");
-                }
-
-                if (_service.GetParentPath(directoryPath) != null) {
-
-                    var newPath = Path.Combine(_service.GetParentPath(directoryPath), name);
-
-                    if (_service.DirectoryExists(newPath)) {
-                        throw new AlreadyExistsException("name");
-                    }
-
-                    _service.MoveDirectory(directoryPath, newPath);
-
-                    directoryPath = newPath;
-                }
-            }
-
-            return directoryPath;
-        }
-
         public static string GetLocation(string id)
         {
             return $"/{Defines.FILES_PATH}/{id}";
@@ -443,7 +384,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             var segs = path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             foreach (var seg in segs) {
-                if (seg.IndexOfAny(Path.GetInvalidFileNameChars()) != -1) {
+                if (seg.IndexOfAny(PathUtil.InvalidFileNameChars) != -1) {
                     return false;
                 }
             }

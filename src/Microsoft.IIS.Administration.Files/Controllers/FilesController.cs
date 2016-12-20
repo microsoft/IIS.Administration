@@ -36,7 +36,7 @@ namespace Microsoft.IIS.Administration.Files
             Fields fields = Context.Request.GetFields();
 
             if (!string.IsNullOrEmpty(name)) {
-                if (name.IndexOfAny(Path.GetInvalidFileNameChars()) != -1) {
+                if (name.IndexOfAny(PathUtil.InvalidFileNameChars) != -1) {
                     throw new ApiArgumentException("name");
                 }
             }
@@ -186,15 +186,14 @@ namespace Microsoft.IIS.Administration.Files
         public IActionResult Delete(string id)
         {
             FileId fileId = FileId.FromUuid(id);
-            string physicalPath = null;
 
             if (_provider.FileExists(fileId.PhysicalPath) || _provider.DirectoryExists(fileId.PhysicalPath)) {
                 switch (FilesHelper.GetFileType(fileId.PhysicalPath)) {
                     case FileType.File:
-                        _provider.DeleteFile(physicalPath);
+                        _provider.DeleteFile(fileId.PhysicalPath);
                         break;
                     case FileType.Directory:
-                        _provider.DeleteDirectory(physicalPath);
+                        _provider.DeleteDirectory(fileId.PhysicalPath);
                         break;
                     default:
                         break;

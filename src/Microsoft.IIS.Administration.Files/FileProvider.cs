@@ -108,8 +108,8 @@ namespace Microsoft.IIS.Administration.Files
 
             await PerformIO(async p => {
 
-                using (var srcStream = GetFile(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
-                    using (var destStream = GetFile(destPath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read)) {
+                using (var srcStream = GetFile(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+                    using (var destStream = GetFile(destPath, FileMode.Create, FileAccess.Write, FileShare.Read)) {
                         await srcStream.CopyToAsync(destStream);
                     }
                 }
