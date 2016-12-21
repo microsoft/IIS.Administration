@@ -36,7 +36,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
                 throw new ApiArgumentException("image");
             }
 
-            AssertCanUseImage(image);
+            AssertCanUseImage(ref image);
 
             var globalCollection = GetGlobalModulesCollection();
 
@@ -294,7 +294,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             string image = DynamicHelper.Value(model.image);
 
             if (image != null) {
-                AssertCanUseImage(image);
+                AssertCanUseImage(ref image);
                 globalModule.Image = image;
             }
 
@@ -552,8 +552,9 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
 
 
 
-        private static void AssertCanUseImage(string path)
+        private static void AssertCanUseImage(ref string path)
         {
+            path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             var expanded = System.Environment.ExpandEnvironmentVariables(path);
 
             if (!PathUtil.IsFullPath(expanded)) {

@@ -39,12 +39,11 @@ namespace Microsoft.IIS.Administration.Files
 
         public IEnumerable<string> GetClaims(string path)
         {
-            var absolutePath = PathUtil.GetFullPath(path);
             var claims = new List<string>();
 
             //
             // Path must be absolute with no environment variables
-            if (!absolutePath.Equals(path, StringComparison.OrdinalIgnoreCase)) {
+            if (!PathUtil.IsFullPath(path)) {
                 return claims;
             }
 
@@ -52,7 +51,7 @@ namespace Microsoft.IIS.Administration.Files
             // Best match
             foreach (var location in Options.Locations) {
 
-                if (PathUtil.PathStartsWith(absolutePath, location.Path)) {
+                if (HasPrefix(path, location.Path)) {
 
                     claims = location.Claims;
 
@@ -61,6 +60,36 @@ namespace Microsoft.IIS.Administration.Files
             }
 
             return claims;
+        }
+
+
+
+        private static bool HasPrefix(string path, string prefix)
+        {
+            //
+            // Remove trailing separator (if any) from prefix
+            if (prefix.Length > 0 && prefix.LastIndexOfAny(PathUtil.SEPARATORS) == prefix.Length - 1) {
+                prefix = prefix.Substring(0, prefix.Length - 1);
+            }
+
+            if (prefix.Length > path.Length) {
+                return false;
+            }
+
+            var testParts = path.Split(PathUtil.SEPARATORS);
+            var prefixParts = prefix.Split(PathUtil.SEPARATORS);
+
+            if (prefixParts.Length > testParts.Length) {
+                return false;
+            }
+
+            for (var i = 0; i < prefixParts.Length; i++) {
+                if (!prefixParts[i].Equals(testParts[i], StringComparison.OrdinalIgnoreCase)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

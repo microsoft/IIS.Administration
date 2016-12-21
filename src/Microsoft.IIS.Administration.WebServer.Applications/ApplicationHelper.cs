@@ -279,7 +279,8 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
             string physicalPath = DynamicHelper.Value(model.physical_path);
 
             if (physicalPath != null) {
-                
+
+                physicalPath = physicalPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
                 var expanded = System.Environment.ExpandEnvironmentVariables(physicalPath);
 
                 if (!PathUtil.IsFullPath(expanded)) {
@@ -294,7 +295,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
 
                 var rootVDir = app.VirtualDirectories["/"];
                 if (rootVDir != null) {
-                    rootVDir.PhysicalPath = physicalPath.Replace('/', '\\');
+                    rootVDir.PhysicalPath = physicalPath;
                 }
 
             }

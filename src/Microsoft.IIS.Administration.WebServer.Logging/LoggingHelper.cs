@@ -238,7 +238,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
                         CentralBinaryLogFile bFile = logSection.CentralBinaryLogFile;
                         
                         DynamicHelper.If((object)bSettings.directory, v => {
-                            EnsureCanUseDirectory(v);
+                            EnsureCanUseDirectory(ref v);
                             bFile.Directory = v;
                         });
                         
@@ -256,7 +256,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
                         CentralW3CLogFile wFile = logSection.CentralW3CLogFile;
                         
                         DynamicHelper.If((object)wSettings.directory, v => {
-                            EnsureCanUseDirectory(v);
+                            EnsureCanUseDirectory(ref v);
                             wFile.Directory = v;
                         });
 
@@ -310,7 +310,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
                     dynamic siteSettings = model;
                     
                     DynamicHelper.If((object)siteSettings.directory, v => {
-                        EnsureCanUseDirectory(v);
+                        EnsureCanUseDirectory(ref v);
                         siteLogFile.Directory = v;
                     });
 
@@ -515,8 +515,9 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
 
 
-        private static void EnsureCanUseDirectory(string path)
+        private static void EnsureCanUseDirectory(ref string path)
         {
+            path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             var expanded = System.Environment.ExpandEnvironmentVariables(path);
 
             if (!PathUtil.IsFullPath(expanded)) {

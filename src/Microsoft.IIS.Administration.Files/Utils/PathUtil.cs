@@ -26,7 +26,7 @@ namespace Microsoft.IIS.Administration.Files
 
             var expanded = Environment.ExpandEnvironmentVariables(path);
 
-            if (!Path.IsPathRooted(expanded)) {
+            if (!IsPathRooted(expanded)) {
                 throw new ArgumentException("Path must be rooted.", nameof(path));
             }
 
@@ -43,73 +43,44 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ArgumentNullException(nameof(path));
             }
 
+            //
+            // Expand to make sure the path is rooted before calling GetFullPath
             var expanded = Environment.ExpandEnvironmentVariables(path);
 
-            if (!Path.IsPathRooted(expanded)) {
+            if (!IsPathRooted(expanded)) {
                 return false;
             }
 
-            return path.Equals(Path.GetFullPath(expanded), StringComparison.OrdinalIgnoreCase);
+            bool ret = false;
+            try {
+                ret = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
+                          .Equals(Path.GetFullPath(expanded), StringComparison.OrdinalIgnoreCase);
+            }
+            catch (ArgumentException) {
+                //
+                // Argument exception for invalid paths such as '////' (Invalid network share format)
+                return false;
+            }
+
+            return ret;
         }
 
-        public static int PrefixSegments(string prefix, string path, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
+        public static bool IsPathRooted(string path)
         {
-            if (prefix == null) {
-                throw new ArgumentNullException(nameof(prefix));
-            }
-            if (path == null) {
+            if (string.IsNullOrEmpty(path)) {
                 throw new ArgumentNullException(nameof(path));
             }
-            if (!Path.IsPathRooted(prefix) || !Path.IsPathRooted(path)) {
-                throw new ArgumentException("Paths must be rooted.");
+
+            if (!Path.IsPathRooted(path)) {
+                return false;
             }
 
-            var prefixParts = prefix.TrimEnd(SEPARATORS).Split(SEPARATORS);
-            var pathParts = path.TrimEnd(SEPARATORS).Split(SEPARATORS);
-
-            if (prefixParts.Length > pathParts.Length) {
-                return -1;
-            }
-            
-            int index = 0;
-            while (pathParts.Length > index && prefixParts.Length > index && prefixParts[index].Equals(pathParts[index], stringComparison)) {
-                index++;
-            }
-            
-            if (prefixParts.Length > index) {
-                return -1;
+            // Prevent cases such as 'c:'
+            if (path.IndexOfAny(SEPARATORS) == -1) {
+                return false;
             }
 
-            return index == 0 ? -1 : index;
-        }
-
-        public static bool IsParentPath(string parent, string child)
-        {
-            var prefixSegments = PathUtil.PrefixSegments(parent, child);
-            if (prefixSegments > 0 && NumberOfSegments(child) > NumberOfSegments(parent)) {
-                return true;
-            }
-            return false;
-        }
-
-        public static int NumberOfSegments(string path)
-        {
-            if (path == null) {
-                throw new ArgumentNullException(nameof(path));
-            }
-            if (!path.StartsWith("/")) {
-                throw new ArgumentException("Path must begin with '/'.");
-            }
-
-            return path.TrimEnd(SEPARATORS).Split(SEPARATORS).Length;
-        }
-
-        public static string TrimStart(this string val, string prefix, StringComparison stringComparision = StringComparison.Ordinal)
-        {
-            if (val.StartsWith(prefix, stringComparision)) {
-                val = val.Remove(0, prefix.Length);
-            }
-            return val;
+            return true;
         }
 
         public static string RemoveLastSegment(string path)
@@ -125,37 +96,6 @@ namespace Microsoft.IIS.Administration.Files
             parts[parts.Length - 1] = string.Empty;
             var ret = string.Join("/", parts);
             return ret == "/" ? ret : ret.TrimEnd('/');
-        }
-
-        public static bool PathStartsWith(string path, string prefix)
-        {
-            if (string.IsNullOrEmpty(path)) {
-                throw new ArgumentNullException(nameof(path));
-            }
-            if (string.IsNullOrEmpty(prefix)) {
-                throw new ArgumentNullException(nameof(prefix));
-            }
-
-            if (prefix.Length > path.Length) {
-                return false;
-            }
-
-            var separators = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
-
-            var testParts = path.Split(separators);
-            var prefixParts = prefix.TrimEnd(separators).Split(separators);
-
-            if (prefixParts.Length > testParts.Length) {
-                return false;
-            }
-
-            for (var i = 0; i < prefixParts.Length; i++) {
-                if (!prefixParts[i].Equals(testParts[i], StringComparison.OrdinalIgnoreCase)) {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         public static bool IsValidFileName(string name)

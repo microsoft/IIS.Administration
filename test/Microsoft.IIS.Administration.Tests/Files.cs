@@ -93,15 +93,6 @@ namespace Microsoft.IIS.Administration.Tests
         }
 
         [Fact]
-        public void IsParentPath()
-        {
-            Assert.True(PathUtil.IsParentPath("/", "/a"));
-            Assert.True(PathUtil.IsParentPath("/a/b", "/a/b/c"));
-            Assert.False(PathUtil.IsParentPath("/", "/"));
-            Assert.False(PathUtil.IsParentPath("/a/b", "/a/bc"));
-        }
-
-        [Fact]
         public void IsExactVdirPath()
         {
             using (var sm = new ServerManager()) {
@@ -219,29 +210,6 @@ namespace Microsoft.IIS.Administration.Tests
             foreach (var name in badFileNames) {
                 Assert.False(PathUtil.IsValidFileName(name));
             }
-        }
-
-        [Fact]
-        public void PrefixSegments()
-        {
-            var path = "/";
-
-            Assert.Equal(PathUtil.PrefixSegments("/", path), 1);
-            Assert.Equal(PathUtil.PrefixSegments("/a", path), -1);
-
-            path = "/abc/def/ghi";
-
-            Assert.Equal(PathUtil.PrefixSegments("/", path), 1);
-            Assert.Equal(PathUtil.PrefixSegments("/abc", path), 2);
-            Assert.Equal(PathUtil.PrefixSegments("/abc/", path), 2);
-            Assert.Equal(PathUtil.PrefixSegments("/abcd/", path), -1);
-            Assert.Equal(PathUtil.PrefixSegments("/aBc/", path), 2);
-            Assert.Equal(PathUtil.PrefixSegments("/aBc/", path, StringComparison.Ordinal), -1);
-            Assert.Equal(PathUtil.PrefixSegments("/abc/def", path), 3);
-            Assert.Equal(PathUtil.PrefixSegments("/abc/def/", path), 3);
-            Assert.Equal(PathUtil.PrefixSegments("/abc/defg/", path), -1);
-            Assert.Equal(PathUtil.PrefixSegments("/abca/def/", path), -1);
-
         }
 
         [Fact]

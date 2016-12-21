@@ -314,7 +314,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             Application parentApp = null;
             var maxMatch = 0;
             foreach (var app in site.Applications) {
-                var matchingPrefix = PathUtil.PrefixSegments(app.Path, path);
+                var matchingPrefix = PrefixSegments(app.Path, path);
                 if (matchingPrefix > maxMatch) {
                     parentApp = app;
                     maxMatch = matchingPrefix;
@@ -339,7 +339,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 var testPath = path.TrimStart(parentApp.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
                 testPath = testPath == string.Empty ? "/" : testPath;
                 foreach (var vdir in parentApp.VirtualDirectories) {
-                    var matchingPrefix = PathUtil.PrefixSegments(vdir.Path, testPath);
+                    var matchingPrefix = PrefixSegments(vdir.Path, testPath);
                     if (matchingPrefix > maxMatch) {
                         parentVdir = vdir;
                         maxMatch = matchingPrefix;
@@ -389,7 +389,17 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 }
             }
 
-            var absolute = PathUtil.GetFullPath(path);
+            string absolute = null;
+
+            try {
+                absolute = PathUtil.GetFullPath(path);
+            }
+            catch (ArgumentException) {
+                //
+                // Argument exception for invalid paths such as '////' (Invalid network share format)
+                return false;
+            }
+
             var slashIndex = absolute.IndexOf(Path.DirectorySeparatorChar);
             if (!absolute.Substring(slashIndex, absolute.Length - slashIndex).Equals(path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar))) {
                 return false;
@@ -481,6 +491,45 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             return ret;
+        }
+
+        private static int PrefixSegments(string prefix, string path, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
+        {
+            if (prefix == null) {
+                throw new ArgumentNullException(nameof(prefix));
+            }
+            if (path == null) {
+                throw new ArgumentNullException(nameof(path));
+            }
+            if (!PathUtil.IsPathRooted(prefix) || !PathUtil.IsPathRooted(path)) {
+                throw new ArgumentException("Paths must be rooted.");
+            }
+
+            var prefixParts = prefix.TrimEnd(PathUtil.SEPARATORS).Split(PathUtil.SEPARATORS);
+            var pathParts = path.TrimEnd(PathUtil.SEPARATORS).Split(PathUtil.SEPARATORS);
+
+            if (prefixParts.Length > pathParts.Length) {
+                return -1;
+            }
+
+            int index = 0;
+            while (pathParts.Length > index && prefixParts.Length > index && prefixParts[index].Equals(pathParts[index], stringComparison)) {
+                index++;
+            }
+
+            if (prefixParts.Length > index) {
+                return -1;
+            }
+
+            return index == 0 ? -1 : index;
+        }
+
+        private static string TrimStart(this string val, string prefix, StringComparison stringComparision = StringComparison.Ordinal)
+        {
+            if (val.StartsWith(prefix, stringComparision)) {
+                val = val.Remove(0, prefix.Length);
+            }
+            return val;
         }
     }
 }

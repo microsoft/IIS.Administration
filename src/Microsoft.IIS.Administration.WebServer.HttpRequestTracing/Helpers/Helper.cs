@@ -84,6 +84,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
                     DynamicHelper.If((object)model.directory, v => {
 
+                        v = v.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
                         var expanded = System.Environment.ExpandEnvironmentVariables(v);
 
                         if (!PathUtil.IsFullPath(expanded)) {

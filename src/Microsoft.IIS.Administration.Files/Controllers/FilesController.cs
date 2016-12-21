@@ -16,6 +16,9 @@ namespace Microsoft.IIS.Administration.Files
 
     public class FilesController : ApiBaseController
     {
+        private const string nameKey = "name";
+        private const string physicalPathKey = "physical_path";
+
         IFileOptions _options;
         IFileProvider _provider = FileProvider.Default;
 
@@ -29,16 +32,20 @@ namespace Microsoft.IIS.Administration.Files
         public object Get()
         {
             string parentUuid = Context.Request.Query[Defines.PARENT_IDENTIFIER];
-            string name = Context.Request.Query["name"];
-            string physicalPath = Context.Request.Query["physical_path"];
+            string name = Context.Request.Query[nameKey];
+            string physicalPath = Context.Request.Query[physicalPathKey];
 
             var files = new List<object>();
             Fields fields = Context.Request.GetFields();
 
             if (!string.IsNullOrEmpty(name)) {
                 if (name.IndexOfAny(PathUtil.InvalidFileNameChars) != -1) {
-                    throw new ApiArgumentException("name");
+                    throw new ApiArgumentException(nameKey);
                 }
+            }
+
+            if (physicalPath != null) {
+                return GetByPhysicalPath(physicalPath, fields);
             }
 
             if (parentUuid != null) {
@@ -49,9 +56,6 @@ namespace Microsoft.IIS.Administration.Files
                 }
 
                 FillWithChildren(files, fileId.PhysicalPath, $"*{name}*", fields);
-            }
-            else if (!string.IsNullOrEmpty(physicalPath)) {
-                FillFromPhysicalPath(files, physicalPath, fields);
             }
             else {
                 FillFromLocations(files, name, fields);
@@ -202,7 +206,42 @@ namespace Microsoft.IIS.Administration.Files
             return new NoContentResult();
         }
 
-        
+
+
+        private object GetByPhysicalPath(string physicalPath, Fields fields)
+        {
+            if (string.IsNullOrEmpty(physicalPath)) {
+                throw new ApiArgumentException(physicalPathKey);
+            }
+
+            physicalPath = System.Environment.ExpandEnvironmentVariables(physicalPath);
+
+            if (!PathUtil.IsPathRooted(physicalPath)) {
+                throw new ApiArgumentException(physicalPathKey);
+            }
+
+            try {
+                physicalPath = PathUtil.GetFullPath(physicalPath);
+            }
+            catch (ArgumentException) {
+                throw new ApiArgumentException(physicalPathKey);
+            }
+
+            object model = null;
+
+            if (_provider.FileExists(physicalPath)) {
+                model = FilesHelper.FileToJsonModel(_provider.GetFileInfo(physicalPath), fields);
+            }
+            else if (_provider.DirectoryExists(physicalPath)) {
+                model = FilesHelper.DirectoryToJsonModel(_provider.GetDirectoryInfo(physicalPath), fields);
+            }
+
+            if (model == null) {
+                return NotFound();
+            }
+
+            return model;
+        }
 
         private void FillWithChildren(List<object> models, string physicalPath, string nameFilter, Fields fields)
         {
@@ -216,16 +255,6 @@ namespace Microsoft.IIS.Administration.Files
             // Files
             foreach (var f in _provider.GetFiles(physicalPath, nameFilter)) {
                 models.Add(FilesHelper.FileToJsonModelRef(f, fields));
-            }
-        }
-
-        private void FillFromPhysicalPath(List<object> models, string physicalPath, Fields fields)
-        {
-            if (_provider.FileExists(physicalPath)) {
-                models.Add(FilesHelper.FileToJsonModelRef(_provider.GetFileInfo(physicalPath), fields));
-            }
-            else if (_provider.DirectoryExists(physicalPath)) {
-                models.Add(FilesHelper.DirectoryToJsonModelRef(_provider.GetDirectoryInfo(physicalPath), fields));
             }
         }
 
