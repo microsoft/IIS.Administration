@@ -9,6 +9,7 @@ namespace Microsoft.IIS.Administration.Files
     using Core.Http;
     using Core.Utils;
     using Newtonsoft.Json.Linq;
+    using System.Collections.Concurrent;
     using System.IO;
     using System.Net;
     using System.Threading.Tasks;
@@ -16,13 +17,13 @@ namespace Microsoft.IIS.Administration.Files
     public class CopyController : ApiBaseController
     {
         private IFileProvider _fileService;
+        private static ConcurrentDictionary<string, Copy> _copies = new ConcurrentDictionary<string, Copy>();
 
         public CopyController()
         {
             _fileService = FileProvider.Default;
         }
-
-        [HttpGet]
+        
         [HttpHead]
         [HttpPatch]
         [HttpPut]
@@ -33,13 +34,13 @@ namespace Microsoft.IIS.Administration.Files
 
         [HttpPost]
         [Audit]
-        public async Task<object> Post([FromBody] dynamic model)
+        public object Post([FromBody] dynamic model)
         {
             string name;
             FileId fileId, parentId;
 
             EnsurePostModelValid(model, out name, out fileId, out parentId);
-
+            
             if (!_fileService.FileExists(fileId.PhysicalPath)) {
                 throw new NotFoundException("file");
             }
@@ -50,17 +51,68 @@ namespace Microsoft.IIS.Administration.Files
             var src = new FileInfo(fileId.PhysicalPath);
             var dest = new DirectoryInfo(parentId.PhysicalPath);
 
-            string destPath = name == null ? Path.Combine(dest.FullName, src.Name) : Path.Combine(dest.FullName, name);
+            string destPath = Path.Combine(dest.FullName, name == null ? src.Name : name);
 
-            await _fileService.CopyFile(src.FullName, destPath);
+            Copy copy = InitiateCopy(src.FullName, destPath);
 
-            var newFileId = FileId.FromPhysicalPath(destPath);
-            FileInfo newFile = _fileService.GetFileInfo(destPath);
+            Context.Response.StatusCode = (int)HttpStatusCode.Accepted;
+            Context.Response.Headers.Add("Location", CopyHelper.GetLocation(copy.Id));
 
-            return Created(FilesHelper.GetLocation(newFileId.Uuid), FilesHelper.FileToJsonModel(newFile));
+            return CopyHelper.ToJsonModel(copy);
+        }
+
+        [HttpGet]
+        public object Get(string id)
+        {
+            Copy copy = null;
+
+            if (!_copies.TryGetValue(id, out copy)) {
+                return NotFound();
+            }
+
+            return CopyHelper.ToJsonModel(copy);
         }
 
 
+
+        private Copy InitiateCopy(string source, string destination)
+        {
+            string temp = PathUtil.GetTempFilePath(destination);
+
+            var task = SafeCopy(source, destination, temp);
+
+            Copy copy = new Copy(task, source, destination, temp);
+
+            _copies.TryAdd(copy.Id, copy);
+
+            var continuation = task.ContinueWith(t => _copies.TryRemove(copy.Id, out copy));
+
+            return copy;
+        }
+
+        private async Task SafeCopy(string source, string dest, string temp)
+        {
+            string swapPath = null;
+
+            try {
+                await _fileService.CopyFile(source, temp);
+
+                if (_fileService.FileExists(dest)) {
+                    swapPath = PathUtil.GetTempFilePath(dest);
+                    _fileService.MoveFile(dest, swapPath);
+                }
+
+                _fileService.MoveFile(temp, dest);
+            }
+            finally {
+                if (_fileService.FileExists(temp)) {
+                    _fileService.DeleteFile(temp);
+                }
+                if (swapPath != null && _fileService.FileExists(swapPath) && _fileService.FileExists(dest)) {
+                    _fileService.DeleteFile(swapPath);
+                }
+            }
+        }
 
         private void EnsurePostModelValid(dynamic model, out string name, out FileId fileId, out FileId parentId)
         {

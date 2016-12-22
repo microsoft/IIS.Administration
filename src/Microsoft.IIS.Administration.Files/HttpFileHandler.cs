@@ -389,46 +389,18 @@ namespace Microsoft.IIS.Administration.Files
 
         private async Task<string> CreateTempCopy(string path)
         {
-            string tempFilePath = GetTempFilePath(path);
-            await _service.CopyFile(path, tempFilePath, true);
+            string tempFilePath = PathUtil.GetTempFilePath(path);
+            await _service.CopyFile(path, tempFilePath);
 
             return tempFilePath;
         }
 
         private void SwapFiles(string pathA, string pathB)
         {
-            var fileATempPath = GetTempFilePath(pathA);
+            var fileATempPath = PathUtil.GetTempFilePath(pathA);
             _service.MoveFile(pathA, fileATempPath);
             _service.MoveFile(pathB, pathA);
             _service.MoveFile(fileATempPath, pathB);
-        }
-
-        private string GetTempFilePath(string path)
-        {
-            string tempFileName = null;
-            var parts = path.Split(PathUtil.SEPARATORS);
-            var fileName = parts[parts.Length - 1];
-
-            parts[parts.Length - 1] = string.Empty;
-            var parentPath = string.Join(Path.DirectorySeparatorChar.ToString(), parts);
-
-            do {
-                tempFileName = GetTempName(fileName);
-            }
-            while (_service.FileExists(Path.Combine(parentPath, tempFileName)));
-
-            parts[parts.Length - 1] = tempFileName;
-            return string.Join(Path.DirectorySeparatorChar.ToString(), parts);
-        }
-
-        private static string GetTempName(string name)
-        {
-            var bytes = new byte[4];
-
-            using (var rng = RandomNumberGenerator.Create()) {
-                rng.GetBytes(bytes);
-                return Base64.Encode(bytes) + name;
-            }
         }
     }
 }

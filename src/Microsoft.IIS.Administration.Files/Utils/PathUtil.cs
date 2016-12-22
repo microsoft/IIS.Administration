@@ -4,8 +4,10 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
+    using Core.Utils;
     using System;
     using System.IO;
+    using System.Security.Cryptography;
 
     public static class PathUtil
     {
@@ -83,6 +85,30 @@ namespace Microsoft.IIS.Administration.Files
             return true;
         }
 
+        /// <summary>
+        /// Given a file path, returns a path in the same directory with a temporary name.
+        /// </summary>
+        public static string GetTempFilePath(string path)
+        {
+            if (string.IsNullOrEmpty(path) || !IsFullPath(path)) {
+                throw new ArgumentException(nameof(path));
+            }
+
+            string tempPath = null;
+            DirectoryInfo info = new DirectoryInfo(path);
+
+            if (info.Parent == null) {
+                throw new ArgumentException("path", "Parent cannot be null.");
+            }
+
+            do {
+                tempPath = Path.Combine(info.Parent.FullName, GetTempName(info.Name));
+            }
+            while (File.Exists(tempPath) || Directory.Exists(tempPath));
+
+            return tempPath;
+        }
+
         public static string RemoveLastSegment(string path)
         {
             if (path == null) {
@@ -103,6 +129,19 @@ namespace Microsoft.IIS.Administration.Files
             return !string.IsNullOrEmpty(name) &&
                         name.IndexOfAny(InvalidFileNameChars) == -1 &&
                         !name.EndsWith(".");
+        }
+
+
+
+
+        private static string GetTempName(string name)
+        {
+            var bytes = new byte[4];
+
+            using (var rng = RandomNumberGenerator.Create()) {
+                rng.GetBytes(bytes);
+                return Base64.Encode(bytes) + name;
+            }
         }
     }
 }

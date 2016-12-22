@@ -53,7 +53,7 @@ namespace Microsoft.IIS.Administration.Files
             return PerformIO(p => new FileInfo(p), path);
         }
 
-        public FileVersionInfo GetFileVersionInfo(string path)
+        public FileVersionInfo GetFileVersion(string path)
         {
             this.EnsureAccess(path, FileAccess.Read);
 
@@ -78,51 +78,70 @@ namespace Microsoft.IIS.Administration.Files
         {
             this.EnsureAccess(path, FileAccess.Read);
 
-            return PerformIO(p => {
-                return new DirectoryInfo(p).GetFiles(searchPattern);
-            }, path);
+            return PerformIO(p => new DirectoryInfo(p).GetFiles(searchPattern), path);
         }
 
         public IEnumerable<DirectoryInfo> GetDirectories(string path, string searchPattern)
         {
             this.EnsureAccess(path, FileAccess.Read);
 
-            return PerformIO(p => {
-                return new DirectoryInfo(p).GetDirectories(searchPattern);
-            }, path);
+            return PerformIO(p => new DirectoryInfo(p).GetDirectories(searchPattern), path);
         }
 
         public IEnumerable<FileSystemInfo> GetChildren(string path, string searchPattern)
         {
             this.EnsureAccess(path, FileAccess.Read);
 
-            return PerformIO(p => {
-                return new DirectoryInfo(p).GetFileSystemInfos(searchPattern);
-            }, path);
+            return PerformIO(p => new DirectoryInfo(p).GetFileSystemInfos(searchPattern), path);
         }
 
-        public async Task CopyFile(string sourcePath, string destPath, bool copyMetadata = false)
+        public async Task CopyFile(string sourcePath, string destPath)
         {
             this.EnsureAccess(sourcePath, FileAccess.Read);
             this.EnsureAccess(destPath, FileAccess.ReadWrite);
 
-            await PerformIO(async p => {
+            await CopyFileInternal(sourcePath, destPath);
+        }
 
-                using (var srcStream = GetFile(sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-                    using (var destStream = GetFile(destPath, FileMode.Create, FileAccess.Write, FileShare.Read)) {
-                        await srcStream.CopyToAsync(destStream);
-                    }
+        public async Task CopyDirectory(string sourcePath, string destPath)
+        {
+            var source = GetDirectoryInfo(sourcePath);
+            var dest = GetDirectoryInfo(destPath);
+
+            if (!source.Exists) {
+                throw new DirectoryNotFoundException(source.FullName);
+            }
+            if (!dest.Exists) {
+                throw new DirectoryNotFoundException(dest.FullName);
+            }
+
+            var copyDest = Path.Combine(dest.FullName, source.Name);
+
+            if (!DirectoryExists(copyDest)) {
+                CreateDirectory(copyDest);
+            }
+
+            var tasks = new List<Task>();
+            var children = source.EnumerateDirectories("*", SearchOption.AllDirectories);
+
+            foreach (DirectoryInfo dir in children) {
+                var relative = dir.FullName.Substring(source.FullName.Length).TrimStart(PathUtil.SEPARATORS);
+                var destDirPath = Path.Combine(copyDest, relative);
+
+                if (!DirectoryExists(destDirPath)) {
+                    CreateDirectory(destDirPath);
                 }
-
-                if (copyMetadata) {
-                    var sourceFileInfo = new FileInfo(sourcePath);
-                    var destFileInfo = new FileInfo(destPath);
-
-                    destFileInfo.CreationTime = sourceFileInfo.CreationTime;
-                    destFileInfo.CreationTimeUtc = sourceFileInfo.CreationTimeUtc;
+                
+                foreach (FileInfo file in dir.EnumerateFiles()) {
+                    tasks.Add(CopyFileInternal(file.FullName, Path.Combine(destDirPath, file.Name)));
                 }
+            }
 
-            }, sourcePath);
+            foreach (var file in source.EnumerateFiles()) {
+                tasks.Add(CopyFileInternal(file.FullName, Path.Combine(copyDest, file.Name)));
+            }
+
+            await Task.WhenAll(tasks);
         }
 
         public void MoveFile(string sourcePath, string destPath)
@@ -219,6 +238,22 @@ namespace Microsoft.IIS.Administration.Files
             catch (UnauthorizedAccessException) {
                 throw new UnauthorizedArgumentException(path);
             }
+        }
+
+        private async Task CopyFileInternal(string sourcePath, string destPath)
+        {
+            using (var srcStream = PerformIO(p => new FileStream(p, FileMode.Open, FileAccess.Read, FileShare.Read), sourcePath)) {
+                using (var destStream = PerformIO(p => new FileStream(p, FileMode.Create, FileAccess.Write, FileShare.Read), destPath)) {
+                    await srcStream.CopyToAsync(destStream);
+                }
+            }
+
+            var sourceFileInfo = new FileInfo(sourcePath);
+            var destFileInfo = new FileInfo(destPath);
+
+            destFileInfo.LastAccessTimeUtc = sourceFileInfo.LastAccessTimeUtc;
+            destFileInfo.LastWriteTimeUtc = sourceFileInfo.LastWriteTimeUtc;
+            destFileInfo.CreationTimeUtc = sourceFileInfo.CreationTimeUtc;
         }
     }
 

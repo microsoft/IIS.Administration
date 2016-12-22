@@ -91,6 +91,9 @@ namespace Microsoft.IIS.Administration.Files
 
             router.MapWebApiRoute(Defines.CopyResource.Guid, $"{Defines.COPY_PATH}", new { controller = "copy" });
 
+            // Self
+            hal.ProvideLink(Defines.CopyResource.Guid, "self", copy => new { href = CopyHelper.GetLocation(copy.id) });
+
             hal.ProvideLink(Defines.FilesResource.Guid, Defines.CopyResource.Name, file => new { href = $"/{Defines.COPY_PATH}" });
         }
     }

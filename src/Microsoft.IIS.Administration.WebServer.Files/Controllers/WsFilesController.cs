@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Net;
     using Web.Administration;
 
     public class WsFilesController : ApiBaseController
@@ -22,6 +23,15 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         public WsFilesController()
         {
             _fileService = FileProvider.Default;
+        }
+
+        [HttpDelete]
+        [HttpPatch]
+        [HttpPost]
+        [HttpPut]
+        public IActionResult NotAllowed()
+        {
+            return new StatusCodeResult((int)HttpStatusCode.MethodNotAllowed);
         }
 
         [HttpGet]

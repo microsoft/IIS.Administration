@@ -19,7 +19,7 @@ namespace Microsoft.IIS.Administration.Files
 
         FileInfo GetFileInfo(string path);
 
-        FileVersionInfo GetFileVersionInfo(string path);
+        FileVersionInfo GetFileVersion(string path);
 
         DirectoryInfo GetDirectoryInfo(string path);
 
@@ -31,7 +31,7 @@ namespace Microsoft.IIS.Administration.Files
 
         IEnumerable<FileSystemInfo> GetChildren(string path, string searchPattern);
 
-        Task CopyFile(string sourcePath, string destPath, bool copyMetadata = false);
+        Task CopyFile(string sourcePath, string destPath);
 
         void MoveFile(string sourcePath, string destPath);
 
