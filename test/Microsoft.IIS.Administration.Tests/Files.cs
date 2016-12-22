@@ -309,7 +309,7 @@ namespace Microsoft.IIS.Administration.Tests
                     Assert.NotNull(copyInfo);
 
                     var copyParent = new DirectoryInfo(physicalPath).Parent.FullName;
-                    var copyPhysicalPath = Environment.ExpandEnvironmentVariables(copyInfo.Value<string>("physical_path"));
+                    var copyPhysicalPath = Environment.ExpandEnvironmentVariables(copyInfo["file"].Value<string>("physical_path"));
 
                     Assert.True(copyPhysicalPath.Equals(Path.Combine(copyParent, copyName)));
 
@@ -322,7 +322,7 @@ namespace Microsoft.IIS.Administration.Tests
                         Assert.True(client.Delete(Utils.Self(webFile.Value<JObject>("file_info"))));
                     }
                     if (copyInfo != null) {
-                        Assert.True(client.Delete(Utils.Self(copyInfo)));
+                        Assert.True(client.Delete(Utils.Self(copyInfo.Value<JObject>("file"))));
                     }
                 }
             }
