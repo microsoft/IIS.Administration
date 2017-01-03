@@ -108,7 +108,10 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // Virtual Directories
             foreach (var vdir in FilesHelper.GetVdirs(site, fileId.Path)) {
                 if (string.IsNullOrEmpty(nameFilter) || vdir.Name.IndexOf(nameFilter, StringComparison.OrdinalIgnoreCase) != -1) {
-                    files.Add(vdir.Path, FilesHelper.VdirToJsonModelRef(vdir, fields));
+
+                    if (!files.ContainsKey(vdir.Path)) {
+                        files.Add(vdir.Path, FilesHelper.VdirToJsonModelRef(vdir, fields));
+                    }
                 }
             }
 
@@ -126,7 +129,10 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // Files
             foreach (var f in _fileService.GetFiles(dirInfo.FullName, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
                 string p = Path.Combine(fileId.Path, f.Name);
-                files.Add(p, FilesHelper.FileToJsonModelRef(site, p, fields));
+
+                if (!files.ContainsKey(p)) {
+                    files.Add(p, FilesHelper.FileToJsonModelRef(site, p, fields));
+                }
             }
 
             // Set HTTP header for total count
