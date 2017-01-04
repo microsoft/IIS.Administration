@@ -6,8 +6,8 @@ namespace Microsoft.IIS.Administration.Files
 {
     using Core;
     using Core.Utils;
+    using Newtonsoft.Json.Linq;
     using System;
-    using System.Collections.Generic;
     using System.Dynamic;
     using System.IO;
     using System.Linq;
@@ -152,7 +152,7 @@ namespace Microsoft.IIS.Administration.Files
 
             dynamic obj = new ExpandoObject();
             var fileId = FileId.FromPhysicalPath(info.FullName);
-
+            
             //
             // name
             if (fields.Exists("name")) {
@@ -321,27 +321,65 @@ namespace Microsoft.IIS.Administration.Files
 
         internal static string UpdateFile(dynamic model, string physicalPath)
         {
+            string newParentPath = null;
+            string newName = null;
+            var file = new FileInfo(physicalPath);
+
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
 
-            string name = DynamicHelper.Value(model.name);
+            if (model.parent != null) {
+                if (!(model.parent is JObject)) {
+                    throw new ApiArgumentException("parent", ApiArgumentException.EXPECTED_OBJECT);
+                }
 
-            if (name != null) {
+                string parentUuid = DynamicHelper.Value(model.parent.id);
+
+                if (string.IsNullOrEmpty(parentUuid)) {
+                    throw new ApiArgumentException("parent.id");
+                }
+
+                string path = FileId.FromUuid(parentUuid).PhysicalPath;
+
+                if (!PathUtil.IsFullPath(path)) {
+                    throw new ApiArgumentException("parent.id");
+                }
+
+                if (!_service.DirectoryExists(path)) {
+                    throw new NotFoundException("parent");
+                }
+
+                newParentPath = path;
+            }
+
+            if (model.name != null) {
+                string name = DynamicHelper.Value(model.name);
 
                 if (!PathUtil.IsValidFileName(name)) {
                     throw new ApiArgumentException("name");
                 }
 
-                var newPath = Path.Combine(_service.GetParentPath(physicalPath), name);
+                newName = name;
+            }
 
-                if (_service.FileExists(newPath)) {
-                    throw new AlreadyExistsException("name");
+            if (newParentPath != null || newName != null) {
+
+                newParentPath = newParentPath == null ? file.Directory.FullName : newParentPath;
+                newName = newName == null ? file.Name : newName;
+
+                var newPath = Path.Combine(newParentPath, newName);
+
+                if (!newPath.Equals(physicalPath, StringComparison.OrdinalIgnoreCase)) {
+
+                    if (_service.FileExists(newPath) || _service.DirectoryExists(newPath)) {
+                        throw new AlreadyExistsException("name");
+                    }
+
+                    _service.MoveFile(physicalPath, newPath);
+
+                    physicalPath = newPath;
                 }
-
-                _service.MoveFile(physicalPath, newPath);
-
-                physicalPath = newPath;
             }
 
             return physicalPath;
@@ -349,23 +387,62 @@ namespace Microsoft.IIS.Administration.Files
 
         internal static string UpdateDirectory(dynamic model, string directoryPath)
         {
+            string newParentPath = null;
+            string newName = null;
+            var directory = new DirectoryInfo(directoryPath);
+
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
 
-            string name = DynamicHelper.Value(model.name);
+            if (model.parent != null) {
+                if (!(model.parent is JObject)) {
+                    throw new ApiArgumentException("parent", ApiArgumentException.EXPECTED_OBJECT);
+                }
 
-            if (name != null) {
+                if (directory.Parent == null) {
+                    throw new ApiArgumentException("parent");
+                }
+
+                string parentUuid = DynamicHelper.Value(model.parent.id);
+
+                if (string.IsNullOrEmpty(parentUuid)) {
+                    throw new ApiArgumentException("parent.id");
+                }
+
+                string path = FileId.FromUuid(parentUuid).PhysicalPath;
+
+                if (!PathUtil.IsFullPath(path)) {
+                    throw new ApiArgumentException("parent.id");
+                }
+
+                if (!_service.DirectoryExists(path)) {
+                    throw new NotFoundException("parent");
+                }
+
+                newParentPath = path;
+            }
+
+            if (model.name != null) {
+                string name = DynamicHelper.Value(model.name);
 
                 if (!PathUtil.IsValidFileName(name)) {
                     throw new ApiArgumentException("name");
                 }
 
-                if (_service.GetParentPath(directoryPath) != null) {
+                newName = name;
+            }
 
-                    var newPath = Path.Combine(_service.GetParentPath(directoryPath), name);
+            if (newParentPath != null || newName != null) {
 
-                    if (_service.DirectoryExists(newPath)) {
+                newParentPath = newParentPath == null ? directory.Parent.FullName : newParentPath;
+                newName = newName == null ? directory.Name : newName;
+
+                var newPath = Path.Combine(newParentPath, newName);
+
+                if (!newPath.Equals(directoryPath, StringComparison.OrdinalIgnoreCase)) {
+
+                    if (_service.FileExists(newPath) || _service.DirectoryExists(newPath)) {
                         throw new AlreadyExistsException("name");
                     }
 

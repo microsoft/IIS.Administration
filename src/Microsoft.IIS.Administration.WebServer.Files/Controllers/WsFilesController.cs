@@ -120,7 +120,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             foreach (var d in _fileService.GetDirectories(dirInfo.FullName, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
                 string p = Path.Combine(fileId.Path, d.Name);
 
-                if (!files.ContainsKey(p)) {
+                if (!files.ContainsKey(p) && !d.Attributes.HasFlag(FileAttributes.Hidden) && !d.Attributes.HasFlag(FileAttributes.System)) {
                     files.Add(p, FilesHelper.DirectoryToJsonModelRef(site, p, fields));
                 }
             }
@@ -130,7 +130,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             foreach (var f in _fileService.GetFiles(dirInfo.FullName, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
                 string p = Path.Combine(fileId.Path, f.Name);
 
-                if (!files.ContainsKey(p)) {
+                if (!files.ContainsKey(p) && !f.Attributes.HasFlag(FileAttributes.Hidden) && !f.Attributes.HasFlag(FileAttributes.System)) {
                     files.Add(p, FilesHelper.FileToJsonModelRef(site, p, fields));
                 }
             }

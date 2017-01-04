@@ -248,13 +248,17 @@ namespace Microsoft.IIS.Administration.Files
             //
             // Directories
             foreach (var d in _provider.GetDirectories(physicalPath, nameFilter)) {
-                models.Add(FilesHelper.DirectoryToJsonModelRef(d, fields));
+                if (!d.Attributes.HasFlag(FileAttributes.Hidden) && !d.Attributes.HasFlag(FileAttributes.System)) {
+                    models.Add(FilesHelper.DirectoryToJsonModelRef(d, fields));
+                }
             }
 
             //
             // Files
             foreach (var f in _provider.GetFiles(physicalPath, nameFilter)) {
-                models.Add(FilesHelper.FileToJsonModelRef(f, fields));
+                if (!f.Attributes.HasFlag(FileAttributes.Hidden) && !f.Attributes.HasFlag(FileAttributes.System)) {
+                    models.Add(FilesHelper.FileToJsonModelRef(f, fields));
+                }
             }
         }
 

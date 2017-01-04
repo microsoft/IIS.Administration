@@ -5,7 +5,6 @@
 namespace Microsoft.IIS.Administration.WebServer.Files
 {
     using Administration.Files;
-    using Core;
     using Core.Utils;
     using Sites;
     using System;
@@ -68,6 +67,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             var physicalPath = GetPhysicalPath(site, path);
+            DirectoryInfo directory = null;
 
             path = path.Replace('\\', '/');
 
@@ -96,6 +96,20 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // path
             if (fields.Exists("path")) {
                 obj.path = path;
+            }
+
+            //
+            // created
+            if (fields.Exists("created")) {
+                directory = directory ?? new DirectoryInfo(physicalPath);
+                obj.created = directory.Exists ? (object)directory.CreationTimeUtc : null;
+            }
+
+            //
+            // last_modified
+            if (fields.Exists("last_modified")) {
+                directory = directory ?? new DirectoryInfo(physicalPath);
+                obj.last_modified = directory.Exists ? (object)directory.LastWriteTimeUtc : null;
             }
 
             //
@@ -140,7 +154,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             path = path.Replace('\\', '/');
-            var physicalPath = GetPhysicalPath(site, path);
+            FileInfo file = new FileInfo(GetPhysicalPath(site, path));
 
             dynamic obj = new ExpandoObject();
             var FileId = new FileId(site.Id, path);
@@ -148,7 +162,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // name
             if (fields.Exists("name")) {
-                obj.name = new FileInfo(physicalPath).Name;
+                obj.name = file.Name;
             }
 
             //
@@ -170,6 +184,24 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             //
+            // size
+            if (fields.Exists("size")) {
+                obj.size = file.Exists ? file.Length : 0;
+            }
+
+            //
+            // created
+            if (fields.Exists("created")) {
+                obj.created = file.Exists ? (object)file.CreationTimeUtc : null;
+            }
+
+            //
+            // last_modified
+            if (fields.Exists("last_modified")) {
+                obj.last_modified = file.Exists ? (object)file.LastWriteTimeUtc : null;
+            }
+
+            //
             // parent
             if (fields.Exists("parent")) {
                 obj.parent = GetParentJsonModelRef(site, path, fields.Filter("parent"));
@@ -184,7 +216,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // file_info
             if (fields.Exists("file_info")) {
-                obj.file_info = Administration.Files.FilesHelper.ToJsonModelRef(physicalPath, fields.Filter("file_info"));
+                obj.file_info = Administration.Files.FilesHelper.ToJsonModelRef(file.FullName, fields.Filter("file_info"));
             }
 
 
@@ -212,6 +244,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             var physicalPath = GetPhysicalPath(vdir.Site, vdir.Path);
+            DirectoryInfo directory = null;
 
             dynamic obj = new ExpandoObject();
             var FileId = new FileId(vdir.Site.Id, vdir.Path);
@@ -238,6 +271,20 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // path
             if (fields.Exists("path")) {
                 obj.path = vdir.Path.Replace('\\', '/');
+            }
+
+            //
+            // created
+            if (fields.Exists("created")) {
+                directory = directory ?? new DirectoryInfo(physicalPath);
+                obj.created = directory.Exists ? (object)directory.CreationTimeUtc : null;
+            }
+
+            //
+            // last_modified
+            if (fields.Exists("last_modified")) {
+                directory = directory ?? new DirectoryInfo(physicalPath);
+                obj.last_modified = directory.Exists ? (object)directory.LastWriteTimeUtc : null;
             }
 
             //
