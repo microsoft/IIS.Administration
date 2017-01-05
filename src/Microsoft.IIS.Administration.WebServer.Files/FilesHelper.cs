@@ -68,6 +68,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             var physicalPath = GetPhysicalPath(site, path);
             DirectoryInfo directory = null;
+            bool? exists = null;
 
             path = path.Replace('\\', '/');
 
@@ -102,14 +103,16 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // created
             if (fields.Exists("created")) {
                 directory = directory ?? new DirectoryInfo(physicalPath);
-                obj.created = directory.Exists ? (object)directory.CreationTimeUtc : null;
+                exists = exists ?? directory.Exists;
+                obj.created = exists.Value ? (object)directory.CreationTimeUtc : null;
             }
 
             //
             // last_modified
             if (fields.Exists("last_modified")) {
                 directory = directory ?? new DirectoryInfo(physicalPath);
-                obj.last_modified = directory.Exists ? (object)directory.LastWriteTimeUtc : null;
+                exists = exists ?? directory.Exists;
+                obj.last_modified = exists.Value ? (object)directory.LastWriteTimeUtc : null;
             }
 
             //
@@ -155,6 +158,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             path = path.Replace('\\', '/');
             FileInfo file = new FileInfo(GetPhysicalPath(site, path));
+            bool? exists = null;
 
             dynamic obj = new ExpandoObject();
             var FileId = new FileId(site.Id, path);
@@ -186,19 +190,22 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // size
             if (fields.Exists("size")) {
-                obj.size = file.Exists ? file.Length : 0;
+                exists = exists ?? file.Exists;
+                obj.size = exists.Value ? file.Length : 0;
             }
 
             //
             // created
             if (fields.Exists("created")) {
-                obj.created = file.Exists ? (object)file.CreationTimeUtc : null;
+                exists = exists ?? file.Exists;
+                obj.created = exists.Value ? (object)file.CreationTimeUtc : null;
             }
 
             //
             // last_modified
             if (fields.Exists("last_modified")) {
-                obj.last_modified = file.Exists ? (object)file.LastWriteTimeUtc : null;
+                exists = exists ?? file.Exists;
+                obj.last_modified = exists.Value ? (object)file.LastWriteTimeUtc : null;
             }
 
             //
@@ -245,6 +252,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             var physicalPath = GetPhysicalPath(vdir.Site, vdir.Path);
             DirectoryInfo directory = null;
+            bool? exists = null;
 
             dynamic obj = new ExpandoObject();
             var FileId = new FileId(vdir.Site.Id, vdir.Path);
@@ -277,14 +285,16 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // created
             if (fields.Exists("created")) {
                 directory = directory ?? new DirectoryInfo(physicalPath);
-                obj.created = directory.Exists ? (object)directory.CreationTimeUtc : null;
+                exists = exists ?? directory.Exists;
+                obj.created = exists.Value ? (object)directory.CreationTimeUtc : null;
             }
 
             //
             // last_modified
             if (fields.Exists("last_modified")) {
                 directory = directory ?? new DirectoryInfo(physicalPath);
-                obj.last_modified = directory.Exists ? (object)directory.LastWriteTimeUtc : null;
+                exists = exists ?? directory.Exists;
+                obj.last_modified = exists.Value ? (object)directory.LastWriteTimeUtc : null;
             }
 
             //

@@ -95,6 +95,21 @@ namespace Microsoft.IIS.Administration.Files
             return PerformIO(p => new DirectoryInfo(p).GetFileSystemInfos(searchPattern), path);
         }
 
+        public void SetCreationTime(string path, DateTime creationTime)
+        {
+            Directory.SetCreationTime(path, creationTime);
+        }
+
+        public void SetLastAccessTime(string path, DateTime lastAccessTime)
+        {
+            Directory.SetLastAccessTime(path, lastAccessTime);
+        }
+
+        public void SetLastWriteTime(string path, DateTime lastWriteTime)
+        {
+            Directory.SetLastWriteTime(path, lastWriteTime);
+        }
+
         public async Task CopyFile(string sourcePath, string destPath)
         {
             this.EnsureAccess(sourcePath, FileAccess.Read);

@@ -4,6 +4,7 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -30,6 +31,12 @@ namespace Microsoft.IIS.Administration.Files
         IEnumerable<DirectoryInfo> GetDirectories(string path, string searchPattern);
 
         IEnumerable<FileSystemInfo> GetChildren(string path, string searchPattern);
+
+        void SetCreationTime(string path, DateTime creationTime);
+
+        void SetLastAccessTime(string path, DateTime lastAccessTime);
+
+        void SetLastWriteTime(string path, DateTime lastWriteTime);
 
         Task CopyFile(string sourcePath, string destPath);
 

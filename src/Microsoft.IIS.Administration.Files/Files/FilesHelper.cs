@@ -66,6 +66,7 @@ namespace Microsoft.IIS.Administration.Files
 
             dynamic obj = new ExpandoObject();
             var fileId = FileId.FromPhysicalPath(info.FullName);
+            bool? exists = null;
 
             //
             // name
@@ -94,19 +95,29 @@ namespace Microsoft.IIS.Administration.Files
             //
             // exists
             if (fields.Exists("exists")) {
-                obj.exists = info.Exists;
+                exists = exists ?? info.Exists;
+                obj.exists = exists.Value;
             }
 
             //
             // created
             if (fields.Exists("created")) {
-                obj.created = info.Exists ? (object)info.CreationTimeUtc : null;
+                exists = exists ?? info.Exists;
+                obj.created = exists.Value ? (object)info.CreationTimeUtc : null;
             }
 
             //
             // last_modified
             if (fields.Exists("last_modified")) {
-                obj.last_modified = info.Exists ? (object)info.LastWriteTimeUtc : null;
+                exists = exists ?? info.Exists;
+                obj.last_modified = exists.Value ? (object)info.LastWriteTimeUtc : null;
+            }
+
+            //
+            // last_access
+            if (fields.Exists("last_access")) {
+                exists = exists ?? info.Exists;
+                obj.last_access = exists.Value ? (object)info.LastAccessTimeUtc : null;
             }
 
             //
@@ -114,8 +125,9 @@ namespace Microsoft.IIS.Administration.Files
             // We check for the 'full' flag to avoid unauthorized exception when referencing directories
             // Listing a directories content requires extra permissions
             if (fields.Exists("total_files") && full) {
+                exists = exists ?? info.Exists;
                 if (_service.IsAccessAllowed(info.FullName, FileAccess.Read)) {
-                    obj.total_files = info.Exists ? _service.GetFiles(info.FullName, "*").Count() + _service.GetDirectories(info.FullName, "*").Count() : 0;
+                    obj.total_files = exists.Value ? _service.GetFiles(info.FullName, "*").Count() + _service.GetDirectories(info.FullName, "*").Count() : 0;
                 }
             }
 
@@ -152,6 +164,7 @@ namespace Microsoft.IIS.Administration.Files
 
             dynamic obj = new ExpandoObject();
             var fileId = FileId.FromPhysicalPath(info.FullName);
+            bool? exists = null;
             
             //
             // name
@@ -180,31 +193,43 @@ namespace Microsoft.IIS.Administration.Files
             //
             // exists
             if (fields.Exists("exists")) {
-                obj.exists = info.Exists;
+                exists = exists ?? info.Exists;
+                obj.exists = exists.Value;
             }
 
             //
             // size
             if (fields.Exists("size")) {
-                obj.size = info.Exists ? info.Length : 0;
+                exists = exists ?? info.Exists;
+                obj.size = exists.Value ? info.Length : 0;
             }
 
             //
             // created
             if (fields.Exists("created")) {
-                obj.created = info.Exists ? (object)info.CreationTimeUtc : null;
+                exists = exists ?? info.Exists;
+                obj.created = exists.Value ? (object)info.CreationTimeUtc : null;
             }
 
             //
             // last_modified
             if (fields.Exists("last_modified")) {
-                obj.last_modified = info.Exists ? (object)info.LastWriteTimeUtc : null;
+                exists = exists ?? info.Exists;
+                obj.last_modified = exists.Value ? (object)info.LastWriteTimeUtc : null;
+            }
+
+            //
+            // last_access
+            if (fields.Exists("last_access")) {
+                exists = exists ?? info.Exists;
+                obj.last_access = exists.Value ? (object)info.LastAccessTimeUtc : null;
             }
 
             //
             // e_tag
             if (fields.Exists("e_tag")) {
-                obj.e_tag = info.Exists ? ETag.Create(info).Value : null;
+                exists = exists ?? info.Exists;
+                obj.e_tag = exists.Value ? ETag.Create(info).Value : null;
             }
 
             //
@@ -241,6 +266,7 @@ namespace Microsoft.IIS.Administration.Files
 
             dynamic obj = new ExpandoObject();
             var fileId = FileId.FromPhysicalPath(info.FullName);
+            bool? exists = null;
 
             //
             // name
@@ -269,19 +295,29 @@ namespace Microsoft.IIS.Administration.Files
             //
             // exists
             if (fields.Exists("exists")) {
-                obj.exists = info.Exists;
+                exists = exists ?? info.Exists;
+                obj.exists = exists.Value;
             }
 
             //
             // created
             if (fields.Exists("created")) {
-                obj.created = info.Exists ? (object)info.CreationTimeUtc : null;
+                exists = exists ?? info.Exists;
+                obj.created = exists.Value ? (object)info.CreationTimeUtc : null;
             }
 
             //
             // last_modified
             if (fields.Exists("last_modified")) {
-                obj.last_modified = info.Exists ? (object)info.LastWriteTimeUtc : null;
+                exists = exists ?? info.Exists;
+                obj.last_modified = exists.Value ? (object)info.LastWriteTimeUtc : null;
+            }
+
+            //
+            // last_access
+            if (fields.Exists("last_access")) {
+                exists = exists ?? info.Exists;
+                obj.last_access = exists.Value ? (object)info.LastAccessTimeUtc : null;
             }
 
             //
@@ -321,8 +357,13 @@ namespace Microsoft.IIS.Administration.Files
 
         internal static string UpdateFile(dynamic model, string physicalPath)
         {
-            string newParentPath = null;
             string newName = null;
+            string newParentPath = null;
+
+            DateTime? created = null;
+            DateTime? lastAccess = null;
+            DateTime? lastModified = null;
+
             var file = new FileInfo(physicalPath);
 
             if (model == null) {
@@ -363,6 +404,10 @@ namespace Microsoft.IIS.Administration.Files
                 newName = name;
             }
 
+            created = DynamicHelper.To<DateTime>(model.created);
+            lastAccess = DynamicHelper.To<DateTime>(model.last_access);
+            lastModified = DynamicHelper.To<DateTime>(model.last_modified);
+
             if (newParentPath != null || newName != null) {
 
                 newParentPath = newParentPath == null ? file.Directory.FullName : newParentPath;
@@ -382,13 +427,30 @@ namespace Microsoft.IIS.Administration.Files
                 }
             }
 
+            if (created.HasValue) {
+                _service.SetCreationTime(physicalPath, created.Value);
+            }
+
+            if (lastAccess.HasValue) {
+                _service.SetLastAccessTime(physicalPath, lastAccess.Value);
+            }
+
+            if (lastModified.HasValue) {
+                _service.SetLastWriteTime(physicalPath, lastModified.Value);
+            }
+
             return physicalPath;
         }
 
         internal static string UpdateDirectory(dynamic model, string directoryPath)
         {
-            string newParentPath = null;
             string newName = null;
+            string newParentPath = null;
+
+            DateTime? created = null;
+            DateTime? lastAccess = null;
+            DateTime? lastModified = null;
+
             var directory = new DirectoryInfo(directoryPath);
 
             if (model == null) {
@@ -433,6 +495,10 @@ namespace Microsoft.IIS.Administration.Files
                 newName = name;
             }
 
+            created = DynamicHelper.To<DateTime>(model.created);
+            lastAccess = DynamicHelper.To<DateTime>(model.last_access);
+            lastModified = DynamicHelper.To<DateTime>(model.last_modified);
+
             if (newParentPath != null || newName != null) {
 
                 newParentPath = newParentPath == null ? directory.Parent.FullName : newParentPath;
@@ -452,20 +518,24 @@ namespace Microsoft.IIS.Administration.Files
                 }
             }
 
+            if (created.HasValue) {
+                _service.SetCreationTime(directoryPath, created.Value);
+            }
+
+            if (lastAccess.HasValue) {
+                _service.SetLastAccessTime(directoryPath, lastAccess.Value);
+            }
+
+            if (lastModified.HasValue) {
+                _service.SetLastWriteTime(directoryPath, lastModified.Value);
+            }
+
             return directoryPath;
         }
 
         internal static FileType GetFileType(string physicalPath)
         {
-            if (Directory.Exists(physicalPath)) {
-                return FileType.Directory;
-            }
-
-            if (File.Exists(physicalPath)) {
-                return FileType.File;
-            }
-
-            throw new FileNotFoundException();
+            return File.GetAttributes(physicalPath).HasFlag(FileAttributes.Directory) ? FileType.Directory : FileType.File;
         }
 
         private static object GetParentJsonModelRef(string physicalPath, Fields fields = null)
@@ -475,13 +545,7 @@ namespace Microsoft.IIS.Administration.Files
             var parentPath = _service.GetParentPath(physicalPath);
 
             if (parentPath != null && _service.IsAccessAllowed(parentPath, FileAccess.Read)) {
-                try {
-                    ret = GetFileType(parentPath) == FileType.File ? FileToJsonModelRef(new FileInfo(parentPath), fields)
-                                                                        : DirectoryToJsonModelRef(new DirectoryInfo(parentPath), fields);
-                }
-                catch (FileNotFoundException) {
-                    ret = InfoToJsonModel(new FileInfo(parentPath), fields);
-                }
+                ret = DirectoryToJsonModelRef(new DirectoryInfo(parentPath), fields);
             }
 
             return ret;

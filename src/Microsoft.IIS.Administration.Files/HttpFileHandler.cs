@@ -7,13 +7,10 @@ namespace Microsoft.IIS.Administration.Files
     using AspNetCore.Http;
     using Core;
     using Core.Http;
-    using Core.Utils;
-    using Serilog;
     using System;
     using System.Globalization;
     using System.IO;
     using System.Net;
-    using System.Security.Cryptography;
     using System.Threading.Tasks;
 
     public class HttpFileHandler

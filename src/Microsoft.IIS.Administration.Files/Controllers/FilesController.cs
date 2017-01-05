@@ -128,26 +128,25 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ApiArgumentException("model.type");
             }
 
+            DateTime? created = DynamicHelper.To<DateTime>(model.created);
+            DateTime? lastAccess = DynamicHelper.To<DateTime>(model.last_access);
+            DateTime? lastModified = DynamicHelper.To<DateTime>(model.last_modified);
+
             var creationPath = Path.Combine(fileId.PhysicalPath, name);
 
             if (_provider.DirectoryExists(creationPath) || _provider.FileExists(creationPath)) {
                 throw new AlreadyExistsException("name");
             }
 
-            dynamic file = null;
+            FileSystemInfo info = fileType == FileType.File ? (FileSystemInfo) _provider.CreateFile(creationPath) : 
+                                                                               _provider.CreateDirectory(creationPath);
+            
+            info.CreationTime = created ?? info.CreationTime;
+            info.LastAccessTime = lastAccess ?? info.LastAccessTime;
+            info.LastWriteTime = lastModified ?? info.LastWriteTime;
 
-            //
-            // Create
-            if (fileType == FileType.File) {
-                var fInfo = _provider.CreateFile(creationPath);
-
-                file = FilesHelper.FileToJsonModel(fInfo);
-            }
-            else {
-                var dInfo = _provider.CreateDirectory(creationPath);
-
-                file = FilesHelper.DirectoryToJsonModel(dInfo);
-            }
+            dynamic file = fileType == FileType.File ? FilesHelper.FileToJsonModel((FileInfo) info) :
+                                               FilesHelper.DirectoryToJsonModel((DirectoryInfo) info);
 
             return Created(FilesHelper.GetLocation(file.id), file);
         }
