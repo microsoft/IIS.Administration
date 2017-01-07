@@ -15,5 +15,10 @@ namespace Microsoft.IIS.Administration.Core.Http {
             const string i = "inline", a = "attachment";
             headers[HeaderNames.ContentDisposition] = $"{(inline ? i : a)};filename={UrlEncoder.Default.Encode(fileName)}";
         }
+
+        public static void SetContentRange(this IHeaderDictionary headers, long start, long finish, long length)
+        {
+            headers[HeaderNames.ContentRange] = $"{start}-{finish}/{length}";
+        }
     }
 }

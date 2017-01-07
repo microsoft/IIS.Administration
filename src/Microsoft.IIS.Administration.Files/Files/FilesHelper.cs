@@ -146,7 +146,7 @@ namespace Microsoft.IIS.Administration.Files
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
         }
 
-        internal static object DirectoryToJsonModelRef(DirectoryInfo info, Fields fields = null)
+        public static object DirectoryToJsonModelRef(DirectoryInfo info, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
                 return DirectoryToJsonModel(info, RefFields, false);
@@ -248,7 +248,7 @@ namespace Microsoft.IIS.Administration.Files
             return Core.Environment.Hal.Apply(Defines.FilesResource.Guid, obj, full);
         }
 
-        internal static object FileToJsonModelRef(FileInfo info, Fields fields = null)
+        public static object FileToJsonModelRef(FileInfo info, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
                 return FileToJsonModel(info, RefFields, false);
@@ -336,7 +336,7 @@ namespace Microsoft.IIS.Administration.Files
             return Core.Environment.Hal.Apply(Defines.FilesResource.Guid, obj, full);
         }
 
-        internal static object InfoToJsonModelRef(FileSystemInfo info, Fields fields = null)
+        public static object InfoToJsonModelRef(FileSystemInfo info, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
                 return InfoToJsonModel(info, RefFields, false);

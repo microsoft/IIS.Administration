@@ -12,6 +12,7 @@ namespace Microsoft.IIS.Administration.Files
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Net;
 
     public class FilesController : ApiBaseController
@@ -27,46 +28,64 @@ namespace Microsoft.IIS.Administration.Files
             _options = options;
         }
 
-        [HttpGet]
+        [HttpHead]
         [ResourceInfo(Name = Defines.FilesName)]
-        public object Get()
+        public object Head()
         {
-            string parentUuid = Context.Request.Query[Defines.PARENT_IDENTIFIER];
-            string name = Context.Request.Query[nameKey];
-            string physicalPath = Context.Request.Query[physicalPathKey];
+            Fields fields;
+            FileId parentId;
+            string nameFilter, physicalPath;
 
-            var files = new List<object>();
-            Fields fields = Context.Request.GetFields();
-
-            if (!string.IsNullOrEmpty(name)) {
-                if (name.IndexOfAny(PathUtil.InvalidFileNameChars) != -1) {
-                    throw new ApiArgumentException(nameKey);
-                }
-            }
+            PreGet(out parentId, out nameFilter, out physicalPath, out fields);
 
             if (physicalPath != null) {
                 return GetByPhysicalPath(physicalPath, fields);
             }
 
-            if (parentUuid != null) {
-                var fileId = FileId.FromUuid(parentUuid);
-
-                if (!_provider.DirectoryExists(fileId.PhysicalPath)) {
-                    return NotFound();
-                }
-
-                FillWithChildren(files, fileId.PhysicalPath, $"*{name}*", fields);
+            if (parentId != null && !_provider.DirectoryExists(parentId.PhysicalPath)) {
+                return NotFound();
             }
-            else {
-                FillFromLocations(files, name, fields);
+
+            IEnumerable<FileSystemInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, $"*{nameFilter}*") : GetFromLocations(nameFilter);
+
+            // Set HTTP header for total count
+            this.Context.Response.SetItemsCount(children.Count());
+
+            return Ok();
+        }
+
+
+        [HttpGet]
+        [ResourceInfo(Name = Defines.FilesName)]
+        public object Get()
+        {
+            Fields fields;
+            FileId parentId;
+            string nameFilter, physicalPath;
+
+            PreGet(out parentId, out nameFilter, out physicalPath, out fields);
+
+            if (physicalPath != null) {
+                return GetByPhysicalPath(physicalPath, fields);
+            }
+            
+            if (parentId != null && !_provider.DirectoryExists(parentId.PhysicalPath)) {
+                return NotFound();
+            }
+
+            var models = new List<object>();
+            IEnumerable<FileSystemInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, $"*{nameFilter}*") : GetFromLocations(nameFilter);
+
+            foreach (FileSystemInfo child in children) {
+                models.Add((child is FileInfo) ? FilesHelper.FileToJsonModelRef((FileInfo) child, fields) : FilesHelper.DirectoryToJsonModelRef((DirectoryInfo) child, fields));
             }
 
             // Set HTTP header for total count
-            this.Context.Response.SetItemsCount(files.Count);
+            this.Context.Response.SetItemsCount(models.Count);
 
             return new
             {
-                files = files
+                files = models
             };
         }
 
@@ -206,6 +225,22 @@ namespace Microsoft.IIS.Administration.Files
         }
 
 
+        
+        private void PreGet(out FileId parentId, out string name, out string physicalPath, out Fields fields)
+        {
+            string parentUuid = Context.Request.Query[Defines.PARENT_IDENTIFIER];
+            name = Context.Request.Query[nameKey];
+            physicalPath = Context.Request.Query[physicalPathKey];
+            fields = Context.Request.GetFields();
+
+            if (!string.IsNullOrEmpty(name)) {
+                if (name.IndexOfAny(PathUtil.InvalidFileNameChars) != -1) {
+                    throw new ApiArgumentException(nameKey);
+                }
+            }
+
+            parentId = string.IsNullOrEmpty(parentUuid) ? null : FileId.FromUuid(parentUuid);
+        }
 
         private object GetByPhysicalPath(string physicalPath, Fields fields)
         {
@@ -242,13 +277,15 @@ namespace Microsoft.IIS.Administration.Files
             return model;
         }
 
-        private void FillWithChildren(List<object> models, string physicalPath, string nameFilter, Fields fields)
+        private IEnumerable<FileSystemInfo> GetChildren(string physicalPath, string nameFilter)
         {
+            var infos = new List<FileSystemInfo>();
+
             //
             // Directories
             foreach (var d in _provider.GetDirectories(physicalPath, nameFilter)) {
                 if (!d.Attributes.HasFlag(FileAttributes.Hidden) && !d.Attributes.HasFlag(FileAttributes.System)) {
-                    models.Add(FilesHelper.DirectoryToJsonModelRef(d, fields));
+                    infos.Add(d);
                 }
             }
 
@@ -256,20 +293,26 @@ namespace Microsoft.IIS.Administration.Files
             // Files
             foreach (var f in _provider.GetFiles(physicalPath, nameFilter)) {
                 if (!f.Attributes.HasFlag(FileAttributes.Hidden) && !f.Attributes.HasFlag(FileAttributes.System)) {
-                    models.Add(FilesHelper.FileToJsonModelRef(f, fields));
+                    infos.Add(f);
                 }
             }
+
+            return infos;
         }
 
-        private void FillFromLocations(List<object> models, string nameFilter, Fields fields)
+        private IEnumerable<DirectoryInfo> GetFromLocations(string nameFilter)
         {
+            var dirs = new List<DirectoryInfo>();
+
             foreach (var location in _options.Locations) {
                 if (_provider.IsAccessAllowed(location.Path, FileAccess.Read) && 
                         (string.IsNullOrEmpty(nameFilter) || new FileInfo(location.Path).Name.IndexOf(nameFilter, StringComparison.OrdinalIgnoreCase) != -1)) {
 
-                    models.Add(FilesHelper.DirectoryToJsonModelRef(_provider.GetDirectoryInfo(location.Path), fields));
+                    dirs.Add(_provider.GetDirectoryInfo(location.Path));
                 }
             }
+
+            return dirs;
         }
 
         private object PatchFile(dynamic model, FileId fileId)
