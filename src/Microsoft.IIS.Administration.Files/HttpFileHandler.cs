@@ -79,28 +79,35 @@ namespace Microsoft.IIS.Administration.Files
             ValidateIfUnmodifiedSince();
             ValidateContentRange(out start, out finish, out outOf);
 
-            string path = await CreateTempCopy(_file.FullName);
+            //string path = await CreateTempCopy(_file.FullName);
+            string path = CreateTempFile(_file.FullName);
 
             try {
+                
                 using (var stream = _service.GetFile(path, FileMode.Open, FileAccess.Write, FileShare.Read)) {
+                    await _context.Request.Body.CopyToAsync(stream);
+                    stream.Flush();
+                }
 
-                    if (start >= 0) {
+                using (var real = _service.GetFile(_file.FullName, FileMode.Open, FileAccess.Write, FileShare.Read))
+                using (var temp = _service.GetFile(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+
+                    if (start >= 0)
+                    {
                         //
                         // Range request
 
                         int length = finish - start + 1;
-                        stream.Seek(start, SeekOrigin.Begin);
+                        real.Seek(start, SeekOrigin.Begin);
                     }
-                    
-                    await _context.Request.Body.CopyToAsync(stream);
+
+                    await temp.CopyToAsync(real);
 
                     //
                     // https://github.com/dotnet/corefx/blob/ec2a6190efa743ab600317f44d757433e44e859b/src/System.IO.FileSystem/src/System/IO/FileStream.Win32.cs#L1687
                     // Unlike Flush(), FlushAsync() always flushes to disk. This is intentional.
-                    stream.Flush();
+                    real.Flush();
                 }
-
-                SwapFiles(path, _file.FullName);
             }
             catch (IndexOutOfRangeException) {
                 throw new ApiArgumentException(HeaderNames.ContentLength);
@@ -384,12 +391,12 @@ namespace Microsoft.IIS.Administration.Files
             while (position <= finish);
         }
 
-        private async Task<string> CreateTempCopy(string path)
+        private string CreateTempFile(string path)
         {
             string tempFilePath = PathUtil.GetTempFilePath(path);
-            await _service.CopyFile(path, tempFilePath);
+            var info = _service.CreateFile(tempFilePath);
 
-            return tempFilePath;
+            return info.FullName;
         }
 
         private void SwapFiles(string pathA, string pathB)
