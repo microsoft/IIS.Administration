@@ -45,6 +45,7 @@ var httpClientHandler = new HttpClientHandler()
         Credentials = new NetworkCredential(userName, password, domain)
     };
 var apiClient = new HttpClient(httpClientHandler);
+
 // Set access token for every request
 apiClient.DefaultRequestHeaders.Add("Access-Token", "Bearer {token}");
 ```
@@ -54,7 +55,9 @@ apiClient.DefaultRequestHeaders.Add("Access-Token", "Bearer {token}");
 var res = apiClient.GetAsync("https://localhost:55539/api/webserver/websites").Result;
 if (res.StatusCode != HttpStatusCode.OK) {
   HandleError(res);
+  return;
 }
+
 JArray sites = JObject.Parse(res.Content.ReadAsStringAsync().Result).Value<JArray>("websites");
 ```
 
@@ -74,6 +77,8 @@ var newSite = new {
 var res = apiClient.PostAsJsonAsync<object>("https://localhost:55539/api/webserver/websites", newSite).Result;
 if (res.StatusCode != HttpStatusCode.Created) {
     HandleError(res);
+    return;
 }
+
 JObject site = JObject.Parse(res.Content.ReadAsStringAsync().Result);
 ```
