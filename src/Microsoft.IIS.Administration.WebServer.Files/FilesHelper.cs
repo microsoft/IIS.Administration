@@ -362,6 +362,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
         public static string GetPhysicalPath(Site site, string path)
         {
+            // If path != valid return null
+            // need to normalize path
+
             var app = ResolveApplication(site, path);
             var vdir = ResolveVdir(site, path);
             string physicalPath = null;
@@ -373,38 +376,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             return physicalPath;
-        }
-
-        internal static bool IsValidPath(string path)
-        {
-            if (path == null || !path.StartsWith("/")) {
-                return false;
-            }
-
-            var segs = path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-            foreach (var seg in segs) {
-                if (seg.IndexOfAny(PathUtil.InvalidFileNameChars) != -1) {
-                    return false;
-                }
-            }
-
-            string absolute = null;
-
-            try {
-                absolute = PathUtil.GetFullPath(path);
-            }
-            catch (ArgumentException) {
-                //
-                // Argument exception for invalid paths such as '////' (Invalid network share format)
-                return false;
-            }
-
-            var slashIndex = absolute.IndexOf(Path.DirectorySeparatorChar);
-            if (!absolute.Substring(slashIndex, absolute.Length - slashIndex).Equals(path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar))) {
-                return false;
-            }
-
-            return true;
         }
 
         internal static IEnumerable<Vdir> GetVdirs(Site site, string path)
@@ -435,6 +406,15 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 }
             }
             return vdirs;
+        }
+
+        internal static string NormalizeVirtualPath(string path)
+        {
+            if (string.IsNullOrEmpty(path) || path[0] != '/') {
+                throw new ArgumentException(nameof(path));
+            }
+
+            return new Uri("file://" + path).LocalPath;
         }
 
 

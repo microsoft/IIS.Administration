@@ -44,7 +44,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             FileId parentId;
             string nameFilter, pathFilter, physicalPath;
 
-            PreGet(out parentId, out site, out nameFilter, out pathFilter);
+            Parse(out parentId, out site, out nameFilter, out pathFilter);
 
             if (pathFilter != null) {
                 return GetByPath(pathFilter == string.Empty ? "/" : pathFilter);
@@ -78,7 +78,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             FileId parentId;
             string nameFilter, pathFilter, physicalPath;
 
-            PreGet(out parentId, out site, out nameFilter, out pathFilter);
+            Parse(out parentId, out site, out nameFilter, out pathFilter);
 
             if (pathFilter != null) {
                 return GetByPath(pathFilter == string.Empty ? "/" : pathFilter);
@@ -132,7 +132,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
 
 
-        private void PreGet(out FileId parentId, out Site site, out string nameFilter, out string pathFilter)
+        private void Parse(out FileId parentId, out Site site, out string nameFilter, out string pathFilter)
         {
             string parentUuid = Context.Request.Query[Defines.PARENT_IDENTIFIER];
             nameFilter = Context.Request.Query["name"];
@@ -152,6 +152,8 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         {
             long start = -1, finish = -1;
             var files = new Dictionary<string, object>();
+
+
 
             //
             // Virtual Directories
@@ -212,17 +214,15 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
         private object GetByPath(string path)
         {
-            if (!FilesHelper.IsValidPath(path)) {
-                throw new ApiArgumentException("path");
-            }
-
             Site site = SiteHelper.ResolveSite();
 
             if (site == null) {
                 return NotFound();
             }
 
-            string physicalPath = FilesHelper.GetPhysicalPath(site, path);
+            FileId fileId = new FileId(site.Id, path);
+
+            string physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
 
             var fields = Context.Request.GetFields();
             var dirInfo = _fileService.GetDirectoryInfo(physicalPath);
@@ -231,7 +231,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 throw new NotFoundException("path");
             }
 
-            return FilesHelper.ToJsonModel(site, path, fields);
+            return FilesHelper.ToJsonModel(site, fileId.Path, fields);
         }
     }
 }

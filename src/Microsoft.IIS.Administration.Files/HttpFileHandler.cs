@@ -318,6 +318,7 @@ namespace Microsoft.IIS.Administration.Files
 
         private async Task FullContentResponse(HttpContext context, string path)
         {
+            context.Response.ContentLength = _file.Length;
             context.Response.StatusCode = (int)HttpStatusCode.OK;
             using (Stream stream = _service.GetFile(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
                 await stream.CopyToAsync(context.Response.Body);
@@ -329,6 +330,7 @@ namespace Microsoft.IIS.Administration.Files
             //
             // Range response 206 (Partial Content)
 
+            context.Response.ContentLength = finish - start + 1;
             context.Response.StatusCode = (int)HttpStatusCode.PartialContent;
             context.Response.Headers.Add(HeaderNames.ContentRange, $"{start}-{finish}/{fileInfo.Length}");
 

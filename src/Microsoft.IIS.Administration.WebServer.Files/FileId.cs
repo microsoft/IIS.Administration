@@ -4,6 +4,7 @@
 
 namespace Microsoft.IIS.Administration.WebServer.Files
 {
+    using Core;
     using System;
 
     public class FileId
@@ -32,10 +33,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
         public FileId(long siteId, string path)
         {
-            if (path == null) {
-                throw new ArgumentNullException("path");
-            }
-
             this.Path = path;
             this.SiteId = siteId;
 
@@ -47,10 +44,16 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 return _path;
             }
             private set {
-                if (!FilesHelper.IsValidPath(value)) {
-                    throw new ArgumentException(nameof(value));
+                if (string.IsNullOrEmpty(value) || value[0] != '/') {
+                    throw new ApiArgumentException("path");
                 }
-                this._path = value;
+
+                try {
+                    this._path = FilesHelper.NormalizeVirtualPath(value);
+                }
+                catch (UriFormatException e) {
+                    throw new ApiArgumentException("path", e);
+                }
             }
         }
 
