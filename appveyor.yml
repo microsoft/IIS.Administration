@@ -2,6 +2,7 @@ version: 1.0.{build}
 clone_folder: '%iis_admin_solution_dir%'
 init:
 - ps: >
+    git config --global core.autocrlf true;
     setx iis_admin_solution_dir $env:iis_admin_solution_dir /m;
     npm install -g bower;
 environment:
