@@ -496,6 +496,98 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
+        [Fact]
+        public void CoreFileRange()
+        {
+            var physicalPath = Path.Combine(Configuration.TEST_ROOT_PATH, "api_file_range_test");
+            if (Directory.Exists(physicalPath)) {
+                Directory.Delete(physicalPath, true);
+            }
+
+            using (HttpClient client = ApiHttpClient.Create()) {
+                try {
+                    var dirs = new List<string>() { "dir1", "dir2", "dir3" };
+                    var files = new List<string>() { "file1.txt", "file2.txt", "file3.txt" };
+
+                    foreach (var dir in dirs) {
+                        Directory.CreateDirectory(Path.Combine(physicalPath, dir));
+                    }
+
+                    foreach (var file in files) {
+                        File.Create(Path.Combine(physicalPath, file)).Dispose();
+                    }
+
+                    JObject folder = client.Get($"{Configuration.TEST_SERVER_URL}/api/files?physical_path={physicalPath}");
+
+                    HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, Utils.GetLink(folder, "files"));
+                    req.Headers.Add("Range", "files=1-3");
+
+                    var res = client.SendAsync(req).Result;
+
+                    Assert.True(res.Content.Headers.Contains("Content-Range"));
+                    Assert.True(res.Content.Headers.GetValues("Content-Range").First().Equals("1-3/6"));
+
+                    var children = JObject.Parse(res.Content.ReadAsStringAsync().Result)["files"].ToObject<IEnumerable<JObject>>();
+                    Assert.True(children.Count() == 3);
+                }
+                finally {
+                    Directory.Delete(physicalPath, true);
+                }
+            }
+        }
+
+        [Fact]
+        public void WebFileRange()
+        {
+            var physicalPath = Path.Combine(Configuration.TEST_ROOT_PATH, "web_file_range_test");
+            if (Directory.Exists(physicalPath)) {
+                Directory.Delete(physicalPath, true);
+                Directory.CreateDirectory(physicalPath);
+            }
+
+            JObject site = null;
+            using (HttpClient client = ApiHttpClient.Create()) {
+                try {
+                    var dirs = new List<string>() { "dir1", "dir2", "dir3", "dir4" };
+                    var files = new List<string>() { "file1.txt", "file2.txt", "file3.txt", "file4.txt" };
+
+                    Sites.EnsureNoSite(client, FILE_TEST_SITE_NAME);
+                    site = Sites.CreateSite(client, FILE_TEST_SITE_NAME, Utils.GetAvailablePort(), physicalPath);
+
+                    Assert.NotNull(site);
+
+                    foreach (var dir in dirs) {
+                        Directory.CreateDirectory(Path.Combine(physicalPath, dir));
+                    }
+
+                    foreach (var file in files) {
+                        File.Create(Path.Combine(physicalPath, file)).Dispose();
+                    }
+
+                    JObject folder = Utils.FollowLink(client, site, "files");
+
+                    HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, Utils.GetLink(folder, "files"));
+                    req.Headers.Add("Range", "files=2-5");
+
+                    var res = client.SendAsync(req).Result;
+
+                    Assert.True(res.Content.Headers.Contains("Content-Range"));
+                    Assert.True(res.Content.Headers.GetValues("Content-Range").First().Equals("2-5/8"));
+
+                    var children = JObject.Parse(res.Content.ReadAsStringAsync().Result)["files"].ToObject<IEnumerable<JObject>>();
+                    Assert.True(children.Count() == 4);
+                }
+                finally {
+                    Directory.Delete(physicalPath, true);
+                    if (site != null) {
+                        client.Delete(Utils.Self(site));
+                    }
+                }
+            }
+        }
+
+
+
 
 
         private JObject RenameSitesFile(HttpClient client, JObject site, JObject file, string newName)

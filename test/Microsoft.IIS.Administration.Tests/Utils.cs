@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.Tests
     using System.IO;
     using System.Net.Sockets;
     using System.Net;
+    using System.Net.NetworkInformation;
 
     public class Utils
     {
@@ -201,19 +202,8 @@ namespace Microsoft.IIS.Administration.Tests
 
         public static bool IsPortAvailable(int port)
         {
-            var tcp = new TcpClient();
-
-            try {
-                tcp.ConnectAsync("localhost", port).RunSynchronously();
-
-                return false;
-            }
-            catch {
-                return true;
-            }
-            finally {
-                tcp.Dispose();
-            }
+            var listener = IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners().Where(l => l.Port == port).FirstOrDefault();
+            return listener == null;
         }
     }
 }

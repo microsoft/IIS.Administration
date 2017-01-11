@@ -17,8 +17,9 @@ namespace Microsoft.IIS.Administration.Files
 
     public class FilesController : ApiBaseController
     {
-        private const string nameKey = "name";
-        private const string physicalPathKey = "physical_path";
+        private const string _units = "files";
+        private const string _nameKey = "name";
+        private const string _physicalPathKey = "physical_path";
 
         IFileOptions _options;
         IFileProvider _provider = FileProvider.Default;
@@ -46,10 +47,11 @@ namespace Microsoft.IIS.Administration.Files
                 return NotFound();
             }
 
-            IEnumerable<FileSystemInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, $"*{nameFilter}*") : GetFromLocations(nameFilter);
+            IEnumerable<FileSystemInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, nameFilter) : GetFromLocations(nameFilter);
 
             // Set HTTP header for total count
             this.Context.Response.SetItemsCount(children.Count());
+            this.Context.Response.Headers[HeaderNames.AcceptRanges] = _units;
 
             return Ok();
         }
@@ -74,7 +76,7 @@ namespace Microsoft.IIS.Administration.Files
             }
 
             var models = new List<object>();
-            IEnumerable<FileSystemInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, $"*{nameFilter}*") : GetFromLocations(nameFilter);
+            IEnumerable<FileSystemInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, nameFilter) : GetFromLocations(nameFilter);
 
             foreach (FileSystemInfo child in children) {
                 models.Add((child is FileInfo) ? FilesHelper.FileToJsonModelRef((FileInfo) child, fields) : FilesHelper.DirectoryToJsonModelRef((DirectoryInfo) child, fields));
@@ -82,6 +84,7 @@ namespace Microsoft.IIS.Administration.Files
 
             // Set HTTP header for total count
             this.Context.Response.SetItemsCount(models.Count);
+            this.Context.Response.Headers[HeaderNames.AcceptRanges] = _units;
 
             return new
             {
@@ -229,13 +232,13 @@ namespace Microsoft.IIS.Administration.Files
         private void PreGet(out FileId parentId, out string name, out string physicalPath, out Fields fields)
         {
             string parentUuid = Context.Request.Query[Defines.PARENT_IDENTIFIER];
-            name = Context.Request.Query[nameKey];
-            physicalPath = Context.Request.Query[physicalPathKey];
+            name = Context.Request.Query[_nameKey];
+            physicalPath = Context.Request.Query[_physicalPathKey];
             fields = Context.Request.GetFields();
 
             if (!string.IsNullOrEmpty(name)) {
                 if (name.IndexOfAny(PathUtil.InvalidFileNameChars) != -1) {
-                    throw new ApiArgumentException(nameKey);
+                    throw new ApiArgumentException(_nameKey);
                 }
             }
 
@@ -245,20 +248,20 @@ namespace Microsoft.IIS.Administration.Files
         private object GetByPhysicalPath(string physicalPath, Fields fields)
         {
             if (string.IsNullOrEmpty(physicalPath)) {
-                throw new ApiArgumentException(physicalPathKey);
+                throw new ApiArgumentException(_physicalPathKey);
             }
 
             physicalPath = System.Environment.ExpandEnvironmentVariables(physicalPath);
 
             if (!PathUtil.IsPathRooted(physicalPath)) {
-                throw new ApiArgumentException(physicalPathKey);
+                throw new ApiArgumentException(_physicalPathKey);
             }
 
             try {
                 physicalPath = PathUtil.GetFullPath(physicalPath);
             }
             catch (ArgumentException) {
-                throw new ApiArgumentException(physicalPathKey);
+                throw new ApiArgumentException(_physicalPathKey);
             }
 
             object model = null;
@@ -283,7 +286,7 @@ namespace Microsoft.IIS.Administration.Files
 
             //
             // Directories
-            foreach (var d in _provider.GetDirectories(physicalPath, nameFilter)) {
+            foreach (var d in _provider.GetDirectories(physicalPath, $"*{nameFilter}*")) {
                 if (!d.Attributes.HasFlag(FileAttributes.Hidden) && !d.Attributes.HasFlag(FileAttributes.System)) {
                     infos.Add(d);
                 }
@@ -291,10 +294,22 @@ namespace Microsoft.IIS.Administration.Files
 
             //
             // Files
-            foreach (var f in _provider.GetFiles(physicalPath, nameFilter)) {
+            foreach (var f in _provider.GetFiles(physicalPath, $"*{nameFilter}*")) {
                 if (!f.Attributes.HasFlag(FileAttributes.Hidden) && !f.Attributes.HasFlag(FileAttributes.System)) {
                     infos.Add(f);
                 }
+            }
+            
+            if (Context.Request.Headers.ContainsKey(HeaderNames.Range)) {
+                long start, finish;
+
+                if (!Context.Request.Headers.TryGetRange(out start, out finish, infos.Count, _units)) {
+                    throw new InvalidRangeException();
+                }
+
+                Context.Response.Headers.SetContentRange(start, finish, infos.Count);
+
+                return infos.Where((c, index) => index >= start && index <= finish);
             }
 
             return infos;
@@ -310,6 +325,18 @@ namespace Microsoft.IIS.Administration.Files
 
                     dirs.Add(_provider.GetDirectoryInfo(location.Path));
                 }
+            }
+
+            if (Context.Request.Headers.ContainsKey(HeaderNames.Range)) {
+                long start, finish;
+
+                if (!Context.Request.Headers.TryGetRange(out start, out finish, dirs.Count, _units)) {
+                    throw new InvalidRangeException();
+                }
+
+                Context.Response.Headers.SetContentRange(start, finish, dirs.Count);
+
+                return dirs.Where((c, index) => index >= start && index <= finish);
             }
 
             return dirs;

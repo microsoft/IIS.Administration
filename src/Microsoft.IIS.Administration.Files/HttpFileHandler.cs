@@ -15,7 +15,6 @@ namespace Microsoft.IIS.Administration.Files
 
     public class HttpFileHandler
     {
-        private const string RangePrefix = "bytes=";
         private const string ContentRangePrefix = "bytes ";
         private FileInfo _file;
         private IFileProvider _service;
@@ -43,7 +42,7 @@ namespace Microsoft.IIS.Administration.Files
 
         public async Task WriteFileContent()
         {
-            int start = -1, finish = -1;
+            long start = -1, finish = -1;
             var etag = ETag.Create(_file);
             bool isRangeRequest = _context.Request.Headers.ContainsKey(HeaderNames.Range);
 
@@ -121,7 +120,7 @@ namespace Microsoft.IIS.Administration.Files
 
         public void WriteFileContentHeaders()
         {
-            int start = -1, finish = -1;
+            long start = -1, finish = -1;
             var etag = ETag.Create(_file);
             bool isRangeRequest = _context.Request.Headers.ContainsKey(HeaderNames.Range);
 
@@ -263,31 +262,11 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
-        private void ValidateRange(out int start, out int finish)
+        private void ValidateRange(out long start, out long finish)
         {
-            //
-            // Validate
-            // Range: bytes={start}-{finish}
-
-            string range = _context.Request.Headers[HeaderNames.Range].ToString().Trim(' ');
-            string sstart = null, sfinish = null;
-
-            if (range.IndexOf(RangePrefix, StringComparison.OrdinalIgnoreCase) == 0) {
-                range = range.Remove(0, RangePrefix.Length);
-                var parts = range.Split('-');
-                if (parts.Length == 2) {
-                    sstart = parts[0];
-                    sfinish = parts[1];
-                }
+            if (!_context.Request.Headers.TryGetRange(out start, out finish, _file.Length)) {
+                throw new InvalidRangeException();
             }
-
-            if (!int.TryParse(sstart, out start) ||
-                    !int.TryParse(sfinish, out finish) ||
-                    start < 0 ||
-                    finish >= _file.Length ||
-                    start > finish) {
-                        throw new InvalidRangeException();
-                    }
         }
 
         private void ValidateContentRange(out int start, out int finish, out int outOf)
@@ -345,7 +324,7 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
-        private async Task RangeContentResponse(HttpContext context, FileInfo fileInfo, int start, int finish)
+        private async Task RangeContentResponse(HttpContext context, FileInfo fileInfo, long start, long finish)
         {
             //
             // Range response 206 (Partial Content)
@@ -363,22 +342,23 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
-        private static async Task CopyRangeAsync(Stream src, Stream dest, int start, int length)
+        private static async Task CopyRangeAsync(Stream src, Stream dest, long start, long length)
         {
             if (length <= 0) {
                 throw new ArgumentOutOfRangeException(nameof(length));
             }
 
+            int copyAmount;
             const int bufferSize = 4096;
             byte[] buffer = new byte[bufferSize];
-            int position = start, finish = start + length - 1, read, copyAmount;
+            long position = start, finish = start + length - 1, read;
 
             if (start != 0) {
                 src.Seek(start, SeekOrigin.Begin);
             }
 
             do {
-                copyAmount = finish - position + 1 < bufferSize ? finish - position + 1 : bufferSize;
+                copyAmount = (int) (finish - position + 1 < bufferSize ? finish - position + 1 : bufferSize);
                 read = await src.ReadAsync(buffer, 0, copyAmount);
 
                 if (read == 0) {

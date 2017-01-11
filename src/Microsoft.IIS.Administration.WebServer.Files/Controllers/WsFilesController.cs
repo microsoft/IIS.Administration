@@ -19,6 +19,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
     public class WsFilesController : ApiBaseController
     {
+        private const string _units = "files";
         private IFileProvider _fileService;
 
         public WsFilesController()
@@ -64,6 +65,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             // Set HTTP header for total count
             this.Context.Response.SetItemsCount(children.Count());
+            this.Context.Response.Headers[HeaderNames.AcceptRanges] = _units;
 
             return Ok();
         }
@@ -98,6 +100,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             // Set HTTP header for total count
             this.Context.Response.SetItemsCount(children.Count());
+            this.Context.Response.Headers[HeaderNames.AcceptRanges] = _units;
 
             return new
             {
@@ -147,6 +150,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
         private IEnumerable<object> GetChildren(Site site, string path, DirectoryInfo parent, string nameFilter, bool jsonModels = true, Fields fields = null)
         {
+            long start = -1, finish = -1;
             var files = new Dictionary<string, object>();
 
             //
@@ -155,7 +159,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 if (string.IsNullOrEmpty(nameFilter) || vdir.Name.IndexOf(nameFilter, StringComparison.OrdinalIgnoreCase) != -1) {
 
                     if (!files.ContainsKey(vdir.Path)) {
-                        files.Add(vdir.Path, jsonModels ? FilesHelper.VdirToJsonModelRef(vdir, fields) : vdir);
+                        files.Add(vdir.Path, vdir);
                     }
                 }
             }
@@ -166,7 +170,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 string p = Path.Combine(path, d.Name);
 
                 if (!files.ContainsKey(p) && !d.Attributes.HasFlag(FileAttributes.Hidden) && !d.Attributes.HasFlag(FileAttributes.System)) {
-                    files.Add(p, jsonModels ? FilesHelper.DirectoryToJsonModelRef(site, p, fields) : d);
+                    files.Add(p, d);
                 }
             }
 
@@ -176,7 +180,30 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 string p = Path.Combine(path, f.Name);
 
                 if (!files.ContainsKey(p) && !f.Attributes.HasFlag(FileAttributes.Hidden) && !f.Attributes.HasFlag(FileAttributes.System)) {
-                    files.Add(p, jsonModels ? FilesHelper.FileToJsonModelRef(site, p, fields) : f);
+                    files.Add(p, f);
+                }
+            }
+
+            if (Context.Request.Headers.ContainsKey(HeaderNames.Range) && !Context.Request.Headers.TryGetRange(out start, out finish, files.Count, _units)) {
+                throw new InvalidRangeException();
+            }
+
+            if (start != -1) {
+                Context.Response.Headers.SetContentRange(start, finish, files.Count);
+                files = files.Where((f, i) => i >= start && i <= finish).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            }
+
+            if (jsonModels) {
+                foreach (var key in files.Keys.ToList()) {
+                    if (files[key] is Vdir) {
+                        files[key] = FilesHelper.VdirToJsonModelRef((Vdir)files[key], fields);
+                    }
+                    else if (files[key] is DirectoryInfo) {
+                        files[key] = FilesHelper.DirectoryToJsonModelRef(site, key, fields);
+                    }
+                    else if (files[key] is FileInfo) {
+                        files[key] = FilesHelper.FileToJsonModelRef(site, key, fields);
+                    }
                 }
             }
 
