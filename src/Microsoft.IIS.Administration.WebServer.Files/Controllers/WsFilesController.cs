@@ -151,17 +151,16 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         private IEnumerable<object> GetChildren(Site site, string path, DirectoryInfo parent, string nameFilter, bool jsonModels = true, Fields fields = null)
         {
             long start = -1, finish = -1;
+            var dirs = new SortedList<string, object>();
             var files = new Dictionary<string, object>();
-
-
 
             //
             // Virtual Directories
             foreach (var vdir in FilesHelper.GetVdirs(site, path)) {
                 if (string.IsNullOrEmpty(nameFilter) || vdir.Name.IndexOf(nameFilter, StringComparison.OrdinalIgnoreCase) != -1) {
 
-                    if (!files.ContainsKey(vdir.Path)) {
-                        files.Add(vdir.Path, vdir);
+                    if (!files.ContainsKey(vdir.Name)) {
+                        dirs.Add(vdir.Name, vdir);
                     }
                 }
             }
@@ -169,20 +168,22 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // Directories
             foreach (var d in _fileService.GetDirectories(parent.FullName, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
-                string p = Path.Combine(path, d.Name);
 
-                if (!files.ContainsKey(p) && !d.Attributes.HasFlag(FileAttributes.Hidden) && !d.Attributes.HasFlag(FileAttributes.System)) {
-                    files.Add(p, d);
+                if (!files.ContainsKey(d.Name) && !d.Attributes.HasFlag(FileAttributes.Hidden) && !d.Attributes.HasFlag(FileAttributes.System)) {
+                    dirs.Add(d.Name, d);
                 }
+            }
+
+            foreach (var item in dirs) {
+                files.Add(item.Key, item.Value);
             }
 
             //
             // Files
             foreach (var f in _fileService.GetFiles(parent.FullName, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
-                string p = Path.Combine(path, f.Name);
 
-                if (!files.ContainsKey(p) && !f.Attributes.HasFlag(FileAttributes.Hidden) && !f.Attributes.HasFlag(FileAttributes.System)) {
-                    files.Add(p, f);
+                if (!files.ContainsKey(f.Name) && !f.Attributes.HasFlag(FileAttributes.Hidden) && !f.Attributes.HasFlag(FileAttributes.System)) {
+                    files.Add(f.Name, f);
                 }
             }
 
@@ -198,13 +199,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             if (jsonModels) {
                 foreach (var key in files.Keys.ToList()) {
                     if (files[key] is Vdir) {
-                        files[key] = FilesHelper.VdirToJsonModelRef((Vdir)files[key], fields);
+                        files[key] = FilesHelper.VdirToJsonModelRef((Vdir) files[key], fields);
                     }
                     else if (files[key] is DirectoryInfo) {
-                        files[key] = FilesHelper.DirectoryToJsonModelRef(site, key, fields);
+                        files[key] = FilesHelper.DirectoryToJsonModelRef(site, Path.Combine(path, ((DirectoryInfo) files[key]).Name), fields);
                     }
                     else if (files[key] is FileInfo) {
-                        files[key] = FilesHelper.FileToJsonModelRef(site, key, fields);
+                        files[key] = FilesHelper.FileToJsonModelRef(site, Path.Combine(path, ((FileInfo) files[key]).Name), fields);
                     }
                 }
             }

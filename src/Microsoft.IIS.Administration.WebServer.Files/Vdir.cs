@@ -24,7 +24,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             get {
                 bool isRootApp = Application.Path == "/";
                 bool isRootVdir = VirtualDirectory.Path == "/";
-                if(isRootApp && isRootVdir) {
+                if (isRootApp && isRootVdir) {
                     return Site.Name;
                 }
                 else if (isRootVdir) {
