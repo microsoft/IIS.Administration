@@ -37,6 +37,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                         return DirectoryToJsonModel(site, path, fields, full);
 
                     case FileType.VDir:
+                    case FileType.Application:
                         var app = ResolveApplication(site, path);
                         var vdir = ResolveVdir(site, path);
                         return VdirToJsonModel(new Vdir(site, app, vdir), fields, full);
@@ -230,7 +231,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // type
             if (fields.Exists("type")) {
-                obj.type = Enum.GetName(typeof(FileType), FileType.VDir).ToLower();
+                obj.type = Enum.GetName(typeof(FileType), Vdir.GetVdirType(vdir.VirtualDirectory)).ToLower();
             }
 
             //
@@ -285,7 +286,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             var differentPhysicalPath = !Path.Combine(GetPhysicalPath(site), path.Replace('/', '\\').TrimStart('\\')).Equals(physicalPath, StringComparison.OrdinalIgnoreCase);
 
             if (path == "/" || differentPhysicalPath && IsExactVdirPath(site, app, vdir, path)) {
-                return FileType.VDir;
+                return Vdir.GetVdirType(vdir);
             }
             else if (Directory.Exists(physicalPath)) {
                 return FileType.Directory;

@@ -52,5 +52,10 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             this.Application = app;
             this.VirtualDirectory = vdir;
         }
+
+        public static FileType GetVdirType(VirtualDirectory virtualDirectory)
+        {
+            return virtualDirectory.Path == "/" ? FileType.Application : FileType.VDir;
+        }
     }
 }

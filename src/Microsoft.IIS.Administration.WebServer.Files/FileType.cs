@@ -6,8 +6,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 {
     enum FileType
     {
-        File,
+        Application,
         Directory,
+        File,
         VDir
     }
 }
