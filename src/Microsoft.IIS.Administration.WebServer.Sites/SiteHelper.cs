@@ -26,6 +26,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
     {
         private const string SCOPE_KEY = "scope";
         private static readonly Fields RefFields =  new Fields("name", "id", "status");
+        private const string sslFlagsAttribute = "sslFlags";
         private const string MaxUrlSegmentsAttribute = "maxUrlSegments";
 
         public static Site CreateSite(dynamic model) {
@@ -483,7 +484,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 }
 
                 // Create application pool id object from uuid provided, use this to obtain the application pool
-                AppPools.AppPoolId appPoolId = AppPoolId.CreateFromUuid(appPoolUuid);
+                AppPoolId appPoolId = AppPoolId.CreateFromUuid(appPoolUuid);
                 ApplicationPool pool = AppPoolHelper.GetAppPool(appPoolId.Name);
 
                 Application rootApp = site.Applications["/"];
@@ -504,6 +505,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         private static void SetBinding(Binding binding, dynamic obj) {
             string protocol = DynamicHelper.Value(obj.protocol);
             string bindingInformation = DynamicHelper.Value(obj.binding_information);
+            bool? requireSni = DynamicHelper.To<bool>(obj.require_sni);
 
             if (protocol == null) {
                 throw new ApiArgumentException("binding.protocol");
@@ -516,9 +518,9 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             if (isHttp) {
                 //
                 // HTTP Binding information provides port, ip address, and hostname
-                IPAddress ipAddress = null;
                 UInt16 port;
                 string hostname;
+                IPAddress ipAddress = null;
 
                 if (bindingInformation == null) {
                     var ip = DynamicHelper.Value(obj.ip_address);
@@ -561,6 +563,10 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
                 // HTTPS
                 if (protocol.Equals("https")) {
+                    if (string.IsNullOrEmpty(hostname) && requireSni.HasValue && requireSni.Value) {
+                        throw new ApiArgumentException("binding.require_sni");
+                    }
+
                     if (obj.certificate == null || !(obj.certificate is JObject)) {
                         throw new ApiArgumentException("certificate");
                     }
@@ -583,6 +589,10 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                     // The specified certificate must be in the store with a private key or else there will be an exception when we commit
                     binding.CertificateStoreName = Enum.GetName(typeof(StoreName), id.StoreName);
                     binding.CertificateHash = bytes.ToArray();
+
+                    if (requireSni.HasValue && requireSni.Value && binding.Schema.HasAttribute(sslFlagsAttribute)) {
+                        binding.SslFlags |= SslFlags.Sni;
+                    }
                 }
 
                 var ipModel = ipAddress.Equals(IPAddress.Any) ? "*" : ipAddress.ToString();
@@ -639,6 +649,10 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                     }
 
                     obj.certificate = CertificateHelper.ToJsonModelRef(cert, CertificateHelper.STORE_NAME, CertificateHelper.STORE_LOCATION);
+
+                    if (binding.Schema.HasAttribute(sslFlagsAttribute)) {
+                        obj.require_sni = binding.SslFlags.HasFlag(SslFlags.Sni);
+                    }
 
                     // Dispose
                     foreach (var c in certs) {

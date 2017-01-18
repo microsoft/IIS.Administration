@@ -12,9 +12,9 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using Core.Http;
     using System.IO;
-    using System.Net.Sockets;
     using System.Net;
     using System.Net.NetworkInformation;
+    using System.Runtime.InteropServices;
 
     public class Utils
     {
@@ -204,6 +204,13 @@ namespace Microsoft.IIS.Administration.Tests
         {
             var listener = IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners().Where(l => l.Port == port).FirstOrDefault();
             return listener == null;
+        }
+
+        public static Version OsVersion {
+            get {
+                string osOutput = RuntimeInformation.OSDescription.Trim();
+                return Version.Parse(osOutput.Substring(osOutput.IndexOfAny(new char[] { '1', '2', '3', '4', '5', '6', '7', '8', '9', '0' })));
+            }
         }
     }
 }

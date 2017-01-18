@@ -196,7 +196,6 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-
         [Fact]
         public void BindingTypes()
         {
@@ -296,6 +295,74 @@ namespace Microsoft.IIS.Administration.Tests
                     new {
                         protocol = "http",
                         binding_information = $"127.0.4.3::"
+                    }
+                };
+
+                foreach (var badBinding in badBindings) {
+                    newBindings.Clear();
+                    newBindings.Add(JObject.FromObject(badBinding));
+                    var response = client.PatchRaw(Utils.Self(res), res);
+                    Assert.True(response.StatusCode == HttpStatusCode.BadRequest);
+                }
+
+                Assert.True(DeleteSite(client, Utils.Self(site)));
+            }
+        }
+
+        [Fact]
+        public void Sni()
+        {
+            if (Utils.OsVersion < new Version(6, 2)) {
+                return;
+            }
+
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                EnsureNoSite(client, TEST_SITE_NAME);
+                JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, TEST_SITE_PATH);
+
+                var bindings = site.Value<JArray>("bindings");
+                bindings.Clear();
+                int p = 63013;
+
+                var goodBindings = new object[] {
+                    new {
+                        port = p++,
+                        ip_address = "*",
+                        hostname = "test_host_name",
+                        protocol = "https",
+                        certificate = GetCertificate(client),
+                        require_sni = true
+                    }
+                };
+
+                foreach (var b in goodBindings) {
+                    bindings.Add(JObject.FromObject(b));
+                }
+
+                var res = client.Patch(Utils.Self(site), site);
+                Assert.NotNull(res);
+
+                JArray newBindings = res.Value<JArray>("bindings");
+                Assert.True(bindings.Count == newBindings.Count);
+
+                for (var i = 0; i < bindings.Count; i++) {
+                    var binding = (JObject)bindings[i];
+                    foreach (var prop in binding.Properties()) {
+                        Assert.True(JToken.DeepEquals(binding[prop.Name], newBindings[i][prop.Name]));
+                    }
+
+                    string protocol = binding.Value<string>("protocol");
+                }
+
+                var badBindings = new object[] {
+                    new {
+                        port = p++,
+                        ip_address = "*",
+                        hostname = "",
+                        protocol = "https",
+                        certificate = GetCertificate(client),
+                        require_sni = true
                     }
                 };
 

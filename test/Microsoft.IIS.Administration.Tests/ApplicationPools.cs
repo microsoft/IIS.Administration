@@ -4,8 +4,8 @@
 
 namespace Microsoft.IIS.Administration.Tests
 {
-    using Microsoft.IIS.Administration.WebServer;
-    using Microsoft.Web.Administration;
+    using WebServer;
+    using Web.Administration;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
@@ -14,8 +14,7 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using System.Text;
     using Xunit;
-    using Xunit.Abstractions;
-    using Microsoft.IIS.Administration.Core.Utils;
+    using Core.Utils;
 
     public class ApplicationPools
     {
