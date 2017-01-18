@@ -94,7 +94,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
         public static Site UpdateSite(long id, dynamic model)
         {
-            if(model == null) {
+            if (model == null) {
                 throw new ApiArgumentException("model");
             }
 
@@ -102,7 +102,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             Site site = GetSite(id);
 
             // Update state of site to those specified in the model
-            if(site != null) {
+            if (site != null) {
                 SetSite(site, model);
             }
 
@@ -121,21 +121,22 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 return null;
             }
 
-            if(fields == null) {
+            if (fields == null) {
                 fields = Fields.All;
             }
 
             dynamic obj = new ExpandoObject();
+            var siteId = new SiteId(site.Id);
 
             //
             // name
-            if(fields.Exists("name")) {
+            if (fields.Exists("name")) {
                 obj.name = site.Name;
             }
 
             //
             // id
-            obj.id = new SiteId(site.Id).Uuid;
+            obj.id = siteId.Uuid;
 
             //
             // physical_path
@@ -148,6 +149,12 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 }
 
                 obj.physical_path = physicalPath;
+            }
+
+            //
+            // key
+            if (fields.Exists("key")) {
+                obj.key = siteId.Id;
             }
 
             //
@@ -289,7 +296,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 site = ManagementUnit.Current.ServerManager.Sites.FirstOrDefault(s => s.Name.Equals(siteName, StringComparison.OrdinalIgnoreCase));
 
                 // Scope points to non existant site
-                if(site == null) {
+                if (site == null) {
                     throw new ScopeNotFoundException(scope);
                 }
             }
@@ -375,7 +382,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             // Physical Path
             string physicalPath = DynamicHelper.Value(model.physical_path);
 
-            if(physicalPath != null) {
+            if (physicalPath != null) {
 
                 physicalPath = physicalPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
                 var expanded = System.Environment.ExpandEnvironmentVariables(physicalPath);
@@ -391,7 +398,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 }
 
                 var rootApp = site.Applications["/"];
-                if(rootApp != null) {
+                if (rootApp != null) {
 
                     var rootVDir = rootApp.VirtualDirectories["/"];
 
@@ -406,17 +413,17 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             // Enabled Protocols
             string enabledProtocols = DynamicHelper.Value(model.enabled_protocols);
 
-            if(enabledProtocols != null) {
+            if (enabledProtocols != null) {
                 var rootApp = site.Applications["/"];
 
-                if(rootApp != null) {
+                if (rootApp != null) {
                     rootApp.EnabledProtocols = enabledProtocols;
                 }
             }
 
             //
             // Limits
-            if(model.limits != null) {
+            if (model.limits != null) {
                 dynamic limits = model.limits;
 
                 site.Limits.MaxBandwidth = DynamicHelper.To(limits.max_bandwidth, 0, uint.MaxValue) ?? site.Limits.MaxBandwidth;
@@ -432,7 +439,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
             //
             // Bindings
-            if(model.bindings != null) {
+            if (model.bindings != null) {
                 IEnumerable<dynamic> bindings = (IEnumerable<dynamic>)model.bindings;
 
                 // If the user passes an object for the bindings property rather than an array we will hit an exception when we try to access any property in
@@ -442,7 +449,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 List<Binding> newBindings = new List<Binding>();
 
                 // Iterate over the bindings to create a new binding list
-                foreach(dynamic b in bindings) {
+                foreach (dynamic b in bindings) {
                     Binding binding = site.Bindings.CreateElement();
                     SetBinding(binding, b);
 
@@ -465,7 +472,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
             //
             // App Pool
-            if(model.application_pool != null) {
+            if (model.application_pool != null) {
 
                 // Extract the uuid from the application_pool object provided in model
                 string appPoolUuid = DynamicHelper.Value(model.application_pool.id);
@@ -481,7 +488,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
                 Application rootApp = site.Applications["/"];
 
-                if(rootApp == null) {
+                if (rootApp == null) {
                     throw new ApiArgumentException("application_pool", "Root application does not exist.");
                 }
 
@@ -634,7 +641,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                     obj.certificate = CertificateHelper.ToJsonModelRef(cert, CertificateHelper.STORE_NAME, CertificateHelper.STORE_LOCATION);
 
                     // Dispose
-                    foreach(var c in certs) {
+                    foreach (var c in certs) {
                         c.Dispose();
                     }
                 }
@@ -646,8 +653,8 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         private static long FirstAvailableId()
         {
             ServerManager sm = ManagementUnit.ServerManager;
-            for(long id = 1; id <= long.MaxValue; id++) {
-                if(!sm.Sites.Any(site => site.Id == id)) {
+            for (long id = 1; id <= long.MaxValue; id++) {
+                if (!sm.Sites.Any(site => site.Id == id)) {
                     return id;
                 }
             }
