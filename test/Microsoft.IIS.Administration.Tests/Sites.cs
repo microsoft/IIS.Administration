@@ -199,10 +199,13 @@ namespace Microsoft.IIS.Administration.Tests
         [Fact]
         public void BindingTypes()
         {
-            string[] httpProperties = new string[] { "ip_address", "port", "hostname", "protocol", "binding_information" };
-            string[] httpsProperties = new string[] { "ip_address", "port", "hostname", "protocol", "binding_information", "certificate" };
-            string[] othersProperties = new string[] { "protocol", "binding_information" };
+            IEnumerable<string> httpProperties = new string[] { "ip_address", "port", "hostname", "protocol", "binding_information" };
+            List<string> httpsProperties = new List<string> { "ip_address", "port", "hostname", "protocol", "binding_information", "certificate" };
+            IEnumerable<string> othersProperties = new string[] { "protocol", "binding_information" };
 
+            if (Utils.OsVersion >= new Version(6, 2)) {
+                httpsProperties.Add("require_sni");
+            }
 
             using (HttpClient client = ApiHttpClient.Create()) {
 
