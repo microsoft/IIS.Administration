@@ -306,7 +306,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             Debug.Assert(appPool != null);
             Debug.Assert((bool)(model != null));
 
-            DynamicHelper.If((object)model.name, v => { appPool.Name = v; });
+            DynamicHelper.If((object)model.name, v => SetName(appPool, v));
 
             appPool.ManagedPipelineMode = DynamicHelper.To<ManagedPipelineMode>(model.pipeline_mode) ?? appPool.ManagedPipelineMode;
             appPool.ManagedRuntimeVersion = DynamicHelper.Value(model.managed_runtime_version) ?? appPool.ManagedRuntimeVersion; 
@@ -481,6 +481,30 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
                 appPool.Failure.OrphanActionParams = DynamicHelper.Value(orphaning.orphan_action_params) ?? appPool.Failure.OrphanActionParams;
             }
 
+        }
+
+        private static void SetName(ApplicationPool pool, string name)
+        {
+            const string isPresentTag = "isPresent";
+
+            if (ManagementUnit.ServerManager.ApplicationPools.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase) && !p.Name.Equals(pool.Name, StringComparison.OrdinalIgnoreCase))) {
+                throw new AlreadyExistsException("name");
+            }
+
+            var applications = ManagementUnit.ServerManager.Sites.SelectMany(s => s.Applications);
+            bool isDefault = pool.Name.Equals(ManagementUnit.ServerManager.ApplicationDefaults.ApplicationPoolName, StringComparison.OrdinalIgnoreCase);
+
+            if (isDefault) {
+                ManagementUnit.ServerManager.ApplicationDefaults.ApplicationPoolName = name;
+            }
+
+            foreach (var app in applications) {
+                if (app.ApplicationPoolName.Equals(pool.Name, StringComparison.OrdinalIgnoreCase) && (!isDefault || (bool) app.GetAttribute("applicationPool").GetMetadata(isPresentTag))) {
+                    app.ApplicationPoolName = name;
+                }
+            }
+
+            pool.Name = name;
         }
     }
 }
