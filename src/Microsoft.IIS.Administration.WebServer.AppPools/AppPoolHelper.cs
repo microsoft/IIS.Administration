@@ -56,16 +56,16 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
 
         public static ApplicationPool UpdateAppPool(string name, dynamic model)
         {
-            if(model == null) {
+            if (model == null) {
                 throw new ApiArgumentException("model");
             }
-            else if(String.IsNullOrEmpty(name)) {
+            else if (String.IsNullOrEmpty(name)) {
                 throw new ApiArgumentException("name");
             }
 
             ApplicationPool appPool = GetAppPool(name);
 
-            if(appPool != null) {
+            if (appPool != null) {
                 SetAppPool(appPool, model);
             }
 
@@ -79,7 +79,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
 
         internal static object ToJsonModel(ApplicationPool pool, Fields fields = null, bool full = true)
         {
-            if(pool == null) {
+            if (pool == null) {
                 return null;
             }
 
@@ -361,7 +361,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             }
 
             // Identity
-            if(model.identity != null) {
+            if (model.identity != null) {
                 dynamic identity = model.identity;
 
                 appPool.ProcessModel.IdentityType = DynamicHelper.To<ProcessModelIdentityType>(identity.identity_type) ?? appPool.ProcessModel.IdentityType;
@@ -378,7 +378,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
                 appPool.Recycling.DisallowRotationOnConfigChange = DynamicHelper.To<bool>(recycling.disable_recycle_on_config_change) ?? appPool.Recycling.DisallowRotationOnConfigChange;
 
                 // Check if log event collection provided
-                if(recycling.log_events != null) {
+                if (recycling.log_events != null) {
 
                     try {
                         // Convert the log_events dynamic into a string and then deserialize it into a Dictionary<string,bool>, from there we turn it into a flags enum
@@ -421,7 +421,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
                 }                
                 
                 // Periodic Restart
-                if(recycling.periodic_restart != null) {
+                if (recycling.periodic_restart != null) {
                     dynamic periodicRestart = recycling.periodic_restart;
 
                     appPool.Recycling.PeriodicRestart.PrivateMemory = DynamicHelper.To(periodicRestart.private_memory, 0, 4294967295) ?? appPool.Recycling.PeriodicRestart.PrivateMemory;
@@ -459,7 +459,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             }
 
             // Rapid Fail Protection
-            if(model.rapid_fail_protection != null) {
+            if (model.rapid_fail_protection != null) {
                 var protection = model.rapid_fail_protection;
 
                 appPool.Failure.RapidFailProtection = DynamicHelper.To<bool>(protection.enabled) ?? appPool.Failure.RapidFailProtection;
@@ -473,7 +473,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             }
 
             // Process Orphaning
-            if(model.process_orphaning != null) {
+            if (model.process_orphaning != null) {
                 var orphaning = model.process_orphaning;
 
                 appPool.Failure.OrphanWorkerProcess = DynamicHelper.To<bool>(orphaning.enabled) ?? appPool.Failure.OrphanWorkerProcess;
@@ -491,16 +491,18 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
                 throw new AlreadyExistsException("name");
             }
 
-            var applications = ManagementUnit.ServerManager.Sites.SelectMany(s => s.Applications);
-            bool isDefault = pool.Name.Equals(ManagementUnit.ServerManager.ApplicationDefaults.ApplicationPoolName, StringComparison.OrdinalIgnoreCase);
+            if (pool.Name != null) {
+                var applications = ManagementUnit.ServerManager.Sites.SelectMany(s => s.Applications);
+                bool isDefault = pool.Name.Equals(ManagementUnit.ServerManager.ApplicationDefaults.ApplicationPoolName, StringComparison.OrdinalIgnoreCase);
 
-            if (isDefault) {
-                ManagementUnit.ServerManager.ApplicationDefaults.ApplicationPoolName = name;
-            }
+                if (isDefault) {
+                    ManagementUnit.ServerManager.ApplicationDefaults.ApplicationPoolName = name;
+                }
 
-            foreach (var app in applications) {
-                if (app.ApplicationPoolName.Equals(pool.Name, StringComparison.OrdinalIgnoreCase) && (!isDefault || (bool) app.GetAttribute("applicationPool").GetMetadata(isPresentTag))) {
-                    app.ApplicationPoolName = name;
+                foreach (var app in applications) {
+                    if (app.ApplicationPoolName.Equals(pool.Name, StringComparison.OrdinalIgnoreCase) && (!isDefault || (bool)app.GetAttribute("applicationPool").GetMetadata(isPresentTag))) {
+                        app.ApplicationPoolName = name;
+                    }
                 }
             }
 
