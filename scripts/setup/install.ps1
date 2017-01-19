@@ -129,7 +129,13 @@ function InstallationPreparationCheck
         }
         Write-Verbose "Ok"
         Write-Verbose "Verifying IIS-HostableWebCore is Enabled"
-        $hostableWebCoreEnabled = .\dependencies.ps1 HostableWebCoreEnabled
+        try {
+            $hostableWebCoreEnabled = .\dependencies.ps1 HostableWebCoreEnabled
+        }
+        catch {
+            # Assume disabled if unable to determine state
+            $hostableWebCoreEnabled = $false
+        }
         if (!$hostableWebCoreEnabled) {
             Write-Warning "IIS-HostableWebCore not enabled"
 			Write-Host "Enabling IIS Hostable Web Core"
@@ -145,8 +151,13 @@ function InstallationPreparationCheck
         # We require.NET 3.5 for JSON manipulation if it isn't available through built in powershell commands
         if ($(Get-Command "ConvertFrom-Json" -ErrorAction SilentlyContinue) -eq $null) {
             Write-Verbose ".NET 3.5 required for setup to continue"
-            Write-Verbose "Verifying NetFx3 is Enabled"
-            $netfx3Enabled = .\dependencies.ps1 NetFx3Enabled
+            Write-Verbose "Verifying NetFx3 is Enabled"            
+            try {
+                $netfx3Enabled = .\dependencies.ps1 NetFx3Enabled
+            }
+            catch {
+                $netfx3Enabled = $false
+            }
             if (!$netfx3Enabled) {
                 Write-Warning "NetFx3 not enabled"
 			    Write-Host "Enabling NetFx3 (.NET Framework 3.5)"
