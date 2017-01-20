@@ -102,6 +102,10 @@ namespace Microsoft.IIS.Administration.Files
 
                     await temp.CopyToAsync(real);
 
+                    if (finish > 0 && finish == outOf - 1) {
+                        real.SetLength(outOf);
+                    }
+
                     //
                     // https://github.com/dotnet/corefx/blob/ec2a6190efa743ab600317f44d757433e44e859b/src/System.IO.FileSystem/src/System/IO/FileStream.Win32.cs#L1687
                     // Unlike Flush(), FlushAsync() always flushes to disk. This is intentional.

@@ -448,6 +448,39 @@ namespace Microsoft.IIS.Administration.Tests
         }
 
         [Fact]
+        public void TruncateOnCompleteRange()
+        {
+            var size = 1024 * 1024 * 5;
+            var truncateSize = size / 2;
+
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                JObject site = Sites.GetSite(client, "Default Web Site");
+                var webFile = CreateWebFile(client, site, TEST_FILE_NAME);
+                var fileInfo = Utils.FollowLink(client, webFile.Value<JObject>("file_info"), "self");
+
+                try {
+                    Assert.True(MockUploadFile(client, fileInfo, size).Result);
+
+                    fileInfo = Utils.FollowLink(client, fileInfo, "self");
+
+                    Assert.True(fileInfo.Value<int>("size") == size);
+
+                    Assert.True(MockUploadFile(client, fileInfo, truncateSize).Result);
+
+                    fileInfo = Utils.FollowLink(client, fileInfo, "self");
+
+                    Assert.True(fileInfo.Value<int>("size") == truncateSize);
+                }
+                finally {
+                    if (webFile != null) {
+                        Assert.True(client.Delete(Utils.Self(webFile.Value<JObject>("file_info"))));
+                    }
+                }
+            }
+        }
+
+        [Fact]
         public void CreateRenameFile()
         {
             using (HttpClient client = ApiHttpClient.Create()) {

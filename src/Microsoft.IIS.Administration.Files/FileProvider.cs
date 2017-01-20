@@ -14,8 +14,6 @@ namespace Microsoft.IIS.Administration.Files
 
     public class FileProvider : IFileProvider
     {
-        private const string PATH_UNLISTED = "Access Denied";
-
         private IAccessControl _accessControl;
 
         public FileProvider(IAccessControl accessControl)
