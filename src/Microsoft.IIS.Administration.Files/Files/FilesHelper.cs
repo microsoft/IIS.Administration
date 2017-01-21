@@ -357,9 +357,6 @@ namespace Microsoft.IIS.Administration.Files
 
         internal static string UpdateFile(dynamic model, string physicalPath)
         {
-            string newName = null;
-            string newParentPath = null;
-
             DateTime? created = null;
             DateTime? lastAccess = null;
             DateTime? lastModified = null;
@@ -370,50 +367,19 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ApiArgumentException("model");
             }
 
-            if (model.parent != null) {
-                if (!(model.parent is JObject)) {
-                    throw new ApiArgumentException("parent", ApiArgumentException.EXPECTED_OBJECT);
-                }
-
-                string parentUuid = DynamicHelper.Value(model.parent.id);
-
-                if (string.IsNullOrEmpty(parentUuid)) {
-                    throw new ApiArgumentException("parent.id");
-                }
-
-                string path = FileId.FromUuid(parentUuid).PhysicalPath;
-
-                if (!PathUtil.IsFullPath(path)) {
-                    throw new ApiArgumentException("parent.id");
-                }
-
-                if (!_service.DirectoryExists(path)) {
-                    throw new NotFoundException("parent");
-                }
-
-                newParentPath = path;
-            }
+            created = DynamicHelper.To<DateTime>(model.created);
+            lastAccess = DynamicHelper.To<DateTime>(model.last_access);
+            lastModified = DynamicHelper.To<DateTime>(model.last_modified);
 
             if (model.name != null) {
+
                 string name = DynamicHelper.Value(model.name);
 
                 if (!PathUtil.IsValidFileName(name)) {
                     throw new ApiArgumentException("name");
                 }
 
-                newName = name;
-            }
-
-            created = DynamicHelper.To<DateTime>(model.created);
-            lastAccess = DynamicHelper.To<DateTime>(model.last_access);
-            lastModified = DynamicHelper.To<DateTime>(model.last_modified);
-
-            if (newParentPath != null || newName != null) {
-
-                newParentPath = newParentPath == null ? file.Directory.FullName : newParentPath;
-                newName = newName == null ? file.Name : newName;
-
-                var newPath = Path.Combine(newParentPath, newName);
+                var newPath = Path.Combine(file.Directory.FullName, name);
 
                 if (!newPath.Equals(physicalPath, StringComparison.OrdinalIgnoreCase)) {
 
@@ -444,9 +410,6 @@ namespace Microsoft.IIS.Administration.Files
 
         internal static string UpdateDirectory(dynamic model, string directoryPath)
         {
-            string newName = null;
-            string newParentPath = null;
-
             DateTime? created = null;
             DateTime? lastAccess = null;
             DateTime? lastModified = null;
@@ -457,33 +420,9 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ApiArgumentException("model");
             }
 
-            if (model.parent != null) {
-                if (!(model.parent is JObject)) {
-                    throw new ApiArgumentException("parent", ApiArgumentException.EXPECTED_OBJECT);
-                }
-
-                if (directory.Parent == null) {
-                    throw new ApiArgumentException("parent");
-                }
-
-                string parentUuid = DynamicHelper.Value(model.parent.id);
-
-                if (string.IsNullOrEmpty(parentUuid)) {
-                    throw new ApiArgumentException("parent.id");
-                }
-
-                string path = FileId.FromUuid(parentUuid).PhysicalPath;
-
-                if (!PathUtil.IsFullPath(path)) {
-                    throw new ApiArgumentException("parent.id");
-                }
-
-                if (!_service.DirectoryExists(path)) {
-                    throw new NotFoundException("parent");
-                }
-
-                newParentPath = path;
-            }
+            created = DynamicHelper.To<DateTime>(model.created);
+            lastAccess = DynamicHelper.To<DateTime>(model.last_access);
+            lastModified = DynamicHelper.To<DateTime>(model.last_modified);
 
             if (model.name != null) {
                 string name = DynamicHelper.Value(model.name);
@@ -492,19 +431,7 @@ namespace Microsoft.IIS.Administration.Files
                     throw new ApiArgumentException("name");
                 }
 
-                newName = name;
-            }
-
-            created = DynamicHelper.To<DateTime>(model.created);
-            lastAccess = DynamicHelper.To<DateTime>(model.last_access);
-            lastModified = DynamicHelper.To<DateTime>(model.last_modified);
-
-            if (newParentPath != null || newName != null) {
-
-                newParentPath = newParentPath == null ? directory.Parent.FullName : newParentPath;
-                newName = newName == null ? directory.Name : newName;
-
-                var newPath = Path.Combine(newParentPath, newName);
+                var newPath = Path.Combine(directory.Parent.FullName, name);
 
                 if (!newPath.Equals(directoryPath, StringComparison.OrdinalIgnoreCase)) {
 

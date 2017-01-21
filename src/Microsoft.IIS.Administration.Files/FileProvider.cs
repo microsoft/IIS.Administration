@@ -116,47 +116,6 @@ namespace Microsoft.IIS.Administration.Files
             await CopyFileInternal(sourcePath, destPath);
         }
 
-        public async Task CopyDirectory(string sourcePath, string destPath)
-        {
-            var source = GetDirectoryInfo(sourcePath);
-            var dest = GetDirectoryInfo(destPath);
-
-            if (!source.Exists) {
-                throw new DirectoryNotFoundException(source.FullName);
-            }
-            if (!dest.Exists) {
-                throw new DirectoryNotFoundException(dest.FullName);
-            }
-
-            var copyDest = Path.Combine(dest.FullName, source.Name);
-
-            if (!DirectoryExists(copyDest)) {
-                CreateDirectory(copyDest);
-            }
-
-            var tasks = new List<Task>();
-            var children = source.EnumerateDirectories("*", SearchOption.AllDirectories);
-
-            foreach (DirectoryInfo dir in children) {
-                var relative = dir.FullName.Substring(source.FullName.Length).TrimStart(PathUtil.SEPARATORS);
-                var destDirPath = Path.Combine(copyDest, relative);
-
-                if (!DirectoryExists(destDirPath)) {
-                    CreateDirectory(destDirPath);
-                }
-                
-                foreach (FileInfo file in dir.EnumerateFiles()) {
-                    tasks.Add(CopyFileInternal(file.FullName, Path.Combine(destDirPath, file.Name)));
-                }
-            }
-
-            foreach (var file in source.EnumerateFiles()) {
-                tasks.Add(CopyFileInternal(file.FullName, Path.Combine(copyDest, file.Name)));
-            }
-
-            await Task.WhenAll(tasks);
-        }
-
         public void MoveFile(string sourcePath, string destPath)
         {
             this.EnsureAccess(sourcePath, FileAccess.ReadWrite);

@@ -109,6 +109,21 @@ namespace Microsoft.IIS.Administration.Files
             return tempPath;
         }
 
+        public static bool IsAncestor(string parent, string child)
+        {
+            DirectoryInfo parentDir = new DirectoryInfo(parent);
+            DirectoryInfo curParent = Directory.GetParent(child);
+
+            while (curParent != null) {
+                if (curParent.FullName.Equals(parentDir.FullName, StringComparison.OrdinalIgnoreCase)) {
+                    return true;
+                }
+                curParent = curParent.Parent;
+            }
+
+            return false;
+        }
+
         public static string RemoveLastSegment(string path)
         {
             if (path == null) {

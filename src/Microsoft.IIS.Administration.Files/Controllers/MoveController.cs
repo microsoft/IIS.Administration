@@ -12,18 +12,18 @@ namespace Microsoft.IIS.Administration.Files
     using System.IO;
     using System.Net;
 
-    public class CopyController : ApiBaseController
+    public class MoveController : ApiBaseController
     {
         private MoveHelper _helper;
         private IFileProvider _fileService;
-        private static ConcurrentDictionary<string, MoveOperation> _copies = new ConcurrentDictionary<string, MoveOperation>();
+        private static ConcurrentDictionary<string, MoveOperation> _moves = new ConcurrentDictionary<string, MoveOperation>();
 
-        public CopyController()
+        public MoveController()
         {
             _fileService = FileProvider.Default;
             _helper = new MoveHelper(_fileService);
         }
-        
+
         [HttpHead]
         [HttpPatch]
         [HttpPut]
@@ -65,35 +65,35 @@ namespace Microsoft.IIS.Administration.Files
                 throw new AlreadyExistsException("name");
             }
 
-            MoveOperation copy = InitiateCopy(src, destPath);
+            MoveOperation move = InitiateMove(src, destPath);
 
             Context.Response.StatusCode = (int) HttpStatusCode.Accepted;
-            Context.Response.Headers.Add("Location", MoveHelper.GetLocation(copy.Id, true));
-            
-            return _helper.ToJsonModel(copy);
+            Context.Response.Headers.Add("Location", MoveHelper.GetLocation(move.Id, false));
+
+            return _helper.ToJsonModel(move);
         }
 
         [HttpGet]
         public object Get(string id)
         {
-            MoveOperation copy = null;
+            MoveOperation move = null;
 
-            if (!_copies.TryGetValue(id, out copy)) {
+            if (!_moves.TryGetValue(id, out move)) {
                 return NotFound();
             }
 
-            return _helper.ToJsonModel(copy);
+            return _helper.ToJsonModel(move);
         }
 
-        private MoveOperation InitiateCopy(FileSystemInfo source, string destination)
+        private MoveOperation InitiateMove(FileSystemInfo source, string destination)
         {
-            MoveOperation copy = _helper.Move(source, destination, true);
+            MoveOperation move = _helper.Move(source, destination, false);
 
-            _copies.TryAdd(copy.Id, copy);
+            _moves.TryAdd(move.Id, move);
 
-            var continuation = copy.Task.ContinueWith(t => _copies.TryRemove(copy.Id, out copy));
+            var continuation = move.Task.ContinueWith(t => _moves.TryRemove(move.Id, out move));
 
-            return copy;
+            return move;
         }
     }
 }

@@ -33,6 +33,7 @@ namespace Microsoft.IIS.Administration.Files
             ConfigureApiDownloads();
             ConfigureContent();
             ConfigureCopy();
+            ConfigureMove();
         }
 
 
@@ -89,12 +90,25 @@ namespace Microsoft.IIS.Administration.Files
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.CopyResource.Guid, $"{Defines.COPY_PATH}", new { controller = "copy" });
+            router.MapWebApiRoute(Defines.CopyResource.Guid, $"{Defines.COPY_PATH}/{{id?}}", new { controller = "copy" });
 
             // Self
-            hal.ProvideLink(Defines.CopyResource.Guid, "self", copy => new { href = CopyHelper.GetLocation(copy.id) });
+            hal.ProvideLink(Defines.CopyResource.Guid, "self", copy => new { href = MoveHelper.GetLocation(copy.id, true) });
 
             hal.ProvideLink(Defines.FilesResource.Guid, Defines.CopyResource.Name, file => new { href = $"/{Defines.COPY_PATH}" });
+        }
+
+        private void ConfigureMove()
+        {
+            var router = Environment.Host.RouteBuilder;
+            var hal = Environment.Hal;
+
+            router.MapWebApiRoute(Defines.MoveResource.Guid, $"{Defines.MOVE_PATH}/{{id?}}", new { controller = "move" });
+
+            // Self
+            hal.ProvideLink(Defines.MoveResource.Guid, "self", move => new { href = MoveHelper.GetLocation(move.id, false) });
+
+            hal.ProvideLink(Defines.FilesResource.Guid, Defines.MoveResource.Name, file => new { href = $"/{Defines.MOVE_PATH}" });
         }
     }
 }
