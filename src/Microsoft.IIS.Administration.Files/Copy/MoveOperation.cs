@@ -7,11 +7,15 @@ namespace Microsoft.IIS.Administration.Files
     using Core.Utils;
     using System;
     using System.IO;
+    using System.Linq;
     using System.Security.Cryptography;
     using System.Threading.Tasks;
 
     class MoveOperation
     {
+        private long _totalSize = -1;
+        private long _currentSize = -1;
+
         public MoveOperation(Task task, FileSystemInfo source, string destination, string tempPath)
         {
             var bytes = new byte[32];
@@ -34,5 +38,41 @@ namespace Microsoft.IIS.Administration.Files
         public DateTime Created { get; private set; }
         public string Destination { get; private set; }
         public FileSystemInfo Source { get; private set; }
+
+        public long TotalSize {
+            get {
+                if (_totalSize != -1) {
+                    return _totalSize;
+                }
+
+                if (Source is FileInfo) {
+                    _totalSize = Source.Exists ? ((FileInfo)Source).Length : 0;
+                }
+                else {
+                    _totalSize = Source.Exists ? ((DirectoryInfo)Source).EnumerateFiles("*", SearchOption.AllDirectories).Aggregate(0L, (prev, f) => prev + f.Length) : 0;
+                }
+
+                return _totalSize;
+            }
+        }
+
+        public long CurrentSize {
+            get {
+                if (_currentSize != -1) {
+                    return _currentSize;
+                }
+
+                if (Source is FileInfo) {
+                    var dest = string.IsNullOrEmpty(TempPath) ? new FileInfo(Destination) : new FileInfo(TempPath);
+                    return dest.Exists ? dest.Length : 0;
+                }
+                else {
+                    return 0;
+                }
+            }
+            set {
+                _currentSize = value;
+            }
+        }
     }
 }

@@ -34,15 +34,8 @@ namespace Microsoft.IIS.Administration.Files
             obj.id = move.Id;
             obj.status = "running";
             obj.created = move.Created;
-
-            if (move.Source is FileInfo && !string.IsNullOrEmpty(move.TempPath)) {
-                var sourceFile = (FileInfo)move.Source;
-                var tempInfo = new FileInfo(move.TempPath);
-
-                obj.current_size = tempInfo.Exists ? tempInfo.Length : 0;
-                obj.total_size = sourceFile.Exists ? sourceFile.Length : 0;
-            }
-
+            obj.current_size = move.CurrentSize;
+            obj.total_size = move.TotalSize;
             obj.file = FilesHelper.ToJsonModelRef(move.Destination);
 
             return Core.Environment.Hal.Apply(Defines.CopyResource.Guid, obj);
@@ -152,13 +145,21 @@ namespace Microsoft.IIS.Administration.Files
         private MoveOperation MoveDirectory(DirectoryInfo source, string dest, bool copy)
         {
             Task t;
+            MoveOperation op = null;
+
             if (copy) {
-                t = CopyDirectory(source.FullName, dest, (s, d) => SafeMoveFile(s, d, PathUtil.GetTempFilePath(d), copy));
+                t = CopyDirectory(source.FullName, dest, (s, d) => SafeMoveFile(s, d, PathUtil.GetTempFilePath(d), copy).ContinueWith(t2 => {
+                    if (op != null) {
+                        op.CurrentSize += new FileInfo(d).Length;
+                    }
+                }));
             }
             else {
                 t = Task.Run(() => _fileService.MoveDirectory(source.FullName, dest));
             }
-            return new MoveOperation(t, source, dest, null);
+
+            op = new MoveOperation(t, source, dest, null);
+            return op;
         }
 
         private MoveOperation MoveFile(FileInfo source, string dest, bool copy)
