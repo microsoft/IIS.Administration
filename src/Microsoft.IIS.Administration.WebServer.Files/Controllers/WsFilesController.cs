@@ -159,7 +159,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             foreach (var vdir in FilesHelper.GetVdirs(site, path)) {
                 if (string.IsNullOrEmpty(nameFilter) || vdir.Name.IndexOf(nameFilter, StringComparison.OrdinalIgnoreCase) != -1) {
 
-                    if (!files.ContainsKey(vdir.Name)) {
+                    if (!dirs.ContainsKey(vdir.Name)) {
                         dirs.Add(vdir.Name, vdir);
                     }
                 }
@@ -169,7 +169,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             // Directories
             foreach (var d in _fileService.GetDirectories(parent.FullName, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
 
-                if (!files.ContainsKey(d.Name) && !d.Attributes.HasFlag(FileAttributes.Hidden) && !d.Attributes.HasFlag(FileAttributes.System)) {
+                if (!dirs.ContainsKey(d.Name) && !d.Attributes.HasFlag(FileAttributes.Hidden) && !d.Attributes.HasFlag(FileAttributes.System)) {
                     dirs.Add(d.Name, d);
                 }
             }
