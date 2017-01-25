@@ -11,6 +11,7 @@ namespace Microsoft.IIS.Administration.Files
     using System.Globalization;
     using System.IO;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public class HttpFileHandler
@@ -78,45 +79,45 @@ namespace Microsoft.IIS.Administration.Files
             ValidateIfUnmodifiedSince();
             ValidateContentRange(out start, out finish, out outOf);
 
-            //string path = await CreateTempCopy(_file.FullName);
-            string path = CreateTempFile(_file.FullName);
+            string tempFilePath = CreateTempFile(_file.FullName);
 
             try {
-                
-                using (var stream = _service.GetFile(path, FileMode.Open, FileAccess.Write, FileShare.Read)) {
-                    await _context.Request.Body.CopyToAsync(stream);
-                    stream.Flush();
-                }
-
-                using (var real = _service.GetFile(_file.FullName, FileMode.Open, FileAccess.Write, FileShare.Read))
-                using (var temp = _service.GetFile(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-
-                    if (start >= 0)
-                    {
-                        //
-                        // Range request
-
-                        int length = finish - start + 1;
-                        real.Seek(start, SeekOrigin.Begin);
-                    }
-
-                    await temp.CopyToAsync(real);
-
-                    if (finish > 0 && finish == outOf - 1) {
-                        real.SetLength(outOf);
-                    }
+                using (var temp = _service.GetFile(tempFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read)) {
+                    //
+                    // Write to temp file
+                    await _context.Request.Body.CopyToAsync(temp);
+                    temp.Flush();
+                    temp.Seek(0, SeekOrigin.Begin);
 
                     //
-                    // https://github.com/dotnet/corefx/blob/ec2a6190efa743ab600317f44d757433e44e859b/src/System.IO.FileSystem/src/System/IO/FileStream.Win32.cs#L1687
-                    // Unlike Flush(), FlushAsync() always flushes to disk. This is intentional.
-                    real.Flush();
+                    // Copy from temp 
+                    using (var real = TryOpenFile(_file.FullName, FileMode.Open, FileAccess.Write, FileShare.Read)) {
+                        if (start >= 0) {
+                            //
+                            // Range request
+
+                            int length = finish - start + 1;
+                            real.Seek(start, SeekOrigin.Begin);
+                        }
+                        
+                        await temp.CopyToAsync(real);
+
+                        if (finish > 0 && finish == outOf - 1) {
+                            real.SetLength(outOf);
+                        }
+
+                        //
+                        // https://github.com/dotnet/corefx/blob/ec2a6190efa743ab600317f44d757433e44e859b/src/System.IO.FileSystem/src/System/IO/FileStream.Win32.cs#L1687
+                        // Unlike Flush(), FlushAsync() always flushes to disk. This is intentional.
+                        real.Flush();
+                    }
                 }
             }
             catch (IndexOutOfRangeException) {
                 throw new ApiArgumentException(HeaderNames.ContentLength);
             }
             finally {
-                _service.DeleteFile(path);
+                _service.DeleteFile(tempFilePath);
             }
 
             _context.Response.StatusCode = (int) HttpStatusCode.OK;
@@ -391,6 +392,29 @@ namespace Microsoft.IIS.Administration.Files
             _service.MoveFile(pathA, fileATempPath);
             _service.MoveFile(pathB, pathA);
             _service.MoveFile(fileATempPath, pathB);
+        }
+
+        private Stream TryOpenFile(string physicalPath, FileMode mode, FileAccess access, FileShare fileShare)
+        {
+            Stream file = null;
+            int attempts = 10;
+
+            //
+            // Retry if file locked
+            while (attempts > 0 && file == null) {
+                try {
+                    file = _service.GetFile(physicalPath, mode, access, fileShare);
+                }
+                catch (LockedException e) {
+                    if (--attempts > 0) {
+                        Thread.Sleep(10);
+                        continue;
+                    }
+                    throw;
+                }
+            }
+
+            return file;
         }
     }
 }
