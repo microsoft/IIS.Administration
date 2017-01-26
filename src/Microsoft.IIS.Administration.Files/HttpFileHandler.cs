@@ -405,7 +405,7 @@ namespace Microsoft.IIS.Administration.Files
                 try {
                     file = _service.GetFile(physicalPath, mode, access, fileShare);
                 }
-                catch (LockedException e) {
+                catch (LockedException) {
                     if (--attempts > 0) {
                         Thread.Sleep(10);
                         continue;
