@@ -34,7 +34,7 @@
     "Microsoft.IIS.Administration.WebServer.VirtualDirectories": "1.0.1",
     "Microsoft.IIS.Administration.WebServer.WorkerProcesses": "1.0.1",
     "Microsoft.NETCore.App": {
-      "version": "1.0.1",
+      "version": "1.0.0",
       "type": "platform"
     }
   },
