@@ -3,6 +3,10 @@
 
 
 namespace Microsoft.IIS.Administration.Security {
+    using Core.Security;
+    using Core.Utils;
+    using Extensions.Caching.Memory;
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -10,18 +14,14 @@ namespace Microsoft.IIS.Administration.Security {
     using System.Security.Cryptography;
     using System.Threading;
     using System.Threading.Tasks;
-    using Core.Security;
-    using Core.Utils;
-    using Newtonsoft.Json;
-
-
 
     public class ApiKeyProvider : IApiKeyProvider {
         private IDictionary<string, ApiKey> _keys; // Read-only
         private string _filePath;
         private ApiKeyOptions _options;
         private SemaphoreSlim _lock = new SemaphoreSlim(1); // All writes are sequential
-
+        private MemoryCache _tokenCache;
+        private static readonly TimeSpan TokenCacheExpiration = TimeSpan.FromSeconds(30);
 
         public ApiKeyProvider(string filePath, ApiKeyOptions options) {
             if (string.IsNullOrEmpty(filePath)) {
@@ -31,6 +31,8 @@ namespace Microsoft.IIS.Administration.Security {
             if (options == null) {
                 throw new ArgumentNullException(nameof(options));
             }
+
+            ResetCache();
 
             _filePath = filePath;
             _options = options;
@@ -70,6 +72,8 @@ namespace Microsoft.IIS.Administration.Security {
                 throw new ArgumentNullException(nameof(key));
             }
 
+            ResetCache();
+
             //
             // Generate a new key
             ApiToken result = GenerateKey(key.Purpose);
@@ -98,7 +102,7 @@ namespace Microsoft.IIS.Administration.Security {
                 // Update the cache
                 _keys = keys;
             }
-            finally { 
+            finally {
                 _lock.Release();
             }
 
@@ -110,36 +114,43 @@ namespace Microsoft.IIS.Administration.Security {
                 return null;
             }
 
-            byte[] saltAndKey = Base64.Decode(token);
-            if (saltAndKey.Length != (_options.SaltSize + _options.KeySize)) {
-                // Invalid length
-                return null;
-            }
-
-            EnsureInit();
-
-            //
-            // Split the salt and key
-            // [Salt][Key]
-            //
-            byte[] salt = new byte[_options.SaltSize];
-            byte[] key = new byte[_options.KeySize];
-
-            Buffer.BlockCopy(saltAndKey, 0, salt, 0, salt.Length);
-            Buffer.BlockCopy(saltAndKey, salt.Length, key, 0, key.Length);
-
-            // Obtain hash
-            string hmac = Base64.Encode(CalcHash(key, salt));
-
             ApiKey apiKey = null;
 
-            _keys.TryGetValue(hmac, out apiKey);
+            if (!_tokenCache.TryGetValue(token, out apiKey)) {
+                byte[] saltAndKey = Base64.Decode(token);
+                if (saltAndKey.Length != (_options.SaltSize + _options.KeySize)) {
+                    // Invalid length
+                    return null;
+                }
+
+                EnsureInit();
+
+                //
+                // Split the salt and key
+                // [Salt][Key]
+                //
+                byte[] salt = new byte[_options.SaltSize];
+                byte[] key = new byte[_options.KeySize];
+
+                Buffer.BlockCopy(saltAndKey, 0, salt, 0, salt.Length);
+                Buffer.BlockCopy(saltAndKey, salt.Length, key, 0, key.Length);
+
+                // Obtain hash
+                string hmac = Base64.Encode(CalcHash(key, salt));
+
+                _keys.TryGetValue(hmac, out apiKey);
+            }
 
             //
             // Check expiration
-            if (apiKey != null && apiKey.ExpiresOn <= DateTime.UtcNow) {
+            if (apiKey == null || apiKey.ExpiresOn <= DateTime.UtcNow) {
+                _tokenCache.Remove(token);
                 return null;
             }
+
+            //
+            // Fine. Cache a valid key
+            _tokenCache.Set(token, apiKey, TokenCacheExpiration);
 
             return apiKey;
         }
@@ -200,6 +211,8 @@ namespace Microsoft.IIS.Administration.Security {
             }
 
             if (_keys.ContainsKey(key.TokenHash)) {
+
+                ResetCache();
 
                 //
                 // Sequential access
@@ -375,6 +388,13 @@ namespace Microsoft.IIS.Administration.Security {
 
         private static string GenerateId() {
             return Base64.Encode(GenerateRandom(16));
+        }
+
+        private void ResetCache()
+        {
+            _tokenCache = new MemoryCache(new MemoryCacheOptions() {
+                ExpirationScanFrequency = TokenCacheExpiration
+            });
         }
     }
 }
