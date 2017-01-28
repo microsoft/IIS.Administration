@@ -6,16 +6,22 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 {
     using AspNetCore.Mvc;
     using Core;
+    using Core.Http;
+    using Files;
     using Sites;
     using System.Net;
     using Web.Administration;
-    using Core.Http;
-
 
     [RequireGlobalModule("HttpLoggingModule", "IIS Logging Tools")]
     [RequireGlobalModule("CustomLoggingModule", "IIS Logging Tools")]
     public class LoggingController : ApiBaseController
     {
+        private IFileProvider _fileProvider;
+
+        public LoggingController(IFileProvider fileProvider)
+        {
+            _fileProvider = fileProvider;
+        }
 
         [HttpGet]
         [ResourceInfo(Name = Defines.LoggingName)]
@@ -68,7 +74,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             // Check for config_scope
             string configScope = model == null ? null : ManagementUnit.ResolveConfigScope(model);
 
-            LoggingHelper.Update(model, site, logId.Path, configScope);
+            LoggingHelper.Update(model, _fileProvider, site, logId.Path, configScope);
 
             ManagementUnit.Current.Commit();
 

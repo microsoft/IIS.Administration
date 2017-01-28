@@ -3,20 +3,27 @@
 
 
 namespace Microsoft.IIS.Administration.WebServer.Applications {
-    using AspNetCore.Mvc;
-    using Web.Administration;
-    using System.Linq;
-    using Core;
-    using Sites;
-    using System.Net;
-    using System.Collections.Generic;
     using AppPools;
+    using AspNetCore.Mvc;
+    using Core;
     using Core.Http;
     using Core.Utils;
+    using Files;
+    using Sites;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net;
+    using Web.Administration;
 
+    public class ApplicationsController : ApiBaseController
+    {
+        private IFileProvider _fileProvider;
 
+        public ApplicationsController(IFileProvider fileProvider)
+        {
+            _fileProvider = fileProvider;
+        }
 
-    public class ApplicationsController : ApiBaseController {
         [HttpGet]
         [ResourceInfo(Name = Defines.WebAppsName)]
         public object Get() {
@@ -94,7 +101,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
             }
 
             // Create app
-            Application app = ApplicationHelper.CreateApplication(model, site);
+            Application app = ApplicationHelper.CreateApplication(model, site, _fileProvider);
 
             // Check case of duplicate app. Adding duplicate app would result in System.Exception which we don't want to catch
             if (site.Applications.Any(a => a.Path.Equals(app.Path))) {
@@ -129,7 +136,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
                 return NotFound();
             }
 
-            ApplicationHelper.UpdateApplication(app, site, model);
+            ApplicationHelper.UpdateApplication(app, site, model, _fileProvider);
 
             // Save changes
             ManagementUnit.Current.Commit();

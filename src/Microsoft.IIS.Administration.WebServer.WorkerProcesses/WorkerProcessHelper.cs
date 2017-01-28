@@ -60,7 +60,6 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
             }
 
             Process p = Process.GetProcessById(wp.ProcessId);
-
             dynamic obj = new ExpandoObject();
 
             //

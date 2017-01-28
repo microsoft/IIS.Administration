@@ -20,11 +20,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     public class WsFilesController : ApiBaseController
     {
         private const string _units = "files";
-        private IFileProvider _fileService;
+        private IFileProvider _fileProvider;
+        private FilesHelper _filesHelper;
 
-        public WsFilesController()
+        public WsFilesController(IFileProvider fileProvider)
         {
-            _fileService = FileProvider.Default;
+            _fileProvider = fileProvider;
+            _filesHelper = new FilesHelper(fileProvider);
         }
 
         [HttpDelete]
@@ -56,11 +58,11 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             physicalPath = FilesHelper.GetPhysicalPath(site, parentId.Path);
 
-            if (!_fileService.DirectoryExists(physicalPath)) {
+            if (!_fileProvider.DirectoryExists(physicalPath)) {
                 return NotFound();
             }
             
-            var dirInfo = _fileService.GetDirectoryInfo(physicalPath);            
+            var dirInfo = _fileProvider.GetDirectory(physicalPath);            
             var children = GetChildren(site, parentId.Path, dirInfo, nameFilter, false);
 
             // Set HTTP header for total count
@@ -90,12 +92,12 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             physicalPath = FilesHelper.GetPhysicalPath(site, parentId.Path);
 
-            if (!_fileService.DirectoryExists(physicalPath)) {
+            if (!_fileProvider.DirectoryExists(physicalPath)) {
                 return NotFound();
             }
 
             var fields = Context.Request.GetFields();
-            var dirInfo = _fileService.GetDirectoryInfo(physicalPath);            
+            var dirInfo = _fileProvider.GetDirectory(physicalPath);            
             var children = GetChildren(site, parentId.Path, dirInfo, nameFilter, true, fields);
 
             // Set HTTP header for total count
@@ -121,13 +123,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             var physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
             
-            if (!_fileService.FileExists(physicalPath) && !_fileService.DirectoryExists(physicalPath)) {
+            if (!_fileProvider.FileExists(physicalPath) && !_fileProvider.DirectoryExists(physicalPath)) {
                 return NotFound();
             }
 
             var fields = Context.Request.GetFields();
 
-            return FilesHelper.ToJsonModel(site, fileId.Path, fields);
+            return _filesHelper.ToJsonModel(site, fileId.Path, fields);
         }
 
 
@@ -148,7 +150,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             site = parentId == null ? null : SiteHelper.GetSite(parentId.SiteId);
         }
 
-        private IEnumerable<object> GetChildren(Site site, string path, DirectoryInfo parent, string nameFilter, bool jsonModels = true, Fields fields = null)
+        private IEnumerable<object> GetChildren(Site site, string path, IDirectoryInfo parent, string nameFilter, bool jsonModels = true, Fields fields = null)
         {
             long start = -1, finish = -1;
             var dirs = new SortedList<string, object>();
@@ -167,7 +169,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             //
             // Directories
-            foreach (var d in _fileService.GetDirectories(parent.FullName, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
+            foreach (var d in _fileProvider.GetDirectories(parent.Path, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
 
                 if (!dirs.ContainsKey(d.Name) && !d.Attributes.HasFlag(FileAttributes.Hidden) && !d.Attributes.HasFlag(FileAttributes.System)) {
                     dirs.Add(d.Name, d);
@@ -180,7 +182,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             //
             // Files
-            foreach (var f in _fileService.GetFiles(parent.FullName, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
+            foreach (var f in _fileProvider.GetFiles(parent.Path, string.IsNullOrEmpty(nameFilter) ? "*" : $"*{nameFilter}*")) {
 
                 if (!files.ContainsKey(f.Name) && !f.Attributes.HasFlag(FileAttributes.Hidden) && !f.Attributes.HasFlag(FileAttributes.System)) {
                     files.Add(f.Name, f);
@@ -199,13 +201,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             if (jsonModels) {
                 foreach (var key in files.Keys.ToList()) {
                     if (files[key] is Vdir) {
-                        files[key] = FilesHelper.VdirToJsonModelRef((Vdir) files[key], fields);
+                        files[key] = _filesHelper.VdirToJsonModelRef((Vdir) files[key], fields);
                     }
-                    else if (files[key] is DirectoryInfo) {
-                        files[key] = FilesHelper.DirectoryToJsonModelRef(site, Path.Combine(path, ((DirectoryInfo) files[key]).Name), fields);
+                    else if (files[key] is IDirectoryInfo) {
+                        files[key] = _filesHelper.DirectoryToJsonModelRef(site, Path.Combine(path, ((IDirectoryInfo) files[key]).Name), fields);
                     }
-                    else if (files[key] is FileInfo) {
-                        files[key] = FilesHelper.FileToJsonModelRef(site, Path.Combine(path, ((FileInfo) files[key]).Name), fields);
+                    else if (files[key] is IFileInfo) {
+                        files[key] = _filesHelper.FileToJsonModelRef(site, Path.Combine(path, ((IFileInfo) files[key]).Name), fields);
                     }
                 }
             }
@@ -226,13 +228,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             string physicalPath = FilesHelper.GetPhysicalPath(site, fileId.Path);
 
             var fields = Context.Request.GetFields();
-            var dirInfo = _fileService.GetDirectoryInfo(physicalPath);
+            var dirInfo = _fileProvider.GetDirectory(physicalPath);
 
-            if (!_fileService.DirectoryExists(physicalPath) && !_fileService.FileExists(physicalPath)) {
+            if (!_fileProvider.DirectoryExists(physicalPath) && !_fileProvider.FileExists(physicalPath)) {
                 throw new NotFoundException("path");
             }
 
-            return FilesHelper.ToJsonModel(site, fileId.Path, fields);
+            return _filesHelper.ToJsonModel(site, fileId.Path, fields);
         }
     }
 }

@@ -8,12 +8,20 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Files;
     using Sites;
     using System.Net;
     using Web.Administration;
 
     public class HttpRequestTracingController : ApiBaseController
     {
+        private IFileProvider _fileProvider;
+
+        public HttpRequestTracingController(IFileProvider fileProvider)
+        {
+            _fileProvider = fileProvider;
+        }
+
         [HttpGet]
         [ResourceInfo(Name = Defines.HttpRequestTracingName)]
         public object Get()
@@ -53,7 +61,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             }
 
             string configPath = model == null ? null : ManagementUnit.ResolveConfigScope(model);
-            Helper.UpdateSettings(model, site, hrtId.Path, configPath);
+            Helper.UpdateSettings(model, _fileProvider, site, hrtId.Path, configPath);
 
             ManagementUnit.Current.Commit();
 

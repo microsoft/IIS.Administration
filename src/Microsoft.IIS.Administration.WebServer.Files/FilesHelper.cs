@@ -13,14 +13,20 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using System.IO;
     using Web.Administration;
 
-    public static class FilesHelper
+    public class FilesHelper
     {
         private static readonly Fields RefFields = new Fields("name", "id", "type", "path", "physical_path");
 
-        private static IFileProvider _service = FileProvider.Default;
-        private static IAccessControl _acessControl = AccessControl.Default;
+        private IFileProvider _fileProvider;
+        private Administration.Files.FilesHelper _filesHelper;
 
-        public static object ToJsonModel(Site site, string path, Fields fields = null, bool full = true)
+        public FilesHelper(IFileProvider fileProvider)
+        {
+            _fileProvider = fileProvider;
+            _filesHelper = new Administration.Files.FilesHelper(_fileProvider);
+        }
+
+        public object ToJsonModel(Site site, string path, Fields fields = null, bool full = true)
         {
             var physicalPath = GetPhysicalPath(site, path);
 
@@ -47,7 +53,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return null;
         }
 
-        public static object ToJsonModelRef(Site site, string path, Fields fields = null)
+        public object ToJsonModelRef(Site site, string path, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
                 return ToJsonModel(site, path, RefFields, false);
@@ -57,7 +63,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
         }
 
-        internal static object DirectoryToJsonModel(Site site, string path, Fields fields = null, bool full = true)
+        internal object DirectoryToJsonModel(Site site, string path, Fields fields = null, bool full = true)
         {
             if (string.IsNullOrEmpty(path)) {
                 throw new ArgumentNullException(nameof(path));
@@ -67,7 +73,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 fields = Fields.All;
             }
             
-            var directory = new DirectoryInfo(GetPhysicalPath(site, path));
+            var directory = _fileProvider.GetDirectory(GetPhysicalPath(site, path));
 
             path = path.Replace('\\', '/');
 
@@ -113,13 +119,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // file_info
             if (fields.Exists("file_info")) {
-                obj.file_info = Administration.Files.FilesHelper.DirectoryToJsonModelRef(directory, fields.Filter("file_info"));
+                obj.file_info = _filesHelper.DirectoryToJsonModelRef(directory, fields.Filter("file_info"));
             }
 
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
         }
 
-        internal static object DirectoryToJsonModelRef(Site site, string path, Fields fields = null)
+        internal object DirectoryToJsonModelRef(Site site, string path, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
                 return DirectoryToJsonModel(site, path, RefFields, false);
@@ -129,7 +135,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
         }
 
-        internal static object FileToJsonModel(Site site, string path, Fields fields = null, bool full = true)
+        internal object FileToJsonModel(Site site, string path, Fields fields = null, bool full = true)
         {
             if (string.IsNullOrEmpty(path)) {
                 throw new ArgumentNullException(nameof(path));
@@ -140,7 +146,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
 
             path = path.Replace('\\', '/');
-            FileInfo file = new FileInfo(GetPhysicalPath(site, path));
+            var file = _fileProvider.GetFile(GetPhysicalPath(site, path));
 
             dynamic obj = new ExpandoObject();
             var FileId = new FileId(site.Id, path);
@@ -184,14 +190,14 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // file_info
             if (fields.Exists("file_info")) {
-                obj.file_info = Administration.Files.FilesHelper.FileToJsonModelRef(file, fields.Filter("file_info"));
+                obj.file_info = _filesHelper.FileToJsonModelRef(file, fields.Filter("file_info"));
             }
 
 
             return Core.Environment.Hal.Apply(Defines.FilesResource.Guid, obj, full);
         }
 
-        internal static object FileToJsonModelRef(Site site, string path, Fields fields = null)
+        internal object FileToJsonModelRef(Site site, string path, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
                 return FileToJsonModel(site, path, RefFields, false);
@@ -201,7 +207,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
         }
 
-        internal static object VdirToJsonModel(Vdir vdir, Fields fields = null, bool full = true)
+        internal object VdirToJsonModel(Vdir vdir, Fields fields = null, bool full = true)
         {
             if (vdir == null) {
                 return null;
@@ -211,7 +217,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 fields = Fields.All;
             }
             
-            var directory = new DirectoryInfo(GetPhysicalPath(vdir.Site, vdir.Path));
+            var directory = _fileProvider.GetDirectory(GetPhysicalPath(vdir.Site, vdir.Path));
 
             dynamic obj = new ExpandoObject();
             var FileId = new FileId(vdir.Site.Id, vdir.Path);
@@ -255,13 +261,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // file_info
             if (fields.Exists("file_info")) {
-                obj.file_info = Administration.Files.FilesHelper.DirectoryToJsonModelRef(directory, fields.Filter("file_info"));
+                obj.file_info = _filesHelper.DirectoryToJsonModelRef(directory, fields.Filter("file_info"));
             }
 
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
         }
 
-        internal static object VdirToJsonModelRef(Vdir vdir, Fields fields = null)
+        internal object VdirToJsonModelRef(Vdir vdir, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
                 return VdirToJsonModel(vdir, RefFields, false);
@@ -336,7 +342,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             VirtualDirectory parentVdir = null;
             if (parentApp != null) {
                 var maxMatch = 0;
-                var testPath = path.TrimStart(parentApp.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+                var testPath = TrimStart(path, parentApp.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
                 testPath = testPath == string.Empty ? "/" : testPath;
                 foreach (var vdir in parentApp.VirtualDirectories) {
                     var matchingPrefix = PrefixSegments(vdir.Path, testPath);
@@ -371,7 +377,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             string physicalPath = null;
 
             if (vdir != null) {
-                var suffix = path.TrimStart(app.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase).TrimStart(vdir.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
+                var suffix = TrimStart(TrimStart(path, app.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase), vdir.Path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase);
                 physicalPath = Path.Combine(vdir.PhysicalPath, suffix.Trim(PathUtil.SEPARATORS).Replace('/', Path.DirectorySeparatorChar));
                 physicalPath = PathUtil.GetFullPath(physicalPath);
             }
@@ -417,9 +423,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
             return new Uri("file://" + path).LocalPath;
         }
-
-
-        
+                
         private static string GetPhysicalPath(Site site)
         {
             if (site == null) {
@@ -434,11 +438,11 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return root;
         }
 
-        private static object GetParentJsonModelRef(Site site, string path, Fields fields = null)
+        private object GetParentJsonModelRef(Site site, string path, Fields fields = null)
         {
             object parent = null;
             if (path != "/") {
-                var parentPath = PathUtil.RemoveLastSegment(path);
+                var parentPath = RemoveLastSegment(path);
                 var parentApp = ResolveApplication(site, parentPath);
                 var parentVdir = ResolveVdir(site, parentPath);
 
@@ -453,7 +457,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return parent;
         }
 
-        private static object GetParentVdirJsonModelRef(Vdir vdir, Fields fields = null)
+        private object GetParentVdirJsonModelRef(Vdir vdir, Fields fields = null)
         {
             object ret = null;
 
@@ -504,7 +508,22 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return index == 0 ? -1 : index;
         }
 
-        private static string TrimStart(this string val, string prefix, StringComparison stringComparision = StringComparison.Ordinal)
+        private string RemoveLastSegment(string path)
+        {
+            if (path == null) {
+                throw new ArgumentNullException(nameof(path));
+            }
+            if (!path.StartsWith("/") || path == "/") {
+                throw new ArgumentException(nameof(path));
+            }
+
+            var parts = path.TrimEnd(PathUtil.SEPARATORS).Split(PathUtil.SEPARATORS);
+            parts[parts.Length - 1] = string.Empty;
+            var ret = string.Join("/", parts);
+            return ret == "/" ? ret : ret.TrimEnd('/');
+        }
+
+        private static string TrimStart(string val, string prefix, StringComparison stringComparision = StringComparison.Ordinal)
         {
             if (val.StartsWith(prefix, stringComparision)) {
                 val = val.Remove(0, prefix.Length);

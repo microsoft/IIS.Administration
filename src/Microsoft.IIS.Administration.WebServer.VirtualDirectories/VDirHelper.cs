@@ -21,7 +21,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
         private const string PasswordAttribute = "password";
         private const string UserNameAttribute = "userName";
 
-        public static VirtualDirectory CreateVDir(Application app, dynamic model)
+        public static VirtualDirectory CreateVDir(Application app, dynamic model, IFileProvider fileProvider)
         {
             if(app == null) {
                 throw new ArgumentNullException("app");
@@ -47,7 +47,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             SetDefaults(vdir);
 
             // Update virtual directory with any specified state
-            SetVirtualDirectory(vdir, model);
+            SetVirtualDirectory(vdir, model, fileProvider);
             
             return vdir;
         }
@@ -60,7 +60,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             return app.VirtualDirectories[path];
         }
 
-        public static VirtualDirectory UpdateVirtualDirectory(VirtualDirectory vdir, dynamic model)
+        public static VirtualDirectory UpdateVirtualDirectory(VirtualDirectory vdir, dynamic model, IFileProvider fileProvider)
         {
             if (model == null) {
                 throw new ApiArgumentException("model");
@@ -69,7 +69,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
                 throw new ArgumentNullException("vdir");
             }
 
-            SetVirtualDirectory(vdir, model);
+            SetVirtualDirectory(vdir, model, fileProvider);
 
             return vdir;
         }
@@ -176,7 +176,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             vdir.UserName = defaults.UserName;
         }
 
-        private static void SetVirtualDirectory(VirtualDirectory vdir, dynamic model)
+        private static void SetVirtualDirectory(VirtualDirectory vdir, dynamic model, IFileProvider fileProvider)
         {
             string path = DynamicHelper.Value(model.path);
             if (!string.IsNullOrEmpty(path)) {
@@ -199,7 +199,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
                 if (!PathUtil.IsFullPath(expanded)) {
                     throw new ApiArgumentException("physical_path");
                 }
-                if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                if (!fileProvider.IsAccessAllowed(expanded, FileAccess.Read)) {
                     throw new ForbiddenArgumentException("physical_path", physicalPath);
                 }
                 if (!Directory.Exists(expanded)) {

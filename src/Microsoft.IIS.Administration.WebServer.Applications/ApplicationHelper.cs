@@ -21,7 +21,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
 
         private static readonly Fields RefFields = new Fields("location", "id", "path");
 
-        public static Application CreateApplication(dynamic model, Site site)
+        public static Application CreateApplication(dynamic model, Site site, IFileProvider fileProvider)
         {
             // Ensure necessary information provided
             if (model == null) {
@@ -46,7 +46,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
             SetToDefaults(app);
 
             // Set application settings to those provided
-            SetApplication(app, model);
+            SetApplication(app, model, fileProvider);
             
             return app;
         }
@@ -82,7 +82,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
             return apps;
         }
 
-        public static void UpdateApplication(Application app, Site site, dynamic model)
+        public static void UpdateApplication(Application app, Site site, dynamic model, IFileProvider fileProvider)
         {
             if (model == null) {
                 throw new ApiArgumentException("model");
@@ -95,7 +95,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
             }
 
             // Update state of site to those specified in the model
-            SetApplication(app, model);
+            SetApplication(app, model, fileProvider);
         }
 
         public static void DeleteApplication(Application app, Site site)
@@ -261,7 +261,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
             app.EnabledProtocols = defaults.EnabledProtocols;
         }
 
-        private static void SetApplication(Application app, dynamic model)
+        private static void SetApplication(Application app, dynamic model, IFileProvider fileProvider)
         {
             string path = DynamicHelper.Value(model.path);
             if(!string.IsNullOrEmpty(path)) {
@@ -286,7 +286,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
                 if (!PathUtil.IsFullPath(expanded)) {
                     throw new ApiArgumentException("physical_path");
                 }
-                if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                if (!fileProvider.IsAccessAllowed(expanded, FileAccess.Read)) {
                     throw new ForbiddenArgumentException("physical_path", physicalPath);
                 }
                 if (!Directory.Exists(expanded)) {

@@ -4,7 +4,6 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    using Core;
     using Extensions.Configuration;
     using System;
     using System.Collections.Generic;
@@ -14,7 +13,7 @@ namespace Microsoft.IIS.Administration.Files
         private IFileOptions _options;
         private IConfiguration _configuration;
 
-        private AccessControl(IConfiguration configuration)
+        public AccessControl(IConfiguration configuration)
         {
             if (configuration == null) {
                 throw new ArgumentNullException(nameof(configuration));
@@ -22,8 +21,6 @@ namespace Microsoft.IIS.Administration.Files
 
             _configuration = configuration;
         }
-
-        public static IAccessControl Default { get; } = new AccessControl(ConfigurationHelper.Configuration);
 
         private IFileOptions Options
         {

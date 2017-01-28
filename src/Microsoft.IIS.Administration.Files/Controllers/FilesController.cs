@@ -22,11 +22,14 @@ namespace Microsoft.IIS.Administration.Files
         private const string _physicalPathKey = "physical_path";
 
         IFileOptions _options;
-        IFileProvider _provider = FileProvider.Default;
+        IFileProvider _provider;
+        FilesHelper _helper;
 
-        public FilesController(IFileOptions options)
+        public FilesController(IFileOptions options, IFileProvider fileProvider)
         {
             _options = options;
+            _provider = fileProvider;
+            _helper = new FilesHelper(fileProvider);
         }
 
         [HttpHead]
@@ -47,7 +50,7 @@ namespace Microsoft.IIS.Administration.Files
                 return NotFound();
             }
 
-            IEnumerable<FileSystemInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, nameFilter) : GetFromLocations(nameFilter);
+            IEnumerable<IFileSystemInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, nameFilter) : GetFromLocations(nameFilter);
 
             // Set HTTP header for total count
             this.Context.Response.SetItemsCount(children.Count());
@@ -76,10 +79,10 @@ namespace Microsoft.IIS.Administration.Files
             }
 
             var models = new List<object>();
-            IEnumerable<FileSystemInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, nameFilter) : GetFromLocations(nameFilter);
+            IEnumerable<IFileSystemInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, nameFilter) : GetFromLocations(nameFilter);
 
-            foreach (FileSystemInfo child in children) {
-                models.Add((child is FileInfo) ? FilesHelper.FileToJsonModelRef((FileInfo) child, fields) : FilesHelper.DirectoryToJsonModelRef((DirectoryInfo) child, fields));
+            foreach (IFileSystemInfo child in children) {
+                models.Add((child is IFileInfo) ? _helper.FileToJsonModelRef((IFileInfo) child, fields) : _helper.DirectoryToJsonModelRef((IDirectoryInfo) child, fields));
             }
 
             // Set HTTP header for total count
@@ -102,7 +105,7 @@ namespace Microsoft.IIS.Administration.Files
                 return NotFound();
             }
 
-            return FilesHelper.ToJsonModel(fileId.PhysicalPath);
+            return _helper.ToJsonModel(fileId.PhysicalPath);
         }
 
         [HttpPost]
@@ -160,15 +163,13 @@ namespace Microsoft.IIS.Administration.Files
                 throw new AlreadyExistsException("name");
             }
 
-            FileSystemInfo info = fileType == FileType.File ? (FileSystemInfo) _provider.CreateFile(creationPath) : 
+            IFileSystemInfo info = fileType == FileType.File ? (IFileSystemInfo) _provider.CreateFile(creationPath) : 
                                                                                _provider.CreateDirectory(creationPath);
-            
-            info.CreationTime = created ?? info.CreationTime;
-            info.LastAccessTime = lastAccess ?? info.LastAccessTime;
-            info.LastWriteTime = lastModified ?? info.LastWriteTime;
 
-            dynamic file = fileType == FileType.File ? FilesHelper.FileToJsonModel((FileInfo) info) :
-                                               FilesHelper.DirectoryToJsonModel((DirectoryInfo) info);
+            _provider.SetFileTime(info.Path, lastAccess, lastModified, created);
+
+            dynamic file = fileType == FileType.File ? _helper.FileToJsonModel((IFileInfo) info) :
+                                               _helper.DirectoryToJsonModel((IDirectoryInfo) info);
 
             return Created(FilesHelper.GetLocation(file.id), file);
         }
@@ -215,10 +216,8 @@ namespace Microsoft.IIS.Administration.Files
             if (_provider.FileExists(fileId.PhysicalPath) || _provider.DirectoryExists(fileId.PhysicalPath)) {
                 switch (FilesHelper.GetFileType(fileId.PhysicalPath)) {
                     case FileType.File:
-                        _provider.DeleteFile(fileId.PhysicalPath);
-                        break;
                     case FileType.Directory:
-                        _provider.DeleteDirectory(fileId.PhysicalPath);
+                        _provider.Delete(fileId.PhysicalPath);
                         break;
                     default:
                         break;
@@ -267,10 +266,10 @@ namespace Microsoft.IIS.Administration.Files
             object model = null;
 
             if (_provider.FileExists(physicalPath)) {
-                model = FilesHelper.FileToJsonModel(_provider.GetFileInfo(physicalPath), fields);
+                model = _helper.FileToJsonModel(_provider.GetFile(physicalPath), fields);
             }
             else if (_provider.DirectoryExists(physicalPath)) {
-                model = FilesHelper.DirectoryToJsonModel(_provider.GetDirectoryInfo(physicalPath), fields);
+                model = _helper.DirectoryToJsonModel(_provider.GetDirectory(physicalPath), fields);
             }
 
             if (model == null) {
@@ -280,9 +279,9 @@ namespace Microsoft.IIS.Administration.Files
             return model;
         }
 
-        private IEnumerable<FileSystemInfo> GetChildren(string physicalPath, string nameFilter)
+        private IEnumerable<IFileSystemInfo> GetChildren(string physicalPath, string nameFilter)
         {
-            var infos = new List<FileSystemInfo>();
+            var infos = new List<IFileSystemInfo>();
 
             //
             // Directories
@@ -315,15 +314,15 @@ namespace Microsoft.IIS.Administration.Files
             return infos;
         }
 
-        private IEnumerable<DirectoryInfo> GetFromLocations(string nameFilter)
+        private IEnumerable<IDirectoryInfo> GetFromLocations(string nameFilter)
         {
-            var dirs = new List<DirectoryInfo>();
+            var dirs = new List<IDirectoryInfo>();
 
             foreach (var location in _options.Locations) {
                 if (_provider.IsAccessAllowed(location.Path, FileAccess.Read) && 
-                        (string.IsNullOrEmpty(nameFilter) || new FileInfo(location.Path).Name.IndexOf(nameFilter, StringComparison.OrdinalIgnoreCase) != -1)) {
+                        (string.IsNullOrEmpty(nameFilter) || PathUtil.GetName(location.Path).IndexOf(nameFilter, StringComparison.OrdinalIgnoreCase) != -1)) {
 
-                    dirs.Add(_provider.GetDirectoryInfo(location.Path));
+                    dirs.Add(_provider.GetDirectory(location.Path));
                 }
             }
 
@@ -344,16 +343,16 @@ namespace Microsoft.IIS.Administration.Files
 
         private object PatchFile(dynamic model, FileId fileId)
         {
-            var physicalPath = FilesHelper.UpdateFile(model, fileId.PhysicalPath);
+            var physicalPath = _helper.UpdateFile(model, fileId.PhysicalPath);
 
-            return FilesHelper.FileToJsonModel(_provider.GetFileInfo(physicalPath));
+            return _helper.FileToJsonModel(_provider.GetFile(physicalPath));
         }
 
         private object PatchDirectory(dynamic model, FileId fileId)
         {
-            var physicalPath = FilesHelper.UpdateDirectory(model, fileId.PhysicalPath);
+            var physicalPath = _helper.UpdateDirectory(model, fileId.PhysicalPath);
 
-            return FilesHelper.DirectoryToJsonModel(_provider.GetDirectoryInfo(physicalPath));
+            return _helper.DirectoryToJsonModel(_provider.GetDirectory(physicalPath));
         }
     }
 }

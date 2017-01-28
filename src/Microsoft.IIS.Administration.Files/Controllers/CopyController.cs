@@ -18,9 +18,9 @@ namespace Microsoft.IIS.Administration.Files
         private IFileProvider _fileService;
         private static ConcurrentDictionary<string, MoveOperation> _copies = new ConcurrentDictionary<string, MoveOperation>();
 
-        public CopyController()
+        public CopyController(IFileProvider fileProvider)
         {
-            _fileService = FileProvider.Default;
+            _fileService = fileProvider;
             _helper = new MoveHelper(_fileService);
         }
         
@@ -53,11 +53,11 @@ namespace Microsoft.IIS.Administration.Files
                 throw new NotFoundException("parent");
             }
 
-            var src = fileType == FileType.File ? new FileInfo(fileId.PhysicalPath) : (FileSystemInfo)new DirectoryInfo(fileId.PhysicalPath);
+            var src = fileType == FileType.File ? _fileService.GetFile(fileId.PhysicalPath) : (IFileSystemInfo)_fileService.GetDirectory(fileId.PhysicalPath);
 
             string destPath = Path.Combine(parentId.PhysicalPath, name == null ? src.Name : name);
 
-            if (PathUtil.IsAncestor(src.FullName, destPath) || src.FullName.Equals(destPath, StringComparison.OrdinalIgnoreCase)) {
+            if (PathUtil.IsAncestor(src.Path, destPath) || src.Path.Equals(destPath, StringComparison.OrdinalIgnoreCase)) {
                 throw new ApiArgumentException("parent", "The destination folder is a subfolder of the source");
             }
 
@@ -85,7 +85,7 @@ namespace Microsoft.IIS.Administration.Files
             return _helper.ToJsonModel(copy);
         }
 
-        private MoveOperation InitiateCopy(FileSystemInfo source, string destination)
+        private MoveOperation InitiateCopy(IFileSystemInfo source, string destination)
         {
             MoveOperation copy = _helper.Move(source, destination, true);
 

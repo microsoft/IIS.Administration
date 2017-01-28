@@ -13,16 +13,16 @@ namespace Microsoft.IIS.Administration.Files
 
         public string Value { get; private set; }
 
-        public static ETag Create(FileInfo info)
+        public static ETag Create(IFileInfo info)
         {
             if (!info.Exists) {
                 throw new FileNotFoundException(info.Name);
             }
 
-            DateTimeOffset last = info.LastWriteTimeUtc;
+            DateTimeOffset last = info.LastModified.ToUniversalTime();
             var lastModified = new DateTimeOffset(last.Year, last.Month, last.Day, last.Hour, last.Minute, last.Second, last.Offset).ToUniversalTime();
 
-            long etagHash = lastModified.ToFileTime() ^ info.Length;
+            long etagHash = lastModified.ToFileTime() ^ info.Size;
 
             return new ETag()
             {

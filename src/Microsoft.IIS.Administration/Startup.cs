@@ -20,6 +20,7 @@ namespace Microsoft.IIS.Administration
     using Extensions.Configuration;
     using Extensions.DependencyInjection;
     using Extensions.DependencyInjection.Extensions;
+    using Files;
     using Logging;
     using Security;
     using Serilog;
@@ -62,6 +63,10 @@ namespace Microsoft.IIS.Administration
             //
             // Auditing
             services.AddApiAuditing(Configuration, HostingEnvironment);
+
+            //
+            // Files
+            services.AddFileProvider();
 
             //
             // Load plugins

@@ -73,7 +73,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return Environment.Hal.Apply(Defines.Resource.Guid, obj, false);
         }
 
-        public static void UpdateSettings(dynamic model, Site site, string path, string configPath = null)
+        public static void UpdateSettings(dynamic model, IFileProvider fileProvider, Site site, string path, string configPath = null)
         {
             if (model == null) {
                 throw new ApiArgumentException("model");
@@ -90,7 +90,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
                         if (!PathUtil.IsFullPath(expanded)) {
                             throw new ApiArgumentException("directory");
                         }
-                        if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                        if (!fileProvider.IsAccessAllowed(expanded, FileAccess.Read)) {
                             throw new ForbiddenArgumentException("directory", expanded);
                         }
 

@@ -83,6 +83,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administratio
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Files", "src\Microsoft.IIS.Administration.WebServer.Files\Microsoft.IIS.Administration.WebServer.Files.xproj", "{42FDCED0-CE1D-4C16-AED0-0CF6A212F782}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.Files.Core", "src\Microsoft.IIS.Administration.Files.Core\Microsoft.IIS.Administration.Files.Core.xproj", "{60F7757A-14AE-41BE-9FD0-ED4C63718408}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -217,6 +219,10 @@ Global
 		{42FDCED0-CE1D-4C16-AED0-0CF6A212F782}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{42FDCED0-CE1D-4C16-AED0-0CF6A212F782}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{42FDCED0-CE1D-4C16-AED0-0CF6A212F782}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60F7757A-14AE-41BE-9FD0-ED4C63718408}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60F7757A-14AE-41BE-9FD0-ED4C63718408}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60F7757A-14AE-41BE-9FD0-ED4C63718408}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60F7757A-14AE-41BE-9FD0-ED4C63718408}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -254,5 +260,6 @@ Global
 		{61B68BC3-B92B-40D4-B8C0-B8C4A8C02ADA} = {5504DA5E-BCF3-409E-A285-E59EDBBBB8B8}
 		{5D3BEEB8-5798-4037-8BB0-A35A7A42999A} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{42FDCED0-CE1D-4C16-AED0-0CF6A212F782} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
+		{60F7757A-14AE-41BE-9FD0-ED4C63718408} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 	EndGlobalSection
 EndGlobal

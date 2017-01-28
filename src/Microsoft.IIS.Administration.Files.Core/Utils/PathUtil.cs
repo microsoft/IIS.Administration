@@ -95,14 +95,14 @@ namespace Microsoft.IIS.Administration.Files
             }
 
             string tempPath = null;
-            DirectoryInfo info = new DirectoryInfo(path);
+            var info = new DirectoryInfo(path);
 
             if (info.Parent == null) {
                 throw new ArgumentException("path", "Parent cannot be null.");
             }
 
             do {
-                tempPath = Path.Combine(info.Parent.FullName, GetTempName(info.Name));
+                tempPath = Path.Combine(info.Parent.Path, GetTempName(info.Name));
             }
             while (File.Exists(tempPath) || Directory.Exists(tempPath));
 
@@ -111,32 +111,17 @@ namespace Microsoft.IIS.Administration.Files
 
         public static bool IsAncestor(string parent, string child)
         {
-            DirectoryInfo parentDir = new DirectoryInfo(parent);
-            DirectoryInfo curParent = Directory.GetParent(child);
+            var parentDir = new DirectoryInfo(parent);
+            var curParent = Directory.GetParent(child);
 
             while (curParent != null) {
-                if (curParent.FullName.Equals(parentDir.FullName, StringComparison.OrdinalIgnoreCase)) {
+                if (curParent.FullName.Equals(parentDir.Path, StringComparison.OrdinalIgnoreCase)) {
                     return true;
                 }
                 curParent = curParent.Parent;
             }
 
             return false;
-        }
-
-        public static string RemoveLastSegment(string path)
-        {
-            if (path == null) {
-                throw new ArgumentNullException(nameof(path));
-            }
-            if (!path.StartsWith("/") || path == "/") {
-                throw new ArgumentException(nameof(path));
-            }
-
-            var parts = path.TrimEnd(SEPARATORS).Split(SEPARATORS);
-            parts[parts.Length - 1] = string.Empty;
-            var ret = string.Join("/", parts);
-            return ret == "/" ? ret : ret.TrimEnd('/');
         }
 
         public static bool IsValidFileName(string name)
@@ -146,8 +131,16 @@ namespace Microsoft.IIS.Administration.Files
                         !name.EndsWith(".");
         }
 
+        public static string GetName(string path)
+        {
+            return new DirectoryInfo(path).Name;
+        }
 
-
+        public static string GetParentPath(string path)
+        {
+            var parent = new DirectoryInfo(path).Parent;
+            return parent == null ? string.Empty : parent.Path;
+        }
 
         private static string GetTempName(string name)
         {

@@ -18,9 +18,9 @@ namespace Microsoft.IIS.Administration.Files
         private IDownloadService _downloadService;
         private IFileProvider _fileService;
 
-        public FileDownloadsController(IServiceProvider serviceProvider)
+        public FileDownloadsController(IServiceProvider serviceProvider, IFileProvider fileProvider)
         {
-            _fileService = FileProvider.Default;
+            _fileService = fileProvider;
             _downloadService = (IDownloadService)serviceProvider.GetService(typeof(IDownloadService));
         }
 

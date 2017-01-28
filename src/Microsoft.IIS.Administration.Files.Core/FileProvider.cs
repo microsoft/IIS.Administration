@@ -25,106 +25,88 @@ namespace Microsoft.IIS.Administration.Files
             _accessControl = accessControl;
         }
 
-        public static IFileProvider Default { get; } = new FileProvider(AccessControl.Default);
-
-        public string GetName(string path)
-        {
-            return PerformIO(p => new FileInfo(path).Name , path);
-        }
-
-        public string GetParentPath(string path)
-        {
-            return PerformIO(p => new FileInfo(path).Directory?.FullName, path);
-        }
-
-        public Stream GetFile(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
+        public Stream GetFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
         {
             this.EnsureAccess(path, fileAccess);
 
             return PerformIO(p => new FileStream(p, fileMode, fileAccess, fileShare), path);
         }
 
-        public FileInfo GetFileInfo(string path)
+        public IFileInfo GetFile(string path)
         {
-            this.EnsureAccess(path, FileAccess.Read);
+            return PerformIO(p => {
 
-            return PerformIO(p => new FileInfo(p), path);
+                var info = new FileInfo(path);
+
+                if (!IsAccessAllowed(path, FileAccess.Read) && (info.Parent == null || !IsAccessAllowed(info.Parent.Path, FileAccess.Read))) {
+
+                    throw new ForbiddenArgumentException(p);
+                }
+
+                return info;
+
+            }, path);
         }
 
         public FileVersionInfo GetFileVersion(string path)
         {
-            this.EnsureAccess(path, FileAccess.Read);
+            return PerformIO(p => {
 
-            return PerformIO(p => FileVersionInfo.GetVersionInfo(p), path);
+                var info = new FileInfo(path);
+
+                if (!IsAccessAllowed(path, FileAccess.Read) && (info.Parent == null || !IsAccessAllowed(info.Parent.Path, FileAccess.Read))) {
+
+                    throw new ForbiddenArgumentException(path);
+                }
+
+                return FileVersionInfo.GetVersionInfo(p);
+
+            }, path);
         }
 
-        public DirectoryInfo GetDirectoryInfo(string path)
+        public IDirectoryInfo GetDirectory(string path)
+        {
+            return PerformIO(p => {
+
+                var info = new DirectoryInfo(path);
+
+                if (!IsAccessAllowed(path, FileAccess.Read) && (info.Parent == null || !IsAccessAllowed(info.Parent.Path, FileAccess.Read))) {
+
+                    throw new ForbiddenArgumentException(p);
+                }
+
+                return info;
+
+            }, path);
+        }
+
+        public IEnumerable<IFileInfo> GetFiles(string path, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
             this.EnsureAccess(path, FileAccess.Read);
 
-            return PerformIO(p => new DirectoryInfo(p), path);
+            return PerformIO(p => Directory.GetFiles(p ,searchPattern, searchOption), path).Select(f => new FileInfo(f));
         }
 
-        public FileSystemInfo GetFileSystemInfo(string path)
+        public IEnumerable<IDirectoryInfo> GetDirectories(string path, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
             this.EnsureAccess(path, FileAccess.Read);
 
-            return PerformIO(p => new FileInfo(p), path);
+            return PerformIO(p => Directory.GetDirectories(p, searchPattern, searchOption), path).Select(d => new DirectoryInfo(d));
         }
 
-        public IEnumerable<FileInfo> GetFiles(string path, string searchPattern)
-        {
-            this.EnsureAccess(path, FileAccess.Read);
-
-            return PerformIO(p => new DirectoryInfo(p).GetFiles(searchPattern), path);
-        }
-
-        public IEnumerable<DirectoryInfo> GetDirectories(string path, string searchPattern)
-        {
-            this.EnsureAccess(path, FileAccess.Read);
-
-            return PerformIO(p => new DirectoryInfo(p).GetDirectories(searchPattern), path);
-        }
-
-        public IEnumerable<FileSystemInfo> GetChildren(string path, string searchPattern)
-        {
-            this.EnsureAccess(path, FileAccess.Read);
-
-            return PerformIO(p => new DirectoryInfo(p).GetFileSystemInfos(searchPattern), path);
-        }
-
-        public void SetCreationTime(string path, DateTime creationTime)
-        {
-            Directory.SetCreationTime(path, creationTime);
-        }
-
-        public void SetLastAccessTime(string path, DateTime lastAccessTime)
-        {
-            Directory.SetLastAccessTime(path, lastAccessTime);
-        }
-
-        public void SetLastWriteTime(string path, DateTime lastWriteTime)
-        {
-            Directory.SetLastWriteTime(path, lastWriteTime);
-        }
-
-        public async Task CopyFile(string sourcePath, string destPath)
+        public async Task Copy(string sourcePath, string destPath)
         {
             this.EnsureAccess(sourcePath, FileAccess.Read);
             this.EnsureAccess(destPath, FileAccess.ReadWrite);
 
+            if (!PerformIO(p => File.Exists(sourcePath), sourcePath)) {
+                throw new FileNotFoundException(sourcePath);
+            }
+
             await CopyFileInternal(sourcePath, destPath);
         }
 
-        public void MoveFile(string sourcePath, string destPath)
-        {
-            this.EnsureAccess(sourcePath, FileAccess.ReadWrite);
-            this.EnsureAccess(destPath, FileAccess.ReadWrite);
-
-            PerformIO(p => File.Move(sourcePath, destPath), null);
-        }
-
-        public void MoveDirectory(string sourcePath, string destPath)
+        public void Move(string sourcePath, string destPath)
         {
             this.EnsureAccess(sourcePath, FileAccess.ReadWrite);
             this.EnsureAccess(destPath, FileAccess.ReadWrite);
@@ -132,21 +114,21 @@ namespace Microsoft.IIS.Administration.Files
             PerformIO(p => Directory.Move(sourcePath, destPath), null);
         }
 
-        public void DeleteFile(string path)
+        public void Delete(string path)
         {
             this.EnsureAccess(path, FileAccess.ReadWrite);
 
-            PerformIO(p => File.Delete(p), path);
+            PerformIO(p => {
+                if (File.GetAttributes(p).HasFlag(FileAttributes.Directory)) {
+                    Directory.Delete(p, true);
+                }
+                else {
+                    File.Delete(p);
+                }
+            }, path);
         }
 
-        public void DeleteDirectory(string path)
-        {
-            this.EnsureAccess(path, FileAccess.ReadWrite);
-
-            PerformIO(p => Directory.Delete(p, true), path);
-        }
-
-        public FileInfo CreateFile(string path)
+        public IFileInfo CreateFile(string path)
         {
             this.EnsureAccess(path, FileAccess.ReadWrite);
 
@@ -156,11 +138,14 @@ namespace Microsoft.IIS.Administration.Files
             }, path);
         }
 
-        public DirectoryInfo CreateDirectory(string path)
+        public IDirectoryInfo CreateDirectory(string path)
         {
             this.EnsureAccess(path, FileAccess.ReadWrite);
 
-            return PerformIO(p => Directory.CreateDirectory(p), path);
+            return PerformIO(p => {
+                Directory.CreateDirectory(p);
+                return new DirectoryInfo(p);
+            }, path);
         }
 
         public bool FileExists(string path)
@@ -175,6 +160,11 @@ namespace Microsoft.IIS.Administration.Files
             this.EnsureAccess(path, FileAccess.Read);
 
             return PerformIO(p => Directory.Exists(p), path);
+        }
+
+        public IEnumerable<string> GetClaims(string path)
+        {
+            return _accessControl.GetClaims(path);
         }
 
         public bool IsAccessAllowed(string path, FileAccess requestedAccess)
@@ -220,12 +210,31 @@ namespace Microsoft.IIS.Administration.Files
                 }
             }
 
-            var sourceFileInfo = new FileInfo(sourcePath);
-            var destFileInfo = new FileInfo(destPath);
+            var sourceFileInfo = new System.IO.FileInfo(sourcePath);
+            var destFileInfo = new System.IO.FileInfo(destPath);
 
             destFileInfo.LastAccessTimeUtc = sourceFileInfo.LastAccessTimeUtc;
             destFileInfo.LastWriteTimeUtc = sourceFileInfo.LastWriteTimeUtc;
             destFileInfo.CreationTimeUtc = sourceFileInfo.CreationTimeUtc;
+        }
+
+        public void SetFileTime(string path, DateTime? lastAccess, DateTime? lastModified, DateTime? creation)
+        {
+            PerformIO(p => {
+
+                if (lastAccess != null) {
+                    Directory.SetLastAccessTime(p, lastAccess.Value);
+                }
+
+                if (lastModified != null) {
+                    Directory.SetLastWriteTime(p, lastModified.Value);
+                }
+
+                if (creation != null) {
+                    Directory.SetCreationTime(p, creation.Value);
+                }
+
+            }, path);
         }
     }
 

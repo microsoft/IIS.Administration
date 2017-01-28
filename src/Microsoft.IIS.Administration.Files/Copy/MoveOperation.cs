@@ -15,8 +15,9 @@ namespace Microsoft.IIS.Administration.Files
     {
         private long _totalSize = -1;
         private long _currentSize = -1;
+        private IFileProvider _fileProvider;
 
-        public MoveOperation(Task task, FileSystemInfo source, string destination, string tempPath)
+        public MoveOperation(Task task, IFileSystemInfo source, string destination, string tempPath, IFileProvider fileProvider)
         {
             var bytes = new byte[32];
             using (var rng = RandomNumberGenerator.Create()) {
@@ -29,6 +30,7 @@ namespace Microsoft.IIS.Administration.Files
             this.Destination = destination;
             this.Created = DateTime.UtcNow;
             this.TempPath = tempPath;
+            _fileProvider = fileProvider;
         }
 
         public string Id { get; private set; }
@@ -37,7 +39,7 @@ namespace Microsoft.IIS.Administration.Files
         public string TempPath { get; private set; }
         public DateTime Created { get; private set; }
         public string Destination { get; private set; }
-        public FileSystemInfo Source { get; private set; }
+        public IFileSystemInfo Source { get; private set; }
 
         public long TotalSize {
             get {
@@ -45,11 +47,11 @@ namespace Microsoft.IIS.Administration.Files
                     return _totalSize;
                 }
 
-                if (Source is FileInfo) {
-                    _totalSize = Source.Exists ? ((FileInfo)Source).Length : 0;
+                if (Source is IFileInfo) {
+                    _totalSize = Source.Exists ? ((IFileInfo)Source).Size : 0;
                 }
                 else {
-                    _totalSize = Source.Exists ? ((DirectoryInfo)Source).EnumerateFiles("*", SearchOption.AllDirectories).Aggregate(0L, (prev, f) => prev + f.Length) : 0;
+                    _totalSize = Source.Exists ? Directory.EnumerateFiles(Source.Path, "*", SearchOption.AllDirectories).Aggregate(0L, (prev, f) => prev + f.Length) : 0;
                 }
 
                 return _totalSize;
@@ -62,9 +64,9 @@ namespace Microsoft.IIS.Administration.Files
                     return _currentSize;
                 }
 
-                if (Source is FileInfo) {
-                    var dest = string.IsNullOrEmpty(TempPath) ? new FileInfo(Destination) : new FileInfo(TempPath);
-                    return dest.Exists ? dest.Length : 0;
+                if (Source is IFileInfo) {
+                    var dest = string.IsNullOrEmpty(TempPath) ? _fileProvider.GetFile(Destination) : _fileProvider.GetFile(TempPath);
+                    return dest.Exists ? dest.Size : 0;
                 }
                 else {
                     return 0;

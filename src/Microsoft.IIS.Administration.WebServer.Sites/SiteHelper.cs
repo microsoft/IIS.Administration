@@ -29,7 +29,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         private const string sslFlagsAttribute = "sslFlags";
         private const string MaxUrlSegmentsAttribute = "maxUrlSegments";
 
-        public static Site CreateSite(dynamic model) {
+        public static Site CreateSite(dynamic model, IFileProvider fileProvider) {
             // Ensure necessary information provided
             if (model == null) {
                 throw new ApiArgumentException("model");
@@ -56,7 +56,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             SetToDefaults(site, sm.SiteDefaults);
 
             // Set site settings to those provided
-            SetSite(site, model);
+            SetSite(site, model, fileProvider);
 
             // Initialize site Id by obtaining the first available
             site.Id = FirstAvailableId();
@@ -93,7 +93,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         }
 
 
-        public static Site UpdateSite(long id, dynamic model)
+        public static Site UpdateSite(long id, dynamic model, IFileProvider fileProvider)
         {
             if (model == null) {
                 throw new ApiArgumentException("model");
@@ -104,7 +104,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
             // Update state of site to those specified in the model
             if (site != null) {
-                SetSite(site, model);
+                SetSite(site, model, fileProvider);
             }
 
             return site;
@@ -365,7 +365,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             return site;
         }
 
-        private static Site SetSite(Site site, dynamic model)
+        private static Site SetSite(Site site, dynamic model, IFileProvider fileProvider)
         {
             Debug.Assert(site != null);
             Debug.Assert((bool)(model != null));
@@ -391,7 +391,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 if (!PathUtil.IsFullPath(expanded)) {
                     throw new ApiArgumentException("physical_path");
                 }
-                if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                if (!fileProvider.IsAccessAllowed(expanded, FileAccess.Read)) {
                     throw new ForbiddenArgumentException("physical_path", physicalPath);
                 }
                 if (!Directory.Exists(expanded)) {

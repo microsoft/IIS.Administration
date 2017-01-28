@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "description": "Microsoft.IIS.Administration.Files Class Library",
+  "description": "Microsoft.IIS.Administration.Files.Core Class Library",
   "authors": [ "Microsoft" ],
   "frameworks": {
     "netstandard1.6": {
@@ -12,6 +12,6 @@
     }
   },
   "dependencies": {
-    "Microsoft.IIS.Administration.Files.Core": "1.0.0-*"
+    "Microsoft.IIS.Administration.Core": "1.0.0-*"
   }
 }

@@ -6,16 +6,24 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 {
     using Applications;
     using AspNetCore.Mvc;
+    using Core;
+    using Core.Http;
+    using Files;
     using Sites;
     using System.Net;
     using Web.Administration;
-    using Core.Http;
-    using Core;
 
     [RequireGlobalModule("StaticCompressionModule", "Compression")]
     [RequireGlobalModule("DynamicCompressionModule", "Compression")]
     public class CompressionController : ApiBaseController
     {
+        private IFileProvider _fileProvider;
+
+        public CompressionController(IFileProvider fileProvider)
+        {
+            _fileProvider = fileProvider;
+        }
+
         [HttpGet]
         [ResourceInfo(Name = Defines.CompressionName)]
         public object Get()
@@ -57,7 +65,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
             }
 
             string configPath = model == null ? null : ManagementUnit.ResolveConfigScope(model);
-            CompressionHelper.UpdateSettings(model, site, compId.Path, configPath);
+            CompressionHelper.UpdateSettings(model, _fileProvider, site, compId.Path, configPath);
 
             ManagementUnit.Current.Commit();          
 

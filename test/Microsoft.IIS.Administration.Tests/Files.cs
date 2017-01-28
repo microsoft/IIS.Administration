@@ -213,19 +213,6 @@ namespace Microsoft.IIS.Administration.Tests
         }
 
         [Fact]
-        public void RemoveLastSegment()
-        {
-            Assert.Equal(PathUtil.RemoveLastSegment("/a"), "/");
-            Assert.Equal(PathUtil.RemoveLastSegment("/a/"), "/");
-            Assert.Equal(PathUtil.RemoveLastSegment("/abc/def/ghi"), "/abc/def");
-            Assert.Equal(PathUtil.RemoveLastSegment("/abc/def/ghi"), "/abc/def");
-            Assert.Equal(PathUtil.RemoveLastSegment("/abc/def/ghi/"), "/abc/def");
-            Assert.Equal(PathUtil.RemoveLastSegment(@"/abc/def\ghi"), "/abc/def");
-            Assert.Equal(PathUtil.RemoveLastSegment(@"/abc/def\ghi/"), "/abc/def");
-            Assert.Equal(PathUtil.RemoveLastSegment(@"/abc/def\ghi\"), "/abc/def");
-        }
-
-        [Fact]
         public void CreateEditDeleteFile()
         {
             using (HttpClient client = ApiHttpClient.Create()) {

@@ -13,7 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 
     public static class CompressionHelper
     {
-        public static void UpdateSettings(dynamic model, Site site, string path, string configPath = null) {
+        public static void UpdateSettings(dynamic model, IFileProvider fileProvider, Site site, string path, string configPath = null) {
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -31,7 +31,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
                     if (!PathUtil.IsFullPath(expanded)) {
                         throw new ApiArgumentException("directory");
                     }
-                    if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+                    if (!fileProvider.IsAccessAllowed(expanded, FileAccess.Read)) {
                         throw new ForbiddenArgumentException("directory", expanded);
                     }
 

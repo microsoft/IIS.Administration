@@ -16,10 +16,12 @@ namespace Microsoft.IIS.Administration.Files
     sealed class MoveHelper
     {
         private IFileProvider _fileService;
+        private FilesHelper _filesHelper;
 
         public MoveHelper(IFileProvider fileService)
         {
             _fileService = fileService;
+            _filesHelper = new FilesHelper(_fileService);
         }
 
         public static string GetLocation(string id, bool copy)
@@ -36,7 +38,7 @@ namespace Microsoft.IIS.Administration.Files
             obj.created = move.Created;
             obj.current_size = move.CurrentSize;
             obj.total_size = move.TotalSize;
-            obj.file = FilesHelper.ToJsonModelRef(move.Destination);
+            obj.file = _filesHelper.ToJsonModelRef(move.Destination);
 
             return Core.Environment.Hal.Apply(Defines.CopyResource.Guid, obj);
         }
@@ -86,89 +88,89 @@ namespace Microsoft.IIS.Administration.Files
 
         public async Task CopyDirectory(string sourcePath, string destPath, Func<string, string, Task> copyFile)
         {
-            var source = _fileService.GetDirectoryInfo(sourcePath);
-            var dest = _fileService.GetDirectoryInfo(destPath);
+            var source = _fileService.GetDirectory(sourcePath);
+            var dest = _fileService.GetDirectory(destPath);
             var destParent = dest.Parent;
 
-            if (PathUtil.IsAncestor(sourcePath, destPath) || source.FullName.Equals(dest.FullName, StringComparison.OrdinalIgnoreCase)) {
+            if (PathUtil.IsAncestor(sourcePath, destPath) || source.Path.Equals(dest.Path, StringComparison.OrdinalIgnoreCase)) {
                 throw new InvalidOperationException();
             }
 
             if (!source.Exists) {
-                throw new DirectoryNotFoundException(source.FullName);
+                throw new DirectoryNotFoundException(source.Path);
             }
             if (destParent == null) {
-                throw new IOException(dest.FullName);
+                throw new IOException(dest.Path);
             }
 
             if (!dest.Exists) {
-                _fileService.CreateDirectory(dest.FullName);
+                _fileService.CreateDirectory(dest.Path);
             }
 
             var tasks = new List<Task>();
-            var children = source.EnumerateDirectories("*", SearchOption.AllDirectories);
+            var children = Directory.EnumerateDirectories(source.Path, "*", SearchOption.AllDirectories);
 
-            foreach (DirectoryInfo dir in children) {
-                var relative = dir.FullName.Substring(source.FullName.Length).TrimStart(PathUtil.SEPARATORS);
-                var destDirPath = Path.Combine(dest.FullName, relative);
+            foreach (string dirPath in children) {
+                var relative = dirPath.Substring(source.Path.Length).TrimStart(PathUtil.SEPARATORS);
+                var destDirPath = Path.Combine(dest.Path, relative);
 
                 tasks.Add(Task.Run(() => {
                     if (!_fileService.DirectoryExists(destDirPath)) {
                         _fileService.CreateDirectory(destDirPath);
                     }
 
-                    foreach (FileInfo file in dir.EnumerateFiles()) {
-                        tasks.Add(copyFile(file.FullName, Path.Combine(destDirPath, file.Name)));
+                    foreach (string filePath in Directory.EnumerateFiles(dirPath)) {
+                        tasks.Add(copyFile(filePath, Path.Combine(destDirPath, PathUtil.GetName(filePath))));
                     }
                 }));
             }
 
-            foreach (var file in source.EnumerateFiles()) {
-                tasks.Add(copyFile(file.FullName, Path.Combine(dest.FullName, file.Name)));
+            foreach (var filePath in Directory.EnumerateFiles(source.Path)) {
+                tasks.Add(copyFile(filePath, Path.Combine(dest.Path, PathUtil.GetName(filePath))));
             }
 
             await Task.WhenAll(tasks);
         }
 
-        public MoveOperation Move(FileSystemInfo source, string dest, bool copy)
+        public MoveOperation Move(IFileSystemInfo source, string dest, bool copy)
         {
-            FileType type = source is FileInfo ? FileType.File : FileType.Directory;
+            FileType type = source is IFileInfo ? FileType.File : FileType.Directory;
             
             if (type == FileType.File) {
-                return MoveFile((FileInfo)source, dest, copy);
+                return MoveFile((IFileInfo)source, dest, copy);
             }
             else {
-                return MoveDirectory((DirectoryInfo)source, dest, copy);
+                return MoveDirectory((IDirectoryInfo)source, dest, copy);
             }
         }
 
-        private MoveOperation MoveDirectory(DirectoryInfo source, string dest, bool copy)
+        private MoveOperation MoveDirectory(IDirectoryInfo source, string dest, bool copy)
         {
             Task t;
             MoveOperation op = null;
 
             if (copy) {
-                t = CopyDirectory(source.FullName, dest, (s, d) => SafeMoveFile(s, d, PathUtil.GetTempFilePath(d), copy).ContinueWith(t2 => {
+                t = CopyDirectory(source.Path, dest, (s, d) => SafeMoveFile(s, d, PathUtil.GetTempFilePath(d), true).ContinueWith(t2 => {
                     if (op != null) {
-                        op.CurrentSize += new FileInfo(d).Length;
+                        op.CurrentSize += _fileService.GetFile(d).Size;
                     }
                 }));
             }
             else {
-                t = Task.Run(() => _fileService.MoveDirectory(source.FullName, dest));
+                t = Task.Run(() => _fileService.Move(source.Path, dest));
             }
 
-            op = new MoveOperation(t, source, dest, null);
+            op = new MoveOperation(t, source, dest, null, _fileService);
             return op;
         }
 
-        private MoveOperation MoveFile(FileInfo source, string dest, bool copy)
+        private MoveOperation MoveFile(IFileInfo source, string dest, bool copy)
         {
             string temp = PathUtil.GetTempFilePath(dest);
 
-            Task t = SafeMoveFile(source.FullName, dest, temp, copy);
+            Task t = SafeMoveFile(source.Path, dest, temp, copy);
 
-            return new MoveOperation(t, source, dest, temp);
+            return new MoveOperation(t, source, dest, temp, _fileService);
         }
 
         private async Task SafeMoveFile(string source, string dest, string temp, bool copy)
@@ -176,25 +178,25 @@ namespace Microsoft.IIS.Administration.Files
             string swapPath = null;
             try {
                 if (copy) {
-                    await _fileService.CopyFile(source, temp);
+                    await _fileService.Copy(source, temp);
                 }
                 else {
-                    await Task.Run(() => _fileService.MoveFile(source, temp));
+                    await Task.Run(() => _fileService.Move(source, temp));
                 }
 
                 if (_fileService.FileExists(dest)) {
                     swapPath = PathUtil.GetTempFilePath(dest);
-                    _fileService.MoveFile(dest, swapPath);
+                    _fileService.Move(dest, swapPath);
                 }
 
-                _fileService.MoveFile(temp, dest);
+                _fileService.Move(temp, dest);
             }
             finally {
                 if (_fileService.FileExists(temp)) {
-                    _fileService.DeleteFile(temp);
+                    _fileService.Delete(temp);
                 }
                 if (swapPath != null && _fileService.FileExists(swapPath) && _fileService.FileExists(dest)) {
-                    _fileService.DeleteFile(swapPath);
+                    _fileService.Delete(swapPath);
                 }
             }
         }

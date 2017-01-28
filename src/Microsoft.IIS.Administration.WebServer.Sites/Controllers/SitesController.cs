@@ -4,20 +4,28 @@
 
 namespace Microsoft.IIS.Administration.WebServer.Sites
 {
+    using AppPools;
+    using AspNetCore.Mvc;
+    using Core;
+    using Core.Http;
+    using Core.Utils;
+    using Files;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
-    using AspNetCore.Mvc;
-    using Web.Administration;
-    using Core;
-    using AppPools;
-    using Core.Utils;
     using System.Runtime.InteropServices;
     using System.Threading;
-    using Core.Http;
+    using Web.Administration;
 
     public class SitesController : ApiBaseController
     {
+        private IFileProvider _fileProvider;
+
+        public SitesController(IFileProvider fileProvider)
+        {
+            _fileProvider = fileProvider;
+        }
+
         [HttpGet]
         [ResourceInfo(Name = Defines.WebsitesName)]
         public object Get() {
@@ -76,7 +84,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         public object Post([FromBody] dynamic model)
         {
             // Create Site
-            Site site = SiteHelper.CreateSite(model);
+            Site site = SiteHelper.CreateSite(model, _fileProvider);
 
             // Check if site with name already exists
             if(ManagementUnit.ServerManager.Sites.Any(s => s.Name.Equals(site.Name))) {
@@ -105,7 +113,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         public object Patch(string id, [FromBody] dynamic model)
         {
             // Set settings
-            Site site = SiteHelper.UpdateSite(new SiteId(id).Id, model);
+            Site site = SiteHelper.UpdateSite(new SiteId(id).Id, model, _fileProvider);
             if (site == null) {
                 return NotFound();
             }

@@ -4,21 +4,28 @@
 
 namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
 {
+    using Applications;
     using AspNetCore.Mvc;
     using Core;
-    using Web.Administration;
+    using Core.Http;
+    using Core.Utils;
+    using Files;
+    using Sites;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
-    using Sites;
-    using Applications;
-    using Core.Http;
-    using Core.Utils;
+    using Web.Administration;
 
     public class VirtualDirectoriesController : ApiBaseController
     {
         private const string HIDDEN_FIELDS = "model.identity.password";
+        private IFileProvider _fileProvider;
+
+        public VirtualDirectoriesController(IFileProvider fileProvider)
+        {
+            _fileProvider = fileProvider;
+        }
 
         [HttpGet]
         [ResourceInfo(Name = Defines.VirtualDirectoriesName)]
@@ -126,7 +133,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             Application app = ApplicationHelper.GetApplication(path, site);
 
             // Create VDir
-            VirtualDirectory vdir = VDirHelper.CreateVDir(app, model);
+            VirtualDirectory vdir = VDirHelper.CreateVDir(app, model, _fileProvider);
 
             // Check case of duplicate vdir. Adding duplicate vdir would result in System.Exception which we don't want to catch
             if (app.VirtualDirectories.Any(v => v.Path.Equals(vdir.Path, StringComparison.OrdinalIgnoreCase))) {
@@ -167,7 +174,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             }
             
             // Make changes
-            VDirHelper.UpdateVirtualDirectory(vdir, model);
+            VDirHelper.UpdateVirtualDirectory(vdir, model, _fileProvider);
 
             // Save
             ManagementUnit.Current.Commit();

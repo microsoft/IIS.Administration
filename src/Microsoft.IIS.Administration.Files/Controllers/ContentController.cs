@@ -12,9 +12,9 @@ namespace Microsoft.IIS.Administration.Files
     {
         private IFileProvider _fileProvider;
 
-        public ContentController()
+        public ContentController(IFileProvider fileProvider)
         {
-            _fileProvider = FileProvider.Default;
+            _fileProvider = fileProvider;
         }
 
         [HttpHead]

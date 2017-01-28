@@ -147,7 +147,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             return Core.Environment.Hal.Apply(Defines.Resource.Guid, o);
         }
 
-        public static void Update(dynamic model, Site site, string path, string configScope = null)
+        public static void Update(dynamic model, IFileProvider fileProvider, Site site, string path, string configScope = null)
         {
             if(model == null) {
                 throw new ApiArgumentException("model");
@@ -238,7 +238,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
                         CentralBinaryLogFile bFile = logSection.CentralBinaryLogFile;
                         
                         DynamicHelper.If((object)bSettings.directory, v => {
-                            EnsureCanUseDirectory(ref v);
+                            EnsureCanUseDirectory(ref v, fileProvider);
                             bFile.Directory = v;
                         });
                         
@@ -256,7 +256,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
                         CentralW3CLogFile wFile = logSection.CentralW3CLogFile;
                         
                         DynamicHelper.If((object)wSettings.directory, v => {
-                            EnsureCanUseDirectory(ref v);
+                            EnsureCanUseDirectory(ref v, fileProvider);
                             wFile.Directory = v;
                         });
 
@@ -310,7 +310,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
                     dynamic siteSettings = model;
                     
                     DynamicHelper.If((object)siteSettings.directory, v => {
-                        EnsureCanUseDirectory(ref v);
+                        EnsureCanUseDirectory(ref v, fileProvider);
                         siteLogFile.Directory = v;
                     });
 
@@ -515,7 +515,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
 
 
-        private static void EnsureCanUseDirectory(ref string path)
+        private static void EnsureCanUseDirectory(ref string path, IFileProvider fileProvider)
         {
             path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
             var expanded = System.Environment.ExpandEnvironmentVariables(path);
@@ -523,7 +523,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             if (!PathUtil.IsFullPath(expanded)) {
                 throw new ApiArgumentException("directory");
             }
-            if (!FileProvider.Default.IsAccessAllowed(expanded, FileAccess.Read)) {
+            if (!fileProvider.IsAccessAllowed(expanded, FileAccess.Read)) {
                 throw new ForbiddenArgumentException("directory", expanded);
             }
         }
