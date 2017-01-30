@@ -132,19 +132,19 @@ namespace Microsoft.IIS.Administration.Files
             await Task.WhenAll(tasks);
         }
 
-        public MoveOperation Move(IFileSystemInfo source, string dest, bool copy)
-        {
-            FileType type = source is IFileInfo ? FileType.File : FileType.Directory;
-            
-            if (type == FileType.File) {
-                return MoveFile((IFileInfo)source, dest, copy);
+        public MoveOperation Move(IFileInfo source, string dest, bool copy)
+        {            
+            if (source.Type == FileType.File) {
+                return MoveFile(source, dest, copy);
             }
-            else {
-                return MoveDirectory((IDirectoryInfo)source, dest, copy);
+            else if (source.Type == FileType.Directory) {
+                return MoveDirectory(source, dest, copy);
             }
+
+            throw new InvalidOperationException();
         }
 
-        private MoveOperation MoveDirectory(IDirectoryInfo source, string dest, bool copy)
+        private MoveOperation MoveDirectory(IFileInfo source, string dest, bool copy)
         {
             Task t;
             MoveOperation op = null;

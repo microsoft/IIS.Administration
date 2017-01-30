@@ -150,7 +150,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             site = parentId == null ? null : SiteHelper.GetSite(parentId.SiteId);
         }
 
-        private IEnumerable<object> GetChildren(Site site, string path, IDirectoryInfo parent, string nameFilter, bool jsonModels = true, Fields fields = null)
+        private IEnumerable<object> GetChildren(Site site, string path, IFileInfo parent, string nameFilter, bool jsonModels = true, Fields fields = null)
         {
             long start = -1, finish = -1;
             var dirs = new SortedList<string, object>();
@@ -203,11 +203,10 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                     if (files[key] is Vdir) {
                         files[key] = _filesHelper.VdirToJsonModelRef((Vdir) files[key], fields);
                     }
-                    else if (files[key] is IDirectoryInfo) {
-                        files[key] = _filesHelper.DirectoryToJsonModelRef(site, Path.Combine(path, ((IDirectoryInfo) files[key]).Name), fields);
-                    }
-                    else if (files[key] is IFileInfo) {
-                        files[key] = _filesHelper.FileToJsonModelRef(site, Path.Combine(path, ((IFileInfo) files[key]).Name), fields);
+                    else {
+                        IFileInfo file = (IFileInfo)files[key];
+                        files[key] = file.Type == Administration.Files.FileType.File ? _filesHelper.FileToJsonModelRef(site, Path.Combine(path, file.Name), fields)
+                                                                                    : _filesHelper.DirectoryToJsonModelRef(site, Path.Combine(path, file.Name), fields);
                     }
                 }
             }

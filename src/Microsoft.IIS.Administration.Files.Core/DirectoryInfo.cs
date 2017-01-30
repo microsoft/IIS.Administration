@@ -7,10 +7,10 @@ namespace Microsoft.IIS.Administration.Files
     using System;
     using System.IO;
 
-    class DirectoryInfo : IDirectoryInfo
+    class DirectoryInfo : IFileInfo
     {
         private System.IO.DirectoryInfo _info;
-        private IDirectoryInfo _parent;
+        private IFileInfo _parent;
 
         public DirectoryInfo(string path)
         {
@@ -24,7 +24,7 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
-        public DateTime Creation {
+        public DateTime Created {
             get {
                 return _info.CreationTime;
             }
@@ -36,7 +36,7 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
-        public DateTime LastAccess {
+        public DateTime LastAccessed {
             get {
                 return _info.LastAccessTime;
             }
@@ -54,7 +54,7 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
-        public IDirectoryInfo Parent {
+        public IFileInfo Parent {
             get {
                 return _parent;
             }
@@ -63,6 +63,18 @@ namespace Microsoft.IIS.Administration.Files
         public string Path {
             get {
                 return _info.FullName;
+            }
+        }
+
+        public long Size {
+            get {
+                return 0;
+            }
+        }
+
+        public FileType Type {
+            get {
+                return FileType.Directory;
             }
         }
     }

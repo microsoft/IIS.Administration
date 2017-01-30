@@ -17,7 +17,7 @@ namespace Microsoft.IIS.Administration.Files
         private long _currentSize = -1;
         private IFileProvider _fileProvider;
 
-        public MoveOperation(Task task, IFileSystemInfo source, string destination, string tempPath, IFileProvider fileProvider)
+        public MoveOperation(Task task, IFileInfo source, string destination, string tempPath, IFileProvider fileProvider)
         {
             var bytes = new byte[32];
             using (var rng = RandomNumberGenerator.Create()) {
@@ -39,7 +39,7 @@ namespace Microsoft.IIS.Administration.Files
         public string TempPath { get; private set; }
         public DateTime Created { get; private set; }
         public string Destination { get; private set; }
-        public IFileSystemInfo Source { get; private set; }
+        public IFileInfo Source { get; private set; }
 
         public long TotalSize {
             get {
@@ -47,8 +47,8 @@ namespace Microsoft.IIS.Administration.Files
                     return _totalSize;
                 }
 
-                if (Source is IFileInfo) {
-                    _totalSize = Source.Exists ? ((IFileInfo)Source).Size : 0;
+                if (Source.Type == FileType.File) {
+                    _totalSize = Source.Exists ? Source.Size : 0;
                 }
                 else {
                     _totalSize = Source.Exists ? Directory.EnumerateFiles(Source.Path, "*", SearchOption.AllDirectories).Aggregate(0L, (prev, f) => prev + f.Length) : 0;
@@ -64,7 +64,7 @@ namespace Microsoft.IIS.Administration.Files
                     return _currentSize;
                 }
 
-                if (Source is IFileInfo) {
+                if (Source.Type == FileType.File) {
                     var dest = string.IsNullOrEmpty(TempPath) ? _fileProvider.GetFile(Destination) : _fileProvider.GetFile(TempPath);
                     return dest.Exists ? dest.Size : 0;
                 }

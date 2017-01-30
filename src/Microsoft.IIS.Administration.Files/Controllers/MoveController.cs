@@ -53,7 +53,7 @@ namespace Microsoft.IIS.Administration.Files
                 throw new NotFoundException("parent");
             }
 
-            var src = fileType == FileType.File ? _fileService.GetFile(fileId.PhysicalPath) : (IFileSystemInfo)_fileService.GetDirectory(fileId.PhysicalPath);
+            var src = fileType == FileType.File ? _fileService.GetFile(fileId.PhysicalPath) : _fileService.GetDirectory(fileId.PhysicalPath);
 
             string destPath = Path.Combine(parentId.PhysicalPath, name == null ? src.Name : name);
 
@@ -85,7 +85,7 @@ namespace Microsoft.IIS.Administration.Files
             return _helper.ToJsonModel(move);
         }
 
-        private MoveOperation InitiateMove(IFileSystemInfo source, string destination)
+        private MoveOperation InitiateMove(IFileInfo source, string destination)
         {
             MoveOperation move = _helper.Move(source, destination, false);
 

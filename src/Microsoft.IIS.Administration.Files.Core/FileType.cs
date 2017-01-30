@@ -4,8 +4,9 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    public interface IDirectoryInfo : IFileSystemInfo
+    public enum FileType
     {
-        IDirectoryInfo Parent { get; }
+        File,
+        Directory
     }
 }

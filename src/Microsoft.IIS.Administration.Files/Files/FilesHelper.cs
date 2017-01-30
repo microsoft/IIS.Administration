@@ -33,19 +33,22 @@ namespace Microsoft.IIS.Administration.Files
                 return InfoToJsonModel(_fileProvider.GetFile(physicalPath), fields, full);
             }
 
-            switch (fileType) {
+            IFileInfo file;
 
-                //
-                // Must construct fileinfo rather than use _fileProvider to get reference models for children of allowed directories
+            switch (fileType) {
                 case FileType.File:
-                    return FileToJsonModel(_fileProvider.GetFile(physicalPath), fields, full);
+                    file = _fileProvider.GetFile(physicalPath);
+                    break;
 
                 case FileType.Directory:
-                    return DirectoryToJsonModel(_fileProvider.GetDirectory(physicalPath), fields, full);
+                    file = _fileProvider.GetDirectory(physicalPath);
+                    break;
 
                 default:
                     return null;
             }
+
+            return ToJsonModel(file, fields, full);
         }
 
         public object ToJsonModelRef(string physicalPath, Fields fields = null)
@@ -58,12 +61,28 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
+        public object ToJsonModel(IFileInfo file, Fields fields = null, bool full = true)
+        {
+            return file.Type == FileType.File ? FileToJsonModel(file, fields, full)
+                                                  : DirectoryToJsonModel(file, fields, full);
+        }
+
+        public object ToJsonModelRef(IFileInfo file, Fields fields = null)
+        {
+            if (fields == null || !fields.HasFields) {
+                return ToJsonModel(file, RefFields, false);
+            }
+            else {
+                return ToJsonModel(file, fields, false);
+            }
+        }
+
         public static string GetLocation(string id)
         {
             return $"/{Defines.FILES_PATH}/{id}";
         }
 
-        internal object DirectoryToJsonModel(IDirectoryInfo info, Fields fields = null, bool full = true)
+        private object DirectoryToJsonModel(IFileInfo info, Fields fields = null, bool full = true)
         {
             if (fields == null) {
                 fields = Fields.All;
@@ -108,7 +127,7 @@ namespace Microsoft.IIS.Administration.Files
             // created
             if (fields.Exists("created")) {
                 exists = exists ?? info.Exists;
-                obj.created = exists.Value ? (object)info.Creation.ToUniversalTime() : null;
+                obj.created = exists.Value ? (object)info.Created.ToUniversalTime() : null;
             }
 
             //
@@ -122,7 +141,7 @@ namespace Microsoft.IIS.Administration.Files
             // last_access
             if (fields.Exists("last_access")) {
                 exists = exists ?? info.Exists;
-                obj.last_access = exists.Value ? (object)info.LastAccess.ToUniversalTime() : null;
+                obj.last_access = exists.Value ? (object)info.LastAccessed.ToUniversalTime() : null;
             }
 
             //
@@ -151,7 +170,7 @@ namespace Microsoft.IIS.Administration.Files
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
         }
 
-        public object DirectoryToJsonModelRef(IDirectoryInfo info, Fields fields = null)
+        private object DirectoryToJsonModelRef(IFileInfo info, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
                 return DirectoryToJsonModel(info, RefFields, false);
@@ -161,7 +180,7 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
-        internal object FileToJsonModel(IFileInfo info, Fields fields = null, bool full = true)
+        private object FileToJsonModel(IFileInfo info, Fields fields = null, bool full = true)
         {
             if (fields == null) {
                 fields = Fields.All;
@@ -213,7 +232,7 @@ namespace Microsoft.IIS.Administration.Files
             // created
             if (fields.Exists("created")) {
                 exists = exists ?? info.Exists;
-                obj.created = exists.Value ? (object)info.Creation.ToUniversalTime() : null;
+                obj.created = exists.Value ? (object)info.Created.ToUniversalTime() : null;
             }
 
             //
@@ -227,7 +246,7 @@ namespace Microsoft.IIS.Administration.Files
             // last_access
             if (fields.Exists("last_access")) {
                 exists = exists ?? info.Exists;
-                obj.last_access = exists.Value ? (object)info.LastAccess.ToUniversalTime() : null;
+                obj.last_access = exists.Value ? (object)info.LastAccessed.ToUniversalTime() : null;
             }
 
             //
@@ -253,7 +272,7 @@ namespace Microsoft.IIS.Administration.Files
             return Core.Environment.Hal.Apply(Defines.FilesResource.Guid, obj, full);
         }
 
-        public object FileToJsonModelRef(IFileInfo info, Fields fields = null)
+        private object FileToJsonModelRef(IFileInfo info, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
                 return FileToJsonModel(info, RefFields, false);
@@ -263,7 +282,7 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
-        internal object InfoToJsonModel(IFileSystemInfo info, Fields fields = null, bool full = true)
+        private object InfoToJsonModel(IFileInfo info, Fields fields = null, bool full = true)
         {
             if (fields == null) {
                 fields = Fields.All;
@@ -308,7 +327,7 @@ namespace Microsoft.IIS.Administration.Files
             // created
             if (fields.Exists("created")) {
                 exists = exists ?? info.Exists;
-                obj.created = exists.Value ? (object)info.Creation.ToUniversalTime() : null;
+                obj.created = exists.Value ? (object)info.Created.ToUniversalTime() : null;
             }
 
             //
@@ -322,7 +341,7 @@ namespace Microsoft.IIS.Administration.Files
             // last_access
             if (fields.Exists("last_access")) {
                 exists = exists ?? info.Exists;
-                obj.last_access = exists.Value ? (object)info.LastAccess.ToUniversalTime() : null;
+                obj.last_access = exists.Value ? (object)info.LastAccessed.ToUniversalTime() : null;
             }
 
             //
@@ -341,7 +360,7 @@ namespace Microsoft.IIS.Administration.Files
             return Core.Environment.Hal.Apply(Defines.FilesResource.Guid, obj, full);
         }
 
-        public object InfoToJsonModelRef(IFileSystemInfo info, Fields fields = null)
+        private object InfoToJsonModelRef(IFileInfo info, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
                 return InfoToJsonModel(info, RefFields, false);

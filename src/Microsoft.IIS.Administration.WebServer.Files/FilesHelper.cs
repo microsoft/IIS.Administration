@@ -119,7 +119,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // file_info
             if (fields.Exists("file_info")) {
-                obj.file_info = _filesHelper.DirectoryToJsonModelRef(directory, fields.Filter("file_info"));
+                obj.file_info = _filesHelper.ToJsonModelRef(directory, fields.Filter("file_info"));
             }
 
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
@@ -190,7 +190,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // file_info
             if (fields.Exists("file_info")) {
-                obj.file_info = _filesHelper.FileToJsonModelRef(file, fields.Filter("file_info"));
+                obj.file_info = _filesHelper.ToJsonModelRef(file, fields.Filter("file_info"));
             }
 
 
@@ -261,7 +261,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // file_info
             if (fields.Exists("file_info")) {
-                obj.file_info = _filesHelper.DirectoryToJsonModelRef(directory, fields.Filter("file_info"));
+                obj.file_info = _filesHelper.ToJsonModelRef(directory, fields.Filter("file_info"));
             }
 
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);

@@ -48,23 +48,7 @@ namespace Microsoft.IIS.Administration.Files
             }, path);
         }
 
-        public FileVersionInfo GetFileVersion(string path)
-        {
-            return PerformIO(p => {
-
-                var info = new FileInfo(path);
-
-                if (!IsAccessAllowed(path, FileAccess.Read) && (info.Parent == null || !IsAccessAllowed(info.Parent.Path, FileAccess.Read))) {
-
-                    throw new ForbiddenArgumentException(path);
-                }
-
-                return FileVersionInfo.GetVersionInfo(p);
-
-            }, path);
-        }
-
-        public IDirectoryInfo GetDirectory(string path)
+        public IFileInfo GetDirectory(string path)
         {
             return PerformIO(p => {
 
@@ -87,7 +71,7 @@ namespace Microsoft.IIS.Administration.Files
             return PerformIO(p => Directory.GetFiles(p ,searchPattern, searchOption), path).Select(f => new FileInfo(f));
         }
 
-        public IEnumerable<IDirectoryInfo> GetDirectories(string path, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly)
+        public IEnumerable<IFileInfo> GetDirectories(string path, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly)
         {
             this.EnsureAccess(path, FileAccess.Read);
 
@@ -138,7 +122,7 @@ namespace Microsoft.IIS.Administration.Files
             }, path);
         }
 
-        public IDirectoryInfo CreateDirectory(string path)
+        public IFileInfo CreateDirectory(string path)
         {
             this.EnsureAccess(path, FileAccess.ReadWrite);
 
@@ -218,20 +202,20 @@ namespace Microsoft.IIS.Administration.Files
             destFileInfo.CreationTimeUtc = sourceFileInfo.CreationTimeUtc;
         }
 
-        public void SetFileTime(string path, DateTime? lastAccess, DateTime? lastModified, DateTime? creation)
+        public void SetFileTime(string path, DateTime? lastAccessed, DateTime? lastModified, DateTime? created)
         {
             PerformIO(p => {
 
-                if (lastAccess != null) {
-                    Directory.SetLastAccessTime(p, lastAccess.Value);
+                if (lastAccessed != null) {
+                    Directory.SetLastAccessTime(p, lastAccessed.Value);
                 }
 
                 if (lastModified != null) {
                     Directory.SetLastWriteTime(p, lastModified.Value);
                 }
 
-                if (creation != null) {
-                    Directory.SetCreationTime(p, creation.Value);
+                if (created != null) {
+                    Directory.SetCreationTime(p, created.Value);
                 }
 
             }, path);

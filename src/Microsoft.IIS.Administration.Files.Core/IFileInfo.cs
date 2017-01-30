@@ -4,9 +4,20 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    public interface IFileInfo : IFileSystemInfo
+    using System;
+    using System.IO;
+
+    public interface IFileInfo
     {
+        string Name { get; }
+        string Path { get; }
+        bool Exists { get; }
         long Size { get; }
-        IDirectoryInfo Parent { get; }
+        FileType Type { get; }
+        IFileInfo Parent { get; }
+        FileAttributes Attributes { get; }
+        DateTime LastAccessed { get; }
+        DateTime LastModified { get; }
+        DateTime Created { get; }
     }
 }
