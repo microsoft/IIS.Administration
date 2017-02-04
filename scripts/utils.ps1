@@ -36,6 +36,10 @@ function Generate-AccessToken($apiUrl) {
 	$res = Invoke-WebRequest "$apiUrl/security/api-keys" -UseDefaultCredentials -SessionVariable sess;
 	$hTok = $res.headers."XSRF-TOKEN";
 
+    if ($hTok -is [array]) {
+        $hTok = $hTok[0]
+    }
+
 	$h = @{};
 	$h."XSRF-TOKEN" = $htok;
 
