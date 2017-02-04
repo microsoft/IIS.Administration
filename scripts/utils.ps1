@@ -45,7 +45,7 @@ function Generate-AccessToken($apiUrl) {
 
 	$res2 = Invoke-WebRequest "$apiUrl/security/api-keys" -Headers $h -Method Post -UseDefaultCredentials -ContentType "application/json" -WebSession $sess -Body '{"expires_on": ""}';
 
-    $jObj = ConvertFrom-Json ([System.Text.Encoding]::Default.GetString($res2.content))
+    $jObj = ConvertFrom-Json ([System.Text.Encoding]::UTF8.GetString($res2.content))
 
 	return $jObj.access_token;
 }
