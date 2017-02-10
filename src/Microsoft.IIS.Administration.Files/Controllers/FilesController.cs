@@ -29,7 +29,7 @@ namespace Microsoft.IIS.Administration.Files
         {
             _options = options;
             _provider = fileProvider;
-            _helper = new FilesHelper(fileProvider);
+            _helper = new FilesHelper(fileProvider, options);
         }
 
         [HttpHead]

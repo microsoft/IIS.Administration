@@ -23,10 +23,10 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         private IFileProvider _fileProvider;
         private FilesHelper _filesHelper;
 
-        public WsFilesController(IFileProvider fileProvider)
+        public WsFilesController(IFileProvider fileProvider, IFileOptions options)
         {
             _fileProvider = fileProvider;
-            _filesHelper = new FilesHelper(fileProvider);
+            _filesHelper = new FilesHelper(fileProvider, options);
         }
 
         [HttpDelete]

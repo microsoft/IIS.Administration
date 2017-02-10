@@ -18,10 +18,10 @@ namespace Microsoft.IIS.Administration.Files
         private IFileProvider _fileService;
         private static ConcurrentDictionary<string, MoveOperation> _copies = new ConcurrentDictionary<string, MoveOperation>();
 
-        public CopyController(IFileProvider fileProvider)
+        public CopyController(IFileProvider fileProvider, IFileOptions options)
         {
             _fileService = fileProvider;
-            _helper = new MoveHelper(_fileService);
+            _helper = new MoveHelper(_fileService, options);
         }
         
         [HttpHead]

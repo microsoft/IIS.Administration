@@ -16,10 +16,12 @@ namespace Microsoft.IIS.Administration.Files
         private static readonly Fields RefFields = new Fields("name", "id", "type", "physical_path");
 
         private IFileProvider _fileProvider;
+        private IFileOptions _options;
 
-        public FilesHelper(IFileProvider fileProvider)
+        public FilesHelper(IFileProvider fileProvider, IFileOptions options)
         {
             _fileProvider = fileProvider;
+            _options = options;
         }
 
         public object ToJsonModel(string physicalPath, Fields fields = null, bool full = true)
@@ -102,6 +104,17 @@ namespace Microsoft.IIS.Administration.Files
             // id
             if (fields.Exists("id")) {
                 obj.id = fileId.Uuid;
+            }
+
+            //
+            // alias
+            if (fields.Exists("alias") && _options != null) {
+                foreach (var location in _options.Locations) {
+                    if (location.Path.TrimEnd(PathUtil.SEPARATORS).Equals(info.Path.TrimEnd(PathUtil.SEPARATORS))) {
+                        obj.alias = location.Alias;
+                        break;
+                    }
+                }
             }
 
             //
@@ -200,6 +213,17 @@ namespace Microsoft.IIS.Administration.Files
             // id
             if (fields.Exists("id")) {
                 obj.id = fileId.Uuid;
+            }
+
+            //
+            // alias
+            if (fields.Exists("alias") && _options != null) {
+                foreach (var location in _options.Locations) {
+                    if (location.Path.TrimEnd(PathUtil.SEPARATORS).Equals(info.Path.TrimEnd(PathUtil.SEPARATORS))) {
+                        obj.alias = location.Alias;
+                        break;
+                    }
+                }
             }
 
             //
