@@ -475,7 +475,7 @@ namespace Microsoft.IIS.Administration.Files
 
             var parentPath = PathUtil.GetParentPath(physicalPath);
 
-            if (parentPath != null && _fileProvider.IsAccessAllowed(parentPath, FileAccess.Read)) {
+            if (!string.IsNullOrEmpty(parentPath) && _fileProvider.IsAccessAllowed(parentPath, FileAccess.Read)) {
                 ret = DirectoryToJsonModelRef(_fileProvider.GetDirectory(parentPath), fields);
             }
 
