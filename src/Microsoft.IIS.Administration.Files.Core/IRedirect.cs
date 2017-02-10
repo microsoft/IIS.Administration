@@ -4,10 +4,12 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    using System.Collections.Generic;
+    using System;
 
-    public interface IFileOptions
+    public interface IRedirect
     {
-        IList<ILocation> Locations { get; set; }
+        string Name { get; set; }
+        Func<string> To { get; set; }
+        bool Permanent { get; set; }
     }
 }

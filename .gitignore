@@ -219,3 +219,4 @@ _Pvt_Extensions
 src/*/wwwroot/lib
 PublishProfiles
 scripts/publish/version.txt
+src/Microsoft.IIS.Administration/wwwroot/static/Microsoft.IIS.Administration.WebServer.HttpRequestTracing/freb.xsl

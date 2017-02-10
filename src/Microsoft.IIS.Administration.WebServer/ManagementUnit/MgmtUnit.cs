@@ -9,10 +9,13 @@ namespace Microsoft.IIS.Administration.WebServer
     using Web.Administration;
 
     class MgmtUnit : IManagementUnit {
+        private IApplicationHostConfigProvider _provider;
+
         public ServerManager ServerManager { get; private set; }
 
-        public MgmtUnit()
+        public MgmtUnit(IApplicationHostConfigProvider provider)
         {
+            _provider = provider;
             this.ServerManager = new ServerManager(ApplicationHostConfigPath);
         }
 
@@ -22,7 +25,7 @@ namespace Microsoft.IIS.Administration.WebServer
             get {
                 //
                 // At the moment support global applicationHost.config
-                return null;
+                return _provider?.Path;
             }
         }
 

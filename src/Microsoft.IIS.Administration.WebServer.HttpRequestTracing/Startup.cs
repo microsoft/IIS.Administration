@@ -6,8 +6,10 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 {
     using Applications;
     using AspNetCore.Builder;
+    using AspNetCore.Hosting;
     using Core;
     using Core.Http;
+    using Files;
     using Sites;
     using Web.Administration;
 
@@ -15,9 +17,24 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     {
         public override void Start()
         {
+            ConfigureXsl();
             ConfigureHttpRequestTracing();
             ConfigureProviders();
             ConfigureRules();
+        }
+
+        private void ConfigureXsl()
+        {
+            var services = Environment.Host.ApplicationBuilder.ApplicationServices;
+            var redirecter = (IFileRedirectService) services.GetService(typeof(IFileRedirectService));
+
+            if (redirecter != null) {
+                var hostingEnv = (IHostingEnvironment)services.GetService(typeof(IHostingEnvironment));
+                var configProvider = (IApplicationHostConfigProvider)services.GetService(typeof(IApplicationHostConfigProvider));
+                var xslLocator = new XslLocator(hostingEnv, configProvider);
+
+                redirecter.AddRedirect("freb.xsl", () => xslLocator.GetPath(), true);
+            }
         }
 
         private void ConfigureHttpRequestTracing()

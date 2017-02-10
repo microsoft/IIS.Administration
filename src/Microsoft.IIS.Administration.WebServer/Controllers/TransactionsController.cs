@@ -12,6 +12,12 @@ namespace Microsoft.IIS.Administration.WebServer
 
     public class TransactionsController : ApiBaseController
     {
+        private IApplicationHostConfigProvider _configProvider;
+
+        public TransactionsController(IApplicationHostConfigProvider configProvider) {
+            _configProvider = configProvider;
+        }
+
         [HttpGet]
         [ResourceInfo(Name = Defines.TransactionsName)]
         public object Get()
@@ -43,7 +49,7 @@ namespace Microsoft.IIS.Administration.WebServer
         [ResourceInfo(Name = Defines.TransactionName)]
         public object Post()
         {
-            Transaction transaction = Store.BeginTransaction();
+            Transaction transaction = Store.BeginTransaction(_configProvider);
 
             //
             // Set the current management unit

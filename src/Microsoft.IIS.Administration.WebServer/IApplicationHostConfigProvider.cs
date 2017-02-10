@@ -2,12 +2,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-namespace Microsoft.IIS.Administration.Files
+namespace Microsoft.IIS.Administration.WebServer
 {
-    using System.Collections.Generic;
-
-    public interface IFileOptions
+    public interface IApplicationHostConfigProvider
     {
-        IList<ILocation> Locations { get; set; }
+        string Path { get; }
     }
 }

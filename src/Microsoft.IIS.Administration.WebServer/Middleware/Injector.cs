@@ -13,10 +13,12 @@ namespace Microsoft.IIS.Administration.WebServer
     {
         private RequestDelegate _next;
         private static readonly string WEBSERVER_PATH = "/" + Defines.PATH;
+        private IApplicationHostConfigProvider _confgProvider;
 
-        public Injector(RequestDelegate next)
+        public Injector(RequestDelegate next, IApplicationHostConfigProvider provider)
         {
             _next = next;
+            _confgProvider = provider;
         }
 
         public async Task Invoke(HttpContext context)
@@ -65,7 +67,7 @@ namespace Microsoft.IIS.Administration.WebServer
 
         private async Task ProceedNoTransaction(HttpContext context)
         {
-            using (var mu = new MgmtUnit()) {
+            using (var mu = new MgmtUnit(_confgProvider)) {
                 context.SetManagementUnit(mu);
                 try {
                     await _next(context);

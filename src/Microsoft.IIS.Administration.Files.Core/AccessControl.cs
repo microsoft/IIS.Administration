@@ -4,39 +4,25 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    using Extensions.Configuration;
     using System;
     using System.Collections.Generic;
 
     public class AccessControl : IAccessControl
     {
         private IFileOptions _options;
-        private IConfiguration _configuration;
 
-        public AccessControl(IConfiguration configuration)
+        public AccessControl(IFileOptions options)
         {
-            if (configuration == null) {
-                throw new ArgumentNullException(nameof(configuration));
+            if (options == null) {
+                throw new ArgumentNullException(nameof(options));
             }
 
-            _configuration = configuration;
-        }
-
-        private IFileOptions Options
-        {
-            get {
-                if (_options == null) {
-                    IFileOptions options = FileOptions.FromConfiguration(_configuration);
-                    _options = options;
-                }
-
-                return _options;
-            }
+            _options = options;
         }
 
         public IEnumerable<string> GetClaims(string path)
         {
-            var claims = new List<string>();
+            IList<string> claims = new List<string>();
 
             //
             // Path must be absolute with no environment variables
@@ -46,7 +32,7 @@ namespace Microsoft.IIS.Administration.Files
 
             //
             // Best match
-            foreach (var location in Options.Locations) {
+            foreach (var location in _options.Locations) {
 
                 if (HasPrefix(path, location.Path)) {
 

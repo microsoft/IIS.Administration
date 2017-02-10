@@ -13,14 +13,25 @@ namespace Microsoft.IIS.Administration.Files
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using AspNetCore.StaticFiles;
 
     public class HttpFileHandler
     {
         private const string ContentRangePrefix = "bytes ";
+        private static FileExtensionContentTypeProvider _mimeMaps;
         private IFileInfo _file;
         private IFileProvider _service;
         private HttpContext _context;
         private IHeaderDictionary _customHeaders;
+
+        private static FileExtensionContentTypeProvider MimeMaps {
+            get {
+                if (_mimeMaps == null) {
+                    _mimeMaps = new FileExtensionContentTypeProvider();
+                }
+                return _mimeMaps;
+            }
+        }
 
         public HttpFileHandler(IFileProvider fileProvider, HttpContext context, string filePath, IHeaderDictionary customHeaders = null)
         {
@@ -156,7 +167,12 @@ namespace Microsoft.IIS.Administration.Files
         {
             //
             // Content Type
-            _context.Response.ContentType = "application/octet-stream";
+            string type = null;
+            if (!MimeMaps.TryGetContentType(Path.GetExtension(_file.Name), out type)) {
+                type = "application/octet-stream";
+            }
+
+            _context.Response.ContentType = type;
 
             //
             // Content-Disposition (file name)

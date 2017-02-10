@@ -11,10 +11,12 @@ namespace Microsoft.IIS.Administration.Files
     public class ContentController : ApiBaseController
     {
         private IFileProvider _fileProvider;
+        IFileRedirectService _redirectService;
 
-        public ContentController(IFileProvider fileProvider)
+        public ContentController(IFileProvider fileProvider, IFileRedirectService redirectService)
         {
             _fileProvider = fileProvider;
+            _redirectService = redirectService;
         }
 
         [HttpHead]
@@ -36,6 +38,15 @@ namespace Microsoft.IIS.Administration.Files
         [HttpGet]
         public async Task<IActionResult> Get(string id)
         {
+            //
+            // Check for redirect
+            var redirect = _redirectService.GetRedirect(id);
+            if (redirect != null) {
+                return new RedirectResult(redirect.To(), redirect.Permanent);
+            }
+
+            //
+            // Serve content
             FileId fileId = FileId.FromUuid(id);
 
             if (!_fileProvider.FileExists(fileId.PhysicalPath)) {

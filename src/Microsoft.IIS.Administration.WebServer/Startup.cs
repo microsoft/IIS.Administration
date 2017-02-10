@@ -7,10 +7,16 @@ namespace Microsoft.IIS.Administration.WebServer
     using AspNetCore.Builder;
     using Core;
     using Core.Http;
+    using Extensions.DependencyInjection;
 
-    public class Startup : BaseModule
+    public class Startup : BaseModule, IServiceCollectionAccessor
     {
         public Startup() { }
+
+        public void Use(IServiceCollection services)
+        {
+            services.AddSingleton<IApplicationHostConfigProvider>(sp => new ApplicationHostConfigProvider(null));
+        }
 
         public override void Start()
         {
@@ -24,7 +30,7 @@ namespace Microsoft.IIS.Administration.WebServer
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            app.UseMiddleware<Injector>();
+            app.UseMiddleware<Injector>(app.ApplicationServices.GetRequiredService<IApplicationHostConfigProvider>());
 
             router.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "webserver" });
 

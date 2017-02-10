@@ -133,7 +133,10 @@ namespace Microsoft.IIS.Administration.Files
         }
 
         public MoveOperation Move(IFileInfo source, string dest, bool copy)
-        {            
+        {
+            _fileService.EnsureAccess(source.Path, copy ? FileAccess.Read : FileAccess.ReadWrite);
+            _fileService.EnsureAccess(dest, FileAccess.Write);
+
             if (source.Type == FileType.File) {
                 return MoveFile(source, dest, copy);
             }

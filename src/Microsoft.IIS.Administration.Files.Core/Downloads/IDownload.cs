@@ -4,10 +4,12 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    using System.Collections.Generic;
-
-    public interface IFileOptions
+    public interface IDownload
     {
-        IList<ILocation> Locations { get; set; }
+        string Id { get; }
+
+        string PhysicalPath { get; set; }
+
+        string Href { get; }
     }
 }

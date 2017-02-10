@@ -53,7 +53,7 @@ namespace Microsoft.IIS.Administration.Files
                 throw new NotFoundException("parent");
             }
 
-            var src = fileType == FileType.File ? _fileService.GetFile(fileId.PhysicalPath) : _fileService.GetDirectory(fileId.PhysicalPath);
+            IFileInfo src = fileType == FileType.File ? _fileService.GetFile(fileId.PhysicalPath) : _fileService.GetDirectory(fileId.PhysicalPath);
 
             string destPath = Path.Combine(parentId.PhysicalPath, name == null ? src.Name : name);
 
@@ -64,6 +64,7 @@ namespace Microsoft.IIS.Administration.Files
             if (fileType == FileType.File && _fileService.DirectoryExists(destPath) || fileType == FileType.Directory && _fileService.FileExists(destPath)) {
                 throw new AlreadyExistsException("name");
             }
+
 
             MoveOperation copy = InitiateCopy(src, destPath);
 

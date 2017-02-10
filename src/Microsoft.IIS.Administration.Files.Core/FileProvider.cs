@@ -7,7 +7,6 @@ namespace Microsoft.IIS.Administration.Files
     using Core;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
@@ -39,7 +38,6 @@ namespace Microsoft.IIS.Administration.Files
                 var info = new FileInfo(path);
 
                 if (!IsAccessAllowed(path, FileAccess.Read) && (info.Parent == null || !IsAccessAllowed(info.Parent.Path, FileAccess.Read))) {
-
                     throw new ForbiddenArgumentException(p);
                 }
 

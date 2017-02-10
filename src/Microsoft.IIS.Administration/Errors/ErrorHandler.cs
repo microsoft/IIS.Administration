@@ -83,8 +83,7 @@ namespace Microsoft.IIS.Administration {
             if (Log.Logger.IsEnabled(LogEventLevel.Error)) {
                 Task.Run(() => {
                     Log.Logger.Error($"{e.Message}{System.Environment.NewLine}\t{e.StackTrace}{System.Environment.NewLine}{System.Environment.NewLine}");
-                });
-                
+                });                
             }
         }
     }

@@ -5,7 +5,6 @@
 namespace Microsoft.IIS.Administration.WebServer
 {
     using AspNetCore.Http;
-    using Core;
     using System;
     using System.Threading;
 
@@ -20,7 +19,7 @@ namespace Microsoft.IIS.Administration.WebServer
 
         public static MgmtUnit ManagementUnit { get; set; }
 
-        public static Transaction BeginTransaction()
+        public static Transaction BeginTransaction(IApplicationHostConfigProvider provider)
         {
             lock (_lock) {
                 if (Transaction == null) {
@@ -30,7 +29,7 @@ namespace Microsoft.IIS.Administration.WebServer
                     _timer = new Timer(TimeoutCallback, null, TRANSACTION_IDLE_TIMEOUT, Timeout.Infinite);
 
                     
-                    ManagementUnit = new MgmtUnit();
+                    ManagementUnit = new MgmtUnit(provider);
                     Transaction = transaction;
                 }
             }

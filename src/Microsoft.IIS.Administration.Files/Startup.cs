@@ -8,7 +8,6 @@ namespace Microsoft.IIS.Administration.Files
     using Core;
     using Core.Http;
     using Extensions.Caching.Memory;
-    using Extensions.Configuration;
     using Extensions.DependencyInjection;
 
     public class Startup : BaseModule, IServiceCollectionAccessor
@@ -17,13 +16,9 @@ namespace Microsoft.IIS.Administration.Files
 
         public void Use(IServiceCollection services)
         {
-            services.AddSingleton<IDownloadService>(sp => {
-                return new DownloadService((IMemoryCache)sp.GetService(typeof(IMemoryCache)));
-            });
+            services.AddSingleton<IDownloadService>(sp => new DownloadService((IMemoryCache)sp.GetService(typeof(IMemoryCache))));
 
-            services.AddSingleton(sp => {
-                return FileOptions.FromConfiguration((IConfiguration)sp.GetService(typeof(IConfiguration)));
-            });
+            services.AddSingleton<IFileRedirectService>(sp => new FileRedirectService());
         }
 
         public override void Start()

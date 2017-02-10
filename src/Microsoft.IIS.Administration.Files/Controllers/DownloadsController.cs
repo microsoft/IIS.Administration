@@ -4,19 +4,26 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
+    using AspNetCore.Http;
     using AspNetCore.Mvc;
     using Core.Http;
+    using System.IO;
+    using System.Linq;
     using System.Threading.Tasks;
 
     public class DownloadsController : ApiBaseController
     {
         private IFileProvider _fileProvider;
         private IDownloadService _downloadService;
+        private IFileRedirectService _redirectService;
 
-        public DownloadsController(IDownloadService service, IFileProvider fileProvider)
+        public DownloadsController(IDownloadService service,
+                                   IFileProvider fileProvider,
+                                   IFileRedirectService redirectService)
         {
             _fileProvider = fileProvider;
             _downloadService = service;
+            _redirectService = redirectService;
         }
 
         [HttpHead]
@@ -41,6 +48,15 @@ namespace Microsoft.IIS.Administration.Files
         [HttpGet]
         public async Task<IActionResult> Get(string id)
         {
+            //
+            // Check for redirect
+            var redirect = _redirectService.GetRedirect(id);
+            if (redirect != null) {
+                return new RedirectResult(redirect.To(), redirect.Permanent);
+            }
+
+            //
+            // Serve content
             var dl = _downloadService.Get(id);
 
             if (dl == null) {
@@ -52,7 +68,12 @@ namespace Microsoft.IIS.Administration.Files
                 return NotFound();
             }
 
-            await Context.Response.WriteFileContentAsync(dl.PhysicalPath, _fileProvider);
+            bool inline = Context.Request.Query["inline"].Count > 0;
+
+            IHeaderDictionary headers = new HeaderDictionary();
+            headers.SetContentDisposition(inline, Path.GetFileName(dl.PhysicalPath));
+
+            await Context.Response.WriteFileContentAsync(dl.PhysicalPath, _fileProvider, headers);
 
             return new EmptyResult();
         }

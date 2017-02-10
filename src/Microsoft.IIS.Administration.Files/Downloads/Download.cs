@@ -7,7 +7,7 @@ namespace Microsoft.IIS.Administration.Files
     using Core.Utils;
     using System.Security.Cryptography;
 
-    public class Download
+    class Download : IDownload
     {
         internal Download()
         {

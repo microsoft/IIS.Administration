@@ -12,6 +12,7 @@
     }
   },
   "dependencies": {
+    "Microsoft.AspNetCore.StaticFiles": "1.0.0",
     "Microsoft.IIS.Administration.Files.Core": "1.0.0-*"
   }
 }

@@ -14,7 +14,7 @@ namespace Microsoft.IIS.Administration.Files
     {
         private FileOptions() { }
 
-        public List<Location> Locations { get; set; }
+        public IList<ILocation> Locations { get; set; }
 
         public static IFileOptions FromConfiguration(IConfiguration configuration)
         {
@@ -22,7 +22,16 @@ namespace Microsoft.IIS.Administration.Files
 
             if (configuration.GetSection("files").GetChildren().Count() > 0) {
                 options = EmptyOptions();
-                ConfigurationBinder.Bind(configuration.GetSection("files"), options);
+
+                foreach (var child in configuration.GetSection("files:locations").GetChildren()) {
+                    var location = Location.FromSection(child);
+                    if (location != null) {
+                        options.Locations.Add(location);
+                    }
+                }
+            }
+
+            if (options != null) {
                 options.InitializeRoots();
             }
 
@@ -49,7 +58,7 @@ namespace Microsoft.IIS.Administration.Files
         {
             return new FileOptions()
             {
-                Locations = new List<Location>()
+                Locations = new List<ILocation>()
             };
         }
 
@@ -67,10 +76,10 @@ namespace Microsoft.IIS.Administration.Files
                     throw;
                 }
             }
-
+            
             //
             // Sort
-            this.Locations.Sort((item1, item2) => {
+            ((List<ILocation>)Locations).Sort((item1, item2) => {
                 return item2.Path.Length - item1.Path.Length;
             });
         }
