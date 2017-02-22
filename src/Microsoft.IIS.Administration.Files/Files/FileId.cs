@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration.Files
 {
     using Core;
     using System;
+    using System.IO;
 
     public class FileId
     {
@@ -46,13 +47,28 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ArgumentException("Path must be full path.", nameof(physicalPath));
             };
 
+            string normalized = Normalize(physicalPath);
+
             return new FileId() {
-                Uuid = Core.Utils.Uuid.Encode($"{physicalPath}", PURPOSE),
+                Uuid = Core.Utils.Uuid.Encode($"{normalized}", PURPOSE),
                 PhysicalPath = physicalPath
             };
         }
         
         public string PhysicalPath { get; private set; }
         public string Uuid { get; private set; }
+
+        private static string Normalize(string physicalPath)
+        {
+            var path = physicalPath.ToLower();
+
+            path = path.TrimEnd(PathUtil.SEPARATORS);
+
+            if (path.IndexOfAny(PathUtil.SEPARATORS) == -1) {
+                path = path + Path.DirectorySeparatorChar;
+            }
+
+            return path;
+        }
     }
 }

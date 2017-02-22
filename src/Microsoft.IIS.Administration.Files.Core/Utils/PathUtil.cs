@@ -136,6 +136,12 @@ namespace Microsoft.IIS.Administration.Files
             return new DirectoryInfo(path).Name;
         }
 
+        public static string GetParentPath(string path)
+        {
+            var parent = new DirectoryInfo(path).Parent;
+            return parent == null ? null : parent.Path;
+        }
+
         private static string GetTempName(string name)
         {
             var bytes = new byte[4];
