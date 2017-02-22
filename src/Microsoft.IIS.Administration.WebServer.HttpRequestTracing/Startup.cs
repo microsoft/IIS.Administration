@@ -21,6 +21,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             ConfigureHttpRequestTracing();
             ConfigureProviders();
             ConfigureRules();
+            ConfigureTraces();
         }
 
         private void ConfigureXsl()
@@ -83,6 +84,15 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             Environment.Hal.ProvideLink(Defines.RulesResource.Guid, "self", r => new { href = RulesHelper.GetLocation(r.id) });
 
             Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.RulesResource.Name, hrt => new { href = $"/{Defines.RULES_PATH}?{Defines.IDENTIFIER}={hrt.id}" });
+        }
+
+        private void ConfigureTraces()
+        {
+            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.TracesResource.Guid, $"{ Defines.TRACES_PATH}/{{id?}}", new { controller = "RequestTraces" });
+
+            Environment.Hal.ProvideLink(Defines.TracesResource.Guid, "self", r => new { href = TracesHelper.GetLocation(r.id) });
+
+            Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.TracesResource.Name, hrt => new { href = $"/{Defines.TRACES_PATH}?{Defines.IDENTIFIER}={hrt.id}" });
         }
     }
 }
