@@ -20,16 +20,14 @@ namespace Microsoft.IIS.Administration.Files
         private const string _units = "files";
         private const string _nameKey = "name";
         private const string _physicalPathKey = "physical_path";
-
-        IFileOptions _options;
+        
         IFileProvider _provider;
         FilesHelper _helper;
 
-        public FilesController(IFileOptions options, IFileProvider fileProvider)
+        public FilesController(IFileProvider fileProvider)
         {
-            _options = options;
             _provider = fileProvider;
-            _helper = new FilesHelper(fileProvider, options);
+            _helper = new FilesHelper(fileProvider);
         }
 
         [HttpHead]
@@ -138,7 +136,7 @@ namespace Microsoft.IIS.Administration.Files
 
             //
             // Check Name
-            string name = DynamicHelper.Value(model.name);
+            string name = DynamicHelper.Value(model.name)?.Trim();
 
             if (!PathUtil.IsValidFileName(name)) {
                 throw new ApiArgumentException("model.name");
@@ -157,7 +155,7 @@ namespace Microsoft.IIS.Administration.Files
             DateTime? lastAccess = DynamicHelper.To<DateTime>(model.last_access);
             DateTime? lastModified = DynamicHelper.To<DateTime>(model.last_modified);
 
-            var creationPath = Path.Combine(fileId.PhysicalPath, name);
+            string creationPath = Path.Combine(fileId.PhysicalPath, name);
 
             if (_provider.DirectoryExists(creationPath) || _provider.FileExists(creationPath)) {
                 throw new AlreadyExistsException("name");
@@ -271,7 +269,7 @@ namespace Microsoft.IIS.Administration.Files
             }
 
             if (info == null) {
-                return NotFound();
+                throw new NotFoundException(_physicalPathKey);
             }
 
             return _helper.ToJsonModel(info, fields);
@@ -316,7 +314,7 @@ namespace Microsoft.IIS.Administration.Files
         {
             var dirs = new List<IFileInfo>();
 
-            foreach (var location in _options.Locations) {
+            foreach (var location in _provider.Options.Locations) {
                 if (_provider.IsAccessAllowed(location.Path, FileAccess.Read) && 
                         (string.IsNullOrEmpty(nameFilter) || PathUtil.GetName(location.Path).IndexOf(nameFilter, StringComparison.OrdinalIgnoreCase) != -1)) {
 

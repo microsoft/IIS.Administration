@@ -18,10 +18,10 @@ namespace Microsoft.IIS.Administration.Files
         private IFileProvider _fileService;
         private FilesHelper _filesHelper;
 
-        public MoveHelper(IFileProvider fileService, IFileOptions options)
+        public MoveHelper(IFileProvider fileService)
         {
             _fileService = fileService;
-            _filesHelper = new FilesHelper(_fileService, options);
+            _filesHelper = new FilesHelper(_fileService);
         }
 
         public static string GetLocation(string id, bool copy)

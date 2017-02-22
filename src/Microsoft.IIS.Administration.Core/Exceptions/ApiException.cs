@@ -7,12 +7,17 @@ namespace Microsoft.IIS.Administration.Core {
 
 
     public class ApiException : Exception, IError {
+        public string Name { get; private set; }
 
-        public ApiException(string message, Exception innerException) : base(message, innerException) {
+        public ApiException(string message, Exception innerException) : base(message ?? string.Empty, innerException) {
+        }
+
+        public ApiException(string message, string name, Exception innerException) : base(message ?? string.Empty, innerException) {
+            this.Name = name;
         }
 
         public virtual dynamic GetApiError() {
-            return Http.ErrorHelper.Error(Message);
+            return Http.ErrorHelper.Error(Message, Name);
         }
     }
 }

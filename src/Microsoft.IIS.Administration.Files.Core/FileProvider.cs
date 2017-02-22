@@ -14,13 +14,18 @@ namespace Microsoft.IIS.Administration.Files
     public class FileProvider : IFileProvider
     {
         private IAccessControl _accessControl;
+        private IFileOptions _options;
 
-        public FileProvider(IAccessControl accessControl)
+        public FileProvider(IAccessControl accessControl, IFileOptions options)
         {
             if (accessControl == null) {
                 throw new ArgumentNullException(nameof(accessControl));
             }
+            if (options == null) {
+                throw new ArgumentNullException(nameof(options));
+            }
 
+            _options = options;
             _accessControl = accessControl;
         }
 
@@ -157,8 +162,31 @@ namespace Microsoft.IIS.Administration.Files
                                          && (!requestedAccess.HasFlag(FileAccess.Write) || claims.Contains("write", StringComparer.OrdinalIgnoreCase));
         }
 
+        public void SetFileTime(string path, DateTime? lastAccessed, DateTime? lastModified, DateTime? created)
+        {
+            PerformIO(p => {
 
-        
+                if (lastAccessed != null) {
+                    Directory.SetLastAccessTime(p, lastAccessed.Value);
+                }
+
+                if (lastModified != null) {
+                    Directory.SetLastWriteTime(p, lastModified.Value);
+                }
+
+                if (created != null) {
+                    Directory.SetCreationTime(p, created.Value);
+                }
+
+            }, path);
+        }
+
+        public IFileOptions Options {
+            get {
+                return _options;
+            }
+        }
+
         private void PerformIO(Action<string> action, string path)
         {
             PerformIO<object>(p => {
@@ -198,25 +226,6 @@ namespace Microsoft.IIS.Administration.Files
             destFileInfo.LastAccessTimeUtc = sourceFileInfo.LastAccessTimeUtc;
             destFileInfo.LastWriteTimeUtc = sourceFileInfo.LastWriteTimeUtc;
             destFileInfo.CreationTimeUtc = sourceFileInfo.CreationTimeUtc;
-        }
-
-        public void SetFileTime(string path, DateTime? lastAccessed, DateTime? lastModified, DateTime? created)
-        {
-            PerformIO(p => {
-
-                if (lastAccessed != null) {
-                    Directory.SetLastAccessTime(p, lastAccessed.Value);
-                }
-
-                if (lastModified != null) {
-                    Directory.SetLastWriteTime(p, lastModified.Value);
-                }
-
-                if (created != null) {
-                    Directory.SetCreationTime(p, created.Value);
-                }
-
-            }, path);
         }
     }
 

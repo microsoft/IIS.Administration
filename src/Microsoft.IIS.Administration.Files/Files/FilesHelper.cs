@@ -16,12 +16,10 @@ namespace Microsoft.IIS.Administration.Files
         private static readonly Fields RefFields = new Fields("name", "id", "type", "physical_path");
 
         private IFileProvider _fileProvider;
-        private IFileOptions _options;
 
-        public FilesHelper(IFileProvider fileProvider, IFileOptions options)
+        public FilesHelper(IFileProvider fileProvider)
         {
             _fileProvider = fileProvider;
-            _options = options;
         }
 
         public object ToJsonModel(string physicalPath, Fields fields = null, bool full = true)
@@ -108,8 +106,8 @@ namespace Microsoft.IIS.Administration.Files
 
             //
             // alias
-            if (fields.Exists("alias") && _options != null) {
-                foreach (var location in _options.Locations) {
+            if (fields.Exists("alias")) {
+                foreach (var location in _fileProvider.Options.Locations) {
                     if (location.Path.TrimEnd(PathUtil.SEPARATORS).Equals(info.Path.TrimEnd(PathUtil.SEPARATORS))) {
                         obj.alias = location.Alias;
                         break;
@@ -217,8 +215,8 @@ namespace Microsoft.IIS.Administration.Files
 
             //
             // alias
-            if (fields.Exists("alias") && _options != null) {
-                foreach (var location in _options.Locations) {
+            if (fields.Exists("alias")) {
+                foreach (var location in _fileProvider.Options.Locations) {
                     if (location.Path.TrimEnd(PathUtil.SEPARATORS).Equals(info.Path.TrimEnd(PathUtil.SEPARATORS))) {
                         obj.alias = location.Alias;
                         break;
@@ -421,7 +419,7 @@ namespace Microsoft.IIS.Administration.Files
 
             if (model.name != null) {
 
-                string name = DynamicHelper.Value(model.name);
+                string name = DynamicHelper.Value(model.name).Trim();
 
                 if (!PathUtil.IsValidFileName(name)) {
                     throw new ApiArgumentException("name");
@@ -463,13 +461,13 @@ namespace Microsoft.IIS.Administration.Files
             lastModified = DynamicHelper.To<DateTime>(model.last_modified);
 
             if (model.name != null) {
-                string name = DynamicHelper.Value(model.name);
+                string name = DynamicHelper.Value(model.name).Trim();
 
                 if (!PathUtil.IsValidFileName(name)) {
                     throw new ApiArgumentException("name");
                 }
 
-                var newPath = Path.Combine(directory.Parent.Path, name);
+                string newPath = Path.Combine(directory.Parent.Path, name);
 
                 if (!newPath.Equals(directoryPath, StringComparison.OrdinalIgnoreCase)) {
 

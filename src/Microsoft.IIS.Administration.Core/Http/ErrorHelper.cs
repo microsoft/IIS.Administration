@@ -9,14 +9,14 @@ namespace Microsoft.IIS.Administration.Core.Http {
 
     public static class ErrorHelper {
 
-        public static dynamic Error(string message) {
+        public static dynamic Error(string message, string name) {
             return new {
                 title = "Server error",
-                detail = message ?? "",
+                detail = message ?? string.Empty,
+                name = name ?? string.Empty,
                 status = (int)HttpStatusCode.InternalServerError
             };
         }
-
 
         public static dynamic ArgumentError(string paramName, string message = null) {
 

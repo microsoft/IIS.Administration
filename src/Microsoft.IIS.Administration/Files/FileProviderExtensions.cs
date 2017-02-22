@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.Files
 
             services.AddSingleton<IAccessControl>((sp) => new AccessControl(sp.GetRequiredService<IFileOptions>()));
 
-            services.AddSingleton<IFileProvider>((sp) => new FileProvider(sp.GetRequiredService<IAccessControl>()));
+            services.AddSingleton<IFileProvider>((sp) => new FileProvider(sp.GetRequiredService<IAccessControl>(), sp.GetRequiredService<IFileOptions>()));
 
             return services;
         }

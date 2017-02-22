@@ -40,5 +40,7 @@ namespace Microsoft.IIS.Administration.Files
         bool IsAccessAllowed(string path, FileAccess requestedAccess);
 
         void SetFileTime(string path, DateTime? lastAccessed, DateTime? lastModified, DateTime? created);
+
+        IFileOptions Options { get; }
     }
 }

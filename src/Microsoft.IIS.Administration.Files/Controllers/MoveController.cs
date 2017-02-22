@@ -18,13 +18,12 @@ namespace Microsoft.IIS.Administration.Files
         private IFileProvider _fileService;
         private static ConcurrentDictionary<string, MoveOperation> _moves = new ConcurrentDictionary<string, MoveOperation>();
 
-        public MoveController(IFileProvider fileProvider, IFileOptions options)
+        public MoveController(IFileProvider fileProvider)
         {
             _fileService = fileProvider;
-            _helper = new MoveHelper(_fileService, options);
+            _helper = new MoveHelper(_fileService);
         }
-
-        [HttpHead]
+        
         [HttpPatch]
         [HttpPut]
         public IActionResult NotAllowed()

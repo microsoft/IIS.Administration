@@ -20,10 +20,10 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         private IFileProvider _fileProvider;
         private Administration.Files.FilesHelper _filesHelper;
 
-        public FilesHelper(IFileProvider fileProvider, IFileOptions options)
+        public FilesHelper(IFileProvider fileProvider)
         {
             _fileProvider = fileProvider;
-            _filesHelper = new Administration.Files.FilesHelper(_fileProvider, options);
+            _filesHelper = new Administration.Files.FilesHelper(_fileProvider);
         }
 
         public object ToJsonModel(Site site, string path, Fields fields = null, bool full = true)
