@@ -76,7 +76,21 @@ namespace Microsoft.IIS.Administration.Files
                     throw;
                 }
             }
-            
+
+            //
+            // Proper aliases
+            foreach (var location in this.Locations) {
+                try {
+                    if (!string.IsNullOrEmpty(location.Alias) && !PathUtil.IsValidFileName(location.Alias)) {
+                        throw new FormatException("Invalid file name.");
+                    }
+                }
+                catch (FormatException e) {
+                    Log.Error(e, $"Invalid alias '{location.Alias}' in file options.");
+                    throw;
+                }
+            }
+
             //
             // Sort
             ((List<ILocation>)Locations).Sort((item1, item2) => {

@@ -298,7 +298,7 @@ namespace Microsoft.IIS.Administration.Tests
                     var copyParent = new DirectoryInfo(physicalPath).Parent.FullName;
                     var copyPhysicalPath = Environment.ExpandEnvironmentVariables(copyInfo["file"].Value<string>("physical_path"));
 
-                    Assert.True(copyPhysicalPath.Equals(Path.Combine(copyParent, copyName)));
+                    Assert.True(copyPhysicalPath.Equals(Path.Combine(copyParent, copyName), StringComparison.OrdinalIgnoreCase));
 
                     var copyContent = File.ReadAllText(copyPhysicalPath);
 

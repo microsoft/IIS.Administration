@@ -4,8 +4,14 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    public static class IOErrors
+    static class HResults
     {
         public const int FileInUse = unchecked((int)0x80070020);
+    }
+
+    static class Win32Errors
+    {
+        public const int FileNotFound = 0x2;
+        public const int PathNotFound = 0x3;
     }
 }

@@ -47,10 +47,8 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ArgumentException("Path must be full path.", nameof(physicalPath));
             };
 
-            string normalized = Normalize(physicalPath);
-
             return new FileId() {
-                Uuid = Core.Utils.Uuid.Encode($"{normalized}", PURPOSE),
+                Uuid = Core.Utils.Uuid.Encode($"{Normalize(physicalPath)}", PURPOSE),
                 PhysicalPath = physicalPath
             };
         }

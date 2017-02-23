@@ -108,7 +108,7 @@ namespace Microsoft.IIS.Administration.Files
             // alias
             if (fields.Exists("alias")) {
                 foreach (var location in _fileProvider.Options.Locations) {
-                    if (location.Path.TrimEnd(PathUtil.SEPARATORS).Equals(info.Path.TrimEnd(PathUtil.SEPARATORS))) {
+                    if (location.Path.TrimEnd(PathUtil.SEPARATORS).Equals(info.Path.TrimEnd(PathUtil.SEPARATORS), StringComparison.OrdinalIgnoreCase)) {
                         obj.alias = location.Alias;
                         break;
                     }
@@ -217,7 +217,7 @@ namespace Microsoft.IIS.Administration.Files
             // alias
             if (fields.Exists("alias")) {
                 foreach (var location in _fileProvider.Options.Locations) {
-                    if (location.Path.TrimEnd(PathUtil.SEPARATORS).Equals(info.Path.TrimEnd(PathUtil.SEPARATORS))) {
+                    if (location.Path.TrimEnd(PathUtil.SEPARATORS).Equals(info.Path.TrimEnd(PathUtil.SEPARATORS), StringComparison.OrdinalIgnoreCase)) {
                         obj.alias = location.Alias;
                         break;
                     }

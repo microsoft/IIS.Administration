@@ -40,7 +40,7 @@ namespace Microsoft.IIS.Administration.Files
         {
             return PerformIO(p => {
 
-                var info = new FileInfo(path);
+                var info = new FileInfo(Interop.GetPath(path));
 
                 if (!IsAccessAllowed(path, FileAccess.Read) && (info.Parent == null || !IsAccessAllowed(info.Parent.Path, FileAccess.Read))) {
                     throw new ForbiddenArgumentException(p);
@@ -55,7 +55,7 @@ namespace Microsoft.IIS.Administration.Files
         {
             return PerformIO(p => {
 
-                var info = new DirectoryInfo(path);
+                var info = new DirectoryInfo(Interop.GetPath(path));
 
                 if (!IsAccessAllowed(path, FileAccess.Read) && (info.Parent == null || !IsAccessAllowed(info.Parent.Path, FileAccess.Read))) {
 
@@ -201,7 +201,7 @@ namespace Microsoft.IIS.Administration.Files
                 return func(path);
             }
             catch (IOException e) {
-                if (e.HResult == IOErrors.FileInUse) {
+                if (e.HResult == HResults.FileInUse) {
                     throw new LockedException(path);
                 }
 
