@@ -11,7 +11,7 @@ namespace Microsoft.IIS.Administration.Files
     {
         public string Alias { get; set; }
         public string Path { get; set; }
-        public IList<string> Claims { get; set; } = new List<string>();
+        public IEnumerable<string> Claims { get; set; }
 
         public static Location FromSection(IConfigurationSection section)
         {

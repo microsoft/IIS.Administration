@@ -10,6 +10,6 @@ namespace Microsoft.IIS.Administration.Files
     {
         string Alias { get; set; }
         string Path { get; set; }
-        IList<string> Claims { get; set; }
+        IEnumerable<string> Claims { get; }
     }
 }

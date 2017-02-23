@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.Files
 
     public interface IFileOptions
     {
-        IList<ILocation> Locations { get; }
+        void AddLocation(ILocation location);
+        IEnumerable<ILocation> Locations { get; }
     }
 }

@@ -12,44 +12,28 @@ namespace Microsoft.IIS.Administration.Files
 
     public class FileOptions : IFileOptions
     {
+        private List<ILocation> _locations;
+
         private FileOptions() { }
 
-        public IList<ILocation> Locations { get; set; }
+        public IEnumerable<ILocation> Locations {
+            get {
+                return _locations;
+            }
+        }
 
         public static IFileOptions FromConfiguration(IConfiguration configuration)
         {
-            FileOptions options = null;
+            FileOptions options = EmptyOptions();
 
             if (configuration.GetSection("files").GetChildren().Count() > 0) {
-                options = EmptyOptions();
-
                 foreach (var child in configuration.GetSection("files:locations").GetChildren()) {
                     var location = Location.FromSection(child);
                     if (location != null) {
-                        options.Locations.Add(location);
+                        options.AddLocation(location);
                     }
                 }
             }
-
-            if (options != null) {
-                options.InitializeRoots();
-            }
-
-            return options ?? DefaultOptions();
-        }
-
-        private static FileOptions DefaultOptions()
-        {
-            var options = EmptyOptions();
-
-            options.Locations.Add(new Location() {
-                Path = @"%SystemDrive%\inetpub",
-                Claims = new List<string> {
-                    "read"
-                }
-            });
-
-            options.InitializeRoots();
 
             return options;
         }
@@ -58,38 +42,30 @@ namespace Microsoft.IIS.Administration.Files
         {
             return new FileOptions()
             {
-                Locations = new List<ILocation>()
+                _locations = new List<ILocation>()
             };
         }
 
-        private void InitializeRoots()
+        public void AddLocation(ILocation location)
         {
-            //
-            // Expand
-            foreach (var location in this.Locations) {
-                try {
-                    var p = PathUtil.GetFullPath(location.Path);
-                    location.Path = p;
+            try {
+                var p = PathUtil.GetFullPath(location.Path);
+                location.Path = p;
+
+                if (!string.IsNullOrEmpty(location.Alias) && !PathUtil.IsValidFileName(location.Alias)) {
+                    throw new FormatException("Invalid file name.");
                 }
-                catch (ArgumentException e) {
-                    Log.Error(e, $"Invalid path '{location.Path}' in file options.");
-                    throw;
-                }
+            }
+            catch (ArgumentException e) {
+                Log.Error(e, $"Invalid path '{location.Path}' in file options.");
+                throw;
+            }
+            catch (FormatException e) {
+                Log.Error(e, $"Invalid alias '{location.Alias}' in file options.");
+                throw;
             }
 
-            //
-            // Proper aliases
-            foreach (var location in this.Locations) {
-                try {
-                    if (!string.IsNullOrEmpty(location.Alias) && !PathUtil.IsValidFileName(location.Alias)) {
-                        throw new FormatException("Invalid file name.");
-                    }
-                }
-                catch (FormatException e) {
-                    Log.Error(e, $"Invalid alias '{location.Alias}' in file options.");
-                    throw;
-                }
-            }
+            _locations.Add(location);
 
             //
             // Sort

@@ -9,6 +9,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using Sites;
     using Web.Administration;
     using Core.Http;
+    using Administration.Files;
+    using System.Collections.Generic;
+    using System.Linq;
 
     public class Startup : BaseModule
     {
@@ -16,8 +19,24 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
         public override void Start()
         {
+            ConfigureOptions();
             ConfigureFiles();
             ConfigureDirectories();
+        }
+
+        private void ConfigureOptions()
+        {
+            IFileOptions options = (IFileOptions) Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(IFileOptions));
+
+            if (options.Locations.Count() == 0) {
+                options.AddLocation(new Location() {
+                    Alias = "inetpub",
+                    Path = @"%SystemDrive%\inetpub",
+                    Claims = new List<string> {
+                        "read"
+                    }
+                });
+            }
         }
 
         private void ConfigureFiles()

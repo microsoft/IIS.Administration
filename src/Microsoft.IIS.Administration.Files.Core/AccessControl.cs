@@ -22,7 +22,7 @@ namespace Microsoft.IIS.Administration.Files
 
         public IEnumerable<string> GetClaims(string path)
         {
-            IList<string> claims = new List<string>();
+            IEnumerable<string> claims = new List<string>();
 
             //
             // Path must be absolute with no environment variables
