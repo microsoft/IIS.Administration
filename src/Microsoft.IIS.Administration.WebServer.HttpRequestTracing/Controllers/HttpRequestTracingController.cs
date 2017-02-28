@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using System.Net;
     using Web.Administration;
 
+    [RequireGlobalModule("TracingModule", "Http Request Tracing")]
+    [RequireGlobalModule("FailedRequestsTracingModule", "Http Request Tracing")]
     public class HttpRequestTracingController : ApiBaseController
     {
         private IFileProvider _fileProvider;

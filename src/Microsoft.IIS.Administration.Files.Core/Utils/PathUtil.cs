@@ -29,10 +29,16 @@ namespace Microsoft.IIS.Administration.Files
             var expanded = Environment.ExpandEnvironmentVariables(path);
 
             if (!IsPathRooted(expanded)) {
-                throw new ArgumentException("Path must be rooted.", nameof(path));
+                throw new ArgumentException("Path must be rooted", nameof(path));
             }
 
-            return Path.GetFullPath(expanded);
+            try {
+                return Path.GetFullPath(expanded);
+            }
+            catch (NotSupportedException e) {
+                // Path contains a colon (":") that is not part of a volume identifier (for example, "c:\").
+                throw new ArgumentException(string.Empty, e);
+            }
         }
 
         /// <summary>

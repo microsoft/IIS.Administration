@@ -51,7 +51,7 @@ namespace Microsoft.IIS.Administration.Files
                     _totalSize = Source.Exists ? Source.Size : 0;
                 }
                 else {
-                    _totalSize = Source.Exists ? _fileProvider.GetFiles(Source.Path, "*", SearchOption.AllDirectories).Aggregate(0L, (prev, f) => prev + f.Size) : 0;
+                    _totalSize = Source.Exists ? _fileProvider.GetFiles(Source.Path, "*", SearchOption.AllDirectories).Aggregate(0L, (prev, f) => prev + (f.Exists ? f.Size : 0)) : 0;
                 }
 
                 return _totalSize;

@@ -272,6 +272,14 @@ namespace Microsoft.IIS.Administration.Files
             }
 
             //
+            // mime_type
+            if (fields.Exists("mime_type")) {
+                string type = null;
+                HttpFileHandler.MimeMaps.TryGetContentType(info.Path, out type);
+                obj.mime_type = type;
+            }
+
+            //
             // e_tag
             if (fields.Exists("e_tag")) {
                 exists = exists ?? info.Exists;

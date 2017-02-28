@@ -100,6 +100,14 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
                     DynamicHelper.If<bool>((object)model.enabled, v => site.TraceFailedRequestsLogging.Enabled = v);
                     DynamicHelper.If((object)model.maximum_number_trace_files, 1, 10000, v => site.TraceFailedRequestsLogging.MaxLogFiles = v);
             }
+
+            if (model.metadata != null) {
+                DynamicHelper.If<OverrideMode>((object)model.metadata.override_mode, v => {
+                    GetTraceFailedRequestsSection(site, path, configPath).OverrideMode = v;
+                });
+            }
+
+
         }
 
         public static string GetLocation(string id)

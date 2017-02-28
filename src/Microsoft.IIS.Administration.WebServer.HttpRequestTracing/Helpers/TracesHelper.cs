@@ -38,11 +38,11 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             string dir = _site.TraceFailedRequestsLogging.Directory;
             string path = string.IsNullOrEmpty(dir) ? null : Path.Combine(PathUtil.GetFullPath(dir), "W3SVC" + _site.Id);
 
-            if (path != null) {
+            if (path != null && _provider.DirectoryExists(path)) {
                 files = _provider.GetFiles(path, "*.xml");
             }
 
-            return await Task.WhenAll(files.Select(f => GetTraceInternal(f)));
+            return files == null ? Enumerable.Empty<TraceInfo>() : await Task.WhenAll(files.Select(f => GetTraceInternal(f)));
         }
 
         public async Task<TraceInfo> GetTrace(string id)

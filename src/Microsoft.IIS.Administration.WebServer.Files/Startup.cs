@@ -28,15 +28,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
         {
             IFileOptions options = (IFileOptions) Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(IFileOptions));
 
-            if (options.Locations.Count() == 0) {
-                options.AddLocation(new Location() {
-                    Alias = "inetpub",
-                    Path = @"%SystemDrive%\inetpub",
-                    Claims = new List<string> {
+            options.AddLocation(new Location() {
+                Alias = "inetpub",
+                Path = @"%SystemDrive%\inetpub",
+                Claims = new List<string> {
                         "read"
                     }
-                });
-            }
+            });
         }
 
         private void ConfigureFiles()

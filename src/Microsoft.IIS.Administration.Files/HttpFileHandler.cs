@@ -24,7 +24,7 @@ namespace Microsoft.IIS.Administration.Files
         private HttpContext _context;
         private IHeaderDictionary _customHeaders;
 
-        private static FileExtensionContentTypeProvider MimeMaps {
+        public static FileExtensionContentTypeProvider MimeMaps {
             get {
                 if (_mimeMaps == null) {
                     _mimeMaps = new FileExtensionContentTypeProvider();

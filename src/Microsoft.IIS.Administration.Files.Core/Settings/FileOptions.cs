@@ -65,7 +65,12 @@ namespace Microsoft.IIS.Administration.Files
                 throw;
             }
 
-            _locations.Add(location);
+            //
+            // Only add the location if it doesn't exist
+            if (!_locations.Any(loc => loc.Path.ToLowerInvariant().TrimEnd(PathUtil.SEPARATORS)
+                                            .Equals(location.Path.ToLowerInvariant().TrimEnd(PathUtil.SEPARATORS)))) {
+                _locations.Add(location);
+            }
 
             //
             // Sort
