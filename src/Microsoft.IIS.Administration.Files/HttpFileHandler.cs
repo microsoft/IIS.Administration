@@ -106,15 +106,19 @@ namespace Microsoft.IIS.Administration.Files
                         if (start >= 0) {
                             //
                             // Range request
-
-                            int length = finish - start + 1;
                             real.Seek(start, SeekOrigin.Begin);
                         }
                         
                         await temp.CopyToAsync(real);
 
+                        // Truncate content-range
                         if (finish > 0 && finish == outOf - 1) {
                             real.SetLength(outOf);
+                        }
+
+                        // Truncate full content
+                        if (start == -1) {
+                            real.SetLength(temp.Length);
                         }
 
                         //

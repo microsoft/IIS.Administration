@@ -257,6 +257,15 @@ namespace Microsoft.IIS.Administration.Tests
                     // Download file
                     Assert.True(client.Get($"{Configuration.TEST_SERVER_URL}{location}", out result));
                     Assert.True(result == testContent);
+
+                    // Update file with empty content
+                    res = client.PutAsync(Utils.GetLink(fileInfo, "content"), new ByteArrayContent(new byte[] { })).Result;
+
+                    Assert.True(res.StatusCode == HttpStatusCode.OK);
+
+                    // Assert file truncated
+                    res = client.GetAsync(Utils.GetLink(fileInfo, "content")).Result;
+                    Assert.True(res.Content.ReadAsByteArrayAsync().Result.Length == 0);
                 }
                 finally {
                     Assert.True(client.Delete(Utils.Self(webFile.Value<JObject>("file_info"))));
