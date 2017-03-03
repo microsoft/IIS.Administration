@@ -568,26 +568,35 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                     }
 
                     if (obj.certificate == null || !(obj.certificate is JObject)) {
-                        throw new ApiArgumentException("certificate");
+                        throw new ApiArgumentException("binding.certificate");
                     }
 
                     dynamic certificate = obj.certificate;
                     string uuid = DynamicHelper.Value(certificate.id);
 
                     if (string.IsNullOrEmpty(uuid)) {
-                        throw new ApiArgumentException("certificate.id");
+                        throw new ApiArgumentException("binding.certificate.id");
                     }
 
                     CertificateId id = new CertificateId(uuid);
-                    List<byte> bytes = new List<byte>();
 
+                    using (Cert cert = CertificateHelper.GetCert(id.Thumbprint, id.StoreName, id.StoreLocation)) {
+                        // The specified certificate must be in the store with a private key or else there will be an exception when we commit
+                        if (cert == null) {
+                            throw new NotFoundException("binding.certificate");
+                        }
+                        if (!cert.Certificate.HasPrivateKey) {
+                            throw new ApiArgumentException("binding.certificate", "Certificate must have a private key");
+                        }
+                    }
+
+                    List<byte> bytes = new List<byte>();
                     // Decode the hex string of the certificate hash into bytes
                     for (int i = 0; i < id.Thumbprint.Length; i += 2) {
                         bytes.Add(Convert.ToByte(id.Thumbprint.Substring(i, 2), 16));
                     }
 
-                    // The specified certificate must be in the store with a private key or else there will be an exception when we commit
-                    binding.CertificateStoreName = Enum.GetName(typeof(StoreName), id.StoreName);
+                    binding.CertificateStoreName = id.StoreName;
                     binding.CertificateHash = bytes.ToArray();
 
                     if (requireSni.HasValue && requireSni.Value && binding.Schema.HasAttribute(sslFlagsAttribute)) {
@@ -637,26 +646,14 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 //
                 // HTTPS
                 if (binding.Protocol.Equals("https")) {
-                    X509Certificate2 cert = null;
-                    IEnumerable<X509Certificate2> certs = CertificateHelper.GetCertificates(CertificateHelper.STORE_NAME, CertificateHelper.STORE_LOCATION);
                     string thumbprint = binding.CertificateHash == null ? null : BitConverter.ToString(binding.CertificateHash)?.Replace("-", string.Empty);
 
-                    foreach (var c in certs) {
-                        if (c.Thumbprint.Equals(thumbprint, StringComparison.OrdinalIgnoreCase)) {
-                            cert = c;
-                            break;
-                        }
+                    using (Cert cert = CertificateHelper.GetCert(thumbprint, binding.CertificateStoreName, StoreLocation.LocalMachine)) {
+                        obj.certificate = CertificateHelper.ToJsonModelRef(cert);
                     }
-
-                    obj.certificate = CertificateHelper.ToJsonModelRef(cert, CertificateHelper.STORE_NAME, CertificateHelper.STORE_LOCATION);
 
                     if (binding.Schema.HasAttribute(sslFlagsAttribute)) {
                         obj.require_sni = binding.SslFlags.HasFlag(SslFlags.Sni);
-                    }
-
-                    // Dispose
-                    foreach (var c in certs) {
-                        c.Dispose();
                     }
                 }
             }
@@ -672,7 +669,6 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                     return id;
                 }
             }
-            // REVIEW: Exception type
             throw new Exception("No available Id");
         }
     }

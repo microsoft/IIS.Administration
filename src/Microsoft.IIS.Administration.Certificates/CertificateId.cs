@@ -4,7 +4,6 @@
 
 namespace Microsoft.IIS.Administration.Certificates
 {
-    using Core.Utils;
     using System;
     using System.Security.Cryptography.X509Certificates;
 
@@ -18,7 +17,7 @@ namespace Microsoft.IIS.Administration.Certificates
         private const uint STORE_LOCATION_INDEX = 2;
 
         public string Thumbprint { get; private set; }
-        public StoreName StoreName { get; private set; }
+        public string StoreName { get; private set; }
         public StoreLocation StoreLocation { get; private set; }
 
         public string Uuid { get; private set; }
@@ -32,21 +31,19 @@ namespace Microsoft.IIS.Administration.Certificates
             var info = Core.Utils.Uuid.Decode(uuid, PURPOSE).Split(DELIMITER);
 
             this.Thumbprint = info[THUMBPRINT_INDEX];
-
-            this.StoreName =  (StoreName) int.Parse(info[STORE_NAME_INDEX]);
+            this.StoreName =  info[STORE_NAME_INDEX];
             this.StoreLocation = (StoreLocation) int.Parse(info[STORE_LOCATION_INDEX]);
 
-            //this.Id = long.Parse(Core.Utils.Uuid.Decode(uuid, PURPOSE));
             this.Uuid = uuid;
         }
 
-        public CertificateId(string thumbprint, StoreName storeName, StoreLocation storeLocation)
+        public CertificateId(string thumbprint, string storeName, StoreLocation storeLocation)
         {
             this.Thumbprint = thumbprint;
             this.StoreName = storeName;
             this.StoreLocation = storeLocation;
 
-            this.Uuid = Core.Utils.Uuid.Encode($"{ this.Thumbprint }{ DELIMITER }{ (int)this.StoreName }{ DELIMITER }{ (int)this.StoreLocation }", PURPOSE);
+            this.Uuid = Core.Utils.Uuid.Encode($"{ this.Thumbprint }{ DELIMITER }{ this.StoreName }{ DELIMITER }{ (int)this.StoreLocation }", PURPOSE);
         }
     }
 }

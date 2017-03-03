@@ -5,9 +5,12 @@
 namespace Microsoft.IIS.Administration.WebServer
 {
     using AspNetCore.Builder;
+    using Certificates;
     using Core;
     using Core.Http;
     using Extensions.DependencyInjection;
+    using System.Collections.Generic;
+    using Enum = System.Enum;
 
     public class Startup : BaseModule, IServiceCollectionAccessor
     {
@@ -24,6 +27,7 @@ namespace Microsoft.IIS.Administration.WebServer
             ConfigureWebServer();
             ConfigureTransactions();
             ConfigureWebServerFeature();
+            ConfigureCertificateOptions();
         }
 
         private void ConfigureWebServer()
@@ -54,6 +58,26 @@ namespace Microsoft.IIS.Administration.WebServer
         private void ConfigureWebServerFeature()
         {
             WebServerFeatureManagerAccessor.Services = Environment.Host.ApplicationBuilder.ApplicationServices;
+        }
+
+        private void ConfigureCertificateOptions()
+        {
+            ICertificateOptions options = (ICertificateOptions)Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(ICertificateOptions));
+
+            options.AddStore(new CertStore() {
+                Name = "My",
+                Claims = new List<string> {
+                        Enum.GetName(typeof(Access), Access.Read)
+                    }
+            });
+            options.AddStore(new CertStore() {
+                Name = "WebHosting",
+                Claims = new List<string> {
+                        Enum.GetName(typeof(Access), Access.Read),
+                        Enum.GetName(typeof(Access), Access.Write),
+                        Enum.GetName(typeof(Access), Access.Export),
+                    }
+            });
         }
     }
 }

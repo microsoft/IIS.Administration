@@ -7,19 +7,45 @@ namespace Microsoft.IIS.Administration.Certificates
     using AspNetCore.Builder;
     using Core;
     using Core.Http;
+    using Extensions.Configuration;
+    using Extensions.DependencyInjection;
 
-
-    public class Startup : BaseModule
+    public class Startup : BaseModule, IServiceCollectionAccessor
     {
         public Startup() { }
 
+        public void Use(IServiceCollection services)
+        {
+            services.AddSingleton<ICertificateOptions>(sp => CertificateOptions.FromConfiguration(sp.GetRequiredService<IConfiguration>()));
+        }
+
         public override void Start()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "certificates" });
+            ConfigureCertificates();
+            ConfigureExports();
+            ConfigureImports();
+        }
 
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", cert => new { href = $"/{Defines.PATH}/{cert.id}" });
+        public void ConfigureCertificates()
+        {
+            var builder = Environment.Host.RouteBuilder;
+            var hal = Environment.Hal;
 
-            Environment.Hal.ProvideLink(Globals.ApiResource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}" });
+            builder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "Certificates" });
+
+            hal.ProvideLink(Defines.Resource.Guid, "self", cert => new { href = $"/{Defines.PATH}/{cert.id}" });
+
+            hal.ProvideLink(Globals.ApiResource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}" });
+        }
+
+        public void ConfigureExports()
+        {
+            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ExportsResource.Guid, $"{Defines.EXPORTS_PATH}/{{id?}}", new { controller = "CertificateExports" });
+        }
+
+        public void ConfigureImports()
+        {
+            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ImportsResource.Guid, $"{Defines.IMPORTS_PATH}/{{id?}}", new { controller = "CertificateImports" });
         }
     }
 }
