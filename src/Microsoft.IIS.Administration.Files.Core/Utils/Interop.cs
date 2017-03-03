@@ -9,31 +9,16 @@ namespace Microsoft.IIS.Administration.Files
 
     static class Interop
     {
-        private static bool ApiSet = true;
+        private const string CORE_FILE_API_SET = "api-ms-win-core-file-l1-1-0";
 
-        [DllImport("api-ms-win-core-file-l1-2-1", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(CORE_FILE_API_SET, SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.U4)]
         private static extern uint GetLongPathNameW(string lpszShortPath, StringBuilder lpszLongPath, int cchBuffer);
 
-        [DllImport("api-ms-win-core-file-l1-2-1", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(CORE_FILE_API_SET, SetLastError = true, CharSet = CharSet.Unicode)]
         static extern uint GetShortPathNameW(string longpath, StringBuilder sb, int buffer);
 
         public static string GetPath(string path)
-        {
-            if (!ApiSet) {
-                return path;
-            }
-
-            try {
-                return GetPathInterop(path);
-            }
-            catch (System.TypeLoadException) {
-                ApiSet = false;
-                return path;
-            }
-        }
-
-        private static string GetPathInterop(string path)
         {
             var sb = new StringBuilder(260);
 
