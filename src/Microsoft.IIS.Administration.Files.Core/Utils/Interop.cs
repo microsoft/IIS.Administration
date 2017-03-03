@@ -4,12 +4,13 @@
 
 namespace Microsoft.IIS.Administration.Files
 {
-    using System.ComponentModel;
     using System.Runtime.InteropServices;
     using System.Text;
 
     static class Interop
     {
+        private static bool ApiSet = true;
+
         [DllImport("api-ms-win-core-file-l1-2-1", SetLastError = true, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.U4)]
         private static extern uint GetLongPathNameW(string lpszShortPath, StringBuilder lpszLongPath, int cchBuffer);
@@ -18,6 +19,21 @@ namespace Microsoft.IIS.Administration.Files
         static extern uint GetShortPathNameW(string longpath, StringBuilder sb, int buffer);
 
         public static string GetPath(string path)
+        {
+            if (!ApiSet) {
+                return path;
+            }
+
+            try {
+                return GetPathInterop(path);
+            }
+            catch (System.TypeLoadException) {
+                ApiSet = false;
+                return path;
+            }
+        }
+
+        private static string GetPathInterop(string path)
         {
             var sb = new StringBuilder(260);
 
@@ -31,7 +47,7 @@ namespace Microsoft.IIS.Administration.Files
                 sb.Capacity = (int)result;
                 result = GetLongPathNameW(path, sb, sb.Capacity);
             }
-            
+
             return (result > 0 && result < sb.Capacity) ? sb.ToString(0, (int)result) : path;
         }
     }

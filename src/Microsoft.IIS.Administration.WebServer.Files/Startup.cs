@@ -11,7 +11,6 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using Core.Http;
     using Administration.Files;
     using System.Collections.Generic;
-    using System.Linq;
 
     public class Startup : BaseModule
     {
