@@ -5,7 +5,8 @@
 Param(
     [parameter(Mandatory=$true , Position=0)]
     [ValidateSet("Is-Administrator",
-                 "DotNetServerHosting")]
+                 "DotNetServerHosting",
+                 "VCRuntime")]
     [string]
     $Command
 )
@@ -30,10 +31,23 @@ function DotNetServerHosting {
     Write-Verbose "Ok"
     Write-Verbose "Verifying AspNet Core Module is installed"
 	$aspNetCoreModuleSchemaInstalled = test-path "$env:windir\system32\inetsrv\config\schema\aspnetcore_schema.xml"
-    if (!$aspNetCoreModuleSchemaInstalled) {
+	$aspNetCoreModuleDllInstalled = test-path "$env:windir\system32\inetsrv\aspnetcore.dll"
+    if (!$aspNetCoreModuleSchemaInstalled -or !$aspNetCoreModuleDllInstalled) {
         Write-Warning "ASP.Net Core Module not installed"
         Write-Warning "Download ASP.Net Core module from 'https://go.microsoft.com/fwlink/?LinkId=817246'"
         throw "Cannot install IIS Administration API without ASP.Net Core Module being installed"
+    }
+    Write-Verbose "Ok"
+}
+
+# Throws if VCRuntime has not been installed.
+function VCRuntime {
+    Write-Verbose "Verifying that the Visual C++ Runtime is installed"
+	$vcRuntimeInstalled = test-path "$env:windir\system32\vcruntime140.dll"
+    if (!$vcRuntimeInstalled) {
+        Write-Warning "The Visual C++ 2015 Runtime cannot be found"
+        Write-Warning "Download the Visual C++ 2015 Redistributable package from 'https://www.microsoft.com/en-us/download/details.aspx?id=53587'"
+        throw "Cannot install IIS Administration API without the Visual C++ 2015 Runtime being installed"
     }
     Write-Verbose "Ok"
 }
@@ -47,6 +61,10 @@ switch($Command)
     "DotNetServerHosting"
     {
         DotNetServerHosting
+    }
+    "VCRuntime"
+    {
+        VCRuntime
     }
     default
     {

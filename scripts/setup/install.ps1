@@ -174,7 +174,7 @@ function InstallationPreparationCheck
     }
     # Shared framework and ANCM
     .\require.ps1 DotNetServerHosting
-    Write-Verbose "Ok"
+    .\require.ps1 VCRuntime
 
 	Write-Verbose "Checking if port `'$Port`' is available"
     $available = .\net.ps1 IsAvailable -Port $Port
@@ -192,7 +192,7 @@ function InstallationPreparationCheck
         # It is okay if IIS Administrators group already exists if it is our group
         if ($group -ne $null -and (-not (.\security.ps1 GroupEquals -Group $group -Name $(.\globals.ps1 IISAdministratorsGroupName) -Description $(.\globals.ps1 IISAdministratorsDescription) ))) {
             throw "IIS Administrators group already exists."
-        }  
+        }
     }
 
     Write-Host "Installation Requirements met"
