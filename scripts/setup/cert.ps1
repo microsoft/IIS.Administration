@@ -159,10 +159,10 @@ function Create-SelfSignedCertificate($_subject, $_friendlyName, $_alternativeNa
     }
 
     $subjectDn = new-object -com "X509Enrollment.CX500DistinguishedName"
-    $subjectDn.Encode( "CN=" + $_subject, $subjectDn.X500NameFlags.X500NameFlags.XCN_CERT_NAME_STR_NONE)
+    $subjectDn.Encode( "CN=" + $_subject, 0)
     $issuer = $_subject
     $issuerDn = new-object -com "X509Enrollment.CX500DistinguishedName"
-    $issuerDn.Encode("CN=" + $issuer, $subjectDn.X500NameFlags.X500NameFlags.XCN_CERT_NAME_STR_NONE)
+    $issuerDn.Encode("CN=" + $issuer, 0)
 
     #
     # Create a new Private Key

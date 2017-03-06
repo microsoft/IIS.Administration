@@ -46,6 +46,8 @@ Param(
     $DeleteGroup
 )
 
+Set-StrictMode -Off
+
 function Get-ScriptDirectory {
     Split-Path $script:MyInvocation.MyCommand.Path
 }
