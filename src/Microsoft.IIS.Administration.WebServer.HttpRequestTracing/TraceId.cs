@@ -35,7 +35,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
         {
             this.SiteId = siteId;
             this.Name = name;
-            this.Uuid = Core.Utils.Uuid.Encode(this.Name + DELIMITER + this.SiteId.ToString(), PURPOSE);
+            this.Uuid = Core.Utils.Uuid.Encode(this.SiteId.ToString() + DELIMITER + this.Name, PURPOSE);
         }
     }
 }
