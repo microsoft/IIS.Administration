@@ -639,7 +639,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 if (binding.Protocol.Equals("https")) {
                     X509Certificate2 cert = null;
                     IEnumerable<X509Certificate2> certs = CertificateHelper.GetCertificates(CertificateHelper.STORE_NAME, CertificateHelper.STORE_LOCATION);
-                    string thumbprint = BitConverter.ToString(binding.CertificateHash)?.Replace("-", string.Empty);
+                    string thumbprint = binding.CertificateHash == null ? null : BitConverter.ToString(binding.CertificateHash)?.Replace("-", string.Empty);
 
                     foreach (var c in certs) {
                         if (c.Thumbprint.Equals(thumbprint, StringComparison.OrdinalIgnoreCase)) {
