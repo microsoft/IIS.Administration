@@ -156,7 +156,7 @@ namespace Microsoft.IIS.Administration.Files
 
         public bool IsAccessAllowed(string path, FileAccess requestedAccess)
         {
-            var claims = _accessControl.GetClaims(path);
+            var claims = _accessControl.GetClaims(path) ?? Enumerable.Empty<string>();
 
             return (!requestedAccess.HasFlag(FileAccess.Read) || claims.Contains("read", StringComparer.OrdinalIgnoreCase))
                                          && (!requestedAccess.HasFlag(FileAccess.Write) || claims.Contains("write", StringComparer.OrdinalIgnoreCase));

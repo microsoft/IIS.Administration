@@ -25,15 +25,23 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
         private void ConfigureOptions()
         {
-            IFileOptions options = (IFileOptions) Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(IFileOptions));
+            IFileProvider fileProvider = (IFileProvider) Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(IFileProvider));
 
-            options.AddLocation(new Location() {
-                Alias = "inetpub",
-                Path = @"%SystemDrive%\inetpub",
-                Claims = new List<string> {
+            string inetpubPath = System.Environment.ExpandEnvironmentVariables(@"%SystemDrive%\inetpub");
+            IEnumerable<string> claims = fileProvider.GetClaims(inetpubPath);
+
+            if (claims == null) {
+                //
+                // Only add default inetpub access if no access rights have been specified
+
+                fileProvider.Options.AddLocation(new Location() {
+                    Alias = "inetpub",
+                    Path = inetpubPath,
+                    Claims = new List<string> {
                         "read"
                     }
-            });
+                });
+            }
         }
 
         private void ConfigureFiles()

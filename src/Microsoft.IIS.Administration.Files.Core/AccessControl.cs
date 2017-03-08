@@ -22,27 +22,21 @@ namespace Microsoft.IIS.Administration.Files
 
         public IEnumerable<string> GetClaims(string path)
         {
-            IEnumerable<string> claims = new List<string>();
-
             //
             // Path must be absolute with no environment variables
-            if (!PathUtil.IsFullPath(path)) {
-                return claims;
-            }
+            if (PathUtil.IsFullPath(path)) {
+                //
+                // Best match
+                foreach (var location in _options.Locations) {
 
-            //
-            // Best match
-            foreach (var location in _options.Locations) {
+                    if (HasPrefix(path, location.Path)) {
 
-                if (HasPrefix(path, location.Path)) {
-
-                    claims = location.Claims;
-
-                    break;
+                        return location.Claims;
+                    }
                 }
             }
 
-            return claims;
+            return null;
         }
 
 

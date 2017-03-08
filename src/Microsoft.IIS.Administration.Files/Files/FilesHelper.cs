@@ -175,7 +175,7 @@ namespace Microsoft.IIS.Administration.Files
             //
             // claims
             if (fields.Exists("claims")) {
-                obj.claims = _fileProvider.GetClaims(info.Path);
+                obj.claims = _fileProvider.GetClaims(info.Path) ?? Enumerable.Empty<string>();
             }
 
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
@@ -295,7 +295,7 @@ namespace Microsoft.IIS.Administration.Files
             //
             // claims
             if (fields.Exists("claims")) {
-                obj.claims = _fileProvider.GetClaims(info.Path);
+                obj.claims = _fileProvider.GetClaims(info.Path) ?? Enumerable.Empty<string>();
             }
 
 
@@ -383,7 +383,7 @@ namespace Microsoft.IIS.Administration.Files
             //
             // claims
             if (fields.Exists("claims")) {
-                obj.claims = _fileProvider.GetClaims(info.Path);
+                obj.claims = _fileProvider.GetClaims(info.Path) ?? Enumerable.Empty<string>();
             }
 
 
