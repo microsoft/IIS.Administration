@@ -10,13 +10,16 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Core.Http;
     using Sites;
     using System.Net;
+    using System.Threading.Tasks;
     using Web.Administration;
 
-    [RequireGlobalModule("DigestAuthenticationModule", "Digest Authentication")]
     public class DigestAuthController : ApiBaseController
     {
+        private const string DISPLAY_NAME = "Digest Authentication";
+
         [HttpGet]
         [ResourceInfo(Name = Defines.DigestAuthenticationName)]
+        [RequireGlobalModule(DigestAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Get()
         {
             // Check if the scope of the request is for site or application
@@ -28,6 +31,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
         [HttpGet]
         [ResourceInfo(Name = Defines.DigestAuthenticationName)]
+        [RequireGlobalModule(DigestAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
         {
             DigestAuthId digestAuthId = new DigestAuthId(id);
@@ -40,6 +44,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
         [HttpPatch]
         [Audit]
         [ResourceInfo(Name = Defines.DigestAuthenticationName)]
+        [RequireGlobalModule(DigestAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
             DigestAuthId digestAuthId = new DigestAuthId(id);
@@ -59,9 +64,22 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return DigestAuthenticationHelper.ToJsonModel(site, digestAuthId.Path);
         }
 
+        [HttpPost]
+        [Audit]
+        public async Task<object> Post()
+        {
+            if (DigestAuthenticationHelper.IsFeatureEnabled()) {
+                throw new AlreadyExistsException(DigestAuthenticationHelper.FEATURE_NAME);
+            }
+
+            await DigestAuthenticationHelper.SetFeatureEnabled(true);
+
+            return DigestAuthenticationHelper.ToJsonModel(null, null);
+        }
+
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             DigestAuthId digestAuthId = new DigestAuthId(id);
 
@@ -69,13 +87,14 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
             Site site = (digestAuthId.SiteId != null) ? SiteHelper.GetSite(digestAuthId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                DigestAuthenticationHelper.GetSection(site, digestAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+                ManagementUnit.Current.Commit();
             }
-
-            DigestAuthenticationHelper.GetSection(site, digestAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-
-            ManagementUnit.Current.Commit();
+            
+            if (digestAuthId.SiteId == null && DigestAuthenticationHelper.IsFeatureEnabled()) {
+                await DigestAuthenticationHelper.SetFeatureEnabled(false);
+            }
         }
     }
 }

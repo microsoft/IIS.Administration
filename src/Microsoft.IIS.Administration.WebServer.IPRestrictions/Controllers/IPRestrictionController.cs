@@ -11,12 +11,15 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
     using System.Net;
     using Core.Http;
     using Core;
+    using System.Threading.Tasks;
 
-    [RequireGlobalModule("IpRestrictionModule", "IP and Domain Restrictions")]
     public class IPRestrictionController : ApiBaseController
     {
+        private const string DISPLAY_NAME = "IP and Domain Restrictions";
+
         [HttpGet]
         [ResourceInfo(Name = Defines.IpRestrictionsName)]
+        [RequireGlobalModule(IPRestrictionsHelper.MODULE, DISPLAY_NAME)]
         public object Get()
         {
             // Check if the scope of the request is for site or application
@@ -33,6 +36,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
 
         [HttpGet]
         [ResourceInfo(Name = Defines.IpRestrictionsName)]
+        [RequireGlobalModule(IPRestrictionsHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
         {
             IPRestrictionId ipId = new IPRestrictionId(id);
@@ -45,6 +49,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
         [HttpPatch]
         [Audit]
         [ResourceInfo(Name = Defines.IpRestrictionsName)]
+        [RequireGlobalModule(IPRestrictionsHelper.MODULE, DISPLAY_NAME)]
         public object Patch([FromBody] dynamic model, string id)
         {
             IPRestrictionId ipId = new IPRestrictionId(id);
@@ -63,9 +68,22 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
             return IPRestrictionsHelper.ToJsonModel(site, ipId.Path);
         }
 
+        [HttpPost]
+        [Audit]
+        public async Task<object> Post()
+        {
+            if (IPRestrictionsHelper.IsFeatureEnabled()) {
+                throw new AlreadyExistsException(IPRestrictionsHelper.FEATURE_NAME);
+            }
+
+            await IPRestrictionsHelper.SetFeatureEnabled(true);
+
+            return IPRestrictionsHelper.ToJsonModel(null, null);
+        }
+
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             IPRestrictionId ipId = new IPRestrictionId(id);
 
@@ -73,17 +91,19 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
 
             Site site = (ipId.SiteId != null) ? SiteHelper.GetSite(ipId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                IPRestrictionsHelper.GetSection(site, ipId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+
+                if (ManagementUnit.ServerManager.GetApplicationHostConfiguration().HasSection(IPRestrictionsGlobals.DynamicIPSecuritySectionName)) {
+                    IPRestrictionsHelper.GetDynamicSecuritySection(site, ipId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+                }
+
+                ManagementUnit.Current.Commit();
             }
 
-            IPRestrictionsHelper.GetSection(site, ipId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-
-            if (ManagementUnit.ServerManager.GetApplicationHostConfiguration().HasSection(IPRestrictionsGlobals.DynamicIPSecuritySectionName)) {
-                IPRestrictionsHelper.GetDynamicSecuritySection(site, ipId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            if (ipId.SiteId == null && IPRestrictionsHelper.IsFeatureEnabled()) {
+                await IPRestrictionsHelper.SetFeatureEnabled(false);
             }
-
-            ManagementUnit.Current.Commit();
         }
     }
 }

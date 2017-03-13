@@ -3,9 +3,10 @@
 
 
 namespace Microsoft.IIS.Administration.WebServer {
+    using System.Dynamic;
     using System.Net;
 
-    public static class ErrorHelper {
+    static class ErrorHelper {
 
         public static dynamic InvalidScopeTypeError(string scope) {
             return new {
@@ -38,6 +39,17 @@ namespace Microsoft.IIS.Administration.WebServer {
                 detail = "IIS feature not installed",
                 name = name,
                 status = (int)HttpStatusCode.NotFound
+            };
+        }
+
+        public static dynamic DismError(int exitCode, string featureName)
+        {
+            return new {
+                title = "Server Error",
+                detail = "Dism Error",
+                feature = featureName,
+                exit_code = exitCode.ToString("X"),
+                status = (int) HttpStatusCode.InternalServerError
             };
         }
     }

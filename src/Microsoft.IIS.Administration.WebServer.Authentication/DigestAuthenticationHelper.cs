@@ -5,14 +5,17 @@
 namespace Microsoft.IIS.Administration.WebServer.Authentication
 {
     using Core.Utils;
-    using IIS.Administration.Core;
+    using Core;
     using Sites;
     using System.IO;
+    using System.Threading.Tasks;
     using Web.Administration;
 
-
-    public class DigestAuthenticationHelper
+    class DigestAuthenticationHelper
     {
+        public const string FEATURE_NAME = "IIS-DigestAuthentication";
+        public const string MODULE = "DigestAuthenticationModule";
+
         public static void UpdateSettings(dynamic model, Site site, string path, string configPath = null)
         {
             if (model == null) {
@@ -20,7 +23,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             }
 
             var section = GetSection(site, path, configPath);
-
+            
             try {
 
                 DynamicHelper.If<bool>((object)model.enabled, v => section.Enabled = v);
@@ -74,6 +77,19 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return ManagementUnit.IsSectionLocal(site?.Id,
                                                  path,
                                                  DigestAuthenticationSection.SECTION_PATH);
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(FEATURE_NAME) : featureManager.Disable(FEATURE_NAME));
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Web.Administration;
     using Core.Utils;
 
-    public static class AnonymousAuthenticationHelper
+    static class AnonymousAuthenticationHelper
     {
         public static void UpdateSettings(dynamic model, Site site, string path, string configPath = null)
         {

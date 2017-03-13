@@ -16,15 +16,17 @@ namespace Microsoft.IIS.Administration.WebServer
         public void Use(IServiceCollection services)
         {
             services.AddSingleton<IApplicationHostConfigProvider>(sp => new ApplicationHostConfigProvider(null));
+            services.AddSingleton<IWebServerFeatureManager>(sp => new WebServerFeatureManager());
         }
 
         public override void Start()
         {
             ConfigureWebServer();
             ConfigureTransactions();
+            ConfigureWebServerFeature();
         }
 
-        public void ConfigureWebServer()
+        private void ConfigureWebServer()
         {
             var app = Environment.Host.ApplicationBuilder;
             var router = Environment.Host.RouteBuilder;
@@ -38,7 +40,7 @@ namespace Microsoft.IIS.Administration.WebServer
             hal.ProvideLink(Globals.ApiResource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}" });
         }
 
-        public void ConfigureTransactions()
+        private void ConfigureTransactions()
         {
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
@@ -47,6 +49,11 @@ namespace Microsoft.IIS.Administration.WebServer
             hal.ProvideLink(Defines.TransactionsResource.Guid, "self", trans => new { href = TransactionHelper.GetLocation(trans.id) });
 
             hal.ProvideLink(Defines.Resource.Guid, Defines.TransactionsResource.Name, _ => new { href = $"/{Defines.TRANSACTIONS_PATH}" });
+        }
+
+        private void ConfigureWebServerFeature()
+        {
+            WebServerFeatureManagerAccessor.Services = Environment.Host.ApplicationBuilder.ApplicationServices;
         }
     }
 }

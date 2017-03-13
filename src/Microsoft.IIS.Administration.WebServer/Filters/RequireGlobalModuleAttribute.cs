@@ -24,9 +24,7 @@ namespace Microsoft.IIS.Administration.WebServer
 
         public override void OnActionExecuting(ActionExecutingContext actionContext)
         {
-
             if (!FeaturesUtility.GlobalModuleExists(_moduleName)) {
-
                 throw new FeatureNotFoundException(_displayName ?? _moduleName);
             }
         }

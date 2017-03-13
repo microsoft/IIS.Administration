@@ -5,7 +5,7 @@
 namespace Microsoft.IIS.Administration.WebServer.Delegation
 {
     using Core.Utils;
-    using Microsoft.IIS.Administration.Core;
+    using Core;
     using Sites;
     using System;
     using System.Collections.Generic;

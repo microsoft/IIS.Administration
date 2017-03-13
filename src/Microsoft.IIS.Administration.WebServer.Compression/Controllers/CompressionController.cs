@@ -11,12 +11,12 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
     using Files;
     using Sites;
     using System.Net;
+    using System.Threading.Tasks;
     using Web.Administration;
 
-    [RequireGlobalModule("StaticCompressionModule", "Compression")]
-    [RequireGlobalModule("DynamicCompressionModule", "Compression")]
     public class CompressionController : ApiBaseController
     {
+        private const string DISPLAY_NAME = "Compression";
         private IFileProvider _fileProvider;
 
         public CompressionController(IFileProvider fileProvider)
@@ -26,6 +26,8 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 
         [HttpGet]
         [ResourceInfo(Name = Defines.CompressionName)]
+        [RequireGlobalModule(CompressionHelper.STATIC_MODULE, DISPLAY_NAME)]
+        [RequireGlobalModule(CompressionHelper.DYNAMIC_MODULE, DISPLAY_NAME)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -41,6 +43,8 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 
         [HttpGet]
         [ResourceInfo(Name = Defines.CompressionName)]
+        [RequireGlobalModule(CompressionHelper.STATIC_MODULE, DISPLAY_NAME)]
+        [RequireGlobalModule(CompressionHelper.DYNAMIC_MODULE, DISPLAY_NAME)]
         public object Get(string id)
         {
             CompressionId compId = new CompressionId(id);
@@ -53,6 +57,8 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
         [HttpPatch]
         [Audit]
         [ResourceInfo(Name = Defines.CompressionName)]
+        [RequireGlobalModule(CompressionHelper.STATIC_MODULE, DISPLAY_NAME)]
+        [RequireGlobalModule(CompressionHelper.DYNAMIC_MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
             CompressionId compId = new CompressionId(id);
@@ -72,9 +78,22 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
             return CompressionHelper.ToJsonModel(site, compId.Path);
         }
 
+        [HttpPost]
+        [Audit]
+        public async Task<object> Post()
+        {
+            if (CompressionHelper.IsFeatureEnabled()) {
+                throw new AlreadyExistsException("Compression");
+            }
+
+            await CompressionHelper.SetFeatureEnabled(true);
+
+            return CompressionHelper.ToJsonModel(null, null);
+        }
+
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             CompressionId compId = new CompressionId(id);
 
@@ -82,15 +101,15 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 
             Site site = (compId.SiteId != null) ? SiteHelper.GetSite(compId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                // Http compression section is not reverted because it only allows definition in apphost
+                CompressionHelper.GetUrlCompressionSection(site, compId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+                ManagementUnit.Current.Commit();
             }
-            
-            CompressionHelper.GetUrlCompressionSection(site, compId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
 
-            // Http compression section is not reverted because it only allows definition in apphost
-
-            ManagementUnit.Current.Commit();
+            if (compId.SiteId == null && CompressionHelper.IsFeatureEnabled()) {
+                await CompressionHelper.SetFeatureEnabled(false);
+            }
         }
     }
 }

@@ -13,8 +13,13 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Core.Utils;
     using System.Linq;
     using Newtonsoft.Json.Linq;
-    public static class WindowsAuthenticationHelper
+    using System.Threading.Tasks;
+
+    static class WindowsAuthenticationHelper
     {
+        public const string FEATURE_NAME = "IIS-WindowsAuthentication";
+        public const string MODULE = "WindowsAuthenticationModule";
+
         public static void UpdateSettings(dynamic model, Site site, string path, string configPath = null)
         {
             if (model == null) {
@@ -23,16 +28,13 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
             var section = GetSection(site, path, configPath);
 
-            try {
-                
+            try {                
                 DynamicHelper.If<bool>((object)model.enabled, v => section.Enabled = v);
                 DynamicHelper.If<bool>((object)model.use_kernel_mode, v => section.UseKernelMode = v);
                 DynamicHelper.If<TokenChecking>((object)model.token_checking, v => section.TokenCheckingAttribute = v);
 
-                if(model.providers != null)
-                {
-                    if(!(model.providers is JArray))
-                    {
+                if (model.providers != null) {
+                    if (!(model.providers is JArray)) {
                         throw new ApiArgumentException("providers");
                     }
 
@@ -40,36 +42,29 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
                     var enabledProviders = section.Providers;
                     var availableProviders = ProvidersUtil.GetAvailableProvidersList();
 
-                    foreach(dynamic provider in providers)
-                    {
-                        if (!(provider is JObject))
-                        {
+                    foreach (dynamic provider in providers) {
+                        if (!(provider is JObject)) {
                             throw new ApiArgumentException("provider");
                         }
-                        if (string.IsNullOrEmpty(DynamicHelper.Value(provider.name)))
-                        {
+                        if (string.IsNullOrEmpty(DynamicHelper.Value(provider.name))) {
                             throw new ApiArgumentException("provider.name");
                         }
-                        if (DynamicHelper.To<bool>(provider.enabled) == null)
-                        {
+                        if (DynamicHelper.To<bool>(provider.enabled) == null) {
                             throw new ApiArgumentException("provider.enabled");
                         }
 
                         string name = DynamicHelper.Value(provider.name);
-                        bool enabled = DynamicHelper.To<bool>(provider.enabled);
+                        bool providerEnabled = DynamicHelper.To<bool>(provider.enabled);
 
-                        if(enabled && !enabledProviders.Contains(name))
-                        {
+                        if (providerEnabled && !enabledProviders.Contains(name)) {
                             // Make sure the provider is available to be added to enabled providers
-                            if(!availableProviders.Contains(name))
-                            {
+                            if (!availableProviders.Contains(name)) {
                                 throw new NotFoundException($"provider: {name}");
                             }
 
                             enabledProviders.Add(name);
                         }
-                        else if(!enabled && enabledProviders.Contains(name))
-                        {
+                        else if (!providerEnabled && enabledProviders.Contains(name)) {
                             enabledProviders.Remove(name);
                         }
                     }
@@ -151,6 +146,19 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
                     enabled = kvp.Value
                 }
             );
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(FEATURE_NAME) : featureManager.Disable(FEATURE_NAME));
+            }
         }
     }
 }

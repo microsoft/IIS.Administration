@@ -9,9 +9,13 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Core;
     using Core.Utils;
     using System.IO;
+    using System.Threading.Tasks;
 
-    public class BasicAuthenticationHelper
+    class BasicAuthenticationHelper
     {
+        public const string FEATURE_NAME = "IIS-BasicAuthentication";
+        public const string MODULE = "BasicAuthenticationModule";
+
         public static void UpdateSettings(dynamic model, Site site, string path, string configPath = null)
         {
             if (model == null) {
@@ -75,6 +79,19 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return ManagementUnit.IsSectionLocal(site?.Id,
                                                  path,
                                                  BasicAuthenticationSection.SECTION_PATH);
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(FEATURE_NAME) : featureManager.Disable(FEATURE_NAME));
+            }
         }
     }
 }

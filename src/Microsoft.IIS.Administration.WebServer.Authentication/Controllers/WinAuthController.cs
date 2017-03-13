@@ -11,12 +11,15 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Web.Administration;
     using Core.Http;
     using Core;
+    using System.Threading.Tasks;
 
-    [RequireGlobalModule("WindowsAuthenticationModule", "Windows Authentication")]
     public class WinAuthController : ApiBaseController
     {
+        private const string DISPLAY_NAME = "Windows Authentication";
+
         [HttpGet]
         [ResourceInfo(Name = Defines.WindowsAuthenticationName)]
+        [RequireGlobalModule(WindowsAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Get()
         {
             // Check if the scope of the request is for site or application
@@ -28,6 +31,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
         [HttpGet]
         [ResourceInfo(Name = Defines.WindowsAuthenticationName)]
+        [RequireGlobalModule(WindowsAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
         {
             WinAuthId winAuthId = new WinAuthId(id);
@@ -40,6 +44,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
         [HttpPatch]
         [Audit]
         [ResourceInfo(Name = Defines.WindowsAuthenticationName)]
+        [RequireGlobalModule(WindowsAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
             WinAuthId winAuthId = new WinAuthId(id);
@@ -59,9 +64,22 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return WindowsAuthenticationHelper.ToJsonModel(site, winAuthId.Path);
         }
 
+        [HttpPost]
+        [Audit]
+        public async Task<object> Post()
+        {
+            if (WindowsAuthenticationHelper.IsFeatureEnabled()) {
+                throw new AlreadyExistsException(WindowsAuthenticationHelper.FEATURE_NAME);
+            }
+
+            await WindowsAuthenticationHelper.SetFeatureEnabled(true);
+
+            return WindowsAuthenticationHelper.ToJsonModel(null, null);
+        }
+
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             WinAuthId winAuthId = new WinAuthId(id);
 
@@ -69,13 +87,14 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
             Site site = (winAuthId.SiteId != null) ? SiteHelper.GetSite(winAuthId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                WindowsAuthenticationHelper.GetSection(site, winAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+                ManagementUnit.Current.Commit();
             }
 
-            WindowsAuthenticationHelper.GetSection(site, winAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-
-            ManagementUnit.Current.Commit();
+            if (winAuthId.SiteId == null && WindowsAuthenticationHelper.IsFeatureEnabled()) {
+                await WindowsAuthenticationHelper.SetFeatureEnabled(false);
+            }
         }
     }
 }

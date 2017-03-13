@@ -9,10 +9,16 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
     using Files;
     using Sites;
     using System.IO;
+    using System.Threading.Tasks;
     using Web.Administration;
 
-    public static class CompressionHelper
+    static class CompressionHelper
     {
+        public const string DYNAMIC_FEATURE = "IIS-HttpCompressionDynamic";
+        public const string STATIC_FEATURE = "IIS-HttpCompressionStatic";
+        public const string DYNAMIC_MODULE = "DynamicCompressionModule";
+        public const string STATIC_MODULE = "StaticCompressionModule";
+
         public static void UpdateSettings(dynamic model, IFileProvider fileProvider, Site site, string path, string configPath = null) {
             if (model == null) {
                 throw new ApiArgumentException("model");
@@ -125,6 +131,20 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
         public static string GetLocation(string id)
         {
             return $"/{Defines.PATH}/{id}";
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(STATIC_MODULE) && FeaturesUtility.GlobalModuleExists(DYNAMIC_MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(DYNAMIC_FEATURE) : featureManager.Disable(DYNAMIC_FEATURE));
+                await (enabled ? featureManager.Enable(STATIC_FEATURE) : featureManager.Disable(STATIC_FEATURE));
+            }
         }
     }
 }

@@ -11,12 +11,15 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using System.Net;
     using Core.Http;
     using Core;
+    using System.Threading.Tasks;
 
-    [RequireGlobalModule("BasicAuthenticationModule", "Basic Authentication")]
     public class BasicAuthController : ApiBaseController
     {
+        private const string DISPLAY_NAME = "Basic Authentication";
+
         [HttpGet]
         [ResourceInfo(Name = Defines.BasicAuthenticationName)]
+        [RequireGlobalModule(BasicAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Get()
         {
             // Check if the scope of the request is for site or application
@@ -28,6 +31,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
         [HttpGet]
         [ResourceInfo(Name = Defines.BasicAuthenticationName)]
+        [RequireGlobalModule(BasicAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
         {
             BasicAuthId basicAuthId = new BasicAuthId(id);
@@ -40,6 +44,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
         [HttpPatch]
         [Audit]
         [ResourceInfo(Name = Defines.BasicAuthenticationName)]
+        [RequireGlobalModule(BasicAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
             BasicAuthId basicAuthId = new BasicAuthId(id);
@@ -59,9 +64,22 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return BasicAuthenticationHelper.ToJsonModel(site, basicAuthId.Path);
         }
 
+        [HttpPost]
+        [Audit]
+        public async Task<object> Post()
+        {
+            if (BasicAuthenticationHelper.IsFeatureEnabled()) {
+                throw new AlreadyExistsException(BasicAuthenticationHelper.FEATURE_NAME);
+            }
+
+            await BasicAuthenticationHelper.SetFeatureEnabled(true);
+
+            return BasicAuthenticationHelper.ToJsonModel(null, null);
+        }
+
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             BasicAuthId basicAuthId = new BasicAuthId(id);
 
@@ -69,13 +87,14 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
             Site site = (basicAuthId.SiteId != null) ? SiteHelper.GetSite(basicAuthId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                BasicAuthenticationHelper.GetSection(site, basicAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+                ManagementUnit.Current.Commit();
             }
 
-            BasicAuthenticationHelper.GetSection(site, basicAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-
-            ManagementUnit.Current.Commit();
+            if (basicAuthId.SiteId == null && BasicAuthenticationHelper.IsFeatureEnabled()) {
+                await BasicAuthenticationHelper.SetFeatureEnabled(false);
+            }
         }
     }
 }

@@ -15,16 +15,20 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
     using Sites;
     using System.IO;
     using System.Dynamic;
+    using System.Threading.Tasks;
 
-    public static class IPRestrictionsHelper
+    static class IPRestrictionsHelper
     {
-        private static readonly Fields RuleRefFields = new Fields("id", "ip_address");
-        private const string EnableProxyModeAttribute = "enableProxyMode";
+        public const string FEATURE_NAME = "IIS-IPSecurity";
+        public const string MODULE = "IpRestrictionModule";
+
         private const string DenyActionAttribute = "denyAction";
+        private const string EnableProxyModeAttribute = "enableProxyMode";
+        private static readonly Fields RuleRefFields = new Fields("id", "ip_address");
 
         public static void SetFeatureSettings(dynamic model, Site site, string path, string configPath = null)
         {
-            if(model == null) {
+            if (model == null) {
                 throw new ApiArgumentException("model");
             }
 
@@ -82,8 +86,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
 
                 // Enabled
                 DynamicHelper.If<bool>((object)model.enabled, v => {
-                    if (!v)
-                    {
+                    if (!v) {
                         mainSection.AllowUnlisted = true;
                         mainSection.EnableReverseDns = false;
 
@@ -101,7 +104,6 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
                 });
 
                 if (model.metadata != null) {
-
                     DynamicHelper.If<OverrideMode>((object)model.metadata.override_mode, v => {
                         mainSection.OverrideMode = v;
                         
@@ -299,7 +301,6 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
                 overrideMode = section.OverrideMode != dynamicSection.OverrideMode ? OverrideMode.Unknown : section.OverrideMode;
                 overrideModeEffective = section.OverrideModeEffective != dynamicSection.OverrideModeEffective ? OverrideMode.Unknown : section.OverrideModeEffective;
             }
-            
 
             // Construct id passing possible site and application associated
             IPRestrictionId ipId = new IPRestrictionId(site?.Id, path, isLocal);
@@ -496,6 +497,19 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
         public static string GetLocation(string id)
         {
             return $"/{Defines.PATH}/{id}";
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(FEATURE_NAME) : featureManager.Disable(FEATURE_NAME));
+            }
         }
     }
 }

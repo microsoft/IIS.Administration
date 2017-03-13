@@ -7,9 +7,14 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
     using Web.Administration;
     using Core;
     using Sites;
+    using Core.Utils;
+    using System.IO;
+    using System.Threading.Tasks;
 
-    public static class DefaultDocumentHelper
+    static class DefaultDocumentHelper
     {
+        public const string FEATURE_NAME = "IIS-DefaultDocument";
+        public const string MODULE = "DefaultDocumentModule";
 
         internal static object ToJsonModel(Site site, string path)
         {
@@ -44,6 +49,24 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
             return Environment.Hal.Apply(Defines.Resource.Guid, obj, false);
         }
 
+        public static void UpdateFeatureSettings(dynamic model, DefaultDocumentSection section)
+        {
+            try {
+                DynamicHelper.If<bool>((object)model.enabled, v => section.Enabled = v);
+
+                if (model.metadata != null) {
+                    DynamicHelper.If<OverrideMode>((object)model.metadata.override_mode, v => section.OverrideMode = v);
+                }
+
+            }
+            catch (FileLoadException e) {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
+            }
+        }
+
         public static DefaultDocumentSection GetDefaultDocumentSection(Site site, string path, string configPath = null)
         {
             return (DefaultDocumentSection)ManagementUnit.GetConfigSection(site?.Id,
@@ -62,6 +85,19 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
         public static string GetLocation(string id)
         {
             return $"/{Defines.PATH}/{id}";
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(FEATURE_NAME) : featureManager.Disable(FEATURE_NAME));
+            }
         }
     }
 }

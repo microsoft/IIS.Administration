@@ -10,16 +10,16 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
     using System.Net;
     using Sites;
     using Applications;
-    using System.IO;
-    using Core.Utils;
     using Core.Http;
+    using System.Threading.Tasks;
 
-
-    [RequireGlobalModule("DefaultDocumentModule", "Default Document")]
     public class DefaultDocumentController : ApiBaseController
     {
+        private const string DISPLAY_NAME = "Default Document";
+
         [HttpGet]
         [ResourceInfo(Name = Defines.DefaultDocumentsName)]
+        [RequireGlobalModule(DefaultDocumentHelper.MODULE, DISPLAY_NAME)]
         public object Get()
         {
             // Check if the scope of the request is for site or application
@@ -36,6 +36,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
 
         [HttpGet]
         [ResourceInfo(Name = Defines.DefaultDocumentsName)]
+        [RequireGlobalModule(DefaultDocumentHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
         {
             // Decode default document id from uuid parameter
@@ -49,6 +50,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
         [HttpPatch]
         [Audit]
         [ResourceInfo(Name = Defines.DefaultDocumentsName)]
+        [RequireGlobalModule(DefaultDocumentHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
             if (model == null) {
@@ -69,32 +71,29 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
             string configPath = model == null ? null : ManagementUnit.ResolveConfigScope(model);
             DefaultDocumentSection section = DefaultDocumentHelper.GetDefaultDocumentSection(site, docId.Path, configPath);
 
-            try {
-
-                // Handle patching of any feature settings
-                DynamicHelper.If<bool>((object)model.enabled, v => section.Enabled = v);
-
-                if (model.metadata != null) {
-
-                    DynamicHelper.If<OverrideMode>((object)model.metadata.override_mode, v => section.OverrideMode = v);
-                }
-
-            }
-            catch(FileLoadException e) {
-                throw new LockedException(section.SectionPath, e);
-            }
-            catch (DirectoryNotFoundException e) {
-                throw new ConfigScopeNotFoundException(e);
-            }
+            DefaultDocumentHelper.UpdateFeatureSettings(model, section);
 
             ManagementUnit.Current.Commit();
-           
+
             return DefaultDocumentHelper.ToJsonModel(site, docId.Path);
+        }
+
+        [HttpPost]
+        [Audit]
+        public async Task<object> Post()
+        {
+            if (DefaultDocumentHelper.IsFeatureEnabled()) {
+                throw new AlreadyExistsException(DefaultDocumentHelper.FEATURE_NAME);
+            }
+
+            await DefaultDocumentHelper.SetFeatureEnabled(true);
+
+            return DefaultDocumentHelper.ToJsonModel(null, null);
         }
 
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             DefaultDocumentId docId = new DefaultDocumentId(id);
 
@@ -102,15 +101,16 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
 
             Site site = (docId.SiteId != null) ? SiteHelper.GetSite(docId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                var section = DefaultDocumentHelper.GetDefaultDocumentSection(site, docId.Path, ManagementUnit.ResolveConfigScope());
+                section.RevertToParent();
+                ManagementUnit.Current.Commit();
             }
 
-            var section = DefaultDocumentHelper.GetDefaultDocumentSection(site, docId.Path, ManagementUnit.ResolveConfigScope());
-
-            section.RevertToParent();
-
-            ManagementUnit.Current.Commit();
+            // When target is webserver, uninstall
+            if (docId.SiteId == null && DefaultDocumentHelper.IsFeatureEnabled()) {
+                await DefaultDocumentHelper.SetFeatureEnabled(false);
+            }
         }
     }
 }

@@ -10,9 +10,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Core.Http;
     using Sites;
     using Web.Administration;
-
-
-    [RequireGlobalModule("AnonymousAuthenticationModule", "Anonymous Authentication")]
+    
     public class AuthenticationController : ApiBaseController
     {
         [HttpGet]
@@ -30,7 +28,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
                 website = site == null ? null : SiteHelper.ToJsonModelRef(site)
             };
 
-            return Core.Environment.Hal.Apply(Defines.AuthenticationResource.Guid, obj);
+            return Environment.Hal.Apply(Defines.AuthenticationResource.Guid, obj);
         }
 
         [HttpGet]

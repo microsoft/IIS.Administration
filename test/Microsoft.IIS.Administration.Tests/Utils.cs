@@ -27,12 +27,11 @@ namespace Microsoft.IIS.Administration.Tests
             IEnumerable<string> values;
             res.Headers.TryGetValues(HeaderNames.XSRF_TOKEN, out values);
 
-            if(values.Count() < 1) {
+            if (values.Count() < 1) {
                 throw new Exception("Can't get Api Key");
             }
 
-            var body = new
-            {
+            var body = new {
                 expires_on = DateTime.UtcNow.AddMinutes(15)
             };
 
