@@ -10,13 +10,16 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
     using Core.Http;
     using Sites;
     using System.Net;
+    using System.Threading.Tasks;
     using Web.Administration;
 
-    [RequireGlobalModule("UrlAuthorizationModule", "Authorization")]
     public class AuthorizationController : ApiBaseController
     {
+        private const string DISPLAY_NAME = "Authorization";
+
         [HttpGet]
         [ResourceInfo(Name = Defines.AuthorizationName)]
+        [RequireGlobalModule(AuthorizationHelper.MODULE, DISPLAY_NAME)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -27,6 +30,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
 
         [HttpGet]
         [ResourceInfo(Name = Defines.AuthorizationName)]
+        [RequireGlobalModule(AuthorizationHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
         {
             AuthorizationId authId = new AuthorizationId(id);
@@ -39,6 +43,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
         [HttpPatch]
         [Audit]
         [ResourceInfo(Name = Defines.AuthorizationName)]
+        [RequireGlobalModule(AuthorizationHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
             AuthorizationId authId = new AuthorizationId(id);
@@ -66,9 +71,23 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return authorization;
         }
 
+        [HttpPost]
+        [Audit]
+        [ResourceInfo(Name = Defines.AuthorizationName)]
+        public async Task<object> Post()
+        {
+            if (AuthorizationHelper.IsFeatureEnabled()) {
+                throw new AlreadyExistsException(AuthorizationHelper.FEATURE_NAME);
+            }
+
+            await AuthorizationHelper.SetFeatureEnabled(true);
+
+            return AuthorizationHelper.ToJsonModel(null, null);
+        }
+
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             AuthorizationId authId = new AuthorizationId(id);
 
@@ -76,15 +95,15 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
 
             Site site = (authId.SiteId != null) ? SiteHelper.GetSite(authId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                var section = AuthorizationHelper.GetSection(site, authId.Path, ManagementUnit.ResolveConfigScope());
+                section.RevertToParent();
+                ManagementUnit.Current.Commit();
             }
 
-            var section = AuthorizationHelper.GetSection(site, authId.Path, ManagementUnit.ResolveConfigScope());
-
-            section.RevertToParent();
-
-            ManagementUnit.Current.Commit();
+            if (authId.SiteId == null && AuthorizationHelper.IsFeatureEnabled()) {
+                await AuthorizationHelper.SetFeatureEnabled(false);
+            }
         }
     }
 }

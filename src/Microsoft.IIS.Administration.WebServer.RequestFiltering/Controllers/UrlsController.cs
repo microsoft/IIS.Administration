@@ -16,9 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Web.Administration;
     using Core.Http;
 
-
-
-    [RequireGlobalModule("RequestFilteringModule", "Request Filtering")]
+    [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
     public class UrlsController : ApiBaseController
     {
         [HttpGet]

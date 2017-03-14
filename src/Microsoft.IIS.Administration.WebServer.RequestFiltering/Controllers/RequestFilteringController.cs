@@ -11,12 +11,13 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Sites;
     using Core.Http;
     using Core;
+    using System.Threading.Tasks;
 
-    [RequireGlobalModule("RequestFilteringModule", "IIS Request Filtering")]
     public class RequestFilteringController : ApiBaseController
     {
         [HttpGet]
         [ResourceInfo(Name = Defines.RequestFilteringName)]
+        [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -32,6 +33,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
         [HttpGet]
         [ResourceInfo(Name = Defines.RequestFilteringName)]
+        [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
         public object Get(string id)
         {
             RequestFilteringId reqId = new RequestFilteringId(id);
@@ -49,6 +51,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [HttpPatch]
         [Audit]
         [ResourceInfo(Name = Defines.RequestFilteringName)]
+        [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
             RequestFilteringId reqId = new RequestFilteringId(id);
@@ -71,9 +74,23 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return RequestFilteringHelper.ToJsonModel(site, reqId.Path);
         }
 
+        [HttpPost]
+        [Audit]
+        [ResourceInfo(Name = Defines.RequestFilteringName)]
+        public async Task<object> Post()
+        {
+            if (RequestFilteringHelper.IsFeatureEnabled()) {
+                throw new AlreadyExistsException(RequestFilteringHelper.DISPLAY_NAME);
+            }
+
+            await RequestFilteringHelper.SetFeatureEnabled(true);
+
+            return RequestFilteringHelper.ToJsonModel(null, null);
+        }
+
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             RequestFilteringId reqId = new RequestFilteringId(id);
 
@@ -81,15 +98,15 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
             Site site = (reqId.SiteId != null) ? SiteHelper.GetSite(reqId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                var section = RequestFilteringHelper.GetRequestFilteringSection(site, reqId.Path, ManagementUnit.ResolveConfigScope());
+                section.RevertToParent();
+                ManagementUnit.Current.Commit();
             }
 
-            var section = RequestFilteringHelper.GetRequestFilteringSection(site, reqId.Path, ManagementUnit.ResolveConfigScope());
-
-            section.RevertToParent();
-
-            ManagementUnit.Current.Commit();
+            if (reqId.SiteId == null && RequestFilteringHelper.IsFeatureEnabled()) {
+                await RequestFilteringHelper.SetFeatureEnabled(false);
+            }
         }
     }
 }

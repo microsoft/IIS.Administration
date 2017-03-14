@@ -14,6 +14,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using System.Threading.Tasks;
     using Web.Administration;
 
+    [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
+    [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
     public class RequestTracesController : ApiBaseController
     {
         private IFileProvider _provider;

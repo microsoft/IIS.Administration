@@ -15,6 +15,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using System.Net;
     using Web.Administration;
 
+    [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
+    [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
     public class TraceProvidersController : ApiBaseController
     {
         [HttpGet]

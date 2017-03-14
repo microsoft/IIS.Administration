@@ -10,12 +10,12 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
     using Files;
     using Sites;
     using System.Net;
+    using System.Threading.Tasks;
     using Web.Administration;
 
-    [RequireGlobalModule("HttpLoggingModule", "IIS Logging Tools")]
-    [RequireGlobalModule("CustomLoggingModule", "IIS Logging Tools")]
     public class LoggingController : ApiBaseController
     {
+        private const string DISPLAY_NAME = "IIS Logging Tools";
         private IFileProvider _fileProvider;
 
         public LoggingController(IFileProvider fileProvider)
@@ -25,6 +25,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
         [HttpGet]
         [ResourceInfo(Name = Defines.LoggingName)]
+        [RequireGlobalModule(LoggingHelper.HTTP_LOGGING_MODULE, DISPLAY_NAME)]
         public object Get()
         {
             Site site = SiteHelper.ResolveSite();
@@ -40,6 +41,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
         [HttpGet]
         [ResourceInfo(Name = Defines.LoggingName)]
+        [RequireGlobalModule(LoggingHelper.HTTP_LOGGING_MODULE, DISPLAY_NAME)]
         public object Get(string id)
         {
             LoggingId logId = new LoggingId(id);
@@ -56,6 +58,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
         [HttpPatch]
         [Audit]
         [ResourceInfo(Name = Defines.LoggingName)]
+        [RequireGlobalModule(LoggingHelper.HTTP_LOGGING_MODULE, DISPLAY_NAME)]
         public object Patch(string id, dynamic model)
         {
             LoggingId logId = new LoggingId(id);
@@ -81,9 +84,23 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             return LoggingHelper.ToJsonModel(site, logId.Path);
         }
 
+        [HttpPost]
+        [Audit]
+        [ResourceInfo(Name = Defines.LoggingName)]
+        public async Task<object> Post()
+        {
+            if (LoggingHelper.IsHttpEnabled() && LoggingHelper.IsCustomEnabled()) {
+                throw new AlreadyExistsException(DISPLAY_NAME);
+            }
+
+            await LoggingHelper.SetFeatureEnabled(true);
+
+            return LoggingHelper.ToJsonModel(null, null);
+        }
+
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             LoggingId logId = new LoggingId(id);
 
@@ -91,15 +108,15 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
             Site site = (logId.SiteId != null) ? SiteHelper.GetSite(logId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                var section = LoggingHelper.GetHttpLoggingSection(site, logId.Path, ManagementUnit.ResolveConfigScope());
+                section.RevertToParent();
+                ManagementUnit.Current.Commit();
             }
 
-            var section = LoggingHelper.GetHttpLoggingSection(site, logId.Path, ManagementUnit.ResolveConfigScope());
-
-            section.RevertToParent();
-
-            ManagementUnit.Current.Commit();
+            if (logId.SiteId == null && (LoggingHelper.IsHttpEnabled() || LoggingHelper.IsCustomEnabled())) {
+                await LoggingHelper.SetFeatureEnabled(false);
+            }
         }
     }
 }

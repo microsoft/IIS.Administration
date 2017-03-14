@@ -80,10 +80,11 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 
         [HttpPost]
         [Audit]
+        [ResourceInfo(Name = Defines.CompressionName)]
         public async Task<object> Post()
         {
-            if (CompressionHelper.IsFeatureEnabled()) {
-                throw new AlreadyExistsException("Compression");
+            if (CompressionHelper.IsStaticEnabled() && CompressionHelper.IsDynamicEnabled()) {
+                throw new AlreadyExistsException(DISPLAY_NAME);
             }
 
             await CompressionHelper.SetFeatureEnabled(true);
@@ -107,7 +108,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
                 ManagementUnit.Current.Commit();
             }
 
-            if (compId.SiteId == null && CompressionHelper.IsFeatureEnabled()) {
+            if (compId.SiteId == null && (CompressionHelper.IsStaticEnabled() || CompressionHelper.IsDynamicEnabled())) {
                 await CompressionHelper.SetFeatureEnabled(false);
             }
         }

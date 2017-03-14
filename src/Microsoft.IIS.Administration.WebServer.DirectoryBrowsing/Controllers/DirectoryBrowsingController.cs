@@ -11,12 +11,15 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
     using Web.Administration;
     using Core.Http;
     using Core;
+    using System.Threading.Tasks;
 
-    [RequireGlobalModule("DirectoryListingModule", "Directory Browsing")]
     public class DirectoryBrowsingController : ApiBaseController
     {
+        private const string DISPLAY_NAME = "Directory Browsing";
+
         [HttpGet]
         [ResourceInfo(Name = Defines.DirectoryBrowsingName)]
+        [RequireGlobalModule(DirectoryBrowsingHelper.MODULE, DISPLAY_NAME)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -32,6 +35,7 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
 
         [HttpGet]
         [ResourceInfo(Name = Defines.DirectoryBrowsingName)]
+        [RequireGlobalModule(DirectoryBrowsingHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
         {
             DirectoryBrowsingId dirbId = new DirectoryBrowsingId(id);
@@ -44,6 +48,7 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
         [HttpPatch]
         [Audit]
         [ResourceInfo(Name = Defines.DirectoryBrowsingName)]
+        [RequireGlobalModule(DirectoryBrowsingHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
             DirectoryBrowsingId dirbId = new DirectoryBrowsingId(id);
@@ -62,25 +67,39 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
             return DirectoryBrowsingHelper.ToJsonModel(site, dirbId.Path);
         }
 
+        [HttpPost]
+        [Audit]
+        [ResourceInfo(Name = Defines.DirectoryBrowsingName)]
+        public async Task<object> Post()
+        {
+            if (DirectoryBrowsingHelper.IsFeatureEnabled()) {
+                throw new AlreadyExistsException(DISPLAY_NAME);
+            }
+
+            await DirectoryBrowsingHelper.SetFeatureEnabled(true);
+
+            return DirectoryBrowsingHelper.ToJsonModel(null, null);
+        }
+
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             DirectoryBrowsingId dirbId = new DirectoryBrowsingId(id);
 
-            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+            Context.Response.StatusCode = (int) HttpStatusCode.NoContent;
 
             Site site = (dirbId.SiteId != null) ? SiteHelper.GetSite(dirbId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                var section = DirectoryBrowsingHelper.GetDirectoryBrowseSection(site, dirbId.Path, ManagementUnit.ResolveConfigScope());
+                section.RevertToParent();
+                ManagementUnit.Current.Commit();
             }
 
-            var section = DirectoryBrowsingHelper.GetDirectoryBrowseSection(site, dirbId.Path, ManagementUnit.ResolveConfigScope());
-
-            section.RevertToParent();
-
-            ManagementUnit.Current.Commit();
+            if (dirbId.SiteId == null && DirectoryBrowsingHelper.IsFeatureEnabled()) {
+                await DirectoryBrowsingHelper.SetFeatureEnabled(false);
+            }
         }
     }
 }

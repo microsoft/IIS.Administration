@@ -9,15 +9,13 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core.Utils;
     using Newtonsoft.Json.Linq;
     using Sites;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using Web.Administration;
     using Core.Http;
 
-
-    [RequireGlobalModule("RequestFilteringModule", "IIS Request Filtering")]
+    [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
     public class HiddenSegmentsController : ApiBaseController
     {
         [HttpGet]

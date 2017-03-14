@@ -19,6 +19,7 @@
     "Microsoft.IIS.Administration.WebServer.DirectoryBrowsing": "1.0.1",
     "Microsoft.IIS.Administration.WebServer.Files": "1.0.1",
     "Microsoft.IIS.Administration.WebServer.Handlers": "1.0.1",
+    "Microsoft.IIS.Administration.WebServer.HttpRedirect": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.HttpRequestTracing": "1.0.2",
     "Microsoft.IIS.Administration.WebServer.HttpResponseHeaders": "1.0.1",
     "Microsoft.IIS.Administration.WebServer.Info": "1.0.1",

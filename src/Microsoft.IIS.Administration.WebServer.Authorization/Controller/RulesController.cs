@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
     using System.Net;
     using Web.Administration;
 
+    [RequireGlobalModule(AuthorizationHelper.MODULE, "Authorization")]
     public class RulesController : ApiBaseController
     {
         [HttpGet]

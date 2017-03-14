@@ -19,7 +19,7 @@ namespace Microsoft.IIS.Administration.Tests
         public static readonly string DEFAULT_DOCUMENT_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/default-documents";
 
         [Fact]
-        public void ScopeTest()
+        public void Scope()
         {
             using (HttpClient client = ApiHttpClient.Create()) {
 
@@ -50,7 +50,7 @@ namespace Microsoft.IIS.Administration.Tests
         }
 
         [Fact]
-        public void CreateFileTest()
+        public void CreateFile()
         {
             using (HttpClient client = ApiHttpClient.Create()) {
                 string fileName = "test_file";

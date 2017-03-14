@@ -12,11 +12,17 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Sites;
     using System.Linq;
     using System.IO;
-    public static class RequestFilteringHelper {
+    using System.Threading.Tasks;
+
+    static class RequestFilteringHelper
+    {
+        public const string DISPLAY_NAME = "IIS Request Filtering";
+        public const string FEATURE = "IIS-RequestFiltering";
+        public const string MODULE = "RequestFilteringModule";
 
         public static void UpdateFeatureSettings(dynamic model, RequestFilteringSection section)
         {
-            if(model == null) {
+            if (model == null) {
                 throw new ApiArgumentException("model");
             }
             if (section == null) {
@@ -73,7 +79,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
                 }
 
             }
-            catch(FileLoadException e) {
+            catch (FileLoadException e) {
                 throw new LockedException(section.SectionPath, e);
             }
             catch (DirectoryNotFoundException e) {
@@ -145,6 +151,19 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         public static string GetLocation(string id)
         {
             return $"/{Defines.PATH}/{id}";
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(FEATURE) : featureManager.Disable(FEATURE));
+            }
         }
     }
 }

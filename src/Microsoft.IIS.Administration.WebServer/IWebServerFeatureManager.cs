@@ -8,8 +8,8 @@ namespace Microsoft.IIS.Administration.WebServer
 
     public interface IWebServerFeatureManager
     {
-        Task Enable(string feature);
+        Task Enable(params string[] features);
 
-        Task Disable(string feature);
+        Task Disable(params string[] features);
     }
 }

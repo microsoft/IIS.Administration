@@ -16,9 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core;
     using Core.Http;
 
-
-
-    [RequireGlobalModule("RequestFilteringModule", "Request Filtering")]
+    [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
     public class HeaderLimitsController : ApiBaseController
     {
         [HttpGet]

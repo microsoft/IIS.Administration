@@ -9,20 +9,25 @@ namespace Microsoft.IIS.Administration.WebServer
 
     class WebServerFeatureManager : IWebServerFeatureManager
     {
-        public async Task Enable(string feature)
+        public async Task Enable(params string[] features)
         {
-            await SetFeatureEnabled(feature, true);
+            await SetFeatureEnabled(true, features);
         }
 
-        public async Task Disable(string feature)
+        public async Task Disable(params string[] features)
         {
-            await SetFeatureEnabled(feature, false);
+            await SetFeatureEnabled(false, features);
         }
 
 
-        private Task SetFeatureEnabled(string feature, bool enabled)
+        private Task SetFeatureEnabled(bool enabled, params string[] features)
         {
-            string arguments = $"/Online {(enabled ? "/Enable-Feature" : "/Disable-Feature")} /FeatureName:{feature}";
+            string arguments = $"/Online {(enabled ? "/Enable-Feature" : "/Disable-Feature")}";
+
+            foreach (string feature in features) {
+                arguments += $" /FeatureName:{feature}";
+            }
+
             ProcessStartInfo info = new ProcessStartInfo("dism.exe", arguments);
 
             Process p = new Process() {
@@ -34,7 +39,7 @@ namespace Microsoft.IIS.Administration.WebServer
 
             p.Exited += (sender, args) => {
                 if (p.ExitCode != 0) {
-                    tcs.SetException(new DismException(p.ExitCode, feature));
+                    tcs.SetException(new DismException(p.ExitCode, string.Join(", ", features)));
                 }
                 else {
                     tcs.SetResult(p.ExitCode);

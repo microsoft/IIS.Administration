@@ -40,7 +40,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
         private void ConfigureModules()
         {
 
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ModulesResource.Guid, $"{Defines.MODULES_PATH}/{{id?}}", new { controller = "modulegroups" });
+            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ModulesResource.Guid, $"{Defines.MODULES_PATH}/{{id?}}", new { controller = "ModulesGeneral" });
 
             Environment.Hal.ProvideLink(Defines.ModulesResource.Guid, "self", module => new { href = ModuleHelper.GetModuleFeatureLocation(module.id) });
 

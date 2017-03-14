@@ -12,10 +12,13 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
     using System.Dynamic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
     using Web.Administration;
 
-    public static class AuthorizationHelper
+    static class AuthorizationHelper
     {
+        public const string FEATURE_NAME = "IIS-URLAuthorization";
+        public const string MODULE = "UrlAuthorizationModule";
         private static readonly Fields RuleRefFields = new Fields("id", "users", "roles", "verbs", "access_type");
 
         public static List<Rule> GetRules(Site site, string path)
@@ -267,6 +270,19 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return ManagementUnit.IsSectionLocal(site?.Id,
                                                  path,
                                                  AuthorizationSection.SECTION_PATH);
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(FEATURE_NAME) : featureManager.Disable(FEATURE_NAME));
+            }
         }
     }
 }

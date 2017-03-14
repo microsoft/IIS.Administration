@@ -10,19 +10,24 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
     using System;
     using System.Dynamic;
     using System.Globalization;
+    using System.Threading.Tasks;
     using Web.Administration;
     using static MimeTypesGlobals;
 
-    public static class StaticContentHelper
+    static class StaticContentHelper
     {
+        public const string FEATURE = "IIS-StaticContent";
+        public const string MODULE = "StaticFileModule";
+        public const string DISPLAY_NAME = "Static Content";
+
         private const string SetETagAttribute = "setEtag";
 
         public static void UpdateFeatureSettings(dynamic model, StaticContentSection section)
         {
-            if(model == null) {
+            if (model == null) {
                 throw new ApiArgumentException("model");
             }
-            if(section == null) {
+            if (section == null) {
                 throw new ArgumentException("section");
             }
 
@@ -45,9 +50,9 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
 
             DynamicHelper.If((object)model.default_doc_footer, v => section.DefaultDocFooter = v);
             DynamicHelper.If<bool>((object)model.is_doc_footer_file_name, v => {
-                if(section.IsDocFooterFileName != v) {
+                if (section.IsDocFooterFileName != v) {
                     section.IsDocFooterFileName = v;
-                }                
+                }
             });
             DynamicHelper.If<bool>((object)model.enable_doc_footer, v => section.EnableDocFooter = v);
 
@@ -114,7 +119,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
 
         private static HttpCacheControlMode JsonToCacheControlMode(string val)
         {
-            switch(val) {
+            switch (val) {
                 case "disable_cache":
                     return HttpCacheControlMode.DisableCache;
                 case "no_control":
@@ -161,6 +166,19 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
             }
 
             return obj;
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(FEATURE) : featureManager.Disable(FEATURE));
+            }
         }
     }
 }

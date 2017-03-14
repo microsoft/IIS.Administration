@@ -11,10 +11,9 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using Files;
     using Sites;
     using System.Net;
+    using System.Threading.Tasks;
     using Web.Administration;
 
-    [RequireGlobalModule("TracingModule", "Http Request Tracing")]
-    [RequireGlobalModule("FailedRequestsTracingModule", "Http Request Tracing")]
     public class HttpRequestTracingController : ApiBaseController
     {
         private IFileProvider _fileProvider;
@@ -26,6 +25,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
         [HttpGet]
         [ResourceInfo(Name = Defines.HttpRequestTracingName)]
+        [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
+        [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -41,6 +42,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
         [HttpGet]
         [ResourceInfo(Name = Defines.HttpRequestTracingName)]
+        [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
+        [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
         public object Get(string id)
         {
             var hrtId = new HttpRequestTracingId(id);
@@ -52,6 +55,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
         [HttpPatch]
         [ResourceInfo(Name = Defines.HttpRequestTracingName)]
+        [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
+        [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
         public object Patch(string id, dynamic model)
         {
             var hrtId = new HttpRequestTracingId(id);
@@ -70,10 +75,23 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return Helper.ToJsonModel(site, hrtId.Path);
         }
 
+        [HttpPost]
+        [Audit]
+        [ResourceInfo(Name = Defines.HttpRequestTracingName)]
+        public async Task<object> Post()
+        {
+            if (Helper.IsFeatureEnabled()) {
+                throw new AlreadyExistsException(Helper.DISPLAY_NAME);
+            }
+
+            await Helper.SetFeatureEnabled(true);
+
+            return Helper.ToJsonModel(null, null);
+        }
 
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             var hrtId = new HttpRequestTracingId(id);
 
@@ -81,14 +99,15 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
             Site site = (hrtId.SiteId != null) ? SiteHelper.GetSite(hrtId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                Helper.GetTraceFailedRequestsSection(site, hrtId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+                Helper.GetTraceProviderDefinitionSection(site, hrtId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+                ManagementUnit.Current.Commit();
             }
 
-            Helper.GetTraceFailedRequestsSection(site, hrtId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-            Helper.GetTraceProviderDefinitionSection(site, hrtId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-
-            ManagementUnit.Current.Commit();
+            if (hrtId.SiteId == null && Helper.IsFeatureEnabled()) {
+                await Helper.SetFeatureEnabled(false);
+            }
         }
     }
 }

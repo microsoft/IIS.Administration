@@ -66,6 +66,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
         [HttpPost]
         [Audit]
+        [ResourceInfo(Name = Defines.WindowsAuthenticationName)]
         public async Task<object> Post()
         {
             if (WindowsAuthenticationHelper.IsFeatureEnabled()) {

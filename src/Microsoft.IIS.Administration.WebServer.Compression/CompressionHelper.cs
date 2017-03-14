@@ -133,17 +133,22 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
             return $"/{Defines.PATH}/{id}";
         }
 
-        public static bool IsFeatureEnabled()
+        public static bool IsStaticEnabled()
         {
-            return FeaturesUtility.GlobalModuleExists(STATIC_MODULE) && FeaturesUtility.GlobalModuleExists(DYNAMIC_MODULE);
+            return FeaturesUtility.GlobalModuleExists(STATIC_MODULE);
+        }
+
+        public static bool IsDynamicEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(DYNAMIC_MODULE);
         }
 
         public static async Task SetFeatureEnabled(bool enabled)
         {
             IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
             if (featureManager != null) {
-                await (enabled ? featureManager.Enable(DYNAMIC_FEATURE) : featureManager.Disable(DYNAMIC_FEATURE));
-                await (enabled ? featureManager.Enable(STATIC_FEATURE) : featureManager.Disable(STATIC_FEATURE));
+                await (enabled ? featureManager.Enable(DYNAMIC_FEATURE, STATIC_FEATURE)
+                               : featureManager.Disable(DYNAMIC_FEATURE, STATIC_FEATURE));
             }
         }
     }

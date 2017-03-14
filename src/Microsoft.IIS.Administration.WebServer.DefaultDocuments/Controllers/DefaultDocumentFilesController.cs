@@ -16,7 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
     using Core.Http;
 
 
-    [RequireGlobalModule("DefaultDocumentModule", "Default Document")]
+    [RequireGlobalModule(DefaultDocumentHelper.MODULE, "Default Document")]
     public class DefaultDocumentFilesController : ApiBaseController
     {
         [HttpGet]

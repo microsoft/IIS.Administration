@@ -16,8 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core;
     using Core.Http;
 
-
-    [RequireGlobalModule("RequestFilteringModule", "IIS Request Filtering")]
+    [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
     public class FileNameExtensionsController : ApiBaseController
     {
         [HttpGet]

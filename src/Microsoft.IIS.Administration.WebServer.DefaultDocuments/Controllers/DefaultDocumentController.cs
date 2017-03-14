@@ -80,6 +80,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
 
         [HttpPost]
         [Audit]
+        [ResourceInfo(Name = Defines.DefaultDocumentsName)]
         public async Task<object> Post()
         {
             if (DefaultDocumentHelper.IsFeatureEnabled()) {

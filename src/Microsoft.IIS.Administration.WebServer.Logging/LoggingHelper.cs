@@ -16,9 +16,15 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
     using System.IO;
     using System.Dynamic;
     using Files;
+    using System.Threading.Tasks;
 
-    public static class LoggingHelper
+    static class LoggingHelper
     {
+        public const string CUSTOM_FEATURE = "IIS-CustomLogging";
+        public const string HTTP_FEATURE = "IIS-HttpLogging";
+        public const string CUSTOM_LOGGING_MODULE = "CustomLoggingModule";
+        public const string HTTP_LOGGING_MODULE = "HttpLoggingModule";
+
         private const string LogTargetW3CAttribute = "logTargetW3C";
         private const string CustomFieldsElement = "customFields";
 
@@ -673,6 +679,25 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             }
 
             return flags;
+        }
+
+        public static bool IsCustomEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(CUSTOM_LOGGING_MODULE);
+        }
+
+        public static bool IsHttpEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(HTTP_LOGGING_MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(HTTP_FEATURE, CUSTOM_FEATURE)
+                               : featureManager.Disable(HTTP_FEATURE, CUSTOM_FEATURE));
+            }
         }
     }
 }

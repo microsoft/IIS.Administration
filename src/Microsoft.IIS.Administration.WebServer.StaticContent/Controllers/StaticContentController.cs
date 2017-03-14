@@ -11,12 +11,13 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
     using Web.Administration;
     using Core.Http;
     using Core;
+    using System.Threading.Tasks;
 
-    [RequireGlobalModule("StaticFileModule", "Static Content")]
     public class StaticContentController : ApiBaseController
     {
         [HttpGet]
         [ResourceInfo(Name = Defines.StaticContentName)]
+        [RequireGlobalModule(StaticContentHelper.MODULE, StaticContentHelper.DISPLAY_NAME)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -32,6 +33,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
 
         [HttpGet]
         [ResourceInfo(Name = Defines.StaticContentName)]
+        [RequireGlobalModule(StaticContentHelper.MODULE, StaticContentHelper.DISPLAY_NAME)]
         public object Get(string id)
         {
             StaticContentId staticContentId = new StaticContentId(id);
@@ -48,6 +50,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
         [HttpPatch]
         [Audit]
         [ResourceInfo(Name = Defines.StaticContentName)]
+        [RequireGlobalModule(StaticContentHelper.MODULE, StaticContentHelper.DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
             StaticContentId staticContentId = new StaticContentId(id);
@@ -69,9 +72,23 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
             return StaticContentHelper.ToJsonModel(site, staticContentId.Path);
         }
 
+        [HttpPost]
+        [Audit]
+        [ResourceInfo(Name = Defines.StaticContentName)]
+        public async Task<object> Post()
+        {
+            if (StaticContentHelper.IsFeatureEnabled()) {
+                throw new AlreadyExistsException(StaticContentHelper.DISPLAY_NAME);
+            }
+
+            await StaticContentHelper.SetFeatureEnabled(true);
+
+            return StaticContentHelper.ToJsonModel(null, null);
+        }
+
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             StaticContentId staticContentId = new StaticContentId(id);
 
@@ -79,15 +96,15 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
 
             Site site = (staticContentId.SiteId != null) ? SiteHelper.GetSite(staticContentId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                StaticContentSection section = StaticContentHelper.GetSection(site, staticContentId.Path, ManagementUnit.ResolveConfigScope());
+                section.RevertToParent();
+                ManagementUnit.Current.Commit();
             }
 
-            StaticContentSection section = StaticContentHelper.GetSection(site, staticContentId.Path, ManagementUnit.ResolveConfigScope());
-
-            section.RevertToParent();
-
-            ManagementUnit.Current.Commit();
+            if (staticContentId.SiteId == null && StaticContentHelper.IsFeatureEnabled()) {
+                await StaticContentHelper.SetFeatureEnabled(false);
+            }
         }
     }
 }

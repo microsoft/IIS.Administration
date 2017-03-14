@@ -14,7 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
     using System.Net;
     using Web.Administration;
 
-    public class ModuleGroupsController : ApiBaseController
+    public class ModulesGeneralController : ApiBaseController
     {
         [HttpGet]
         [ResourceInfo(Name = Defines.ModulesName)]

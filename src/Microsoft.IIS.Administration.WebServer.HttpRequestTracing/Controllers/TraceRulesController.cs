@@ -15,6 +15,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using System.Net;
     using Web.Administration;
 
+    [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
+    [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
     public class TraceRulesController : ApiBaseController
     {
         [HttpGet]
@@ -157,7 +159,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
             TraceRule rule = RulesHelper.GetRules(site, ruleId.AppPath).Where(r => r.Path.ToString().Equals(ruleId.Path)).FirstOrDefault();
 
-            if (rule != null) {
+            if (rule != null) { 
 
                 var section = Helper.GetTraceFailedRequestsSection(site, ruleId.AppPath, ManagementUnit.ResolveConfigScope());
 

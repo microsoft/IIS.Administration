@@ -11,9 +11,13 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
     using Sites;
     using System.Collections.Generic;
     using System.IO;
+    using System.Threading.Tasks;
 
-    public static class DirectoryBrowsingHelper
+    static class DirectoryBrowsingHelper
     {
+        public const string FEATURE = "IIS-DirectoryBrowsing";
+        public const string MODULE = "DirectoryListingModule";
+
         public static void UpdateSettings(dynamic model, Site site, string path, string configPath = null)
         {
             if (model == null) {
@@ -143,6 +147,19 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
         public static string GetLocation(string id)
         {
             return $"/{Defines.PATH}/{id}";
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(FEATURE) : featureManager.Disable(FEATURE));
+            }
         }
     }
 }

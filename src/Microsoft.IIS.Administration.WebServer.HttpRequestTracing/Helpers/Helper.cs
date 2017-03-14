@@ -9,10 +9,16 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using Files;
     using Sites;
     using System.IO;
+    using System.Threading.Tasks;
     using Web.Administration;
 
-    public static class Helper
+    static class Helper
     {
+        public const string DISPLAY_NAME = "Http Request Tracing";
+        public const string FEATURE = "IIS-HttpTracing";
+        public const string TRACING_MODULE = "TracingModule";
+        public const string FAILED_REQUEST_TRACING_MODULE = "FailedRequestsTracingModule";
+
         public static bool IsSectionLocal(Site site, string path)
         {
             return GetTraceFailedRequestsSection(site, path).IsLocallyStored;
@@ -131,6 +137,20 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
                                                                            FailureTracingGlobals.ProviderDefinitionsSectionName,
                                                                            typeof(TraceProviderDefinitionsSection),
                                                                            configPath);
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(TRACING_MODULE)
+                   && FeaturesUtility.GlobalModuleExists(FAILED_REQUEST_TRACING_MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(FEATURE) : featureManager.Disable(FEATURE));
+            }
         }
     }
 }
