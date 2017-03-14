@@ -84,7 +84,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRedirect
 
             await RedirectHelper.SetFeatureEnabled(true);
 
-            return RedirectHelper.ToJsonModel(null, null);
+            dynamic settings = RedirectHelper.ToJsonModel(null, null);
+            return Created(RedirectHelper.GetLocation(settings.id), settings);
         }
 
         [HttpDelete]

@@ -82,7 +82,8 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
 
             await AuthorizationHelper.SetFeatureEnabled(true);
 
-            return AuthorizationHelper.ToJsonModel(null, null);
+            dynamic auth = AuthorizationHelper.ToJsonModel(null, null);
+            return Created(AuthorizationHelper.GetLocation(auth.id), auth);
         }
 
         [HttpDelete]

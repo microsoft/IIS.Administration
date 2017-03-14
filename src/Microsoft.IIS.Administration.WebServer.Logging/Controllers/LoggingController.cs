@@ -95,7 +95,8 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
             await LoggingHelper.SetFeatureEnabled(true);
 
-            return LoggingHelper.ToJsonModel(null, null);
+            dynamic settings = LoggingHelper.ToJsonModel(null, null);
+            return Created(LoggingHelper.GetLocation(settings.id), settings);
         }
 
         [HttpDelete]

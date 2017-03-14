@@ -89,7 +89,8 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
 
             await DefaultDocumentHelper.SetFeatureEnabled(true);
 
-            return DefaultDocumentHelper.ToJsonModel(null, null);
+            dynamic settings = DefaultDocumentHelper.ToJsonModel(null, null);
+            return Created(DefaultDocumentHelper.GetLocation(settings.id), settings);
         }
 
         [HttpDelete]

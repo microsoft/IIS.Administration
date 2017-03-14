@@ -7,9 +7,18 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net;
     using System.Net.Http;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class IISOptionalFeatures
     {
+        private ITestOutputHelper _logger;
+
+        public IISOptionalFeatures(ITestOutputHelper output)
+        {
+            _logger = output;
+        }
+
+
         [Theory]
         [InlineData("/api/webserver/default-documents")]
         [InlineData("/api/webserver/http-request-tracing")]
@@ -26,20 +35,29 @@ namespace Microsoft.IIS.Administration.Tests
         [InlineData("/api/webserver/http-redirect")]
         public void InstallUninstallFeature(string feature)
         {
+            _logger.WriteLine("Testing installation/uninstallation of " + feature);
+
             using (HttpClient client = ApiHttpClient.Create()) {
                 string result;
                 bool installed = IsInstalled(feature, client);
 
+                _logger.WriteLine("Feature is initially " + (installed ? "installed" : "uninstalled"));
+
                 if (!installed) {
+                    _logger.WriteLine("Installing " + feature);
                     Assert.True(client.Post(Configuration.TEST_SERVER_URL + feature, "", out result));
                     Assert.True(IsInstalled(feature, client));
                 }
 
+                _logger.WriteLine("retrieving settings for " + feature);
                 var settings = client.Get(Configuration.TEST_SERVER_URL + feature + "?scope=");
+
+                _logger.WriteLine("Uninstalling " + feature);
                 Assert.True(client.Delete(Utils.Self(settings)));
                 Assert.True(!IsInstalled(feature, client));
 
                 if (installed) {
+                    _logger.WriteLine("Reinstalling " + feature);
                     Assert.True(client.Post(Configuration.TEST_SERVER_URL + feature, "", out result));
                     Assert.True(IsInstalled(feature, client));
                 }

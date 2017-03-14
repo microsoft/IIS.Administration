@@ -86,7 +86,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
             await Helper.SetFeatureEnabled(true);
 
-            return Helper.ToJsonModel(null, null);
+            dynamic settings = Helper.ToJsonModel(null, null);
+            return Created(Helper.GetLocation(settings.id), settings);
         }
 
         [HttpDelete]

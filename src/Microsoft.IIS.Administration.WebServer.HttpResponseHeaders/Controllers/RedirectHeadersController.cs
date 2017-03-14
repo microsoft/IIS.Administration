@@ -15,9 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
     using System.Net;
     using Web.Administration;
     using Core.Http;
-
-
-    [RequireGlobalModule("HttpRedirectionModule", "IIS HTTP Redirection Feature")]
+    
     public class RedirectHeadersController : ApiBaseController
     {
         [HttpGet]

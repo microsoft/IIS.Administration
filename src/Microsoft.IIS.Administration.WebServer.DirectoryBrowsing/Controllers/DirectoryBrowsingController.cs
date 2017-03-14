@@ -78,7 +78,8 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
 
             await DirectoryBrowsingHelper.SetFeatureEnabled(true);
 
-            return DirectoryBrowsingHelper.ToJsonModel(null, null);
+            dynamic settings = DirectoryBrowsingHelper.ToJsonModel(null, null);
+            return Created(DirectoryBrowsingHelper.GetLocation(settings.id), settings);
         }
 
         [HttpDelete]

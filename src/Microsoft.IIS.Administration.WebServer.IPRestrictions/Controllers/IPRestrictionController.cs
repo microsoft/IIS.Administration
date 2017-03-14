@@ -78,7 +78,8 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
 
             await IPRestrictionsHelper.SetFeatureEnabled(true);
 
-            return IPRestrictionsHelper.ToJsonModel(null, null);
+            dynamic settings = IPRestrictionsHelper.ToJsonModel(null, null);
+            return Created(IPRestrictionsHelper.GetLocation(settings.id), settings);
         }
 
         [HttpDelete]

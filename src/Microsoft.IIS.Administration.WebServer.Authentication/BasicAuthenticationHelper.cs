@@ -81,6 +81,11 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
                                                  BasicAuthenticationSection.SECTION_PATH);
         }
 
+        public static string GetLocation(string id)
+        {
+            return $"{Defines.BASIC_AUTH_PATH}/{id}";
+        }
+
         public static bool IsFeatureEnabled()
         {
             return FeaturesUtility.GlobalModuleExists(MODULE);

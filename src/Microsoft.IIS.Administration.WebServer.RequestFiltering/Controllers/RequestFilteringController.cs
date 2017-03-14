@@ -85,7 +85,8 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
             await RequestFilteringHelper.SetFeatureEnabled(true);
 
-            return RequestFilteringHelper.ToJsonModel(null, null);
+            dynamic settings = RequestFilteringHelper.ToJsonModel(null, null);
+            return Created(RequestFilteringHelper.GetLocation(settings.id), settings);
         }
 
         [HttpDelete]

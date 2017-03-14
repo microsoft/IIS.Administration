@@ -75,7 +75,8 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
             await BasicAuthenticationHelper.SetFeatureEnabled(true);
 
-            return BasicAuthenticationHelper.ToJsonModel(null, null);
+            dynamic auth = BasicAuthenticationHelper.ToJsonModel(null, null);
+            return Created(BasicAuthenticationHelper.GetLocation(auth.id), auth);
         }
 
         [HttpDelete]

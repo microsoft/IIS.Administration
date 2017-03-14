@@ -89,7 +89,8 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 
             await CompressionHelper.SetFeatureEnabled(true);
 
-            return CompressionHelper.ToJsonModel(null, null);
+            dynamic compression = CompressionHelper.ToJsonModel(null, null);
+            return Created(CompressionHelper.GetLocation(compression.id), compression);
         }
 
         [HttpDelete]

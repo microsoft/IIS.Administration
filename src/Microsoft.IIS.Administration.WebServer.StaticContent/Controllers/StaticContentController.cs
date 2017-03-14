@@ -83,7 +83,8 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
 
             await StaticContentHelper.SetFeatureEnabled(true);
 
-            return StaticContentHelper.ToJsonModel(null, null);
+            dynamic settings = StaticContentHelper.ToJsonModel(null, null);
+            return Created(StaticContentHelper.GetLocation(settings.id), settings);
         }
 
         [HttpDelete]

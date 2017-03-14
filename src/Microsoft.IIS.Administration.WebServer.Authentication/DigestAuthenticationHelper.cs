@@ -79,6 +79,11 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
                                                  DigestAuthenticationSection.SECTION_PATH);
         }
 
+        public static string GetLocation(string id)
+        {
+            return $"{Defines.DIGEST_AUTH_PATH}/{id}";
+        }
+
         public static bool IsFeatureEnabled()
         {
             return FeaturesUtility.GlobalModuleExists(MODULE);

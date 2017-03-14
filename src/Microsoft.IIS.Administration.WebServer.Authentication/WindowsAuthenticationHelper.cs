@@ -148,6 +148,11 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             );
         }
 
+        public static string GetLocation(string id)
+        {
+            return $"{Defines.WIN_AUTH_PATH}/{id}";
+        }
+
         public static bool IsFeatureEnabled()
         {
             return FeaturesUtility.GlobalModuleExists(MODULE);
