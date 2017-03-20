@@ -19,20 +19,20 @@ namespace Microsoft.IIS.Administration.Tests
         }
 
 
-        [Theory]
-        [InlineData("/api/webserver/default-documents")]
-        [InlineData("/api/webserver/http-request-tracing")]
-        [InlineData("/api/webserver/authentication/basic-authentication")]
-        [InlineData("/api/webserver/authentication/digest-authentication")]
-        [InlineData("/api/webserver/authentication/windows-authentication")]
-        [InlineData("/api/webserver/ip-restrictions")]
-        [InlineData("/api/webserver/logging")]
-        [InlineData("/api/webserver/http-request-tracing")]
-        [InlineData("/api/webserver/http-response-compression")]
-        [InlineData("/api/webserver/directory-browsing")]
-        [InlineData("/api/webserver/static-content")]
-        [InlineData("/api/webserver/http-request-filtering")]
-        [InlineData("/api/webserver/http-redirect")]
+        //[Theory]
+        //[InlineData("/api/webserver/default-documents")]
+        //[InlineData("/api/webserver/http-request-tracing")]
+        //[InlineData("/api/webserver/authentication/basic-authentication")]
+        //[InlineData("/api/webserver/authentication/digest-authentication")]
+        //[InlineData("/api/webserver/authentication/windows-authentication")]
+        //[InlineData("/api/webserver/ip-restrictions")]
+        //[InlineData("/api/webserver/logging")]
+        //[InlineData("/api/webserver/http-request-tracing")]
+        //[InlineData("/api/webserver/http-response-compression")]
+        //[InlineData("/api/webserver/directory-browsing")]
+        //[InlineData("/api/webserver/static-content")]
+        //[InlineData("/api/webserver/http-request-filtering")]
+        //[InlineData("/api/webserver/http-redirect")]
         public void InstallUninstallFeature(string feature)
         {
             _logger.WriteLine("Testing installation/uninstallation of " + feature);
