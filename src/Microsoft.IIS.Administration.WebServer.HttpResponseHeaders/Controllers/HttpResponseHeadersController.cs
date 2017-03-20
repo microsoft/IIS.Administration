@@ -81,10 +81,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             if (site == null) {
                 return;
             }
-
-            HttpProtocolSection section = HttpResponseHeadersHelper.GetSection(site, headerId.Path, ManagementUnit.ResolveConfigScope());
-
-            section.RevertToParent();
+            
+            HttpResponseHeadersHelper.GetSection(site, headerId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
 
             ManagementUnit.Current.Commit();
         }

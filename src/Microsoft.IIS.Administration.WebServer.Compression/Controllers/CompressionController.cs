@@ -95,7 +95,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             CompressionId compId = new CompressionId(id);
 
@@ -103,13 +103,22 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 
             Site site = (compId.SiteId != null) ? SiteHelper.GetSite(compId.SiteId.Value) : null;
 
-            if (site != null) {
-                // Http compression section is not reverted because it only allows definition in apphost
-                CompressionHelper.GetUrlCompressionSection(site, compId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-                ManagementUnit.Current.Commit();
+            if (site == null) {
+                return;
             }
 
-            if (compId.SiteId == null && (CompressionHelper.IsStaticEnabled() || CompressionHelper.IsDynamicEnabled())) {
+            // Http compression section is not reverted because it only allows definition in apphost
+            CompressionHelper.GetUrlCompressionSection(site, compId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            ManagementUnit.Current.Commit();
+        }
+
+        [HttpDelete]
+        [Audit]
+        public async Task Delete()
+        {
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            if (CompressionHelper.IsStaticEnabled() || CompressionHelper.IsDynamicEnabled()) {
                 await CompressionHelper.SetFeatureEnabled(false);
             }
         }

@@ -92,7 +92,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             var hrtId = new HttpRequestTracingId(id);
 
@@ -100,13 +100,22 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
             Site site = (hrtId.SiteId != null) ? SiteHelper.GetSite(hrtId.SiteId.Value) : null;
 
-            if (site != null) {
-                Helper.GetTraceFailedRequestsSection(site, hrtId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-                Helper.GetTraceProviderDefinitionSection(site, hrtId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-                ManagementUnit.Current.Commit();
+            if (site == null) {
+                return;
             }
 
-            if (hrtId.SiteId == null && Helper.IsFeatureEnabled()) {
+            Helper.GetTraceFailedRequestsSection(site, hrtId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            Helper.GetTraceProviderDefinitionSection(site, hrtId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            ManagementUnit.Current.Commit();
+        }
+
+        [HttpDelete]
+        [Audit]
+        public async Task Delete()
+        {
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            if (Helper.IsFeatureEnabled()) {
                 await Helper.SetFeatureEnabled(false);
             }
         }

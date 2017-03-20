@@ -81,7 +81,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             BasicAuthId basicAuthId = new BasicAuthId(id);
 
@@ -89,12 +89,21 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
             Site site = (basicAuthId.SiteId != null) ? SiteHelper.GetSite(basicAuthId.SiteId.Value) : null;
 
-            if (site != null) {
-                BasicAuthenticationHelper.GetSection(site, basicAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-                ManagementUnit.Current.Commit();
+            if (site == null) {
+                return;
             }
 
-            if (basicAuthId.SiteId == null && BasicAuthenticationHelper.IsFeatureEnabled()) {
+            BasicAuthenticationHelper.GetSection(site, basicAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            ManagementUnit.Current.Commit();
+        }
+
+        [HttpDelete]
+        [Audit]
+        public async Task Delete()
+        {
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            if (BasicAuthenticationHelper.IsFeatureEnabled()) {
                 await BasicAuthenticationHelper.SetFeatureEnabled(false);
             }
         }

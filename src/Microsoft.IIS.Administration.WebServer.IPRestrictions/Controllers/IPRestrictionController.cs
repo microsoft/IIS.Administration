@@ -84,7 +84,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
 
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             IPRestrictionId ipId = new IPRestrictionId(id);
 
@@ -92,17 +92,26 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
 
             Site site = (ipId.SiteId != null) ? SiteHelper.GetSite(ipId.SiteId.Value) : null;
 
-            if (site != null) {
-                IPRestrictionsHelper.GetSection(site, ipId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-
-                if (ManagementUnit.ServerManager.GetApplicationHostConfiguration().HasSection(IPRestrictionsGlobals.DynamicIPSecuritySectionName)) {
-                    IPRestrictionsHelper.GetDynamicSecuritySection(site, ipId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-                }
-
-                ManagementUnit.Current.Commit();
+            if (site == null) {
+                return;
             }
 
-            if (ipId.SiteId == null && IPRestrictionsHelper.IsFeatureEnabled()) {
+            IPRestrictionsHelper.GetSection(site, ipId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+
+            if (ManagementUnit.ServerManager.GetApplicationHostConfiguration().HasSection(IPRestrictionsGlobals.DynamicIPSecuritySectionName)) {
+                IPRestrictionsHelper.GetDynamicSecuritySection(site, ipId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            }
+
+            ManagementUnit.Current.Commit();
+        }
+
+        [HttpDelete]
+        [Audit]
+        public async Task Delete()
+        {
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            if (IPRestrictionsHelper.IsFeatureEnabled()) {
                 await IPRestrictionsHelper.SetFeatureEnabled(false);
             }
         }

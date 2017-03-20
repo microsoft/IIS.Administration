@@ -88,7 +88,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
 
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             AuthorizationId authId = new AuthorizationId(id);
 
@@ -96,13 +96,21 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
 
             Site site = (authId.SiteId != null) ? SiteHelper.GetSite(authId.SiteId.Value) : null;
 
-            if (site != null) {
-                var section = AuthorizationHelper.GetSection(site, authId.Path, ManagementUnit.ResolveConfigScope());
-                section.RevertToParent();
-                ManagementUnit.Current.Commit();
+            if (site == null) {
+                return;
             }
+            
+            AuthorizationHelper.GetSection(site, authId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            ManagementUnit.Current.Commit();
+        }
 
-            if (authId.SiteId == null && AuthorizationHelper.IsFeatureEnabled()) {
+        [HttpDelete]
+        [Audit]
+        public async Task Delete()
+        {
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            if (AuthorizationHelper.IsFeatureEnabled()) {
                 await AuthorizationHelper.SetFeatureEnabled(false);
             }
         }

@@ -81,7 +81,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             DigestAuthId digestAuthId = new DigestAuthId(id);
 
@@ -89,12 +89,21 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
             Site site = (digestAuthId.SiteId != null) ? SiteHelper.GetSite(digestAuthId.SiteId.Value) : null;
 
-            if (site != null) {
-                DigestAuthenticationHelper.GetSection(site, digestAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-                ManagementUnit.Current.Commit();
+            if (site == null) {
+                return;
             }
-            
-            if (digestAuthId.SiteId == null && DigestAuthenticationHelper.IsFeatureEnabled()) {
+
+            DigestAuthenticationHelper.GetSection(site, digestAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            ManagementUnit.Current.Commit();
+        }
+
+        [HttpDelete]
+        [Audit]
+        public async Task Delete()
+        {
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            if (DigestAuthenticationHelper.IsFeatureEnabled()) {
                 await DigestAuthenticationHelper.SetFeatureEnabled(false);
             }
         }

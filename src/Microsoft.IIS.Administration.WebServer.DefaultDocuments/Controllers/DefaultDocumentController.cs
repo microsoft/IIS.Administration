@@ -95,7 +95,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
 
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             DefaultDocumentId docId = new DefaultDocumentId(id);
 
@@ -103,14 +103,21 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
 
             Site site = (docId.SiteId != null) ? SiteHelper.GetSite(docId.SiteId.Value) : null;
 
-            if (site != null) {
-                var section = DefaultDocumentHelper.GetDefaultDocumentSection(site, docId.Path, ManagementUnit.ResolveConfigScope());
-                section.RevertToParent();
-                ManagementUnit.Current.Commit();
+            if (site == null) {
+                return;
             }
+            
+            DefaultDocumentHelper.GetDefaultDocumentSection(site, docId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            ManagementUnit.Current.Commit();
+        }
 
-            // When target is webserver, uninstall
-            if (docId.SiteId == null && DefaultDocumentHelper.IsFeatureEnabled()) {
+        [HttpDelete]
+        [Audit]
+        public async Task Delete()
+        {
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            if (DefaultDocumentHelper.IsFeatureEnabled()) {
                 await DefaultDocumentHelper.SetFeatureEnabled(false);
             }
         }

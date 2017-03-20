@@ -84,21 +84,29 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
 
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             DirectoryBrowsingId dirbId = new DirectoryBrowsingId(id);
 
-            Context.Response.StatusCode = (int) HttpStatusCode.NoContent;
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
 
             Site site = (dirbId.SiteId != null) ? SiteHelper.GetSite(dirbId.SiteId.Value) : null;
 
-            if (site != null) {
-                var section = DirectoryBrowsingHelper.GetDirectoryBrowseSection(site, dirbId.Path, ManagementUnit.ResolveConfigScope());
-                section.RevertToParent();
-                ManagementUnit.Current.Commit();
+            if (site == null) {
+                return;
             }
 
-            if (dirbId.SiteId == null && DirectoryBrowsingHelper.IsFeatureEnabled()) {
+            DirectoryBrowsingHelper.GetDirectoryBrowseSection(site, dirbId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            ManagementUnit.Current.Commit();
+        }
+
+        [HttpDelete]
+        [Audit]
+        public async Task Delete()
+        {
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            if (DirectoryBrowsingHelper.IsFeatureEnabled()) {
                 await DirectoryBrowsingHelper.SetFeatureEnabled(false);
             }
         }

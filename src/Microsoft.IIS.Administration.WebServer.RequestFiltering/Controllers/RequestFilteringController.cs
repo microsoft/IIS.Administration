@@ -91,7 +91,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             RequestFilteringId reqId = new RequestFilteringId(id);
 
@@ -99,13 +99,21 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
             Site site = (reqId.SiteId != null) ? SiteHelper.GetSite(reqId.SiteId.Value) : null;
 
-            if (site != null) {
-                var section = RequestFilteringHelper.GetRequestFilteringSection(site, reqId.Path, ManagementUnit.ResolveConfigScope());
-                section.RevertToParent();
-                ManagementUnit.Current.Commit();
+            if (site == null) {
+                return;
             }
 
-            if (reqId.SiteId == null && RequestFilteringHelper.IsFeatureEnabled()) {
+            RequestFilteringHelper.GetRequestFilteringSection(site, reqId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            ManagementUnit.Current.Commit();
+        }
+
+        [HttpDelete]
+        [Audit]
+        public async Task Delete()
+        {
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            if (RequestFilteringHelper.IsFeatureEnabled()) {
                 await RequestFilteringHelper.SetFeatureEnabled(false);
             }
         }

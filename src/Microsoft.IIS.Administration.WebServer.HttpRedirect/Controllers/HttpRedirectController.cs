@@ -90,21 +90,28 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRedirect
 
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             var redId = new RedirectId(id);
 
-            Context.Response.StatusCode = (int) HttpStatusCode.NoContent;
 
             Site site = (redId.SiteId != null) ? SiteHelper.GetSite(redId.SiteId.Value) : null;
 
-            if (site != null) {
-                var section = RedirectHelper.GetRedirectSection(site, redId.Path, ManagementUnit.ResolveConfigScope());
-                section.RevertToParent();
-                ManagementUnit.Current.Commit();
+            if (site == null) {
+                return;
             }
-            
-            if (redId.SiteId == null && RedirectHelper.IsFeatureEnabled()) {
+
+            RedirectHelper.GetRedirectSection(site, redId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+            ManagementUnit.Current.Commit();
+        }
+
+        [HttpDelete]
+        [Audit]
+        public async Task Delete()
+        {
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            if (RedirectHelper.IsFeatureEnabled()) {
                 await RedirectHelper.SetFeatureEnabled(false);
             }
         }
