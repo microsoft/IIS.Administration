@@ -101,7 +101,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             LoggingId logId = new LoggingId(id);
 
@@ -109,21 +109,13 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
             Site site = (logId.SiteId != null) ? SiteHelper.GetSite(logId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                var section = LoggingHelper.GetHttpLoggingSection(site, logId.Path, ManagementUnit.ResolveConfigScope());
+                section.RevertToParent();
+                ManagementUnit.Current.Commit();
             }
-            
-            LoggingHelper.GetHttpLoggingSection(site, logId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-            ManagementUnit.Current.Commit();
-        }
 
-        [HttpDelete]
-        [Audit]
-        public async Task Delete()
-        {
-            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
-
-            if (LoggingHelper.IsHttpEnabled() || LoggingHelper.IsCustomEnabled()) {
+            if (logId.SiteId == null && (LoggingHelper.IsHttpEnabled() || LoggingHelper.IsCustomEnabled())) {
                 await LoggingHelper.SetFeatureEnabled(false);
             }
         }

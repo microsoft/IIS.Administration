@@ -81,7 +81,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             WinAuthId winAuthId = new WinAuthId(id);
 
@@ -89,21 +89,12 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
             Site site = (winAuthId.SiteId != null) ? SiteHelper.GetSite(winAuthId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                WindowsAuthenticationHelper.GetSection(site, winAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
+                ManagementUnit.Current.Commit();
             }
 
-            WindowsAuthenticationHelper.GetSection(site, winAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-            ManagementUnit.Current.Commit();
-        }
-
-        [HttpDelete]
-        [Audit]
-        public async Task Delete()
-        {
-            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
-
-            if (WindowsAuthenticationHelper.IsFeatureEnabled()) {
+            if (winAuthId.SiteId == null && WindowsAuthenticationHelper.IsFeatureEnabled()) {
                 await WindowsAuthenticationHelper.SetFeatureEnabled(false);
             }
         }

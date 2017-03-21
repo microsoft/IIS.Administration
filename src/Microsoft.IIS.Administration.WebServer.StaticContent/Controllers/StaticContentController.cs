@@ -89,7 +89,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
 
         [HttpDelete]
         [Audit]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             StaticContentId staticContentId = new StaticContentId(id);
 
@@ -97,21 +97,13 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
 
             Site site = (staticContentId.SiteId != null) ? SiteHelper.GetSite(staticContentId.SiteId.Value) : null;
 
-            if (site == null) {
-                return;
+            if (site != null) {
+                StaticContentSection section = StaticContentHelper.GetSection(site, staticContentId.Path, ManagementUnit.ResolveConfigScope());
+                section.RevertToParent();
+                ManagementUnit.Current.Commit();
             }
-            
-            StaticContentHelper.GetSection(site, staticContentId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-            ManagementUnit.Current.Commit();
-        }
 
-        [HttpDelete]
-        [Audit]
-        public async Task Delete()
-        {
-            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
-
-            if (StaticContentHelper.IsFeatureEnabled()) {
+            if (staticContentId.SiteId == null && StaticContentHelper.IsFeatureEnabled()) {
                 await StaticContentHelper.SetFeatureEnabled(false);
             }
         }
