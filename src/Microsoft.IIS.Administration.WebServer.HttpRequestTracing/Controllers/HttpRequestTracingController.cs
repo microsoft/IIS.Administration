@@ -102,7 +102,6 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
             if (site != null) {
                 Helper.GetTraceFailedRequestsSection(site, hrtId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
-                Helper.GetTraceProviderDefinitionSection(site, hrtId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
                 ManagementUnit.Current.Commit();
             }
 

@@ -43,7 +43,7 @@ namespace Microsoft.IIS.Administration.WebServer
 
         public static bool HasChildElement(this ConfigurationElementSchema schema, string name)
         {
-            return schema.ChildElementSchemas.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            return schema.ChildElementSchemas != null && schema.ChildElementSchemas.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
         }
 
         public static bool HasSection(this Configuration configuration, string xPath)
