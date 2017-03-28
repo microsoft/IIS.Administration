@@ -13,7 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
     using Core;
     using Sites;
 
-    [RequireGlobalModule("RequestMonitorModule", "Request Monitor")]
+    [RequireGlobalModule(RequestHelper.MODULE, RequestHelper.DISPLAY_NAME)]
     public class RmRequestsController : ApiBaseController {
 
         [HttpGet]

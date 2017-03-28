@@ -11,9 +11,16 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
     using WorkerProcesses;
     using Core.Utils;
     using Web.Administration;
+    using System.Threading.Tasks;
 
-    public static class RequestHelper {
+    static class RequestHelper
+    {
+        public const string FEATURE = "IIS-RequestMonitor";
+        public const string MODULE = "RequestMonitorModule";
+        public const string DISPLAY_NAME = "Request Monitor";
+
         private static readonly Fields RefFields = new Fields("url", "id", "time_elapsed");
+
         private const int DEFAULT_TIME_ELASPSED = 1000; //ms
 
         private static readonly RequestComparer _RequestComparer = new RequestComparer();
@@ -76,12 +83,39 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
             return result;
         }
 
+        public static object FeatureToJsonModel()
+        {
+            dynamic obj = new ExpandoObject();
+
+            obj.id = new RmId().Uuid;
+
+            return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj);
+        }
+
         public static object ToJsonModelRef(Request request, Fields fields = null) {
             if (fields == null || !fields.HasFields) {
                 return ToJsonModel(request, RefFields, false);
             }
             else {
                 return ToJsonModel(request, fields, false);
+            }
+        }
+
+        public static string GetLocation()
+        {
+            return $"/{Defines.PATH}/{new RmId().Uuid}";
+        }
+
+        public static bool IsFeatureEnabled()
+        {
+            return FeaturesUtility.GlobalModuleExists(MODULE);
+        }
+
+        public static async Task SetFeatureEnabled(bool enabled)
+        {
+            IWebServerFeatureManager featureManager = WebServerFeatureManagerAccessor.Instance;
+            if (featureManager != null) {
+                await (enabled ? featureManager.Enable(FEATURE) : featureManager.Disable(FEATURE));
             }
         }
 

@@ -2,7 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
+namespace Microsoft.IIS.Administration.WebServer.RequestMonitor
+{
     using System;
 
     public class RequestId {

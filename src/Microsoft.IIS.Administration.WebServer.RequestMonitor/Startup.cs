@@ -7,11 +7,30 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
     using Core;
     using Core.Http;
 
-
     public class Startup : BaseModule {
 
         public override void Start() {
+            ConfigureRequestMonitoring();
             ConfigureRequests();
+        }
+
+        private void ConfigureRequestMonitoring()
+        {
+            //
+            // Controller
+            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "RequestMonitoring" });
+
+            //
+            // Hal
+            var hal = Environment.Hal;
+
+            // Self
+            hal.ProvideLink(Defines.Resource.Guid, "self", r => new { href = $"/{Defines.PATH}/{r.id}" });
+
+            // Webserver
+            hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => {
+                return new { href = RequestHelper.GetLocation() };
+            });
         }
 
         private void ConfigureRequests() {
@@ -36,10 +55,8 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
                 return new { href = $"/{Defines.REQUESTS_PATH}?{Sites.Defines.IDENTIFIER}={site.id}" };
             });
 
-            // Webserver
-            hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.RequestsResource.Name, _ => {
-                return new { href = $"/{Defines.REQUESTS_PATH}" };
-            });
+            // Feature
+            hal.ProvideLink(Defines.Resource.Guid, Defines.RequestsResource.Name, _ => new { href = $"/{Defines.REQUESTS_PATH}" });
         }
     }
 }
