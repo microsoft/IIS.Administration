@@ -74,7 +74,7 @@ namespace Microsoft.IIS.Administration.Files
                 await RangeContentResponse(_context, _file, start, finish);
             }
             else {
-                await FullContentResponse(_context, _file.Path);
+                await FullContentResponse(_context, _file);
             }
         }
 
@@ -90,10 +90,10 @@ namespace Microsoft.IIS.Administration.Files
             ValidateIfUnmodifiedSince();
             ValidateContentRange(out start, out finish, out outOf);
 
-            string tempFilePath = CreateTempFile(_file.Path);
+            IFileInfo tempFile = CreateTempFile(_file.Path);
 
             try {
-                using (var temp = _service.GetFileStream(tempFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read)) {
+                using (var temp = _service.GetFileStream(tempFile, FileMode.Open, FileAccess.ReadWrite, FileShare.Read)) {
                     //
                     // Write to temp file
                     await _context.Request.Body.CopyToAsync(temp);
@@ -102,7 +102,7 @@ namespace Microsoft.IIS.Administration.Files
 
                     //
                     // Copy from temp 
-                    using (var real = TryOpenFile(_file.Path, FileMode.Open, FileAccess.Write, FileShare.Read)) {
+                    using (var real = TryOpenFile(_file, FileMode.Open, FileAccess.Write, FileShare.Read)) {
                         if (start >= 0) {
                             //
                             // Range request
@@ -132,7 +132,7 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ApiArgumentException(HeaderNames.ContentLength);
             }
             finally {
-                _service.Delete(tempFilePath);
+                _service.Delete(tempFile);
             }
 
             _context.Response.StatusCode = (int) HttpStatusCode.OK;
@@ -341,11 +341,11 @@ namespace Microsoft.IIS.Administration.Files
                     }
         }
 
-        private async Task FullContentResponse(HttpContext context, string path)
+        private async Task FullContentResponse(HttpContext context, IFileInfo file)
         {
             context.Response.ContentLength = _file.Size;
             context.Response.StatusCode = (int)HttpStatusCode.OK;
-            using (Stream stream = _service.GetFileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+            using (Stream stream = _service.GetFileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
                 await stream.CopyToAsync(context.Response.Body);
             }
         }
@@ -359,7 +359,7 @@ namespace Microsoft.IIS.Administration.Files
             context.Response.StatusCode = (int)HttpStatusCode.PartialContent;
             context.Response.Headers.Add(HeaderNames.ContentRange, $"{start}-{finish}/{info.Size}");
 
-            using (Stream stream = _service.GetFileStream(info.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+            using (Stream stream = _service.GetFileStream(info, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
                 try {
                     await CopyRangeAsync(stream, context.Response.Body, start, finish - start + 1);
                 }
@@ -398,32 +398,37 @@ namespace Microsoft.IIS.Administration.Files
             while (position <= finish);
         }
 
-        private string CreateTempFile(string path)
+        private IFileInfo CreateTempFile(string path)
         {
             string tempFilePath = PathUtil.GetTempFilePath(path);
-            var info = _service.CreateFile(tempFilePath);
+            IFileInfo info = _service.GetFile(tempFilePath);
+            info = _service.CreateFile(info);
 
-            return info.Path;
+            return info;
         }
 
         private void SwapFiles(string pathA, string pathB)
         {
             var fileATempPath = PathUtil.GetTempFilePath(pathA);
-            _service.Move(pathA, fileATempPath);
-            _service.Move(pathB, pathA);
-            _service.Move(fileATempPath, pathB);
+            IFileInfo a = _service.GetFile(pathA);
+            IFileInfo b = _service.GetFile(pathB);
+            IFileInfo temp = _service.GetFile(fileATempPath);
+
+            _service.Move(a, temp);
+            _service.Move(b, a);
+            _service.Move(temp, b);
         }
 
-        private Stream TryOpenFile(string physicalPath, FileMode mode, FileAccess access, FileShare fileShare)
+        private Stream TryOpenFile(IFileInfo file, FileMode mode, FileAccess access, FileShare fileShare)
         {
-            Stream file = null;
+            Stream stream = null;
             int attempts = 10;
 
             //
             // Retry if file locked
-            while (attempts > 0 && file == null) {
+            while (attempts > 0 && stream == null) {
                 try {
-                    file = _service.GetFileStream(physicalPath, mode, access, fileShare);
+                    stream = _service.GetFileStream(file, mode, access, fileShare);
                 }
                 catch (LockedException) {
                     if (--attempts > 0) {
@@ -434,7 +439,7 @@ namespace Microsoft.IIS.Administration.Files
                 }
             }
 
-            return file;
+            return stream;
         }
     }
 }

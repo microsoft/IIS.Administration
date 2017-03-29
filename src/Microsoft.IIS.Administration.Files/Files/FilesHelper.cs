@@ -7,6 +7,7 @@ namespace Microsoft.IIS.Administration.Files
     using Core;
     using Core.Utils;
     using System;
+    using System.Collections.Generic;
     using System.Dynamic;
     using System.IO;
     using System.Linq;
@@ -24,28 +25,10 @@ namespace Microsoft.IIS.Administration.Files
 
         public object ToJsonModel(string physicalPath, Fields fields = null, bool full = true)
         {
-            FileType fileType;
+            IFileInfo file = GetExistingFileInfo(physicalPath);
 
-            try {
-                fileType = GetFileType(physicalPath);
-            }
-            catch (FileNotFoundException) {
+            if (file == null) {
                 return InfoToJsonModel(_fileProvider.GetFile(physicalPath), fields, full);
-            }
-
-            IFileInfo file;
-
-            switch (fileType) {
-                case FileType.File:
-                    file = _fileProvider.GetFile(physicalPath);
-                    break;
-
-                case FileType.Directory:
-                    file = _fileProvider.GetDirectory(physicalPath);
-                    break;
-
-                default:
-                    return null;
             }
 
             return ToJsonModel(file, fields, full);
@@ -82,7 +65,23 @@ namespace Microsoft.IIS.Administration.Files
             return $"/{Defines.FILES_PATH}/{id}";
         }
 
-        private object DirectoryToJsonModel(IFileInfo info, Fields fields = null, bool full = true)
+        //
+        // Internal method to optimize serialization of entire directories
+        // The parent directory is only retrieved once, rather than once per each child resource
+        internal IEnumerable<object> DirectoryContentToJsonModel(IFileInfo parent, IEnumerable<IFileInfo> children, Fields fields = null)
+        {
+            var models = new List<object>();
+
+            foreach (var child in children) {
+                models.Add(child.Type == FileType.File ? FileToJsonModel(child, fields, false, parent) : DirectoryToJsonModel(child, fields, false, parent));
+            }
+
+            return models;
+        }
+
+        //
+        // Accept parent to optimize serialization performance
+        private object DirectoryToJsonModel(IFileInfo info, Fields fields = null, bool full = true, IFileInfo parent = null)
         {
             if (fields == null) {
                 fields = Fields.All;
@@ -162,20 +161,20 @@ namespace Microsoft.IIS.Administration.Files
             if (fields.Exists("total_files") && full) {
                 exists = exists ?? info.Exists;
                 if (_fileProvider.IsAccessAllowed(info.Path, FileAccess.Read)) {
-                    obj.total_files = exists.Value ? _fileProvider.GetFiles(info.Path, "*").Count() + _fileProvider.GetDirectories(info.Path, "*").Count() : 0;
+                    obj.total_files = exists.Value ? _fileProvider.GetFiles(info, "*").Count() + _fileProvider.GetDirectories(info, "*").Count() : 0;
                 }
             }
 
             //
             // parent
             if (fields.Exists("parent")) {
-                obj.parent = GetParentJsonModelRef(info.Path, fields.Filter("parent"));
+                obj.parent = parent != null ? DirectoryToJsonModelRef(parent, fields.Filter("parent")) : GetParentJsonModelRef(info.Path, fields.Filter("parent"));
             }
 
             //
             // claims
             if (fields.Exists("claims")) {
-                obj.claims = _fileProvider.GetClaims(info.Path) ?? Enumerable.Empty<string>();
+                obj.claims = info.Claims;
             }
 
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
@@ -191,7 +190,9 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
-        private object FileToJsonModel(IFileInfo info, Fields fields = null, bool full = true)
+        //
+        // Accept parent to optimize serialization performance
+        private object FileToJsonModel(IFileInfo info, Fields fields = null, bool full = true, IFileInfo parent = null)
         {
             if (fields == null) {
                 fields = Fields.All;
@@ -289,13 +290,13 @@ namespace Microsoft.IIS.Administration.Files
             //
             // parent
             if (fields.Exists("parent")) {
-                obj.parent = GetParentJsonModelRef(info.Path, fields.Filter("parent"));
+                obj.parent = parent != null ? DirectoryToJsonModelRef(parent, fields.Filter("parent")) : GetParentJsonModelRef(info.Path, fields.Filter("parent"));
             }
 
             //
             // claims
             if (fields.Exists("claims")) {
-                obj.claims = _fileProvider.GetClaims(info.Path) ?? Enumerable.Empty<string>();
+                obj.claims = info.Claims;
             }
 
 
@@ -383,7 +384,7 @@ namespace Microsoft.IIS.Administration.Files
             //
             // claims
             if (fields.Exists("claims")) {
-                obj.claims = _fileProvider.GetClaims(info.Path) ?? Enumerable.Empty<string>();
+                obj.claims = info.Claims;
             }
 
 
@@ -409,22 +410,18 @@ namespace Microsoft.IIS.Administration.Files
             return PathUtil.GetFullPath(Path.Combine(root, path.TrimStart(PathUtil.SEPARATORS)));
         }
 
-        internal string UpdateFile(dynamic model, string physicalPath)
+        internal IFileInfo UpdateFile(dynamic model, IFileInfo file)
         {
-            DateTime? created = null;
-            DateTime? lastAccess = null;
-            DateTime? lastModified = null;
-
-            var file = _fileProvider.GetFile(physicalPath);
-
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
 
-            created = DynamicHelper.To<DateTime>(model.created);
-            lastAccess = DynamicHelper.To<DateTime>(model.last_access);
-            lastModified = DynamicHelper.To<DateTime>(model.last_modified);
+            DateTime? created = DynamicHelper.To<DateTime>(model.created);
+            DateTime? lastAccess = DynamicHelper.To<DateTime>(model.last_access);
+            DateTime? lastModified = DynamicHelper.To<DateTime>(model.last_modified);
 
+            //
+            // Change name
             if (model.name != null) {
 
                 string name = DynamicHelper.Value(model.name).Trim();
@@ -435,39 +432,41 @@ namespace Microsoft.IIS.Administration.Files
 
                 var newPath = Path.Combine(file.Parent.Path, name);
 
-                if (!newPath.Equals(physicalPath, StringComparison.OrdinalIgnoreCase)) {
+                if (!newPath.Equals(file.Path, StringComparison.OrdinalIgnoreCase)) {
 
-                    if (_fileProvider.FileExists(newPath) || _fileProvider.DirectoryExists(newPath)) {
+                    IFileInfo destination = _fileProvider.GetFile(newPath);
+
+                    if (destination.Exists || _fileProvider.GetDirectory(newPath).Exists) {
                         throw new AlreadyExistsException("name");
                     }
 
-                    _fileProvider.Move(physicalPath, newPath);
+                    _fileProvider.Move(file, destination);
 
-                    physicalPath = newPath;
+                    //
+                    // Refresh
+                    file = _fileProvider.GetFile(destination.Path);
                 }
             }
 
-            _fileProvider.SetFileTime(physicalPath, lastAccess, lastModified, created);
+            //
+            // Set file times
+            _fileProvider.SetFileTime(file, lastAccess, lastModified, created);
 
-            return physicalPath;
+            return file;
         }
 
-        internal string UpdateDirectory(dynamic model, string directoryPath)
+        internal IFileInfo UpdateDirectory(dynamic model, IFileInfo directory)
         {
-            DateTime? created = null;
-            DateTime? lastAccess = null;
-            DateTime? lastModified = null;
-
-            var directory = _fileProvider.GetDirectory(directoryPath);
-
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
 
-            created = DynamicHelper.To<DateTime>(model.created);
-            lastAccess = DynamicHelper.To<DateTime>(model.last_access);
-            lastModified = DynamicHelper.To<DateTime>(model.last_modified);
+            DateTime? created = DynamicHelper.To<DateTime>(model.created);
+            DateTime? lastAccess = DynamicHelper.To<DateTime>(model.last_access);
+            DateTime? lastModified = DynamicHelper.To<DateTime>(model.last_modified);
 
+            //
+            // Change name
             if (model.name != null) {
                 string name = DynamicHelper.Value(model.name).Trim();
 
@@ -477,26 +476,38 @@ namespace Microsoft.IIS.Administration.Files
 
                 string newPath = Path.Combine(directory.Parent.Path, name);
 
-                if (!newPath.Equals(directoryPath, StringComparison.OrdinalIgnoreCase)) {
+                if (!newPath.Equals(directory.Path, StringComparison.OrdinalIgnoreCase)) {
 
-                    if (_fileProvider.FileExists(newPath) || _fileProvider.DirectoryExists(newPath)) {
+                    IFileInfo destination = _fileProvider.GetDirectory(newPath);
+
+                    if (destination.Exists || _fileProvider.GetFile(newPath).Exists) {
                         throw new AlreadyExistsException("name");
                     }
 
-                    _fileProvider.Move(directoryPath, newPath);
+                    _fileProvider.Move(directory, destination);
 
-                    directoryPath = newPath;
+                    //
+                    // Refresh
+                    directory = _fileProvider.GetDirectory(destination.Path);
                 }
             }
 
-            _fileProvider.SetFileTime(directoryPath, lastAccess, lastModified, created);
+            //
+            // Set file times
+            _fileProvider.SetFileTime(directory, lastAccess, lastModified, created);
 
-            return directoryPath;
+            return directory;
         }
 
-        internal static FileType GetFileType(string physicalPath)
+        internal IFileInfo GetExistingFileInfo(string physicalPath)
         {
-            return File.GetAttributes(physicalPath).HasFlag(FileAttributes.Directory) ? FileType.Directory : FileType.File;
+            IFileInfo info = _fileProvider.GetFile(physicalPath);
+
+            if (!info.Exists) {
+                info = _fileProvider.GetDirectory(physicalPath);
+            }
+
+            return info.Exists ? info : null;
         }
 
         private object GetParentJsonModelRef(string physicalPath, Fields fields = null)

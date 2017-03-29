@@ -60,12 +60,13 @@ namespace Microsoft.IIS.Administration.Files
             int? ttl = DynamicHelper.To<int>(model.ttl);
 
             FileId fileId = FileId.FromUuid(fileUuid);
+            IFileInfo file = _fileService.GetFile(fileId.PhysicalPath);
 
-            if (!_fileService.FileExists(fileId.PhysicalPath)) {
+            if (!file.Exists) {
                 throw new NotFoundException(fileId.PhysicalPath);
             }
 
-            var dl = _downloadService.Create(fileId.PhysicalPath, ttl);
+            var dl = _downloadService.Create(file.Path, ttl);
 
             // Inform client location points to downloadable attachment
             Context.Response.Headers.Add("Pragma", "attachment");

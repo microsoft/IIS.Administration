@@ -23,8 +23,9 @@ namespace Microsoft.IIS.Administration.Files
         public IActionResult Head(string id)
         {
             FileId fileId = FileId.FromUuid(id);
+            IFileInfo info = _fileProvider.GetFile(fileId.PhysicalPath);
 
-            if (!_fileProvider.FileExists(fileId.PhysicalPath)) {
+            if (!info.Exists) {
                 return NotFound();
             }
 
@@ -48,8 +49,9 @@ namespace Microsoft.IIS.Administration.Files
             //
             // Serve content
             FileId fileId = FileId.FromUuid(id);
+            IFileInfo info = _fileProvider.GetFile(fileId.PhysicalPath);
 
-            if (!_fileProvider.FileExists(fileId.PhysicalPath)) {
+            if (!info.Exists) {
                 return NotFound();
             }
 
@@ -64,8 +66,9 @@ namespace Microsoft.IIS.Administration.Files
         public async Task<IActionResult> Put(string id)
         {
             FileId fileId = FileId.FromUuid(id);
+            IFileInfo info = _fileProvider.GetFile(fileId.PhysicalPath);
 
-            if (!_fileProvider.FileExists(fileId.PhysicalPath)) {
+            if (!info.Exists) {
                 return NotFound();
             }
 

@@ -38,11 +38,13 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             string dir = _site.TraceFailedRequestsLogging.Directory;
             string path = string.IsNullOrEmpty(dir) ? null : Path.Combine(PathUtil.GetFullPath(dir), "W3SVC" + _site.Id);
 
-            if (path != null && _provider.DirectoryExists(path)) {
-                files = _provider.GetFiles(path, "*.xml");
+            IFileInfo directory = path == null ? null : _provider.GetDirectory(path);
+
+            if (directory != null && directory.Exists) {
+                files = _provider.GetFiles(directory, "*.xml");
             }
 
-            return files == null ? Enumerable.Empty<TraceInfo>() : await Task.WhenAll(files.Select(f => GetTraceInternal(f)));
+            return files == null ? Enumerable.Empty<TraceInfo>() : await Task.WhenAll(files.Select(f => ParseTrace(f)));
         }
 
         public async Task<TraceInfo> GetTrace(string id)
@@ -136,17 +138,11 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return $"/{Defines.TRACES_PATH}/{id}";
         }
 
-        private Task<TraceInfo> GetTraceInternal(IFileInfo trace)
-        {
-            return ParseTrace(trace);
-        }
-
         private async Task<TraceInfo> ParseTrace(IFileInfo trace)
         {
             TraceInfo info = null;
-
-
-            using (var stream = _provider.GetFileStream(trace.Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            
+            using (var stream = _provider.GetFileStream(trace, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (var reader = XmlReader.Create(stream, _xmlReaderSettings)) {
                 try {
 

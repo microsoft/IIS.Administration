@@ -44,11 +44,24 @@ namespace Microsoft.IIS.Administration.Files
                 return GetByPhysicalPath(physicalPath, fields);
             }
 
-            if (parentId != null && !_provider.DirectoryExists(parentId.PhysicalPath)) {
+            if (parentId != null && !_provider.GetDirectory(parentId.PhysicalPath).Exists) {
                 return NotFound();
             }
 
-            IEnumerable<IFileInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, nameFilter) : GetFromLocations(nameFilter);
+            IEnumerable<object> children = null;
+
+            if (parentId == null) {
+                var list = new List<object>();
+                children = list;
+
+                foreach (IFileInfo child in GetFromLocations(nameFilter)) {
+                    list.Add(_helper.ToJsonModelRef(child, fields));
+                }
+            }
+            else {
+                IFileInfo parent = _provider.GetDirectory(parentId.PhysicalPath);
+                children = _helper.DirectoryContentToJsonModel(parent, GetChildren(parent, nameFilter), fields);
+            }
 
             // Set HTTP header for total count
             this.Context.Response.SetItemsCount(children.Count());
@@ -72,19 +85,27 @@ namespace Microsoft.IIS.Administration.Files
                 return GetByPhysicalPath(physicalPath, fields);
             }
             
-            if (parentId != null && !_provider.DirectoryExists(parentId.PhysicalPath)) {
+            if (parentId != null && !_provider.GetDirectory(parentId.PhysicalPath).Exists) {
                 return NotFound();
             }
 
-            var models = new List<object>();
-            IEnumerable<IFileInfo> children = parentId != null ? GetChildren(parentId.PhysicalPath, nameFilter) : GetFromLocations(nameFilter);
+            IEnumerable<object> models = null;
 
-            foreach (IFileInfo child in children) {
-                models.Add(_helper.ToJsonModelRef(child, fields));
+            if (parentId == null) {
+                var list = new List<object>();
+                models = list;
+
+                foreach (IFileInfo child in GetFromLocations(nameFilter)) {
+                    list.Add(_helper.ToJsonModelRef(child, fields));
+                }
+            }
+            else {
+                IFileInfo parent = _provider.GetDirectory(parentId.PhysicalPath);
+                models = _helper.DirectoryContentToJsonModel(parent, GetChildren(parent, nameFilter), fields);
             }
 
             // Set HTTP header for total count
-            this.Context.Response.SetItemsCount(models.Count);
+            this.Context.Response.SetItemsCount(models.Count());
             this.Context.Response.Headers[HeaderNames.AcceptRanges] = _units;
 
             return new
@@ -99,11 +120,13 @@ namespace Microsoft.IIS.Administration.Files
         {
             FileId fileId = FileId.FromUuid(id);
 
-            if (!_provider.FileExists(fileId.PhysicalPath) && !_provider.DirectoryExists(fileId.PhysicalPath)) {
+            IFileInfo info = _helper.GetExistingFileInfo(fileId.PhysicalPath);
+
+            if (info == null) {
                 return NotFound();
             }
 
-            return _helper.ToJsonModel(fileId.PhysicalPath);
+            return _helper.ToJsonModel(info);
         }
 
         [HttpPost]
@@ -130,7 +153,7 @@ namespace Microsoft.IIS.Administration.Files
 
             FileId fileId = FileId.FromUuid(parentUuid);
 
-            if (!_provider.DirectoryExists(fileId.PhysicalPath)) {
+            if (!_provider.GetDirectory(fileId.PhysicalPath).Exists) {
                 throw new NotFoundException("parent");
             }
 
@@ -157,13 +180,14 @@ namespace Microsoft.IIS.Administration.Files
 
             string creationPath = Path.Combine(fileId.PhysicalPath, name);
 
-            if (_provider.DirectoryExists(creationPath) || _provider.FileExists(creationPath)) {
+            if (_provider.GetFile(creationPath).Exists || _provider.GetDirectory(creationPath).Exists) {
                 throw new AlreadyExistsException("name");
             }
 
-            IFileInfo info = fileType == FileType.File ? _provider.CreateFile(creationPath) : _provider.CreateDirectory(creationPath);
+            IFileInfo info = fileType == FileType.File ? _provider.CreateFile(_provider.GetFile(creationPath))
+                                                       : _provider.CreateDirectory(_provider.GetDirectory(creationPath));
 
-            _provider.SetFileTime(info.Path, lastAccess, lastModified, created);
+            _provider.SetFileTime(info, lastAccess, lastModified, created);
 
             dynamic file = _helper.ToJsonModel(info);
 
@@ -177,19 +201,21 @@ namespace Microsoft.IIS.Administration.Files
         {
             FileId fileId = FileId.FromUuid(id);
 
-            if (!_provider.FileExists(fileId.PhysicalPath) && !_provider.DirectoryExists(fileId.PhysicalPath)) {
+            IFileInfo info = _helper.GetExistingFileInfo(fileId.PhysicalPath);
+
+            if (info == null) {
                 return NotFound();
             }
 
             dynamic result = null;
-            switch (FilesHelper.GetFileType(fileId.PhysicalPath)) {
+            switch (info.Type) {
 
                 case FileType.File:
-                    result = PatchFile(model, fileId);
+                    result = _helper.ToJsonModel(_helper.UpdateFile(model, info));
                     break;
 
                 case FileType.Directory:
-                    result = PatchDirectory(model, fileId);
+                    result = _helper.ToJsonModel(_helper.UpdateDirectory(model, info));
                     break;
 
                 default:
@@ -209,16 +235,12 @@ namespace Microsoft.IIS.Administration.Files
         {
             FileId fileId = FileId.FromUuid(id);
 
-            if (_provider.FileExists(fileId.PhysicalPath) || _provider.DirectoryExists(fileId.PhysicalPath)) {
-                switch (FilesHelper.GetFileType(fileId.PhysicalPath)) {
-                    case FileType.File:
-                    case FileType.Directory:
-                        _provider.Delete(fileId.PhysicalPath);
-                        break;
-                    default:
-                        break;
-                }
+            IFileInfo info = _helper.GetExistingFileInfo(fileId.PhysicalPath);
+
+            if (info != null) {
+                _provider.Delete(info);
             }
+
             return new NoContentResult();
         }
 
@@ -259,14 +281,7 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ApiArgumentException(_physicalPathKey);
             }
 
-            IFileInfo info = null;
-
-            if (_provider.FileExists(physicalPath)) {
-                info = _provider.GetFile(physicalPath);
-            }
-            else if (_provider.DirectoryExists(physicalPath)) {
-                info = _provider.GetDirectory(physicalPath);
-            }
+            IFileInfo info = _helper.GetExistingFileInfo(physicalPath);
 
             if (info == null) {
                 throw new NotFoundException(_physicalPathKey);
@@ -275,13 +290,13 @@ namespace Microsoft.IIS.Administration.Files
             return _helper.ToJsonModel(info, fields);
         }
 
-        private IEnumerable<IFileInfo> GetChildren(string physicalPath, string nameFilter)
+        private IEnumerable<IFileInfo> GetChildren(IFileInfo directory, string nameFilter)
         {
             var infos = new List<IFileInfo>();
 
             //
             // Directories
-            foreach (var d in _provider.GetDirectories(physicalPath, $"*{nameFilter}*")) {
+            foreach (var d in _provider.GetDirectories(directory, $"*{nameFilter}*")) {
                 if (!d.Attributes.HasFlag(FileAttributes.Hidden) && !d.Attributes.HasFlag(FileAttributes.System)) {
                     infos.Add(d);
                 }
@@ -289,7 +304,7 @@ namespace Microsoft.IIS.Administration.Files
 
             //
             // Files
-            foreach (var f in _provider.GetFiles(physicalPath, $"*{nameFilter}*")) {
+            foreach (var f in _provider.GetFiles(directory, $"*{nameFilter}*")) {
                 if (!f.Attributes.HasFlag(FileAttributes.Hidden) && !f.Attributes.HasFlag(FileAttributes.System)) {
                     infos.Add(f);
                 }
@@ -312,43 +327,21 @@ namespace Microsoft.IIS.Administration.Files
 
         private IEnumerable<IFileInfo> GetFromLocations(string nameFilter)
         {
-            var dirs = new List<IFileInfo>();
-
-            foreach (var location in _provider.Options.Locations) {
-                if (_provider.IsAccessAllowed(location.Path, FileAccess.Read) && 
-                        (string.IsNullOrEmpty(nameFilter) || PathUtil.GetName(location.Path).IndexOf(nameFilter, StringComparison.OrdinalIgnoreCase) != -1)) {
-
-                    dirs.Add(_provider.GetDirectory(location.Path));
-                }
-            }
+            var dirs = _provider.GetDirectories(null, nameFilter);
 
             if (Context.Request.Headers.ContainsKey(HeaderNames.Range)) {
                 long start, finish;
 
-                if (!Context.Request.Headers.TryGetRange(out start, out finish, dirs.Count, _units)) {
+                if (!Context.Request.Headers.TryGetRange(out start, out finish, dirs.Count(), _units)) {
                     throw new InvalidRangeException();
                 }
 
-                Context.Response.Headers.SetContentRange(start, finish, dirs.Count);
+                Context.Response.Headers.SetContentRange(start, finish, dirs.Count());
 
                 return dirs.Where((c, index) => index >= start && index <= finish);
             }
 
             return dirs;
-        }
-
-        private object PatchFile(dynamic model, FileId fileId)
-        {
-            var physicalPath = _helper.UpdateFile(model, fileId.PhysicalPath);
-
-            return _helper.ToJsonModel(_provider.GetFile(physicalPath));
-        }
-
-        private object PatchDirectory(dynamic model, FileId fileId)
-        {
-            var physicalPath = _helper.UpdateDirectory(model, fileId.PhysicalPath);
-
-            return _helper.ToJsonModel(_provider.GetDirectory(physicalPath));
         }
     }
 }

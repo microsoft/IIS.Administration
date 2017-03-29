@@ -36,23 +36,19 @@ namespace Microsoft.IIS.Administration.Files
         public object Post([FromBody] dynamic model)
         {
             string name;
-            FileType fileType;
+            IFileInfo src;
             FileId fileId, parentId;
 
             _helper.EnsurePostModelValid(model, out name, out fileId, out parentId);
+            src = new FilesHelper(_fileService).GetExistingFileInfo(fileId.PhysicalPath);
 
-            try {
-                fileType = FilesHelper.GetFileType(fileId.PhysicalPath);
-            }
-            catch (FileNotFoundException) {
+            if (src == null) {
                 throw new NotFoundException("file");
             }
 
-            if (!_fileService.DirectoryExists(parentId.PhysicalPath)) {
+            if (!_fileService.GetDirectory(parentId.PhysicalPath).Exists) {
                 throw new NotFoundException("parent");
             }
-
-            IFileInfo src = fileType == FileType.File ? _fileService.GetFile(fileId.PhysicalPath) : _fileService.GetDirectory(fileId.PhysicalPath);
 
             string destPath = Path.Combine(parentId.PhysicalPath, name == null ? src.Name : name);
 
@@ -60,10 +56,9 @@ namespace Microsoft.IIS.Administration.Files
                 throw new ApiArgumentException("parent", "The destination folder is a subfolder of the source");
             }
 
-            if (fileType == FileType.File && _fileService.DirectoryExists(destPath) || fileType == FileType.Directory && _fileService.FileExists(destPath)) {
+            if (src.Type == FileType.File && _fileService.GetDirectory(destPath).Exists || src.Type == FileType.Directory && _fileService.GetFile(destPath).Exists) {
                 throw new AlreadyExistsException("name");
             }
-
 
             MoveOperation copy = InitiateCopy(src, destPath);
 

@@ -11,35 +11,31 @@ namespace Microsoft.IIS.Administration.Files
 
     public interface IFileProvider
     {
-        Stream GetFileStream(string path, FileMode fileMode, FileAccess fileAccess, FileShare fileShare);
+        Stream GetFileStream(IFileInfo info, FileMode fileMode, FileAccess fileAccess, FileShare fileShare);
 
         IFileInfo GetFile(string path);
 
         IFileInfo GetDirectory(string path);
 
-        IEnumerable<IFileInfo> GetFiles(string path, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly);
+        IEnumerable<IFileInfo> GetFiles(IFileInfo info, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly);
 
-        IEnumerable<IFileInfo> GetDirectories(string path, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly);
+        IEnumerable<IFileInfo> GetDirectories(IFileInfo info, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly);
 
-        Task Copy(string sourcePath, string destPath);
+        Task Copy(IFileInfo source, IFileInfo destination);
 
-        void Move(string sourcePath, string destPath);
+        void Move(IFileInfo source, IFileInfo destination);
 
-        void Delete(string path);
+        void Delete(IFileInfo info);
 
-        IFileInfo CreateFile(string path);
+        IFileInfo CreateFile(IFileInfo file);
 
-        IFileInfo CreateDirectory(string path);
-
-        bool FileExists(string path);
-
-        bool DirectoryExists(string path);
-
-        IEnumerable<string> GetClaims(string path);
+        IFileInfo CreateDirectory(IFileInfo directory);
 
         bool IsAccessAllowed(string path, FileAccess requestedAccess);
 
-        void SetFileTime(string path, DateTime? lastAccessed, DateTime? lastModified, DateTime? created);
+        bool IsAccessAllowed(IFileInfo fileInfo, FileAccess requestedAccess);
+
+        void SetFileTime(IFileInfo info, DateTime? lastAccessed, DateTime? lastModified, DateTime? created);
 
         IFileOptions Options { get; }
     }

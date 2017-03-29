@@ -86,13 +86,11 @@ namespace Microsoft.IIS.Administration.Files
             parentId = FileId.FromUuid(parentUuid);
         }
 
-        public async Task CopyDirectory(string sourcePath, string destPath, Func<string, string, Task> copyFile)
+        public async Task CopyDirectory(IFileInfo source, IFileInfo dest, Func<IFileInfo, IFileInfo, Task> copyFile)
         {
-            var source = _fileService.GetDirectory(sourcePath);
-            var dest = _fileService.GetDirectory(destPath);
             var destParent = dest.Parent;
 
-            if (PathUtil.IsAncestor(sourcePath, destPath) || source.Path.Equals(dest.Path, StringComparison.OrdinalIgnoreCase)) {
+            if (PathUtil.IsAncestor(source.Path, dest.Path) || source.Path.Equals(dest.Path, StringComparison.OrdinalIgnoreCase)) {
                 throw new InvalidOperationException();
             }
 
@@ -104,7 +102,7 @@ namespace Microsoft.IIS.Administration.Files
             }
 
             if (!dest.Exists) {
-                _fileService.CreateDirectory(dest.Path);
+                _fileService.CreateDirectory(dest);
             }
 
             var tasks = new List<Task>();
@@ -113,20 +111,23 @@ namespace Microsoft.IIS.Administration.Files
             foreach (string dirPath in children) {
                 var relative = dirPath.Substring(source.Path.Length).TrimStart(PathUtil.SEPARATORS);
                 var destDirPath = Path.Combine(dest.Path, relative);
+                IFileInfo destDir = _fileService.GetDirectory(destDirPath);
 
                 tasks.Add(Task.Run(() => {
-                    if (!_fileService.DirectoryExists(destDirPath)) {
-                        _fileService.CreateDirectory(destDirPath);
+                    if (!destDir.Exists) {
+                        _fileService.CreateDirectory(destDir);
                     }
 
                     foreach (string filePath in Directory.EnumerateFiles(dirPath)) {
-                        tasks.Add(copyFile(filePath, Path.Combine(destDirPath, PathUtil.GetName(filePath))));
+                        tasks.Add(copyFile(_fileService.GetFile(filePath),
+                                           _fileService.GetFile(Path.Combine(destDirPath, PathUtil.GetName(filePath)))));
                     }
                 }));
             }
 
             foreach (var filePath in Directory.EnumerateFiles(source.Path)) {
-                tasks.Add(copyFile(filePath, Path.Combine(dest.Path, PathUtil.GetName(filePath))));
+                tasks.Add(copyFile(_fileService.GetFile(filePath),
+                                   _fileService.GetFile(Path.Combine(dest.Path, PathUtil.GetName(filePath)))));
             }
 
             await Task.WhenAll(tasks);
@@ -137,69 +138,82 @@ namespace Microsoft.IIS.Administration.Files
             _fileService.EnsureAccess(source.Path, copy ? FileAccess.Read : FileAccess.ReadWrite);
             _fileService.EnsureAccess(dest, FileAccess.Write);
 
+            IFileInfo destination = null;
+
             if (source.Type == FileType.File) {
-                return MoveFile(source, dest, copy);
+                destination = _fileService.GetFile(dest);
+                return MoveFile(source, destination, copy);
             }
             else if (source.Type == FileType.Directory) {
-                return MoveDirectory(source, dest, copy);
+                destination = _fileService.GetDirectory(dest);
+                return MoveDirectory(source, destination, copy);
             }
 
             throw new InvalidOperationException();
         }
 
-        private MoveOperation MoveDirectory(IFileInfo source, string dest, bool copy)
+        private MoveOperation MoveDirectory(IFileInfo source, IFileInfo destination, bool copy)
         {
             Task t;
             MoveOperation op = null;
 
             if (copy) {
-                t = CopyDirectory(source.Path, dest, (s, d) => SafeMoveFile(s, d, PathUtil.GetTempFilePath(d), true).ContinueWith(t2 => {
+                t = CopyDirectory(source, destination, (s, d) => SafeMoveFile(s, d, PathUtil.GetTempFilePath(d.Path), true).ContinueWith(t2 => {
                     if (op != null) {
-                        op.CurrentSize += _fileService.GetFile(d).Size;
+                        op.CurrentSize += _fileService.GetFile(d.Path).Size;
                     }
                 }));
             }
             else {
-                t = Task.Run(() => _fileService.Move(source.Path, dest));
+                t = Task.Run(() => _fileService.Move(source, destination));
             }
 
-            op = new MoveOperation(t, source, dest, null, _fileService);
+            op = new MoveOperation(t, source, destination, null, _fileService);
             return op;
         }
 
-        private MoveOperation MoveFile(IFileInfo source, string dest, bool copy)
+        private MoveOperation MoveFile(IFileInfo source, IFileInfo destination, bool copy)
         {
-            string temp = PathUtil.GetTempFilePath(dest);
+            string temp = PathUtil.GetTempFilePath(destination.Path);
 
-            Task t = SafeMoveFile(source.Path, dest, temp, copy);
+            Task t = SafeMoveFile(source, destination, temp, copy);
 
-            return new MoveOperation(t, source, dest, temp, _fileService);
+            return new MoveOperation(t, source, destination, temp, _fileService);
         }
 
-        private async Task SafeMoveFile(string source, string dest, string temp, bool copy)
+        private async Task SafeMoveFile(IFileInfo source, IFileInfo destination, string temp, bool copy)
         {
-            string swapPath = null;
+            IFileInfo swapInfo = null;
+            IFileInfo tempInfo = _fileService.GetFile(temp);
             try {
                 if (copy) {
-                    await _fileService.Copy(source, temp);
+                    await _fileService.Copy(source, tempInfo);
                 }
                 else {
-                    await Task.Run(() => _fileService.Move(source, temp));
+                    await Task.Run(() => _fileService.Move(source, tempInfo));
                 }
 
-                if (_fileService.FileExists(dest)) {
-                    swapPath = PathUtil.GetTempFilePath(dest);
-                    _fileService.Move(dest, swapPath);
+                if (destination.Exists) {
+                    swapInfo = _fileService.GetFile(PathUtil.GetTempFilePath(destination.Path));
+                    _fileService.Move(destination, swapInfo);
                 }
 
-                _fileService.Move(temp, dest);
+                _fileService.Move(tempInfo, destination);
             }
             finally {
-                if (_fileService.FileExists(temp)) {
-                    _fileService.Delete(temp);
+                // Refresh
+                tempInfo = _fileService.GetFile(temp);
+                if (swapInfo != null) {
+                    swapInfo = _fileService.GetFile(swapInfo.Path);
+                    destination = _fileService.GetFile(destination.Path);
                 }
-                if (swapPath != null && _fileService.FileExists(swapPath) && _fileService.FileExists(dest)) {
-                    _fileService.Delete(swapPath);
+
+                if (tempInfo.Exists) {
+                    _fileService.Delete(tempInfo);
+                }
+
+                if (swapInfo != null && swapInfo.Exists && destination.Exists) {
+                    _fileService.Delete(swapInfo);
                 }
             }
         }

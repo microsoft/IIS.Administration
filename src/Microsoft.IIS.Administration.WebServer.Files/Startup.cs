@@ -25,10 +25,11 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
         private void ConfigureOptions()
         {
-            IFileProvider fileProvider = (IFileProvider) Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(IFileProvider));
+            IAccessControl accessControl = (IAccessControl)Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(IAccessControl));
+            IFileProvider fileProvider = (IFileProvider)Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(IFileProvider));
 
             string inetpubPath = System.Environment.ExpandEnvironmentVariables(@"%SystemDrive%\inetpub");
-            IEnumerable<string> claims = fileProvider.GetClaims(inetpubPath);
+            IEnumerable<string> claims = accessControl.GetClaims(inetpubPath);
 
             if (claims == null) {
                 //

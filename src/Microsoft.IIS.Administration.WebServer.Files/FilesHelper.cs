@@ -63,7 +63,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
         }
 
-        internal object DirectoryToJsonModel(Site site, string path, Fields fields = null, bool full = true)
+        //
+        // Allow caller to pass parent JSON model to optimize performance for serializing entire directories
+        internal object DirectoryToJsonModel(Site site, string path, Fields fields = null, bool full = true, object parent = null)
         {
             if (string.IsNullOrEmpty(path)) {
                 throw new ArgumentNullException(nameof(path));
@@ -107,7 +109,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // parent
             if (fields.Exists("parent")) {
-                obj.parent = GetParentJsonModelRef(site, path, fields.Filter("parent"));
+                obj.parent = parent ?? GetParentJsonModelRef(site, path, fields.Filter("parent"));
             }
 
             //
@@ -135,7 +137,9 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             }
         }
 
-        internal object FileToJsonModel(Site site, string path, Fields fields = null, bool full = true)
+        //
+        // Allow caller to pass parent JSON model to optimize performance for serializing entire directories
+        internal object FileToJsonModel(Site site, string path, Fields fields = null, bool full = true, object parent = null)
         {
             if (string.IsNullOrEmpty(path)) {
                 throw new ArgumentNullException(nameof(path));
@@ -178,7 +182,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // parent
             if (fields.Exists("parent")) {
-                obj.parent = GetParentJsonModelRef(site, path, fields.Filter("parent"));
+                obj.parent = parent ?? GetParentJsonModelRef(site, path, fields.Filter("parent"));
             }
 
             //
@@ -282,7 +286,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return $"/{Defines.FILES_PATH}/{id}";
         }
 
-        internal static FileType GetFileType(Site site, string path, string physicalPath)
+        internal FileType GetFileType(Site site, string path, string physicalPath)
         {
             // A virtual directory is a directory who's physical path is not the combination of the sites physical path and the relative path from the sites root
             // and has same virtual path as app + vdir path
@@ -294,7 +298,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             if (path == "/" || differentPhysicalPath && IsExactVdirPath(site, app, vdir, path)) {
                 return Vdir.GetVdirType(vdir);
             }
-            else if (Directory.Exists(physicalPath)) {
+            else if (_fileProvider.GetDirectory(physicalPath).Exists) {
                 return FileType.Directory;
             }
 

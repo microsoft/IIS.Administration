@@ -5,17 +5,53 @@
 namespace Microsoft.IIS.Administration.Files
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
 
     class FileInfo : IFileInfo
     {
-        private System.IO.FileInfo _info;
+        private SymLink _symlink;
         private IFileInfo _parent;
+        private bool _resolvedParent;
+        private System.IO.FileInfo _info;
+        private IEnumerable<string> _claims;
+        private IAccessControl _accessControl;
 
-        public FileInfo(string path)
+        private bool? _exists;
+        private DateTime? _created;
+        private DateTime? _lastModified;
+        private DateTime? _lastAccessed;
+
+        public FileInfo(string path, IAccessControl accessControl)
         {
             _info = new System.IO.FileInfo(path);
-            _parent = _info.Directory == null ? null : new DirectoryInfo(_info.Directory.FullName);
+            _symlink = new SymLink(path);
+            _accessControl = accessControl;
+        }
+
+        public FileInfo(string path, IAccessControl accessControl, bool exists) : this(path, accessControl)
+        {
+            _exists = exists;
+        }
+
+        public IEnumerable<string> Claims {
+            get {
+                if (_claims == null) {
+                    try {
+                        _claims = _accessControl.GetClaims(Target);
+                    }
+                    //
+                    // Ignore
+                    catch (UnauthorizedAccessException) {
+                    }
+                    catch (IOException) {
+                    }
+
+                    _claims = _claims ?? Enumerable.Empty<string>();
+                }
+                return _claims;
+            }
         }
 
         public FileAttributes Attributes {
@@ -24,27 +60,36 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
-        public DateTime Created {
+        public bool Exists {
             get {
-                return _info.CreationTime;
+                return _exists ?? _info.Exists;
             }
         }
 
-        public bool Exists {
+        public DateTime Created {
             get {
-                return _info.Exists;
+                return _created ?? _info.CreationTime;
+            }
+            set {
+                _created = value;
             }
         }
 
         public DateTime LastAccessed {
             get {
-                return _info.LastAccessTime;
+                return _lastAccessed ?? _info.LastAccessTime;
+            }
+            set {
+                _lastAccessed = value;
             }
         }
 
         public DateTime LastModified {
             get {
-                return _info.LastWriteTime;
+                return _lastModified ?? _info.LastWriteTime;
+            }
+            set {
+                _lastModified = value;
             }
         }
 
@@ -56,6 +101,10 @@ namespace Microsoft.IIS.Administration.Files
 
         public IFileInfo Parent {
             get {
+                if (!_resolvedParent) {
+                    _parent = _info.Directory == null ? null : new DirectoryInfo(_info.Directory.FullName, _accessControl);
+                    _resolvedParent = true;
+                }
                 return _parent;
             }
         }
@@ -63,6 +112,12 @@ namespace Microsoft.IIS.Administration.Files
         public string Path {
             get {
                 return _info.FullName;
+            }
+        }
+
+        public string Target {
+            get {
+                return _symlink.Target ?? Path;
             }
         }
 

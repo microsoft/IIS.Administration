@@ -35,7 +35,7 @@ namespace Microsoft.IIS.Administration.Files
                 return NotFound();
             }
 
-            if (!_fileProvider.FileExists(dl.PhysicalPath)) {
+            if (!_fileProvider.GetFile(dl.PhysicalPath).Exists) {
                 _downloadService.Remove(dl.Id);
                 return NotFound();
             }
@@ -63,7 +63,7 @@ namespace Microsoft.IIS.Administration.Files
                 return NotFound();
             }
 
-            if (!_fileProvider.FileExists(dl.PhysicalPath)) {
+            if (!_fileProvider.GetFile(dl.PhysicalPath).Exists) {
                 _downloadService.Remove(dl.Id);
                 return NotFound();
             }

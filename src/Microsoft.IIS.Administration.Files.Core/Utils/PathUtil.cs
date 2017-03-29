@@ -101,14 +101,14 @@ namespace Microsoft.IIS.Administration.Files
             }
 
             string tempPath = null;
-            var info = new DirectoryInfo(path);
+            var info = new System.IO.DirectoryInfo(path);
 
             if (info.Parent == null) {
                 throw new ArgumentException("path", "Parent cannot be null.");
             }
 
             do {
-                tempPath = Path.Combine(info.Parent.Path, GetTempName(info.Name));
+                tempPath = Path.Combine(info.Parent.FullName, GetTempName(info.Name));
             }
             while (File.Exists(tempPath) || Directory.Exists(tempPath));
 
@@ -117,11 +117,11 @@ namespace Microsoft.IIS.Administration.Files
 
         public static bool IsAncestor(string parent, string child)
         {
-            var parentDir = new DirectoryInfo(parent);
+            var parentDir = new System.IO.DirectoryInfo(parent);
             var curParent = Directory.GetParent(child);
 
             while (curParent != null) {
-                if (curParent.FullName.Equals(parentDir.Path, StringComparison.OrdinalIgnoreCase)) {
+                if (curParent.FullName.Equals(parentDir.FullName, StringComparison.OrdinalIgnoreCase)) {
                     return true;
                 }
                 curParent = curParent.Parent;
@@ -139,13 +139,13 @@ namespace Microsoft.IIS.Administration.Files
 
         public static string GetName(string path)
         {
-            return new DirectoryInfo(path).Name;
+            return new System.IO.DirectoryInfo(path).Name;
         }
 
         public static string GetParentPath(string path)
         {
-            var parent = new DirectoryInfo(path).Parent;
-            return parent == null ? null : parent.Path;
+            var parent = new System.IO.DirectoryInfo(path).Parent;
+            return parent == null ? null : parent.FullName;
         }
 
         private static string GetTempName(string name)

@@ -17,7 +17,7 @@ namespace Microsoft.IIS.Administration.Files
         private long _currentSize = -1;
         private IFileProvider _fileProvider;
 
-        public MoveOperation(Task task, IFileInfo source, string destination, string tempPath, IFileProvider fileProvider)
+        public MoveOperation(Task task, IFileInfo source, IFileInfo destination, string tempPath, IFileProvider fileProvider)
         {
             var bytes = new byte[32];
             using (var rng = RandomNumberGenerator.Create()) {
@@ -38,7 +38,7 @@ namespace Microsoft.IIS.Administration.Files
         public FileType Type { get; private set; }
         public string TempPath { get; private set; }
         public DateTime Created { get; private set; }
-        public string Destination { get; private set; }
+        public IFileInfo Destination { get; private set; }
         public IFileInfo Source { get; private set; }
 
         public long TotalSize {
@@ -51,7 +51,7 @@ namespace Microsoft.IIS.Administration.Files
                     _totalSize = Source.Exists ? Source.Size : 0;
                 }
                 else {
-                    _totalSize = Source.Exists ? _fileProvider.GetFiles(Source.Path, "*", SearchOption.AllDirectories).Aggregate(0L, (prev, f) => prev + (f.Exists ? f.Size : 0)) : 0;
+                    _totalSize = Source.Exists ? _fileProvider.GetFiles(Source, "*", SearchOption.AllDirectories).Aggregate(0L, (prev, f) => prev + (f.Exists ? f.Size : 0)) : 0;
                 }
 
                 return _totalSize;
@@ -65,7 +65,8 @@ namespace Microsoft.IIS.Administration.Files
                 }
 
                 if (Source.Type == FileType.File) {
-                    var dest = string.IsNullOrEmpty(TempPath) ? _fileProvider.GetFile(Destination) : _fileProvider.GetFile(TempPath);
+                    // refresh
+                    var dest = string.IsNullOrEmpty(TempPath) ? _fileProvider.GetFile(Destination.Path) : _fileProvider.GetFile(TempPath);
                     return dest.Exists ? dest.Size : 0;
                 }
                 else {
