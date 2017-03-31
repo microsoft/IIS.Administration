@@ -64,6 +64,10 @@ a:hover {
     display:inline-block;
 }
 
+.hidden {
+    display: none;
+}
+
 @media only screen and (max-width: 799px) {
     .middle > div {
         margin-left:0;

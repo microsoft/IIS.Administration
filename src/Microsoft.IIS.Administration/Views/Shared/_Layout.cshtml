@@ -7,6 +7,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; connect-src 'self'; script-src 'self'; style-src 'self';">
     <title>@ViewBag.Title | Microsoft IIS</title>
     <link href="~/css/main.css" rel="stylesheet" />
     @RenderSection("head", false)
@@ -30,8 +31,5 @@
     <script src="~/lib/jquery-3.2.0.min/index.js"></script>
     <script src="~/js/main.js"></script>
     @RenderSection("scripts", false)
-    <script type="text/javascript">
-        @RenderSection("js", false)
-    </script>
 </body>
 </html>
