@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.Files
         private SymLink _symlink;
         private IFileInfo _parent;
         private bool _resolvedParent;
+        private IFileOptions _options;
         private System.IO.FileInfo _info;
         private IEnumerable<string> _claims;
         private IAccessControl _accessControl;
@@ -23,14 +24,18 @@ namespace Microsoft.IIS.Administration.Files
         private DateTime? _lastModified;
         private DateTime? _lastAccessed;
 
-        public FileInfo(string path, IAccessControl accessControl)
+        public FileInfo(string path, IAccessControl accessControl, IFileOptions options)
         {
             _info = new System.IO.FileInfo(path);
-            _symlink = new SymLink(path);
             _accessControl = accessControl;
+            _options = options;
+
+            if (!options.SkipResolvingSymbolicLinks) {
+                _symlink = new SymLink(path);
+            }
         }
 
-        public FileInfo(string path, IAccessControl accessControl, bool exists) : this(path, accessControl)
+        public FileInfo(string path, IAccessControl accessControl, IFileOptions options, bool exists) : this(path, accessControl, options)
         {
             _exists = exists;
         }
@@ -102,7 +107,7 @@ namespace Microsoft.IIS.Administration.Files
         public IFileInfo Parent {
             get {
                 if (!_resolvedParent) {
-                    _parent = _info.Directory == null ? null : new DirectoryInfo(_info.Directory.FullName, _accessControl);
+                    _parent = _info.Directory == null ? null : new DirectoryInfo(_info.Directory.FullName, _accessControl, _options);
                     _resolvedParent = true;
                 }
                 return _parent;
@@ -114,10 +119,9 @@ namespace Microsoft.IIS.Administration.Files
                 return _info.FullName;
             }
         }
-
         public string Target {
             get {
-                return _symlink.Target ?? Path;
+                return _symlink?.Target ?? Path;
             }
         }
 

@@ -22,6 +22,8 @@ namespace Microsoft.IIS.Administration.Files
             }
         }
 
+        public bool SkipResolvingSymbolicLinks { get; private set; }
+
         public static IFileOptions FromConfiguration(IConfiguration configuration)
         {
             FileOptions options = EmptyOptions();
@@ -33,6 +35,8 @@ namespace Microsoft.IIS.Administration.Files
                         options.AddLocation(location);
                     }
                 }
+
+                options.SkipResolvingSymbolicLinks = configuration.GetSection("files").GetValue("skip_resolving_symbolic_links", false);
             }
 
             return options;

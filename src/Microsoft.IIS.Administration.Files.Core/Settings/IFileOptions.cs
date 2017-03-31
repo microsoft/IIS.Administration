@@ -10,5 +10,6 @@ namespace Microsoft.IIS.Administration.Files
     {
         void AddLocation(ILocation location);
         IEnumerable<ILocation> Locations { get; }
+        bool SkipResolvingSymbolicLinks { get; }
     }
 }

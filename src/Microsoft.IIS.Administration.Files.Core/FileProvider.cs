@@ -40,7 +40,7 @@ namespace Microsoft.IIS.Administration.Files
         {
             return PerformIO(p => {
 
-                var info = new FileInfo(Interop.GetPath(path), _accessControl);
+                var info = new FileInfo(Interop.GetPath(path), _accessControl, _options);
 
                 if (!IsAccessAllowed(info, FileAccess.Read) && (info.Parent == null || !IsAccessAllowed(info.Parent, FileAccess.Read))) {
                     throw new ForbiddenArgumentException(p);
@@ -55,7 +55,7 @@ namespace Microsoft.IIS.Administration.Files
         {
             return PerformIO(p => {
 
-                var info = new DirectoryInfo(Interop.GetPath(path), _accessControl);
+                var info = new DirectoryInfo(Interop.GetPath(path), _accessControl, _options);
 
                 if (!IsAccessAllowed(info, FileAccess.Read) && (info.Parent == null || !IsAccessAllowed(info.Parent, FileAccess.Read))) {
 
@@ -71,7 +71,7 @@ namespace Microsoft.IIS.Administration.Files
         {
             this.EnsureAccess(parent, FileAccess.Read);
 
-            return PerformIO(p => Directory.GetFiles(p ,searchPattern, searchOption), parent.Path).Select(f => new FileInfo(f, _accessControl, true));
+            return PerformIO(p => Directory.GetFiles(p ,searchPattern, searchOption), parent.Path).Select(f => new FileInfo(f, _accessControl, _options,true));
         }
 
         public IEnumerable<IFileInfo> GetDirectories(IFileInfo parent, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly)
@@ -93,7 +93,7 @@ namespace Microsoft.IIS.Administration.Files
 
 
             this.EnsureAccess(parent, FileAccess.Read);
-            return PerformIO(p => Directory.GetDirectories(p, searchPattern, searchOption), parent.Path).Select(d => new DirectoryInfo(d, _accessControl, true));
+            return PerformIO(p => Directory.GetDirectories(p, searchPattern, searchOption), parent.Path).Select(d => new DirectoryInfo(d, _accessControl, _options, true));
         }
 
         public async Task Copy(IFileInfo source, IFileInfo destination)
@@ -155,7 +155,7 @@ namespace Microsoft.IIS.Administration.Files
 
             return PerformIO(p => {
                 File.Create(p).Dispose();
-                return new FileInfo(p, _accessControl);
+                return new FileInfo(p, _accessControl, _options);
             }, file.Path);
         }
 
@@ -172,13 +172,13 @@ namespace Microsoft.IIS.Administration.Files
 
             return PerformIO(p => {
                 Directory.CreateDirectory(p);
-                return new DirectoryInfo(p, _accessControl);
+                return new DirectoryInfo(p, _accessControl, _options);
             }, directory.Path);
         }
 
         public bool IsAccessAllowed(string path, FileAccess requestedAccess)
         {
-            return IsAccessAllowed(new FileInfo(path, _accessControl), requestedAccess);
+            return IsAccessAllowed(new FileInfo(path, _accessControl, _options), requestedAccess);
         }
 
         public bool IsAccessAllowed(IFileInfo fileInfo, FileAccess requestedAccess)
