@@ -64,24 +64,9 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return WindowsAuthenticationHelper.ToJsonModel(site, winAuthId.Path);
         }
 
-        [HttpPost]
-        [Audit]
-        [ResourceInfo(Name = Defines.WindowsAuthenticationName)]
-        public async Task<object> Post()
-        {
-            if (WindowsAuthenticationHelper.IsFeatureEnabled()) {
-                throw new AlreadyExistsException(WindowsAuthenticationHelper.FEATURE_NAME);
-            }
-
-            await WindowsAuthenticationHelper.SetFeatureEnabled(true);
-
-            dynamic auth = WindowsAuthenticationHelper.ToJsonModel(null, null);
-            return Created(WindowsAuthenticationHelper.GetLocation(auth.id), auth);
-        }
-
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             WinAuthId winAuthId = new WinAuthId(id);
 
@@ -92,10 +77,6 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             if (site != null) {
                 WindowsAuthenticationHelper.GetSection(site, winAuthId.Path, ManagementUnit.ResolveConfigScope()).RevertToParent();
                 ManagementUnit.Current.Commit();
-            }
-
-            if (winAuthId.SiteId == null && WindowsAuthenticationHelper.IsFeatureEnabled()) {
-                await WindowsAuthenticationHelper.SetFeatureEnabled(false);
             }
         }
     }

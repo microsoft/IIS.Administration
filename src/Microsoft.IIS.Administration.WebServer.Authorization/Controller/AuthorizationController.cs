@@ -71,24 +71,9 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return authorization;
         }
 
-        [HttpPost]
-        [Audit]
-        [ResourceInfo(Name = Defines.AuthorizationName)]
-        public async Task<object> Post()
-        {
-            if (AuthorizationHelper.IsFeatureEnabled()) {
-                throw new AlreadyExistsException(AuthorizationHelper.FEATURE_NAME);
-            }
-
-            await AuthorizationHelper.SetFeatureEnabled(true);
-
-            dynamic auth = AuthorizationHelper.ToJsonModel(null, null);
-            return Created(AuthorizationHelper.GetLocation(auth.id), auth);
-        }
-
         [HttpDelete]
         [Audit]
-        public async Task Delete(string id)
+        public void Delete(string id)
         {
             AuthorizationId authId = new AuthorizationId(id);
 
@@ -100,10 +85,6 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
                 var section = AuthorizationHelper.GetSection(site, authId.Path, ManagementUnit.ResolveConfigScope());
                 section.RevertToParent();
                 ManagementUnit.Current.Commit();
-            }
-
-            if (authId.SiteId == null && AuthorizationHelper.IsFeatureEnabled()) {
-                await AuthorizationHelper.SetFeatureEnabled(false);
             }
         }
     }
