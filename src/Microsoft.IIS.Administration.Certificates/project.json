@@ -12,7 +12,7 @@
     }
   },
   "dependencies": {
-    "Microsoft.IIS.Administration.Files.Core": "1.0.1",
+    "Microsoft.IIS.Administration.Files": "1.0.1",
     "System.Security.Cryptography.X509Certificates": "4.1.0"
   }
 }

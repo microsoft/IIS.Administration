@@ -44,7 +44,6 @@ namespace Microsoft.IIS.Administration.Certificates
                 }).ToList();
             }
 
-            // Build references in the scope of the store because references have dependence on store name and location
             foreach (Cert cert in certs) {
                 refs.Add(CertificateHelper.ToJsonModelRef(cert, fields));
                 cert.Dispose();

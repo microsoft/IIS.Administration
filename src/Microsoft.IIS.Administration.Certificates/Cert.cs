@@ -6,7 +6,15 @@
     public sealed class Cert : IDisposable
     {
         public X509Certificate2 Certificate { get; set; }
-        public X509Store Store { get; set; }
+        public string StoreName { get; set; }
+        public StoreLocation StoreLocation { get; set; }
+
+        public Cert(X509Certificate2 certificate, string storeName, StoreLocation storeLocation)
+        {
+            Certificate = certificate;
+            StoreName = storeName;
+            StoreLocation = storeLocation;
+        }
 
         public void Dispose()
         {

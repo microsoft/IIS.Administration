@@ -32,7 +32,7 @@ namespace Microsoft.IIS.Administration.Certificates
                 throw new ApiArgumentException("model");
             }
 
-            string path = GetFile(model);
+            IFileInfo file = GetFile(model);
 
             string password = DynamicHelper.Value(model.password);
             if (string.IsNullOrEmpty(password)) {
@@ -44,7 +44,7 @@ namespace Microsoft.IIS.Administration.Certificates
 
             X509Certificate2 cert = null;
             try {
-                cert = new X509Certificate2(path, password, X509KeyStorageFlags.MachineKeySet
+                cert = new X509Certificate2(file.Path, password, X509KeyStorageFlags.MachineKeySet
                                                             | (exportable ? X509KeyStorageFlags.Exportable : 0)
                                                             | (persistKey ? X509KeyStorageFlags.PersistKeySet : 0));
             }
@@ -70,7 +70,7 @@ namespace Microsoft.IIS.Administration.Certificates
 
 
 
-        private string GetFile(dynamic model)
+        private IFileInfo GetFile(dynamic model)
         {
             if (model.file == null) {
                 throw new ApiArgumentException("file");
@@ -84,13 +84,13 @@ namespace Microsoft.IIS.Administration.Certificates
                 throw new ApiArgumentException("file.id");
             }
 
-            FileId id = FileId.FromUuid(fileUuid);
+            IFileInfo file = _provider.GetFile(FileId.FromUuid(fileUuid).PhysicalPath);
 
-            if (!_provider.FileExists(id.PhysicalPath)) {
+            if (!file.Exists) {
                 throw new NotFoundException("file");
             }
 
-            return id.PhysicalPath;
+            return file;
         }
     }
 }

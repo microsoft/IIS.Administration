@@ -43,29 +43,32 @@ namespace Microsoft.IIS.Administration.Certificates
             bool persistKey = DynamicHelper.To<bool>(model.persist_key) ?? false;
 
             byte[] content = null;
-            string path = GetFile(model);
+            IFileInfo file = GetFile(model);
+            string path = null;
             using (Cert cert = GetCertificate(model)) {
 
                 if (persistKey && !Interop.IsPrivateKeyExportable(cert.Certificate)) {
                     throw new ApiArgumentException("persist_key");
                 }
-                
+
                 if (persistKey) {
                     content = cert.Certificate.Export(X509ContentType.Pfx, password);
-                    path = Path.Combine(path, name) + ".pfx";
+                    path = Path.Combine(file.Parent.Path, name) + ".pfx";
                 }
                 else {
                     content = cert.Certificate.Export(X509ContentType.Cert, password);
-                    path = Path.Combine(path, name) + ".cer";
+                    path = Path.Combine(file.Parent.Path, name) + ".cer";
                 }
             }
 
-            if (_provider.FileExists(path)) {
+            IFileInfo destination = _provider.GetFile(path);
+
+            if (destination.Exists) {
                 throw new AlreadyExistsException(path);
             }
 
             using (Stream ms = new MemoryStream(content))
-            using (Stream stream = _provider.GetFileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read)) {
+            using (Stream stream = _provider.GetFileStream(destination, FileMode.Create, FileAccess.Write, FileShare.Read)) {
                 await ms.CopyToAsync(stream);
             }
 
@@ -99,7 +102,7 @@ namespace Microsoft.IIS.Administration.Certificates
             return cert;
         }
 
-        private string GetFile(dynamic model)
+        private IFileInfo GetFile(dynamic model)
         {
             if (model.file == null) {
                 throw new ApiArgumentException("file");
@@ -113,13 +116,13 @@ namespace Microsoft.IIS.Administration.Certificates
                 throw new ApiArgumentException("file.id");
             }
 
-            FileId id = FileId.FromUuid(fileUuid);
+            IFileInfo file = _provider.GetFile(FileId.FromUuid(fileUuid).PhysicalPath);
 
-            if (!_provider.FileExists(id.PhysicalPath)) {
+            if (!file.Exists) {
                 throw new NotFoundException("file");
             }
 
-            return id.PhysicalPath;
+            return file;
         }
     }
 }

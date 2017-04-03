@@ -24,10 +24,7 @@ namespace Microsoft.IIS.Administration.Certificates
             using (X509Store store = GetStore(storeName, storeLocation, FileAccess.Read)) {
                 if (store != null) {
                     foreach (X509Certificate2 cert in store.Certificates) {
-                        certs.Add(new Cert() {
-                            Certificate = cert,
-                            Store = store
-                        });
+                        certs.Add(new Cert(cert, storeName, storeLocation));
                     }
                 }
             }
@@ -42,10 +39,7 @@ namespace Microsoft.IIS.Administration.Certificates
                 if (store != null) {
                     foreach (X509Certificate2 cert in store.Certificates) {
                         if (cert.Thumbprint == thumbprint) {
-                            targetCert = new Cert() {
-                                Certificate = cert,
-                                Store = store
-                            };
+                            targetCert = new Cert(cert, storeName, storeLocation);
                         }
                         else {
                             cert.Dispose();
@@ -65,6 +59,38 @@ namespace Microsoft.IIS.Administration.Certificates
             else {
                 return ToJsonModel(cert, fields, false);
             }
+        }
+
+        public static IEnumerable<string> GetEnhancedUsages(X509Certificate2 cert)
+        {
+            List<string> usages = new List<string>();
+
+            foreach (X509Extension extension in cert.Extensions) {
+                if (extension.Oid.FriendlyName == "Enhanced Key Usage") {
+
+                    X509EnhancedKeyUsageExtension ext = (X509EnhancedKeyUsageExtension)extension;
+                    OidCollection oids = ext.EnhancedKeyUsages;
+                    foreach (Oid oid in oids) {
+                        usages.Add(oid.FriendlyName);
+                    }
+                }
+            }
+
+            return usages;
+        }
+
+        public static X509Store GetStore(string storeName, StoreLocation storeLocation, FileAccess access)
+        {
+            var store = new X509Store(storeName, storeLocation);
+
+            try {
+                store.Open(OpenFlags.OpenExistingOnly | (access.HasFlag(FileAccess.Write) ? OpenFlags.ReadWrite : OpenFlags.ReadOnly));
+            }
+            catch (CryptographicException) {
+                return null;
+            }
+
+            return store;
         }
 
         internal static object ToJsonModel(Cert cert, Fields fields = null, bool full = true)
@@ -94,7 +120,7 @@ namespace Microsoft.IIS.Administration.Certificates
 
             //
             // id
-            obj.id = new CertificateId(certificate.Thumbprint, cert.Store.Name, cert.Store.Location).Uuid;
+            obj.id = new CertificateId(certificate.Thumbprint, cert.StoreName, cert.StoreLocation).Uuid;
 
             //
             // dns_name
@@ -165,42 +191,10 @@ namespace Microsoft.IIS.Administration.Certificates
             //
             // store
             if (fields.Exists("store")) {
-                obj.store = ToJsonModel(cert.Store);
+                obj.store = ToJsonModel(cert.StoreName, cert.StoreLocation);
             }
 
             return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj, full);
-        }
-
-        public static IEnumerable<string> GetEnhancedUsages(X509Certificate2 cert)
-        {
-            List<string> usages = new List<string>();
-
-            foreach (X509Extension extension in cert.Extensions) {
-                if (extension.Oid.FriendlyName == "Enhanced Key Usage") {
-
-                    X509EnhancedKeyUsageExtension ext = (X509EnhancedKeyUsageExtension)extension;
-                    OidCollection oids = ext.EnhancedKeyUsages;
-                    foreach (Oid oid in oids) {
-                        usages.Add(oid.FriendlyName);
-                    }
-                }
-            }
-
-            return usages;
-        }
-
-        public static X509Store GetStore(string storeName, StoreLocation storeLocation, FileAccess access)
-        {
-            var store = new X509Store(storeName, storeLocation);
-
-            try {
-                store.Open(OpenFlags.OpenExistingOnly | (access.HasFlag(FileAccess.Write) ? OpenFlags.ReadWrite : OpenFlags.ReadOnly));
-            }
-            catch (CryptographicException) {
-                return null;
-            }
-
-            return store;
         }
 
         private static string GetCertName(X509Certificate2 cert)
@@ -221,16 +215,14 @@ namespace Microsoft.IIS.Administration.Certificates
             return cert.Thumbprint;
         }
 
-        private static object ToJsonModel(X509Store store)
+        private static object ToJsonModel(string storeName, StoreLocation storeLocation)
         {
-            if (store == null) {
-                return null;
+            using (X509Store store = GetStore(storeName, storeLocation, FileAccess.Read)) {
+                return new {
+                    name = store.Name,
+                    location = Enum.GetName(typeof(StoreLocation), store.Location)
+                };
             }
-
-            return new {
-                name = store.Name,
-                location = Enum.GetName(typeof(StoreLocation), store.Location)
-            };
         }
 
         private static object KeyToJsonModel(X509Certificate2 cert)
