@@ -150,7 +150,14 @@ function Uninstall() {
 
     $adminRoot = $Path
 
-    $children = Get-ChildItem $adminRoot | where {$_ -is [System.IO.DirectoryInfo]}
+    $expectedDirectories = @('logs')
+
+    if (-not(Test-Path $adminRoot)) {
+        Write-Host Microsoft IIS Administration not found
+        return
+    }
+
+    $children = Get-ChildItem $adminRoot | Where-Object {$_ -is [System.IO.DirectoryInfo]}
 
     $validAdminRoot = $false
     foreach ($child in $children) {
@@ -171,7 +178,7 @@ function Uninstall() {
         }
     }
     
-    $children = Get-ChildItem $adminRoot | where {$_ -is [System.IO.DirectoryInfo]}
+    $children = Get-ChildItem $adminRoot | Where-Object {$_ -is [System.IO.DirectoryInfo]}
 
     # Current installation
     foreach ($child in $children) {
@@ -181,23 +188,29 @@ function Uninstall() {
         }
     }
     
-    $children = Get-ChildItem $adminRoot | where {$_ -is [System.IO.DirectoryInfo]}
+    $children = Get-ChildItem $adminRoot | Where-Object {$_ -is [System.IO.DirectoryInfo]}
 
     # Other directories
     foreach ($child in $children) {
-        # Some directories are being used by the service, and cannot be removed until the service has been uninstalled
-        Remove-Item -Recurse -Force $child.FullName -ErrorAction SilentlyContinue
+        if ($expectedDirectories.Contains($child.Name)) {
+                .\security.ps1 Add-SelfRights -Path $child.FullName
+                Remove-Item -Recurse -Force $child.FullName -ErrorAction SilentlyContinue
+        }
     }
-
     
     $dir = Get-Item $adminRoot -ErrorAction SilentlyContinue
     if ($dir -ne $null) {
         Try
         {
             $files = Get-ChildItem $dir.FullName
-
-            Remove-Item $dir.FullName -Recurse -Force -ErrorAction Stop
-            Write-Host "Successfully removed installation folder."
+            
+            if ($files -eq $null -or $files.Length -eq 0) {
+                Remove-Item $dir.FullName -Recurse -Force -ErrorAction Stop
+                Write-Host "Successfully removed installation folder."
+            }
+            else {
+                Write-Warning "Cannot remove the installation folder because it is not empty"
+            }
         }
         Catch
         {

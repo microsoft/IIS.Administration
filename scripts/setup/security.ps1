@@ -11,6 +11,7 @@ Param(
                  "GroupEquals",
                  "RemoveLocalGroup",
                  "SetAdminAcl",
+                 "Set-Acls",
                  "Add-SelfRights")]
     [string]
     $Command,
@@ -39,6 +40,7 @@ Param(
 # Nano Server does not support ADSI provider
 # Nano Server has localgroup and localuser commands which can be used instead of ADSI provider
 
+$TrustedInstallerSid = New-Object "System.Security.Principal.SecurityIdentifier" -ArgumentList "S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464"
 
 # Function not available on Nano Server
 # Retrieves the provider used to interact with Active Directory for the local machine.
@@ -210,7 +212,6 @@ function Set-AdminAcl($_path) {
         throw "Directory $_path does not exist."
     }
 
-
     # Construct an access rule that allows full control for Administrators
     $sid = [System.Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid
     # Construct an access rule that allows full control for Local System
@@ -244,24 +245,116 @@ function Set-AdminAcl($_path) {
     Set-Acl -Path $_path -AclObject $acl
 }
 
+function Set-Acls($_path) {
+
+	if ([System.String]::IsNullOrEmpty($_path)) {
+		throw "Path cannot be null"
+	}
+    
+    if (-not(Test-Path $_path)) {
+        throw "Directory $_path does not exist."
+    }
+
+    $dir = Get-Item -Path $_path
+    $logsPath = [System.IO.Path]::Combine($dir.Parent.FullName, 'logs')
+    $appsettingsPath = [System.IO.Path]::Combine($_path, 'Microsoft.IIS.Administration/config/appsettings.json')
+    $configPath = [System.IO.Path]::Combine($_path, 'Microsoft.IIS.Administration/config')
+
+    $administrators = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid, $null)
+    $system = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::LocalSystemSid, $null)
+    $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().User
+
+    $currentUserRead = New-Object System.Security.AccessControl.FileSystemAccessRule(
+						$currentUser, 
+						[System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
+					    [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit", 
+						[System.Security.AccessControl.PropagationFlags]::None,
+						[System.Security.AccessControl.AccessControlType]::Allow)
+    
+    $trustedInstallerFullControl = New-Object System.Security.AccessControl.FileSystemAccessRule(
+						$TrustedInstallerSid, 
+						[System.Security.AccessControl.FileSystemRights]::FullControl,
+					    [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit", 
+						[System.Security.AccessControl.PropagationFlags]::None,
+						[System.Security.AccessControl.AccessControlType]::Allow)
+    
+    $administratorsRead = New-Object System.Security.AccessControl.FileSystemAccessRule(
+						$administrators, 
+						[System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
+					    [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit", 
+						[System.Security.AccessControl.PropagationFlags]::None,
+						[System.Security.AccessControl.AccessControlType]::Allow)
+    
+    $systemRead = New-Object System.Security.AccessControl.FileSystemAccessRule(
+						$system, 
+						[System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
+					    [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit", 
+						[System.Security.AccessControl.PropagationFlags]::None,
+						[System.Security.AccessControl.AccessControlType]::Allow)
+    
+    $systemFullControl = New-Object System.Security.AccessControl.FileSystemAccessRule(
+						$system, 
+						[System.Security.AccessControl.FileSystemRights]::FullControl,
+					    [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit", 
+						[System.Security.AccessControl.PropagationFlags]::None,
+						[System.Security.AccessControl.AccessControlType]::Allow)
+
+    # Set ACL for root folder (e.g. 1.0.39)    
+    $acl = New-Object System.Security.AccessControl.DirectorySecurity
+    # Remove rule inheritance for acl
+    $acl.SetAccessRuleProtection($true, $false)
+    # Remove all existing access rules
+    $acl.Access | Foreach-Object { $acl.RemoveAccessRule($_) }
+    $acl.AddAccessRule($currentUserRead)
+    $acl.AddAccessRule($trustedInstallerFullControl)
+    $acl.AddAccessRule($administratorsRead)
+    $acl.AddAccessRule($systemRead)
+    # Update the folder to use the new ACL
+    Set-Acl -Path $_path -AclObject $acl
+
+    # Set ACL For logs folder
+    $acl = New-Object System.Security.AccessControl.DirectorySecurity
+    # Remove rule inheritance for acl
+    $acl.SetAccessRuleProtection($true, $false)
+    # Remove all existing access rules
+    $acl.Access | Foreach-Object { $acl.RemoveAccessRule($_) }
+    $acl.AddAccessRule($currentUserRead)
+    $acl.AddAccessRule($administratorsRead)
+    $acl.AddAccessRule($trustedInstallerFullControl)
+    $acl.AddAccessRule($systemFullControl)
+    # Update the folder to use the new ACL
+    Set-Acl -Path $logsPath -AclObject $acl
+
+    Add-FullControl $administrators $appsettingsPath
+    Add-FullControl $system $configPath
+}
+
+function Add-FullControl($_identity, $_path) {
+
+    if ([System.IO.File]::Exists($_path)) {
+        $inherit = [System.Security.AccessControl.InheritanceFlags]::None
+    }
+    else {
+        $inherit = [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit"
+    }
+
+    $fullControl = New-Object System.Security.AccessControl.FileSystemAccessRule(
+						$_identity, 
+						[System.Security.AccessControl.FileSystemRights]::FullControl,
+					    $inherit, 
+						[System.Security.AccessControl.PropagationFlags]::None,
+						[System.Security.AccessControl.AccessControlType]::Allow)
+
+    
+    $acl = Get-Acl -Path $_path
+    $acl.AddAccessRule($fullControl)
+    Set-Acl -Path $_path -AclObject $acl
+}
+
 # Gives full control of the directory at the specified path to the caller.
 # Path: The path of the target directory.
 function Add-SelfRights($_path) {
-    $objUser = New-Object System.Security.Principal.NTAccount($env:USERNAME)
-    $idRef = $objUser.Translate([System.Security.Principal.SecurityIdentifier])
-    $fullControl = [System.Security.AccessControl.FileSystemRights]::FullControl
-    $allow = [System.Security.AccessControl.AccessControlType]::Allow
-
-    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
-						$idRef, 
-						$fullControl,
-					    "ContainerInherit,ObjectInherit",
-						[System.Security.AccessControl.PropagationFlags]::None,
-						$allow)
-
-    $a = Get-Acl $_path
-    $a.AddAccessRule($rule)
-    Set-Acl -Path $_path -AclObject $a
+    Add-FullControl ([System.Security.Principal.WindowsIdentity]::GetCurrent().User) $_path
 }
 
 switch($Command)
@@ -293,6 +386,10 @@ switch($Command)
     "SetAdminAcl"
     {
         return Set-AdminAcl $Path
+    }
+    "Set-Acls"
+    {
+        return Set-Acls $Path
     }
     "Add-SelfRights"
     {

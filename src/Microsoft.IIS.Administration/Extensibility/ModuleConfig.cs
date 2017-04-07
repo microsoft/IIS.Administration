@@ -42,7 +42,7 @@ namespace Microsoft.IIS.Administration
             }
 
             StreamReader sr;
-            using (sr = new StreamReader(new FileStream(_configFilePath, FileMode.Open))) {
+            using (sr = new StreamReader(new FileStream(_configFilePath, FileMode.Open, FileAccess.Read))) {
 
                 fileContents = sr.ReadToEnd();
             }

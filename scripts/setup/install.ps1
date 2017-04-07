@@ -320,6 +320,20 @@ function rollback() {
     }
 
     #
+    # Remove the logs folder if we created it
+    if ($rollbackStore.createdLogsDirectory -eq $true) {
+        $logsPath = $rollbackStore.logsPath
+
+        try {
+            Write-Host "Rolling back logs folder creation"
+            Remove-Item $logsPath -Force -Recurse
+        }
+        catch {
+            write-warning "Could not delete logs folder $logsPath."
+        } 
+    }
+
+    #
     # Remove the program folder if we created it
     if ($rollbackStore.createdAdminRoot -eq $true) {
         $adminRoot = $rollbackStore.adminRoot
@@ -363,6 +377,15 @@ function Install
         throw "Install destination already exists and is not a directory"
     }
 
+    $destinationDirectory = Get-Item $adminRoot
+    $logsPath = [System.IO.Path]::Combine($destinationDirectory.Parent.FullName, 'logs')
+
+    if (-not([System.IO.Directory]::Exists($logsPath))) {
+        New-Item -ItemType Directory $logsPath -ErrorAction Stop | Out-Null
+        $rollbackStore.logsPath = $logsPath
+        $rollbackStore.createdLogsDirectory = $true
+    }
+
     # Check for a previous installation at the installation path provided
     $previousInstallSettings = .\config.ps1 Get -Path $adminRoot
 
@@ -391,9 +414,6 @@ function Install
 			throw $_
 		}
     }
-
-    # Construct an access rule that allows full control for Administrators
-    .\security.ps1 SetAdminAcl -Path $adminRoot
 
     if (-not($DontCopy)) {
         Write-Host "Copying files"
@@ -492,6 +512,9 @@ function Install
 
     .\net.ps1 BindCert -Hash $cert.thumbprint -Port $Port -AppId $(.\globals.ps1 IIS_HWC_APP_ID)  | Out-Null
     $rollbackStore.newBoundCertPort = $Port
+
+    # Construct an access rule that allows full control for Administrators
+    .\security.ps1 Set-Acls -Path $adminRoot
 
     $platform = "OneCore"
     if (!$(.\globals.ps1 ONECORE)) {
