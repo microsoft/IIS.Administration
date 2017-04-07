@@ -8,7 +8,6 @@ namespace Microsoft.IIS.Administration.Files
     using AspNetCore.Mvc;
     using Core.Http;
     using System.IO;
-    using System.Linq;
     using System.Threading.Tasks;
 
     public class DownloadsController : ApiBaseController

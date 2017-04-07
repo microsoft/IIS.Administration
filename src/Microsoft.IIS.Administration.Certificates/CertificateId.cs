@@ -5,7 +5,6 @@
 namespace Microsoft.IIS.Administration.Certificates
 {
     using System;
-    using System.Security.Cryptography.X509Certificates;
 
     public class CertificateId
     {
@@ -14,11 +13,9 @@ namespace Microsoft.IIS.Administration.Certificates
 
         private const uint THUMBPRINT_INDEX = 0;
         private const uint STORE_NAME_INDEX = 1;
-        private const uint STORE_LOCATION_INDEX = 2;
 
         public string Thumbprint { get; private set; }
         public string StoreName { get; private set; }
-        public StoreLocation StoreLocation { get; private set; }
 
         public string Uuid { get; private set; }
 
@@ -32,18 +29,16 @@ namespace Microsoft.IIS.Administration.Certificates
 
             this.Thumbprint = info[THUMBPRINT_INDEX];
             this.StoreName =  info[STORE_NAME_INDEX];
-            this.StoreLocation = (StoreLocation) int.Parse(info[STORE_LOCATION_INDEX]);
 
             this.Uuid = uuid;
         }
 
-        public CertificateId(string thumbprint, string storeName, StoreLocation storeLocation)
+        public CertificateId(string thumbprint, string storeName)
         {
             this.Thumbprint = thumbprint;
             this.StoreName = storeName;
-            this.StoreLocation = storeLocation;
 
-            this.Uuid = Core.Utils.Uuid.Encode($"{ this.Thumbprint }{ DELIMITER }{ this.StoreName }{ DELIMITER }{ (int)this.StoreLocation }", PURPOSE);
+            this.Uuid = Core.Utils.Uuid.Encode($"{ this.Thumbprint }{ DELIMITER }{ this.StoreName }", PURPOSE);
         }
     }
 }

@@ -9,8 +9,7 @@ namespace Microsoft.IIS.Administration.WebServer
     using Core;
     using Core.Http;
     using Extensions.DependencyInjection;
-    using System.Collections.Generic;
-    using Enum = System.Enum;
+    using System.Linq;
 
     public class Startup : BaseModule, IServiceCollectionAccessor
     {
@@ -27,7 +26,7 @@ namespace Microsoft.IIS.Administration.WebServer
             ConfigureWebServer();
             ConfigureTransactions();
             ConfigureWebServerFeature();
-            ConfigureCertificateOptions();
+            ConfigureCertificateStoreProvider();
         }
 
         private void ConfigureWebServer()
@@ -60,24 +59,25 @@ namespace Microsoft.IIS.Administration.WebServer
             WebServerFeatureManagerAccessor.Services = Environment.Host.ApplicationBuilder.ApplicationServices;
         }
 
-        private void ConfigureCertificateOptions()
+        public void ConfigureCertificateStoreProvider()
         {
-            ICertificateOptions options = (ICertificateOptions)Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(ICertificateOptions));
+            ICertificateOptions options = Environment.Host.ApplicationBuilder.ApplicationServices.GetRequiredService<ICertificateOptions>();
+            ICertificateStoreProvider storeProvider = Environment.Host.ApplicationBuilder.ApplicationServices.GetRequiredService<ICertificateStoreProvider>();
 
-            options.AddStore(new CertStore() {
-                Name = "My",
-                Claims = new List<string> {
-                        Enum.GetName(typeof(Access), Access.Read)
-                    }
-            });
-            options.AddStore(new CertStore() {
-                Name = "WebHosting",
-                Claims = new List<string> {
-                        Enum.GetName(typeof(Access), Access.Read),
-                        Enum.GetName(typeof(Access), Access.Write),
-                        Enum.GetName(typeof(Access), Access.Export),
-                    }
-            });
+            const string webHosting = "WebHosting";
+            const string my = "My";
+
+            //
+            // My
+            if (!storeProvider.Stores.Any(s => s.Name.Equals(my, System.StringComparison.OrdinalIgnoreCase)) && WindowsCertificateStore.Exists(my)) {
+                storeProvider.AddStore(new WindowsCertificateStore(my, new string[] { "read" }));
+            }
+
+            //
+            // WebHosting
+            if (!storeProvider.Stores.Any(s => s.Name.Equals(webHosting, System.StringComparison.OrdinalIgnoreCase)) && WindowsCertificateStore.Exists(webHosting)) {
+                storeProvider.AddStore(new WindowsCertificateStore(webHosting, new string[] { "read" }));
+            }
         }
     }
 }

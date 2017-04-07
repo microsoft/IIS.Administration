@@ -11,68 +11,82 @@ namespace Microsoft.IIS.Administration.Certificates
     using Core.Http;
     using Core.Utils;
     using Core;
+    using System.Threading.Tasks;
 
     public class CertificatesController : ApiBaseController
     {
         private ICertificateOptions _options;
+        private ICertificateStoreProvider _storeProvider;
 
-        public CertificatesController(ICertificateOptions options)
+        public CertificatesController(ICertificateOptions options, ICertificateStoreProvider provider)
         {
             _options = options;
+            _storeProvider = provider;
         }
 
         [HttpGet]
         [ResourceInfo(Name = Defines.CertificatesName)]
-        public object Get()
+        public async Task<object> Get()
         {            
-            List<object> refs = new List<object>();
             Fields fields = Context.Request.GetFields();
+            var certs = new List<ICertificate>();
 
-            // Filter for selecting certificates with specific purpose.
-            string intended_purpose = Context.Request.Query["intended_purpose"];
-            var certs = new List<Cert>();
-
-            foreach (IStore store in _options.Stores) {
-                if (string.IsNullOrEmpty(store.Path)) {
-                    certs.AddRange(CertificateHelper.GetCertificates(store.Name, store.StoreLocation));
-                }
+            foreach (ICertificateStore store in _storeProvider.Stores) {
+                certs.AddRange(await store.GetCertificates());
             }
 
-            if (intended_purpose != null) {
-                certs = certs.Where(cert => {
-                    return CertificateHelper.GetEnhancedUsages(cert.Certificate).Any(s => s.Equals(intended_purpose, StringComparison.OrdinalIgnoreCase));
-                }).ToList();
-            }
-
-            foreach (Cert cert in certs) {
-                refs.Add(CertificateHelper.ToJsonModelRef(cert, fields));
-                cert.Dispose();
-            }
-
-            // All certs disposed.
-            certs = null;
+            certs = Filter(certs);
 
             // Set HTTP header for total count
-            this.Context.Response.SetItemsCount(refs.Count());
+            this.Context.Response.SetItemsCount(certs.Count());
 
             return new {
-                certificates = refs
+                certificates = certs.Select(cert => CertificateHelper.ToJsonModelRef(cert, fields))
             };
         }
 
         [HttpGet]
         [ResourceInfo(Name = Defines.CertificateName)]
-        public object Get(string id)
+        public async Task<object> Get(string id)
         {
             CertificateId certId = new CertificateId(id);
+            ICertificate cert = null;
+            ICertificateStore store = _storeProvider.Stores.FirstOrDefault(s => s.Name.Equals(certId.StoreName, StringComparison.OrdinalIgnoreCase));
 
-            using (Cert cert = CertificateHelper.GetCert(certId.Thumbprint, certId.StoreName, certId.StoreLocation)) {
-                if (cert == null) {
-                    return NotFound();
-                }
-
-                return CertificateHelper.ToJsonModel(cert, Context.Request.GetFields());
+            if (store != null) {
+                cert = await store.GetCertificate(certId.Thumbprint);
             }
+
+            if (cert == null) {
+                return NotFound();
+            }
+
+            return CertificateHelper.ToJsonModel(cert, Context.Request.GetFields());
+        }
+
+
+
+        private List<ICertificate> Filter(List<ICertificate> certs)
+        {
+            // Filter for selecting certificates with specific purpose.
+            string intended_purpose = Context.Request.Query["intended_purpose"];
+            string storeUuid = Context.Request.Query[Defines.StoreIdentifier];
+
+            if (intended_purpose != null) {
+                certs.RemoveAll((cert) => {
+                    return !cert.Purposes.Any(s => s.Equals(intended_purpose, StringComparison.OrdinalIgnoreCase));
+                });
+            }
+
+            if (storeUuid != null) {
+                StoreId id = StoreId.FromUuid(storeUuid);
+
+                certs.RemoveAll((cert) => {
+                    return !cert.Store.Name.Equals(id.Name, StringComparison.OrdinalIgnoreCase);
+                });
+            }
+
+            return certs;
         }
     }
 }

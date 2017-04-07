@@ -10,7 +10,7 @@
         private const int CRYPT_EXPORT = 0x0004;
         private const string CRYPT32 = "crypt32.dll";
         private const string ADVAPI32 = "advapi32.dll";
-
+        // TODO use api-ms-win
         [DllImport(CRYPT32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool CryptAcquireCertificatePrivateKey(IntPtr pCertContext, uint flags, IntPtr reserved, [Out] out SafeCryptProvHandle phCryptProv, ref uint pdwKeySpec, [MarshalAs(UnmanagedType.Bool)] ref bool pfCallerFreeProv);

@@ -33,6 +33,10 @@
       "enabled": true
     },
     {
+      "name": "Microsoft.IIS.Administration.WebServer.CentralCertificates",
+      "enabled": true
+    },
+    {
       "name": "Microsoft.IIS.Administration.WebServer.Compression",
       "enabled": true
     },

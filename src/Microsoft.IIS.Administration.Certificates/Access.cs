@@ -3,10 +3,11 @@
     using System;
 
     [Flags]
-    public enum Access
+    public enum CertificateAccess
     {
         Read = 1,
-        Write = 2,
-        Export = 4
+        Delete = 2,
+        Create = 4,
+        Export = 8
     }
 }

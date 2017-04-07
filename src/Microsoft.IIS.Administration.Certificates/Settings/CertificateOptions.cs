@@ -57,11 +57,11 @@ namespace Microsoft.IIS.Administration.Certificates
                 }
             }
             catch (ArgumentNullException e) {
-                Log.Error(e, $"Invalid name in certificate options. Name must not be empty.");
+                Log.Error(e, $"Invalid store name in certificate options. Name must not be empty.");
                 throw;
             }
             catch (ArgumentException e) {
-                Log.Error(e, $"Invalid path '{store.Path}' in certificate options.");
+                Log.Error(e, $"Invalid store path '{store.Path}' in certificate options.");
                 throw;
             }
 

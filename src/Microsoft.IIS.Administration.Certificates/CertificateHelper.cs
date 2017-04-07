@@ -4,54 +4,16 @@
 
 namespace Microsoft.IIS.Administration.Certificates
 {
-    using System;
-    using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
-    using System.Security.Cryptography;
     using Core.Utils;
     using System.Dynamic;
-    using System.IO;
 
     public static class CertificateHelper
     {
-        private static readonly Fields RefFields = new Fields("name", "id", "issued_by", "subject", "valid_to", "thumbprint");
+        private static readonly Fields RefFields = new Fields("alias", "id", "issued_by", "subject", "valid_to", "thumbprint");
+        private static readonly Fields StoreRefFields = new Fields("name", "id");
 
-        // Contains IDisposables
-        public static IEnumerable<Cert> GetCertificates(string storeName, StoreLocation storeLocation)
-        {
-            var certs = new List<Cert>();
-
-            using (X509Store store = GetStore(storeName, storeLocation, FileAccess.Read)) {
-                if (store != null) {
-                    foreach (X509Certificate2 cert in store.Certificates) {
-                        certs.Add(new Cert(cert, storeName, storeLocation));
-                    }
-                }
-            }
-
-            return certs;
-        }
-
-        public static Cert GetCert(string thumbprint, string storeName, StoreLocation storeLocation)
-        {
-            Cert targetCert = null;
-            using (X509Store store = GetStore(storeName, storeLocation, FileAccess.Read)) {
-                if (store != null) {
-                    foreach (X509Certificate2 cert in store.Certificates) {
-                        if (cert.Thumbprint == thumbprint) {
-                            targetCert = new Cert(cert, storeName, storeLocation);
-                        }
-                        else {
-                            cert.Dispose();
-                        }
-                    }
-                }
-            }
-
-            return targetCert;
-        }
-
-        public static object ToJsonModelRef(Cert cert, Fields fields = null)
+        public static object ToJsonModelRef(ICertificate cert, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
                 return ToJsonModel(cert, RefFields, false);
@@ -61,41 +23,9 @@ namespace Microsoft.IIS.Administration.Certificates
             }
         }
 
-        public static IEnumerable<string> GetEnhancedUsages(X509Certificate2 cert)
+        internal static object ToJsonModel(ICertificate certificate, Fields fields = null, bool full = true)
         {
-            List<string> usages = new List<string>();
-
-            foreach (X509Extension extension in cert.Extensions) {
-                if (extension.Oid.FriendlyName == "Enhanced Key Usage") {
-
-                    X509EnhancedKeyUsageExtension ext = (X509EnhancedKeyUsageExtension)extension;
-                    OidCollection oids = ext.EnhancedKeyUsages;
-                    foreach (Oid oid in oids) {
-                        usages.Add(oid.FriendlyName);
-                    }
-                }
-            }
-
-            return usages;
-        }
-
-        public static X509Store GetStore(string storeName, StoreLocation storeLocation, FileAccess access)
-        {
-            var store = new X509Store(storeName, storeLocation);
-
-            try {
-                store.Open(OpenFlags.OpenExistingOnly | (access.HasFlag(FileAccess.Write) ? OpenFlags.ReadWrite : OpenFlags.ReadOnly));
-            }
-            catch (CryptographicException) {
-                return null;
-            }
-
-            return store;
-        }
-
-        internal static object ToJsonModel(Cert cert, Fields fields = null, bool full = true)
-        {
-            if (cert == null) {
+            if (certificate == null) {
                 return null;
             }
 
@@ -104,35 +34,16 @@ namespace Microsoft.IIS.Administration.Certificates
             }
 
             dynamic obj = new ExpandoObject();
-            var certificate = cert.Certificate;
 
             //
-            // name
-            if (fields.Exists("name")) {
-                obj.name = GetCertName(certificate);
-            }
-
-            //
-            // friendly_name
-            if (fields.Exists("friendly_name")) {
-                obj.friendly_name = certificate.FriendlyName;
+            // alias
+            if (fields.Exists("alias")) {
+                obj.alias = certificate.Alias;
             }
 
             //
             // id
-            obj.id = new CertificateId(certificate.Thumbprint, cert.StoreName, cert.StoreLocation).Uuid;
-
-            //
-            // dns_name
-            if (fields.Exists("dns_name")) {
-                obj.dns_name = certificate.GetNameInfo(X509NameType.DnsName, false);
-            }
-
-            //
-            // simple_name
-            if (fields.Exists("simple_name")) {
-                obj.simple_name = certificate.GetNameInfo(X509NameType.SimpleName, false);
-            }
+            obj.id = new CertificateId(certificate.Thumbprint, certificate.Store.Name).Uuid;
 
             //
             // issued_by
@@ -153,21 +64,21 @@ namespace Microsoft.IIS.Administration.Certificates
             }
 
             //
-            // hash_algorithm
-            if (fields.Exists("hash_algorithm")) {
-                obj.hash_algorithm = certificate.SignatureAlgorithm.FriendlyName;
+            // signature_algorithm
+            if (fields.Exists("signature_algorithm")) {
+                obj.signature_algorithm = certificate.SignatureAlgorithm;
             }
 
             //
             // valid_from
             if (fields.Exists("valid_from")) {
-                obj.valid_from = certificate.NotBefore.ToUniversalTime();
+                obj.valid_from = certificate.ValidFrom.ToUniversalTime();
             }
 
             //
             // valid_to
             if (fields.Exists("valid_to")) {
-                obj.valid_to = certificate.NotAfter.ToUniversalTime();
+                obj.valid_to = certificate.Expires.ToUniversalTime();
             }
 
             //
@@ -179,60 +90,88 @@ namespace Microsoft.IIS.Administration.Certificates
             //
             // intended_purposes
             if (fields.Exists("intended_purposes")) {
-                obj.intended_purposes = GetEnhancedUsages(certificate);
+                obj.intended_purposes = certificate.Purposes;
             }
 
             //
-            // has_private_key
+            // private_key
             if (fields.Exists("private_key")) {
-                obj.private_key = KeyToJsonModel(cert.Certificate);
+                obj.private_key = KeyToJsonModel(certificate);
+            }
+
+            //
+            // subject_alternative_names
+            if (fields.Exists("subject_alternative_names")) {
+                obj.subject_alternative_names = certificate.SubjectAlternativeNames;
             }
 
             //
             // store
             if (fields.Exists("store")) {
-                obj.store = ToJsonModel(cert.StoreName, cert.StoreLocation);
+                obj.store = StoreToJsonModelRef(certificate.Store);
             }
 
             return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj, full);
         }
 
-        private static string GetCertName(X509Certificate2 cert)
+        public static object StoreToJsonModelRef(ICertificateStore store, Fields fields = null)
         {
-            if (!string.IsNullOrEmpty(cert.FriendlyName)) {
-                return cert.FriendlyName;
+            if (fields == null || !fields.HasFields) {
+                return StoreToJsonModel(store, StoreRefFields, false);
             }
-
-            string dnsName = cert.GetNameInfo(X509NameType.DnsName, false);
-            if (!string.IsNullOrEmpty(dnsName)) {
-                return dnsName;
-            }
-
-            string simpleName = cert.GetNameInfo(X509NameType.SimpleName, false);
-            if (!string.IsNullOrEmpty(simpleName)) {
-                return simpleName;
-            }
-            return cert.Thumbprint;
-        }
-
-        private static object ToJsonModel(string storeName, StoreLocation storeLocation)
-        {
-            using (X509Store store = GetStore(storeName, storeLocation, FileAccess.Read)) {
-                return new {
-                    name = store.Name,
-                    location = Enum.GetName(typeof(StoreLocation), store.Location)
-                };
+            else {
+                return StoreToJsonModel(store, fields, false);
             }
         }
 
-        private static object KeyToJsonModel(X509Certificate2 cert)
+        internal static object StoreToJsonModel(ICertificateStore store, Fields fields = null, bool full = true)
+        {
+            if (store == null) {
+                return null;
+            }
+
+            if (fields == null) {
+                fields = Fields.All;
+            }
+
+            dynamic obj = new ExpandoObject();
+            StoreId id = StoreId.FromName(store.Name);
+
+            //
+            // name
+            if (fields.Exists("name")) {
+                obj.name = store.Name;
+            }
+
+            //
+            // id
+            if (fields.Exists("id")) {
+                obj.id = id.Uuid;
+            }
+
+            //
+            // claims
+            if (fields.Exists("claims")) {
+                obj.claims = store.Claims;
+            }
+
+            //
+            // is_windows_store
+            if (fields.Exists("is_windows_store")) {
+                obj.is_windows_store = store.IsWindowsStore;
+            }
+
+            return Core.Environment.Hal.Apply(Defines.StoresResource.Guid, obj, full);
+        }
+
+        private static object KeyToJsonModel(ICertificate cert)
         {
             if (cert == null || !cert.HasPrivateKey) {
                 return null;
             }
 
             return new {
-                exportable = Interop.IsPrivateKeyExportable(cert)
+                exportable = cert.IsPrivateKeyExportable
             };
         }
     }

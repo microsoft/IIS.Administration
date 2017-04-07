@@ -9,11 +9,11 @@
         public string StoreName { get; set; }
         public StoreLocation StoreLocation { get; set; }
 
-        public Cert(X509Certificate2 certificate, string storeName, StoreLocation storeLocation)
+        public Cert(X509Certificate2 certificate, string storeName)
         {
             Certificate = certificate;
             StoreName = storeName;
-            StoreLocation = storeLocation;
+            StoreLocation = StoreLocation.LocalMachine;
         }
 
         public void Dispose()

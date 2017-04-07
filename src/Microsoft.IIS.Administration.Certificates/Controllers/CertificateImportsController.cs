@@ -28,42 +28,42 @@ namespace Microsoft.IIS.Administration.Certificates
         [HttpPost]
         public object Post(dynamic model)
         {
-            if (model == null) {
-                throw new ApiArgumentException("model");
-            }
+            //if (model == null) {
+            //    throw new ApiArgumentException("model");
+            //}
 
-            IFileInfo file = GetFile(model);
+            //IFileInfo file = GetFile(model);
 
-            string password = DynamicHelper.Value(model.password);
-            if (string.IsNullOrEmpty(password)) {
-                throw new ApiArgumentException("password");
-            }
+            //string password = DynamicHelper.Value(model.password);
+            //if (string.IsNullOrEmpty(password)) {
+            //    throw new ApiArgumentException("password");
+            //}
 
-            bool persistKey = DynamicHelper.To<bool>(model.persist_key) ?? true;
-            bool exportable = DynamicHelper.To<bool>(model.exportable) ?? false;
+            //bool persistKey = DynamicHelper.To<bool>(model.persist_key) ?? true;
+            //bool exportable = DynamicHelper.To<bool>(model.exportable) ?? false;
 
-            X509Certificate2 cert = null;
-            try {
-                cert = new X509Certificate2(file.Path, password, X509KeyStorageFlags.MachineKeySet
-                                                            | (exportable ? X509KeyStorageFlags.Exportable : 0)
-                                                            | (persistKey ? X509KeyStorageFlags.PersistKeySet : 0));
-            }
-            catch (CryptographicException e) {
-                if (e.HResult == InvalidFile) {
-                    throw new ApiArgumentException("file", "Invalid certificate file", e);
-                }
-                if (e.HResult == InvalidPassword) {
-                    throw new ApiArgumentException("password", "Password is incorrect", e);
-                }
-            }
+            //X509Certificate2 cert = null;
+            //try {
+            //    cert = new X509Certificate2(file.Path, password, X509KeyStorageFlags.MachineKeySet
+            //                                                | (exportable ? X509KeyStorageFlags.Exportable : 0)
+            //                                                | (persistKey ? X509KeyStorageFlags.PersistKeySet : 0));
+            //}
+            //catch (CryptographicException e) {
+            //    if (e.HResult == InvalidFile) {
+            //        throw new ApiArgumentException("file", "Invalid certificate file", e);
+            //    }
+            //    if (e.HResult == InvalidPassword) {
+            //        throw new ApiArgumentException("password", "Password is incorrect", e);
+            //    }
+            //}
 
-            using (cert)
-            using (var store = CertificateHelper.GetStore("My", StoreLocation.LocalMachine, FileAccess.ReadWrite)) {
-                if (store == null) {
-                    throw new ApiArgumentException("store");
-                }
-                store.Add(cert);
-            }
+            //using (cert)
+            //using (var store = CertificateHelper.GetStore("My", StoreLocation.LocalMachine, FileAccess.ReadWrite)) {
+            //    if (store == null) {
+            //        throw new ApiArgumentException("store");
+            //    }
+            //    store.Add(cert);
+            //}
 
             return null;
         }

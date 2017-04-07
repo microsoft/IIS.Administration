@@ -87,6 +87,8 @@ Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administratio
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.HttpRedirect", "src\Microsoft.IIS.Administration.WebServer.HttpRedirect\Microsoft.IIS.Administration.WebServer.HttpRedirect.xproj", "{1BF40243-71BD-487F-9FD9-50959D100536}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.CentralCertificates", "src\Microsoft.IIS.Administration.WebServer.CentralCertificates\Microsoft.IIS.Administration.WebServer.CentralCertificates.xproj", "{408A6FF5-966E-4989-8D66-41146A78A367}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -229,6 +231,10 @@ Global
 		{1BF40243-71BD-487F-9FD9-50959D100536}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1BF40243-71BD-487F-9FD9-50959D100536}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1BF40243-71BD-487F-9FD9-50959D100536}.Release|Any CPU.Build.0 = Release|Any CPU
+		{408A6FF5-966E-4989-8D66-41146A78A367}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{408A6FF5-966E-4989-8D66-41146A78A367}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{408A6FF5-966E-4989-8D66-41146A78A367}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{408A6FF5-966E-4989-8D66-41146A78A367}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -268,5 +274,6 @@ Global
 		{42FDCED0-CE1D-4C16-AED0-0CF6A212F782} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{60F7757A-14AE-41BE-9FD0-ED4C63718408} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{1BF40243-71BD-487F-9FD9-50959D100536} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
+		{408A6FF5-966E-4989-8D66-41146A78A367} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 	EndGlobalSection
 EndGlobal
