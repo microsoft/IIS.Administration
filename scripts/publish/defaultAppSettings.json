@@ -21,10 +21,6 @@
       {
         "origin": "https://manage.iis.net",
         "allow": true
-      },
-      {
-        "origin": "https://manage.iisqa.net",
-        "allow": true
       }
     ]
   }

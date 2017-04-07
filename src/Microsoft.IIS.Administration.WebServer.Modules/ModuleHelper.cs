@@ -563,6 +563,11 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             if (!File.Exists(expanded)) {
                 throw new NotFoundException("image");
             }
+
+            var peInfo = new PeInfo(expanded);
+            if (!peInfo.IsValid) {
+                throw new ApiArgumentException("image");
+            }
         }
 
         private static bool ExistsModule(string moduleName, ModuleCollection collection,

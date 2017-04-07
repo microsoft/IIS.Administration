@@ -2,9 +2,6 @@
   "version": "1.0.1",
   "description": "Microsoft.IIS.Administration.WebServer Class Library",
   "authors": [ "Microsoft" ],
-  "buildOptions": {
-    "allowUnsafe": true 
-  },
   "frameworks": {
     "netstandard1.6": {
       "imports": [
