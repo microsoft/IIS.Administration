@@ -115,6 +115,7 @@ function Migrate {
     }
 
     $userFiles = .\config.ps1 Get-UserFileMap
+    $migrationMap = .\config.ps1 Get-MigrationMap
 
     # Modules should be the union of destination and source modules
     $oldModules = .\modules.ps1 Get-JsonContent -Path $(Join-Path $Source $userFiles["modules.json"])
@@ -123,9 +124,16 @@ function Migrate {
     $filtered = .\modules.ps1 Remove-DeprecatedModules -Modules $joined
     $oldModules = @{modules = $filtered}
 
+    .\security.ps1 Add-SelfRights -Path $Destination
+
+    foreach ($oldPath in $migrationMap.keys) {
+        Copy-Item -Force -Recurse $(Join-Path $Source $oldPath) $(Join-Path $Destination $migrationMap[$oldPath]) -ErrorAction SilentlyContinue
+    }
+
     foreach ($fileName in $userFiles.keys) {
         Copy-Item -Force -Recurse $(Join-Path $Source $userFiles[$fileName]) $(Join-Path $Destination $userFiles[$fileName]) -ErrorAction SilentlyContinue
     }
+
     .\modules.ps1 Set-JsonContent -Path $(Join-Path $Destination $userFiles["modules.json"]) -JsonObject $oldModules
 
     $appHostPath = Join-Path $Destination host\applicationHost.config
@@ -198,6 +206,8 @@ function Migrate {
     }
 
     .\config.ps1 Write-Config -ConfigObject $installObject -Path $Destination
+
+    .\security.ps1 Set-Acls -Path $Destination
 
     Write-Host "Migration complete, URI: https://localhost:$Port"
 }

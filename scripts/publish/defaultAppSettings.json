@@ -1,5 +1,5 @@
 {
-  "host_id": "",
+  "host_id": "{Microsoft IIS Administration Host ID}",
   "host_name": "IIS Administration API",
   "administrators": [
     "Administrators",

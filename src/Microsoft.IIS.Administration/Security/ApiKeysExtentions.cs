@@ -20,7 +20,7 @@ namespace Microsoft.IIS.Administration.Security {
             }
 
             services.AddSingleton<IApiKeyProvider>(
-                new ApiKeyProvider(env.GetConfigPath("api-keys.json"), options));
+                new ApiKeyProvider(env.GetConfigPath(@"api-keys\api-keys.json"), options));
 
             return services;
         }

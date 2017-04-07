@@ -258,7 +258,7 @@ function Set-Acls($_path) {
     $dir = Get-Item -Path $_path
     $logsPath = [System.IO.Path]::Combine($dir.Parent.FullName, 'logs')
     $appsettingsPath = [System.IO.Path]::Combine($_path, 'Microsoft.IIS.Administration/config/appsettings.json')
-    $configPath = [System.IO.Path]::Combine($_path, 'Microsoft.IIS.Administration/config')
+    $apiKeysPath = [System.IO.Path]::Combine($_path, 'Microsoft.IIS.Administration/config/api-keys')
 
     $administrators = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid, $null)
     $system = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::LocalSystemSid, $null)
@@ -326,7 +326,7 @@ function Set-Acls($_path) {
     Set-Acl -Path $logsPath -AclObject $acl
 
     Add-FullControl $administrators $appsettingsPath
-    Add-FullControl $system $configPath
+    Add-FullControl $system $apiKeysPath
 }
 
 function Add-FullControl($_identity, $_path) {

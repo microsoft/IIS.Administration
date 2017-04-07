@@ -17,30 +17,15 @@ namespace Microsoft.IIS.Administration.Core
 
         public static void Initialize(string filePath)
         {
-            dynamic configObject;
-
-            using (FileStream fs = new FileStream(filePath, FileMode.Open))
-            using (StreamReader sr = new StreamReader(fs)) {
-                configObject = JsonConvert.DeserializeObject(sr.ReadToEnd());
-            }
-
+            dynamic configObject = JsonConvert.DeserializeObject(File.ReadAllText(filePath));
             string id = DynamicHelper.Value(configObject.host_id);
 
-
             if (string.IsNullOrEmpty(id)) {
-                Guid guid = Guid.NewGuid();
-                configObject.host_id = guid.ToString();
+                id = configObject.host_id = Guid.NewGuid().ToString();
+                File.WriteAllText(filePath, JsonConvert.SerializeObject(configObject, Formatting.Indented));
+            }
 
-                using (FileStream fs = new FileStream(filePath, FileMode.Truncate))
-                using (StreamWriter sw = new StreamWriter(fs)) {
-                    sw.Write(JsonConvert.SerializeObject(configObject, Formatting.Indented));
-                    sw.Flush();
-                }
-                HostId = guid;
-            }
-            else {
-                HostId = Guid.Parse(id);
-            }
+            HostId = Guid.Parse(id);
         }
     }
 }
