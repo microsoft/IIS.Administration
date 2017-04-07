@@ -47,26 +47,19 @@ namespace Microsoft.IIS.Administration
 
             // Possible runtime assembly
             if (asm == null) {
+                string winRuntime = null;
+                string runtimes = Path.Combine(this._pluginDir, "runtimes");
 
-                string winRuntimeDirectory = null;
-                string[] winRunTimeDlls = null;
-
-                string runTimesPath = Path.Combine(this._pluginDir, "runtimes");
-                if (Directory.Exists(runTimesPath)) {
-
-                    winRuntimeDirectory = Directory.GetDirectories(runTimesPath).FirstOrDefault(d => {
-                        return d.ToLower().Contains("win");
-                    });
+                if (Directory.Exists(runtimes)) {
+                    winRuntime = Directory.GetDirectories(runtimes).FirstOrDefault(d => d.ToLower().Contains("win"));
                 }
 
-                if (winRuntimeDirectory != null) {
-                    winRunTimeDlls = Directory.GetFiles(winRuntimeDirectory, "*.dll", SearchOption.AllDirectories);
-                }
-
-                foreach (var file in winRunTimeDlls) {
-                    if (Path.GetFileName(file) == assemblyName.Name + ".dll") {
-                        asm = this.LoadFromAssemblyPath(file);
-                        break;
+                if (winRuntime != null) {
+                    foreach (var file in Directory.GetFiles(winRuntime, "*.dll", SearchOption.AllDirectories)) {
+                        if (Path.GetFileName(file) == assemblyName.Name + ".dll") {
+                            asm = this.LoadFromAssemblyPath(file);
+                            break;
+                        }
                     }
                 }
             }

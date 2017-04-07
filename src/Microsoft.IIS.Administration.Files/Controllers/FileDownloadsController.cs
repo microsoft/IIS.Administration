@@ -34,6 +34,7 @@ namespace Microsoft.IIS.Administration.Files
         }
 
         [HttpPost]
+        [Audit]
         public IActionResult Post([FromBody] dynamic model)
         {
             if (_downloadService == null) {
