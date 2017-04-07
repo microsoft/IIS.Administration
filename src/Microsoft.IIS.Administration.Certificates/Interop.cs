@@ -4,30 +4,30 @@
     using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
 
-    public class Interop
+    class Interop
     {
         private const int KP_PERMISSIONS = 6;
         private const int CRYPT_EXPORT = 0x0004;
         private const string CRYPT32 = "crypt32.dll";
-        private const string ADVAPI32 = "advapi32.dll";
-        // TODO use api-ms-win
+        private const string CRYPT_API_SET = "cryptsp.dll";
+
         [DllImport(CRYPT32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static extern bool CryptAcquireCertificatePrivateKey(IntPtr pCertContext, uint flags, IntPtr reserved, [Out] out SafeCryptProvHandle phCryptProv, ref uint pdwKeySpec, [MarshalAs(UnmanagedType.Bool)] ref bool pfCallerFreeProv);
 
-        [DllImport(ADVAPI32)]
+        [DllImport(CRYPT_API_SET)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal extern static bool CryptDestroyKey(IntPtr hKey);
 
-        [DllImport(ADVAPI32, CharSet = CharSet.Unicode)]
+        [DllImport(CRYPT_API_SET, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal extern static bool CryptGetKeyParam(IntPtr hKey, int dwParam, SafeGlobalAllocHandle pvData, ref int pcbData, uint dwFlags);
 
-        [DllImport(ADVAPI32, CharSet = CharSet.Unicode)]
+        [DllImport(CRYPT_API_SET, CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         internal extern static bool CryptGetUserKey(SafeCryptProvHandle hCryptProv, uint pdwKeySpec, ref IntPtr hKey);
 
-        [DllImport("advapi32.dll")]
+        [DllImport(CRYPT_API_SET)]
         internal static extern bool CryptReleaseContext(IntPtr hCryptProv, uint dwFlags);
 
         public static bool IsPrivateKeyExportable(X509Certificate cert)
@@ -57,7 +57,7 @@
 
                                 pBytes.Copy(permissionBytes, 0, length);
 
-                                Int32 cryptNum = BitConverter.ToInt32(permissionBytes, 0);
+                                int cryptNum = BitConverter.ToInt32(permissionBytes, 0);
                                 exportable = ((cryptNum & CRYPT_EXPORT) != 0);
                             }
                         }

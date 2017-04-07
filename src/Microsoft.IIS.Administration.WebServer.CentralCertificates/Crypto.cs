@@ -5,117 +5,59 @@
 namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 {
     using System;
-    using System.ComponentModel;
-    using System.Runtime.InteropServices;
     using System.Security.Cryptography;
     using System.Text;
 
     public class Crypto
     {
         private const string WAS_KEY_CONTAINER = "iisWasKey";
+        private const int PROV_RSA_AES = 24;
 
         public static byte[] Encrypt(string value)
         {
-            using (SafeCryptProvHandle provider = AcquireMachineContext(WAS_KEY_CONTAINER, "", Interop.PROV_RSA_AES)) {
+            byte[] bytes = RsaEncrypt(value);
 
-                IntPtr key = IntPtr.Zero;
-                try {
-                    bool result = Interop.CryptGetUserKey(provider, Interop.AT_KEYEXCHANGE, ref key);
-                    if (!result) {
-                        throw new Win32Exception(Marshal.GetLastWin32Error());
-                    }
-
-                    byte[] data = Encoding.Unicode.GetBytes(value);
-                    int length = data.Length;
-
-                    result = Interop.CryptEncrypt(key, IntPtr.Zero, true, 0, data, ref length, 0);
-                    if (!result) {
-                        int err = Marshal.GetLastWin32Error();
-                        if (err != Interop.ERROR_MORE_DATA) {
-                            throw new Win32Exception(err);
-                        }
-                    }
-
-                    byte[] encrypted = new byte[length];
-                    data.CopyTo(encrypted, 0);
-                    length = data.Length;
-
-                    result = Interop.CryptEncrypt(key, IntPtr.Zero, true, 0, encrypted, ref length, encrypted.Length);
-                    if (!result) {
-                        throw new Win32Exception(Marshal.GetLastWin32Error());
-                    }
-
-                    return encrypted;
-                }
-                finally {
-                    if (key != IntPtr.Zero) {
-                        Interop.CryptDestroyKey(key);
-                    }
-                }
-            }
+            //
+            // Keep compatibility with with the Microsoft Cryptographic API (CAPI)
+            // Managed RSA Crypto provider produces bytes in reverse order with respect to CryptEncrypt
+            // "To interoperate with CAPI, you must manually reverse the order of encrypted bytes before the encrypted data interoperates with another API." - msdn
+            Array.Reverse(bytes);
+            return bytes;
         }
 
         public static string Decrypt(byte[] encrypted)
         {
-            using (SafeCryptProvHandle hProvider = AcquireMachineContext(WAS_KEY_CONTAINER, "", Interop.PROV_RSA_AES)) {
+            //
+            // Reverse bytes to interop with Microsoft Cryptographic Api
+            Array.Reverse(encrypted);
+            return RsaDecrypt(encrypted);
+        }
 
-                IntPtr hKey = IntPtr.Zero;
-                try {
-                    bool result = Interop.CryptGetUserKey(hProvider, Interop.AT_KEYEXCHANGE, ref hKey);
-                    if (!result) {
-                        throw new Win32Exception(Marshal.GetLastWin32Error());
-                    }
-
-                    byte[] pbData = new byte[encrypted.Length];
-                    encrypted.CopyTo(pbData, 0);
-
-                    int pdwDataLen = pbData.Length;
-
-                    result = Interop.CryptDecrypt(hKey, IntPtr.Zero, true, 0, pbData, ref pdwDataLen);
-                    if (!result) {
-                        int err = Marshal.GetLastWin32Error();
-                        throw new Win32Exception(err);
-                    }
-
-                    return Encoding.Unicode.GetString(pbData, 0, pdwDataLen);
-                }
-                finally {
-                    if (hKey != IntPtr.Zero) {
-                        Interop.CryptDestroyKey(hKey);
-                    }
-                }
+        private static byte[] RsaEncrypt(string value)
+        {
+            using (var provider = AcquireCryptoProvider()) {
+                return provider.Encrypt(Encoding.Unicode.GetBytes(value), RSAEncryptionPadding.Pkcs1);
             }
         }
 
-        private static SafeCryptProvHandle AcquireMachineContext(string keyContainerName, string providerName, uint providerType)
+        private static string RsaDecrypt(byte[] encrypted)
         {
-            SafeCryptProvHandle hProv;
-
-            UInt32 dwFlags = Interop.CRYPT_MACHINE_KEYSET;
-
-            bool rc = Interop.CryptAcquireContextW(out hProv,
-                                           keyContainerName,
-                                           providerName,
-                                           providerType,
-                                           dwFlags | Interop.CRYPT_NEWKEYSET);
-
-            // Handle key container already exists
-            if (!rc) {
-                rc = Interop.CryptAcquireContextW(out hProv,
-                                          keyContainerName,
-                                          providerName,
-                                          (uint)providerType,
-                                          dwFlags);
-
-                if (!rc) {
-                    int error = Marshal.GetLastWin32Error();
-                    if (error != Interop.NTE_EXISTS) {
-                        throw new CryptographicException(error);
-                    }
-                }
+            using (var provider = AcquireCryptoProvider()) {
+                byte[] bytes = provider.Decrypt(encrypted, RSAEncryptionPadding.Pkcs1);
+                return Encoding.Unicode.GetString(bytes);
             }
+        }
 
-            return hProv;
+        private static RSACryptoServiceProvider AcquireCryptoProvider()
+        {
+            var providerParams = new CspParameters();
+
+            providerParams.KeyContainerName = WAS_KEY_CONTAINER;
+            providerParams.ProviderType = PROV_RSA_AES;
+            providerParams.Flags |= CspProviderFlags.UseMachineKeyStore;
+
+            var prov = new RSACryptoServiceProvider(providerParams);
+            return prov;
         }
     }
 }

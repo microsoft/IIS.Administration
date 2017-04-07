@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "Microsoft.IIS.Administration.Certificates": "1.0.0",
-    "Microsoft.IIS.Administration.WebServer": "1.0.1"
+    "Microsoft.IIS.Administration.WebServer": "1.0.1",
+    "System.Security.Cryptography.Csp": "4.0.0"
   }
 }
