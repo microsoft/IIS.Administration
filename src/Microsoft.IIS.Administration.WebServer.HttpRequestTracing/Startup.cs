@@ -9,12 +9,37 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using AspNetCore.Hosting;
     using Core;
     using Core.Http;
+    using Extensions.DependencyInjection;
+    using Extensions.DependencyInjection.Extensions;
     using Files;
     using Sites;
+    using System.Linq;
     using Web.Administration;
 
-    public class Startup : BaseModule
+    public class Startup : BaseModule, IServiceCollectionAccessor
     {
+        public void Use(IServiceCollection services)
+        {
+            ServiceDescriptor redirectDesc = services.FirstOrDefault(service => service.ServiceType == typeof(IFileRedirectService));
+            ServiceDescriptor downloadDesc = services.FirstOrDefault(service => service.ServiceType == typeof(IDownloadService));
+
+            if (redirectDesc != null && downloadDesc != null) {
+                //
+                // Chain freb xsl provider with previous file provider through aggregation
+
+                ServiceDescriptor previous = services.FirstOrDefault(service => service.ServiceType == typeof(IFileProvider));
+
+                ServiceDescriptor frebProvider = ServiceDescriptor.Singleton<IFileProvider>(sp => {
+                    var env = (IHostingEnvironment)sp.GetService(typeof(IHostingEnvironment));
+                    var configProvider = (IApplicationHostConfigProvider)sp.GetService(typeof(IApplicationHostConfigProvider));
+
+                    return new FrebXslFileProvider((IFileProvider)(previous?.ImplementationInstance ?? previous?.ImplementationFactory(sp)), env, configProvider);
+                });
+
+                services.Replace(frebProvider);
+            }
+        }
+
         public override void Start()
         {
             ConfigureXsl();
@@ -27,14 +52,12 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
         private void ConfigureXsl()
         {
             var services = Environment.Host.ApplicationBuilder.ApplicationServices;
-            var redirecter = (IFileRedirectService) services.GetService(typeof(IFileRedirectService));
+            var downloads = (IDownloadService)services.GetService(typeof(IDownloadService));
+            var redirects = (IFileRedirectService)services.GetService(typeof(IFileRedirectService));
 
-            if (redirecter != null) {
-                var hostingEnv = (IHostingEnvironment)services.GetService(typeof(IHostingEnvironment));
-                var configProvider = (IApplicationHostConfigProvider)services.GetService(typeof(IApplicationHostConfigProvider));
-                var xslLocator = new XslLocator(hostingEnv, configProvider);
-
-                redirecter.AddRedirect("freb.xsl", () => xslLocator.GetPath(), true);
+            if (redirects != null && downloads != null) {
+                IDownload download = downloads.Create(FrebXslFileInfo.FILE_NAME, null /* Never expires */);
+                redirects.AddRedirect(download.PhysicalPath, () => download.Href, true);
             }
         }
 

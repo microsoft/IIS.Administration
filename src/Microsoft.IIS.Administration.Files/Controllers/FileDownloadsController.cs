@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.Files
 
     public class FileDownloadsController : ApiBaseController
     {
+        private const int DEFAULT_DOWNLOAD_TIMEOUT = 5000; // milliseconds
         private IDownloadService _downloadService;
         private IFileProvider _fileService;
 
@@ -67,7 +68,7 @@ namespace Microsoft.IIS.Administration.Files
                 throw new NotFoundException(fileId.PhysicalPath);
             }
 
-            var dl = _downloadService.Create(file.Path, ttl);
+            var dl = _downloadService.Create(file.Path, ttl ?? DEFAULT_DOWNLOAD_TIMEOUT);
 
             // Inform client location points to downloadable attachment
             Context.Response.Headers.Add("Pragma", "attachment");

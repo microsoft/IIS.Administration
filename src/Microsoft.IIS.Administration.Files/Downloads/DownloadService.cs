@@ -10,7 +10,6 @@ namespace Microsoft.IIS.Administration.Files
 
     class DownloadService : IDownloadService
     {
-        private const int DEFAULT_DOWNLOAD_TIMEOUT = 5000; // milliseconds
         private Dictionary<string, IDownload> _downloads = new Dictionary<string, IDownload>();
         private IMemoryCache _cache;
 
@@ -23,7 +22,7 @@ namespace Microsoft.IIS.Administration.Files
             _cache = cache;
         }
 
-        public IDownload Create(string physicalPath, int? timeout = null)
+        public IDownload Create(string physicalPath, int? timeout)
         {
             if (physicalPath == null) {
                 throw new ArgumentNullException(nameof(physicalPath));
@@ -33,8 +32,10 @@ namespace Microsoft.IIS.Administration.Files
             {
                 PhysicalPath = physicalPath
             };
-            
-            _cache.Set(dl.Id, dl, TimeSpan.FromMilliseconds(timeout ?? DEFAULT_DOWNLOAD_TIMEOUT));
+
+            _cache.Set(dl.Id, dl, new MemoryCacheEntryOptions() {
+                AbsoluteExpiration = timeout != null ? DateTimeOffset.UtcNow.AddMilliseconds((double)timeout) : (DateTimeOffset?)null
+            });
 
             return dl;
         }
