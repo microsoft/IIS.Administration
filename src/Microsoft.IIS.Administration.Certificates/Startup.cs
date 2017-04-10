@@ -24,8 +24,6 @@ namespace Microsoft.IIS.Administration.Certificates
         {
             ConfigureCertificates();
             ConfigureStores();
-            ConfigureExports();
-            ConfigureImports();
             ConfigureStoreProvider();
         }
 
@@ -57,18 +55,6 @@ namespace Microsoft.IIS.Administration.Certificates
             builder.MapWebApiRoute(Defines.StoresResource.Guid, $"{Defines.STORES_PATH}/{{id?}}", new { controller = "CertificateStores" });
 
             hal.ProvideLink(Defines.StoresResource.Guid, "self", store => new { href = $"/{Defines.STORES_PATH}/{store.id}" });
-
-            hal.ProvideLink(Globals.ApiResource.Guid, Defines.StoresResource.Name, _ => new { href = $"/{Defines.STORES_PATH}" });
-        }
-
-        public void ConfigureExports()
-        {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ExportsResource.Guid, $"{Defines.EXPORTS_PATH}/{{id?}}", new { controller = "CertificateExports" });
-        }
-
-        public void ConfigureImports()
-        {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ImportsResource.Guid, $"{Defines.IMPORTS_PATH}/{{id?}}", new { controller = "CertificateImports" });
         }
 
         public void ConfigureStoreProvider()

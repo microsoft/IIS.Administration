@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
     public class Startup : BaseModule
     {
+        private const string STORE_NAME = "IIS Central Certificate Store";
         internal static CentralCertificateStore CentralCertificateStore { get; private set; }
 
         public Startup() { }
@@ -21,7 +22,6 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         {
             ConfigureCentralCerts();
             ConfigureCertificates();
-            ConfigureConnectionTest();
             ConfigureStoreProvider();
         }
 
@@ -29,22 +29,17 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         {
             Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "CentralCerts" });
 
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", cc => new { href = $"{Defines.PATH}/{new CentralCertId().Uuid}" });
-            Environment.Hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}/{new CentralCertId().Uuid}" });
+            Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", cc => new { href = $"{Defines.PATH}/{new CentralCertConfigId().Uuid}" });
+            Environment.Hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}/{new CentralCertConfigId().Uuid}" });
         }
 
         private void ConfigureCertificates()
         {
             Environment.Host.RouteBuilder.MapWebApiRoute(Defines.CertificatesResource.Guid, $"{Defines.CERTIFICATES_PATH}/{{id?}}", new { controller = "CentralCertsCertificates" });
 
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.CertificatesResource.Name, _ => new { href = $"/{Defines.CERTIFICATES_PATH}" });
-        }
-
-        private void ConfigureConnectionTest()
-        {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ConnectionResource.Guid, $"{Defines.CONNECTION_TEST_PATH}", new { controller = "CentralCertsConnection" });
-
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.ConnectionResource.Name, _ => new { href = $"/{Defines.CONNECTION_TEST_PATH}" });
+            Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.CertificatesResource.Name, _ => {
+                return new { href = $"/{Certificates.Defines.PATH}?{Certificates.Defines.StoreIdentifier}={StoreId.FromName(CentralCertificateStore.Name).Uuid}" };
+            });
         }
 
         private void ConfigureStoreProvider()
@@ -52,9 +47,9 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             ICertificateOptions options = Environment.Host.ApplicationBuilder.ApplicationServices.GetRequiredService<ICertificateOptions>();
             ICertificateStoreProvider storeProvider = Environment.Host.ApplicationBuilder.ApplicationServices.GetRequiredService<ICertificateStoreProvider>();
 
-            var ccsOptions = options.Stores.FirstOrDefault(s => s.Name.Equals(Constants.STORE_NAME, System.StringComparison.OrdinalIgnoreCase));
+            var ccsOptions = options.Stores.FirstOrDefault(s => s.Name.Equals(STORE_NAME, System.StringComparison.OrdinalIgnoreCase));
 
-            var store = new CentralCertificateStore(ccsOptions != null ? ccsOptions.Claims : new string[] { "read" });
+            var store = new CentralCertificateStore(STORE_NAME, ccsOptions != null ? ccsOptions.Claims : new string[] { "read" });
             storeProvider.AddStore(store);
             CentralCertificateStore = store;
         }

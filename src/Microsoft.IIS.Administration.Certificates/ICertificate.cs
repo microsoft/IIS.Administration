@@ -10,6 +10,7 @@ namespace Microsoft.IIS.Administration.Certificates
     public interface ICertificate
     {
         string Alias { get; }
+        string Id { get; }
         string Thumbprint { get; }
         string Issuer { get; }
         string Subject { get; }

@@ -54,7 +54,7 @@ namespace Microsoft.IIS.Administration.Certificates
             ICertificateStore store = _storeProvider.Stores.FirstOrDefault(s => s.Name.Equals(certId.StoreName, StringComparison.OrdinalIgnoreCase));
 
             if (store != null) {
-                cert = await store.GetCertificate(certId.Thumbprint);
+                cert = await store.GetCertificate(certId.Id);
             }
 
             if (cert == null) {

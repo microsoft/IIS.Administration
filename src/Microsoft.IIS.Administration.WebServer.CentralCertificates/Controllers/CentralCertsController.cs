@@ -10,6 +10,8 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
     public class CentralCertsController : ApiBaseController
     {
+        private const string HIDDEN_FIELDS = "identity.password,private_key_password";
+
         [HttpGet]
         [ResourceInfo(Name = Defines.CentralCertsName)]
         public object Get()
@@ -21,7 +23,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         [ResourceInfo(Name = Defines.CentralCertsName)]
         public object Get(string id)
         {
-            if (!id.Equals(new CentralCertId().Uuid)) {
+            if (!id.Equals(new CentralCertConfigId().Uuid)) {
                 return NotFound();
             }
 
@@ -30,9 +32,10 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
         [HttpPatch]
         [ResourceInfo(Name = Defines.CentralCertsName)]
+        [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public object Patch(string id, [FromBody] dynamic model)
         {
-            if (!id.Equals(new CentralCertId().Uuid)) {
+            if (!id.Equals(new CentralCertConfigId().Uuid)) {
                 return NotFound();
             }
 

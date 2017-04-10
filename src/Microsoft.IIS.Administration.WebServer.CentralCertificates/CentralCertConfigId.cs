@@ -6,18 +6,18 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 {
     using System;
 
-    public class CentralCertId
+    public class CentralCertConfigId
     {
         private const string PURPOSE = "WebServer.CentralCertificates";
 
         public string Uuid { get; private set; }
 
-        public CentralCertId()
+        public CentralCertConfigId()
         {
             Uuid = Core.Utils.Uuid.Encode($"", PURPOSE);
         }
 
-        public CentralCertId(string uuid)
+        public CentralCertConfigId(string uuid)
         {
             if (string.IsNullOrEmpty(uuid)) {
                 throw new ArgumentNullException(nameof(uuid));

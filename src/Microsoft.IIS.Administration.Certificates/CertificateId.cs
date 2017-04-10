@@ -11,10 +11,10 @@ namespace Microsoft.IIS.Administration.Certificates
         private const string PURPOSE = "Certificates";
         private const char DELIMITER = '\n';
 
-        private const uint THUMBPRINT_INDEX = 0;
+        private const uint Id_INDEX = 0;
         private const uint STORE_NAME_INDEX = 1;
 
-        public string Thumbprint { get; private set; }
+        public string Id { get; private set; }
         public string StoreName { get; private set; }
 
         public string Uuid { get; private set; }
@@ -27,18 +27,18 @@ namespace Microsoft.IIS.Administration.Certificates
 
             var info = Core.Utils.Uuid.Decode(uuid, PURPOSE).Split(DELIMITER);
 
-            this.Thumbprint = info[THUMBPRINT_INDEX];
-            this.StoreName =  info[STORE_NAME_INDEX];
+            this.Id = info[Id_INDEX];
+            this.StoreName = info[STORE_NAME_INDEX];
 
             this.Uuid = uuid;
         }
 
-        public CertificateId(string thumbprint, string storeName)
+        public CertificateId(string id, string storeName)
         {
-            this.Thumbprint = thumbprint;
+            this.Id = id;
             this.StoreName = storeName;
 
-            this.Uuid = Core.Utils.Uuid.Encode($"{ this.Thumbprint }{ DELIMITER }{ this.StoreName }", PURPOSE);
+            this.Uuid = Core.Utils.Uuid.Encode($"{ this.Id }{ DELIMITER }{ this.StoreName }", PURPOSE);
         }
     }
 }

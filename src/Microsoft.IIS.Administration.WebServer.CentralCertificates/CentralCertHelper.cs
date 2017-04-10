@@ -12,12 +12,9 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
     using System.ComponentModel;
     using System.Dynamic;
     using System.IO;
-    using System.Linq;
     using System.Runtime.InteropServices;
-    using System.Security.Cryptography.X509Certificates;
     using System.Security.Principal;
     using System.Threading.Tasks;
-    using Win32;
     using Win32.SafeHandles;
 
     class CentralCertHelper
@@ -28,8 +25,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
             dynamic obj = new ExpandoObject();
             obj.enabled = ccs.Enabled;
-            obj.name = Constants.STORE_NAME;
-            obj.id = new CentralCertId().Uuid;
+            obj.id = new CentralCertConfigId().Uuid;
 
             if (ccs.Enabled) {
                 obj.path = ccs.PhysicalPath;
@@ -125,24 +121,14 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             return true;
         }
 
-        public static async Task<IEnumerable<X509Certificate2>> GetCertificates()
+        public static async Task<IEnumerable<string>> GetFiles()
         {
             var ccs = Startup.CentralCertificateStore;
 
             using (SafeAccessTokenHandle ccsUser = LogonAsCcsUser()) {
                 return await Task.Run(() => {
                     return WindowsIdentity.RunImpersonated(ccsUser, () => {
-                        return Directory.GetFiles(ccs.PhysicalPath).Select(f => {
-
-                            X509Certificate2 cert = !string.IsNullOrEmpty(ccs.EncryptedPrivateKeyPassword) ?
-                                                        new X509Certificate2(f, Crypto.Decrypt(Convert.FromBase64String(ccs.EncryptedPrivateKeyPassword))) :
-                                                        new X509Certificate2(f);
-
-
-
-                            cert.FriendlyName = Path.GetFileNameWithoutExtension(f);
-                            return cert;
-                        });
+                        return Directory.EnumerateFiles(ccs.PhysicalPath);
                     });
                 });
             }

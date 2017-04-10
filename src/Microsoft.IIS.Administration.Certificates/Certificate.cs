@@ -9,6 +9,7 @@
     public class Certificate : ICertificate
     {
         private ICertificateStore _store;
+        private string _id;
         private string _alias;
         private string _issuer;
         private DateTime _expires;
@@ -22,9 +23,10 @@
         private List<string> _purposes = new List<string>();
         private List<string> _subjectAlternativeNames = new List<string>();
 
-        public Certificate(X509Certificate2 certificate, ICertificateStore store)
+        public Certificate(X509Certificate2 certificate, ICertificateStore store, string id)
         {
             _store = store;
+            _id = id;
             _alias = certificate.FriendlyName;
             _issuer = certificate.Issuer;
             _expires = certificate.NotAfter;
@@ -52,6 +54,12 @@
 
             if (_hasPrivateKey) {
                 _isPrivateKeyExportable = Interop.IsPrivateKeyExportable(certificate);
+            }
+        }
+
+        public string Id {
+            get {
+                return _id;
             }
         }
 

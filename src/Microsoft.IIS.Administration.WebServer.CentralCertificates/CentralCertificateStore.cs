@@ -11,9 +11,17 @@
     using System.Security.Cryptography.X509Certificates;
     using Win32;
 
-    public class CentralCertificateStore : ICertificateStore
+    class CentralCertificateStore : ICertificateStore
     {
-        private IEnumerable<string> _claims;
+        private const string REGKEY_CENTRAL_CERTIFICATE_STORE_PROVIDER = "SOFTWARE\\Microsoft\\IIS\\CentralCertProvider";
+        private const string REGVAL_CERT_STORE_LOCATION = "CertStoreLocation";
+        private const string REGVAL_USERNAME = "UserName";
+        private const string REGVAL_PASSWORD = "Password";
+        private const string REGVAL_PRIVATE_KEY_PASSWORD = "PrivateKeyPassword";
+        private const string REGVAL_POLLING_INTERVAL = "PollingInterval";
+        private const string REGVAL_ENABLED = "Enabled";
+        private const int DEFAULT_POLLING_INTERVAL = 300; // seconds
+        private readonly IEnumerable<string> _claims;
         private DateTime _lastRefresh;
         private bool _enabled;
         private int _pollingInterval;
@@ -22,8 +30,9 @@
         private string _encryptedPassword;
         private string _encryptedPrivateKeyPassword;
 
-        public CentralCertificateStore(IEnumerable<string> claims)
+        public CentralCertificateStore(string name, IEnumerable<string> claims)
         {
+            Name = name;
             _claims = claims;
             Refresh();
         }
@@ -38,11 +47,11 @@
                 using (RegistryKey key = GetRegKey()) {
 
                     if (!value) {
-                        key.DeleteValue(Constants.REGVAL_PASSWORD, false);
-                        key.DeleteValue(Constants.REGVAL_PRIVATE_KEY_PASSWORD, false);
+                        key.DeleteValue(REGVAL_PASSWORD, false);
+                        key.DeleteValue(REGVAL_PRIVATE_KEY_PASSWORD, false);
                     }
 
-                    key.SetValue(Constants.REGVAL_ENABLED, value ? 1 : 0);
+                    key.SetValue(REGVAL_ENABLED, value ? 1 : 0);
                 }
 
                 _enabled = value;
@@ -57,7 +66,7 @@
             set {
 
                 using (RegistryKey key = GetRegKey()) {
-                    key.SetValue(Constants.REGVAL_POLLING_INTERVAL, value);
+                    key.SetValue(REGVAL_POLLING_INTERVAL, value);
                 }
 
                 _pollingInterval = value;
@@ -71,7 +80,7 @@
             }
             set {
                 using (RegistryKey key = GetRegKey()) {
-                    key.SetValue(Constants.REGVAL_CERT_STORE_LOCATION, value, RegistryValueKind.String);
+                    key.SetValue(REGVAL_CERT_STORE_LOCATION, value, RegistryValueKind.String);
                 }
 
                 _physicalPath = value;
@@ -85,7 +94,7 @@
             }
             set {
                 using (RegistryKey key = GetRegKey()) {
-                    key.SetValue(Constants.REGVAL_USERNAME, value, RegistryValueKind.String);
+                    key.SetValue(REGVAL_USERNAME, value, RegistryValueKind.String);
                 }
 
                 _username = value;
@@ -99,7 +108,7 @@
             }
             set {
                 using (RegistryKey key = GetRegKey()) {
-                    key.SetValue(Constants.REGVAL_PASSWORD, Convert.ToBase64String(Crypto.Encrypt(value)), RegistryValueKind.String);
+                    key.SetValue(REGVAL_PASSWORD, Convert.ToBase64String(Crypto.Encrypt(value)), RegistryValueKind.String);
                 }
 
                 _encryptedPassword = value;
@@ -113,7 +122,7 @@
             }
             set {
                 using (RegistryKey key = GetRegKey()) {
-                    key.SetValue(Constants.REGVAL_PRIVATE_KEY_PASSWORD, Convert.ToBase64String(Crypto.Encrypt(value)), RegistryValueKind.String);
+                    key.SetValue(REGVAL_PRIVATE_KEY_PASSWORD, Convert.ToBase64String(Crypto.Encrypt(value)), RegistryValueKind.String);
                 }
 
                 _encryptedPrivateKeyPassword = value;
@@ -132,19 +141,17 @@
             }
         }
 
-        public string Name {
-            get {
-                return Constants.STORE_NAME;
-            }
-        }
+        public string Name { get; private set; }
 
-        public async Task<ICertificate> GetCertificate(string thumbprint)
+        public async Task<ICertificate> GetCertificate(string id)
         {
             EnsureAccess(CertificateAccess.Read);
+            CertificateIdentifier certId = CertificateIdentifier.Parse(id);
+
             IEnumerable<ICertificate> certs = await GetCertificates();
 
             foreach (var cert in certs) {
-                if (cert.Thumbprint.Equals(thumbprint)) {
+                if (cert.Thumbprint.Equals(certId.Id) && cert.Alias.Equals(certId.Name, StringComparison.OrdinalIgnoreCase)) {
                     return cert;
                 }
             }
@@ -159,11 +166,11 @@
             List<ICertificate> certificates = null;
 
             try {
-                var certs = await CentralCertHelper.GetCertificates();
+                var certs = await GetCerts();
                 var l = new List<ICertificate>();
 
                 foreach (X509Certificate2 cert in certs) {
-                    l.Add(new Certificate(cert, this));
+                    l.Add(new Certificate(cert, this, new CertificateIdentifier(cert).Id));
                     cert.Dispose();
                 }
 
@@ -177,31 +184,22 @@
             return certificates ?? Enumerable.Empty<ICertificate>();
         }
 
-        //
-        // IDisposable
         public Stream GetContent(ICertificate certificate, bool persistKey, string password)
         {
-            EnsureAccess(CertificateAccess.Read | CertificateAccess.Export);
+            throw new NotImplementedException();
+        }
 
-            X509Certificate2 target = null;
-            Stream stream = null;
+        private async Task<IEnumerable<X509Certificate2>> GetCerts()
+        {
+            return (await CentralCertHelper.GetFiles()).Select(f => {
 
-            foreach (X509Certificate2 cert in CentralCertHelper.GetCertificates().Result) {
-                if (cert.Thumbprint.Equals(certificate.Thumbprint)) {
-                    target = cert;
-                }
-                else {
-                    cert.Dispose();
-                }
-            }
+                X509Certificate2 cert = !string.IsNullOrEmpty(EncryptedPrivateKeyPassword) ?
+                                            new X509Certificate2(f, Crypto.Decrypt(Convert.FromBase64String(EncryptedPrivateKeyPassword))) :
+                                            new X509Certificate2(f);
 
-            if (target != null && !persistKey) {
-                byte[] bytes = password == null ? target.Export(X509ContentType.Cert) : target.Export(X509ContentType.Cert, password);
-                stream = new MemoryStream(bytes);
-                target.Dispose();
-            }
-
-            return stream;
+                cert.FriendlyName = Path.GetFileName(f);
+                return cert;
+            });
         }
 
         private bool IsAccessAllowed(CertificateAccess access)
@@ -221,7 +219,7 @@
 
         private void EnsureRefreshed()
         {
-            if (DateTime.UtcNow - _lastRefresh > TimeSpan.FromSeconds(Constants.DEFAULT_POLLING_INTERVAL)) {
+            if (DateTime.UtcNow - _lastRefresh > TimeSpan.FromSeconds(DEFAULT_POLLING_INTERVAL)) {
                 Refresh();
             }
         }
@@ -230,12 +228,12 @@
         {
             _lastRefresh = DateTime.UtcNow;
             using (RegistryKey key = GetRegKey(false)) {
-                _enabled = (int)(key.GetValue(Constants.REGVAL_ENABLED, 0)) != 0;
-                _physicalPath = key.GetValue(Constants.REGVAL_CERT_STORE_LOCATION, null) as string;
-                _username = key.GetValue(Constants.REGVAL_USERNAME, null) as string;
-                _pollingInterval = (int)key.GetValue(Constants.REGVAL_POLLING_INTERVAL, Constants.DEFAULT_POLLING_INTERVAL);
-                _encryptedPassword = key.GetValue(Constants.REGVAL_PASSWORD, null) as string;
-                _encryptedPrivateKeyPassword = key.GetValue(Constants.REGVAL_PRIVATE_KEY_PASSWORD, null) as string;
+                _enabled = (int)(key.GetValue(REGVAL_ENABLED, 0)) != 0;
+                _physicalPath = key.GetValue(REGVAL_CERT_STORE_LOCATION, null) as string;
+                _username = key.GetValue(REGVAL_USERNAME, null) as string;
+                _pollingInterval = (int)key.GetValue(REGVAL_POLLING_INTERVAL, DEFAULT_POLLING_INTERVAL);
+                _encryptedPassword = key.GetValue(REGVAL_PASSWORD, null) as string;
+                _encryptedPrivateKeyPassword = key.GetValue(REGVAL_PRIVATE_KEY_PASSWORD, null) as string;
             }
         }
 
@@ -243,7 +241,7 @@
         // IDisposable
         private RegistryKey GetRegKey(bool writable = true)
         {
-            return Registry.LocalMachine.OpenSubKey(Constants.REGKEY_CENTRAL_CERTIFICATE_STORE_PROVIDER, writable);
+            return Registry.LocalMachine.OpenSubKey(REGKEY_CENTRAL_CERTIFICATE_STORE_PROVIDER, writable);
         }
     }
 }

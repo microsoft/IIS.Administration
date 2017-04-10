@@ -20,16 +20,10 @@ namespace Microsoft.IIS.Administration.Certificates
         public static readonly string PATH = $"{Globals.API_PATH}/{ENDPOINT}";
         public static readonly ResDef Resource = new ResDef("certificates", new Guid("C4C10AFC-3CDC-484D-9791-6D52E9E28B76"), ENDPOINT);
 
-        public const string StoreIdentifier = "store.id";
+        public const string StoreIdentifier = "certificate_store.id";
         public const string StoresName = "Microsoft.Certificates.Stores";
         public const string StoreName = "Microsoft.Certificate.Store";
         public static readonly string STORES_PATH = $"{ENDPOINT}/{STORES_ENDPOINT}";
-        public static readonly ResDef StoresResource = new ResDef("stores", new Guid("42FEB52E-896F-4769-AB1D-D924F3617434"), STORES_ENDPOINT);
-
-        public static readonly string EXPORTS_PATH = $"{PATH}/{EXPORTS_ENDPOINT}";
-        public static readonly ResDef ExportsResource = new ResDef("exports", new Guid("4D16C922-51D6-450F-BD92-CEA4F0681171"), EXPORTS_ENDPOINT);
-
-        public static readonly string IMPORTS_PATH = $"{PATH}/{IMPORTS_ENDPOINT}";
-        public static readonly ResDef ImportsResource = new ResDef("imports", new Guid("09DEE7F6-DABD-4255-AA30-86E9A85D6ADD"), IMPORTS_ENDPOINT);
+        public static readonly ResDef StoresResource = new ResDef("certificate_stores", new Guid("42FEB52E-896F-4769-AB1D-D924F3617434"), STORES_ENDPOINT);
     }
 }

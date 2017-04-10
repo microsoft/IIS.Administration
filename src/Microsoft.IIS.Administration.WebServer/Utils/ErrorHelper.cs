@@ -3,7 +3,6 @@
 
 
 namespace Microsoft.IIS.Administration.WebServer {
-    using System.Dynamic;
     using System.Net;
 
     static class ErrorHelper {

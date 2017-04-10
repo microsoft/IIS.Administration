@@ -67,7 +67,7 @@ namespace Microsoft.IIS.Administration.Certificates
                     store.Open(OpenFlags.OpenExistingOnly);
 
                     foreach (X509Certificate2 cert in store.Certificates) {
-                        certs.Add(new Certificate(cert, this));
+                        certs.Add(new Certificate(cert, this, cert.Thumbprint));
                         cert.Dispose();
                     }
 

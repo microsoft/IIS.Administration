@@ -4,7 +4,6 @@
 
 namespace Microsoft.IIS.Administration.Certificates
 {
-    using System.Security.Cryptography.X509Certificates;
     using Core.Utils;
     using System.Dynamic;
 
@@ -43,7 +42,7 @@ namespace Microsoft.IIS.Administration.Certificates
 
             //
             // id
-            obj.id = new CertificateId(certificate.Thumbprint, certificate.Store.Name).Uuid;
+            obj.id = new CertificateId(certificate.Id, certificate.Store.Name).Uuid;
 
             //
             // issued_by

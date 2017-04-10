@@ -205,6 +205,7 @@ namespace Microsoft.IIS.Administration.Tests
 
             if (Utils.OsVersion >= new Version(6, 2)) {
                 httpsProperties.Add("require_sni");
+                httpsProperties.Add("use_central_certificate_store");
             }
 
             using (HttpClient client = ApiHttpClient.Create()) {

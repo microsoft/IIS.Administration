@@ -574,9 +574,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                     //
                     // SSL Cert from central cert store
                     if (centralCertStore.HasValue && centralCertStore.Value) {
-                        if (centralCertStore.HasValue && centralCertStore.Value) {
-                            binding.SslFlags |= SslFlags.CentralCertStore;
-                        }
+                        binding.SslFlags |= SslFlags.CentralCertStore;
                     }
                     //
                     // SSL Cert from certificate associated with binding
@@ -602,7 +600,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                                 throw new ApiArgumentException("binding.certificate.store", "Unsupported certificate store for https binding");
                             }
 
-                            cert = store.GetCertificate(id.Thumbprint).Result;
+                            cert = store.GetCertificate(id.Id).Result;
                         }
 
                         // The specified certificate must be in the store with a private key or else there will be an exception when we commit
@@ -615,8 +613,8 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
                         List<byte> bytes = new List<byte>();
                         // Decode the hex string of the certificate hash into bytes
-                        for (int i = 0; i < id.Thumbprint.Length; i += 2) {
-                            bytes.Add(Convert.ToByte(id.Thumbprint.Substring(i, 2), 16));
+                        for (int i = 0; i < id.Id.Length; i += 2) {
+                            bytes.Add(Convert.ToByte(id.Id.Substring(i, 2), 16));
                         }
 
                         binding.CertificateStoreName = id.StoreName;

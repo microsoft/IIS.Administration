@@ -16,7 +16,7 @@ namespace Microsoft.IIS.Administration.Certificates
 
         Task<IEnumerable<ICertificate>> GetCertificates();
 
-        Task<ICertificate> GetCertificate(string thumbprint);
+        Task<ICertificate> GetCertificate(string id);
 
         Stream GetContent(ICertificate certificate, bool persistKey, string password);
 

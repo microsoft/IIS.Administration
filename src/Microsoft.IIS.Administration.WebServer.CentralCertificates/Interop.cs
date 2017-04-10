@@ -17,9 +17,9 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
         [DllImport(SECURITY_API_SET, SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool LogonUserExExW(
-            String lpszUsername, 
-            String lpszDomain,
-            String lpszPassword,
+            string lpszUsername,
+            string lpszDomain,
+            string lpszPassword,
             int dwLogonType,
             int dwLogonProvider,
             IntPtr pTokenGroups,
