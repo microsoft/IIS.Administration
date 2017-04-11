@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "Microsoft.Web.Administration": "10.0.0-rc1",
-    "Microsoft.IIS.Administration.Certificates": "1.0.1",
     "Microsoft.IIS.Administration.Core": "1.0.1",
     "System.Diagnostics.Process": "4.1.0"
   }

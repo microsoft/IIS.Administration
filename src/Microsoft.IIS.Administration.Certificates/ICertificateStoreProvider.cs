@@ -11,5 +11,7 @@ namespace Microsoft.IIS.Administration.Certificates
         IEnumerable<ICertificateStore> Stores { get; }
 
         void AddStore(ICertificateStore store);
+
+        void RemoveStore(ICertificateStore store);
     }
 }

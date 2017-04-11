@@ -7,7 +7,7 @@ namespace Microsoft.IIS.Administration.Certificates
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
 
-    public interface IStore
+    public interface ICertificateStoreConfiguration
     {
         string Name { get; }
         StoreLocation StoreLocation { get; }

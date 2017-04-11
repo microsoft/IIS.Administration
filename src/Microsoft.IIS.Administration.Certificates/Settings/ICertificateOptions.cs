@@ -8,7 +8,7 @@ namespace Microsoft.IIS.Administration.Certificates
 
     public interface ICertificateOptions
     {
-        void AddStore(IStore store);
-        IEnumerable<IStore> Stores { get; }
+        void AddStore(ICertificateStoreConfiguration store);
+        IEnumerable<ICertificateStoreConfiguration> Stores { get; }
     }
 }

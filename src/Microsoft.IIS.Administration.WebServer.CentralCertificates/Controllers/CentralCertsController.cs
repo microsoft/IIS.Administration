@@ -7,22 +7,33 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using System.Net;
 
     public class CentralCertsController : ApiBaseController
     {
         private const string HIDDEN_FIELDS = "identity.password,private_key_password";
+        private CentralCertificateStore _ccs;
+
+        public CentralCertsController()
+        {
+            _ccs = Startup.CentralCertificateStore;
+        }
 
         [HttpGet]
         [ResourceInfo(Name = Defines.CentralCertsName)]
         public object Get()
         {
-            return CentralCertHelper.ToJsonModel();
+            RequireEnabled();
+
+            return LocationChanged(CentralCertHelper.GetLocation(), CentralCertHelper.ToJsonModel());
         }
 
         [HttpGet]
         [ResourceInfo(Name = Defines.CentralCertsName)]
         public object Get(string id)
         {
+            RequireEnabled();
+
             if (!id.Equals(new CentralCertConfigId().Uuid)) {
                 return NotFound();
             }
@@ -35,6 +46,8 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            RequireEnabled();
+
             if (!id.Equals(new CentralCertConfigId().Uuid)) {
                 return NotFound();
             }
@@ -42,6 +55,37 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             CentralCertHelper.Update(model);
 
             return CentralCertHelper.ToJsonModel();
+        }
+
+        [HttpPost]
+        [ResourceInfo(Name = Defines.CentralCertsName)]
+        [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
+        public object Post([FromBody] dynamic model)
+        {
+            CentralCertHelper.Enable(model);
+
+            return CentralCertHelper.ToJsonModel();
+        }
+
+        [HttpDelete]
+        [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
+        public void Delete(string id)
+        {
+            if (id.Equals(new CentralCertConfigId().Uuid)) {
+                CentralCertHelper.Disable();
+            }
+
+            // Success
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+        }
+
+
+
+        private void RequireEnabled()
+        {
+            if (!_ccs.Enabled) {
+                throw new FeatureNotFoundException("IIS Central Certificate Store");
+            }
         }
     }
 }

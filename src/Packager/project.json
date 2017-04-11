@@ -13,6 +13,7 @@
     "Microsoft.IIS.Administration.WebServer.AppPools": "1.0.1",
     "Microsoft.IIS.Administration.WebServer.Authentication": "1.0.1",
     "Microsoft.IIS.Administration.WebServer.Authorization": "1.0.1",
+    "Microsoft.IIS.Administration.WebServer.CentralCertificates": "1.0.0",
     "Microsoft.IIS.Administration.WebServer.Compression": "1.0.2",
     "Microsoft.IIS.Administration.WebServer.DefaultDocuments": "1.0.1",
     "Microsoft.IIS.Administration.WebServer.Delegation": "1.0.1",
@@ -34,7 +35,6 @@
     "Microsoft.IIS.Administration.WebServer.StaticContent": "1.0.1",
     "Microsoft.IIS.Administration.WebServer.VirtualDirectories": "1.0.2",
     "Microsoft.IIS.Administration.WebServer.WorkerProcesses": "1.0.1",
-    "Microsoft.IIS.Administration.WebServer.CentralCertificates": "1.0.0",
     "Microsoft.NETCore.App": {
       "version": "1.0.0",
       "type": "platform"

@@ -13,11 +13,11 @@ namespace Microsoft.IIS.Administration.Certificates
 
     class CertificateOptions : ICertificateOptions
     {
-        private List<IStore> _stores = new List<IStore>();
+        private List<ICertificateStoreConfiguration> _stores = new List<ICertificateStoreConfiguration>();
 
         private CertificateOptions() { }
 
-        public IEnumerable<IStore> Stores {
+        public IEnumerable<ICertificateStoreConfiguration> Stores {
             get {
                 return _stores;
             }
@@ -29,7 +29,7 @@ namespace Microsoft.IIS.Administration.Certificates
 
             if (configuration.GetSection("certificates").GetChildren().Count() > 0) {
                 foreach (var child in configuration.GetSection("certificates:stores").GetChildren()) {
-                    var store = Store.FromSection(child);
+                    var store = CertificateStoreConfiguration.FromSection(child);
                     if (store != null) {
                         options.AddStore(store);
                     }
@@ -39,12 +39,12 @@ namespace Microsoft.IIS.Administration.Certificates
             return options;
         }
 
-        public void AddStore(IStore store)
+        public void AddStore(ICertificateStoreConfiguration store)
         {
             try {
                 if (!string.IsNullOrEmpty(store.Path)) {
                     var p = PathUtil.GetFullPath(store.Path);
-                    store = new Store() {
+                    store = new CertificateStoreConfiguration() {
                         Name = store.Name,
                         StoreLocation = store.StoreLocation,
                         Claims = store.Claims,
@@ -66,9 +66,13 @@ namespace Microsoft.IIS.Administration.Certificates
             }
 
             //
-            // Only add the store if it doesn't exist
-            if (!_stores.Any(loc => loc.Name.Equals(store.Name, StringComparison.OrdinalIgnoreCase)) 
-                    && (string.IsNullOrEmpty(store.Path) || !_stores.Any(loc => !string.IsNullOrEmpty(loc.Path)))) {
+            // Replace the store if it exists
+            int existing = _stores.FindIndex(s => s.Name.Equals(store.Name, StringComparison.OrdinalIgnoreCase));
+            
+            if (existing != -1) {
+                _stores[existing] = store;
+            }
+            else {
                 _stores.Add(store);
             }
         }

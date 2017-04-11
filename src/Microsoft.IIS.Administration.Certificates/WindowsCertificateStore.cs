@@ -13,7 +13,9 @@ namespace Microsoft.IIS.Administration.Certificates
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
 
-    public class WindowsCertificateStore : ICertificateStore
+    public interface IWindowsCertificateStore { }
+
+    public class WindowsCertificateStore : ICertificateStore, IWindowsCertificateStore
     {
         private string _name;
         private IEnumerable<string> _claims;
@@ -22,12 +24,6 @@ namespace Microsoft.IIS.Administration.Certificates
         {
             _name = name;
             _claims = claims;
-        }
-
-        public bool IsWindowsStore {
-            get {
-                return true;
-            }
         }
 
         public string Name {

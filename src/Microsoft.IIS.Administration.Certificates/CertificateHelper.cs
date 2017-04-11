@@ -154,12 +154,6 @@ namespace Microsoft.IIS.Administration.Certificates
                 obj.claims = store.Claims;
             }
 
-            //
-            // is_windows_store
-            if (fields.Exists("is_windows_store")) {
-                obj.is_windows_store = store.IsWindowsStore;
-            }
-
             return Core.Environment.Hal.Apply(Defines.StoresResource.Guid, obj, full);
         }
 

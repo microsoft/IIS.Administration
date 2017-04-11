@@ -8,7 +8,7 @@ namespace Microsoft.IIS.Administration.WebServer
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
 
-    class CertStore : IStore
+    class CertStore : ICertificateStoreConfiguration
     {
         public string Name { get; set; }
         public string Path { get; set; }

@@ -19,7 +19,5 @@ namespace Microsoft.IIS.Administration.Certificates
         Task<ICertificate> GetCertificate(string id);
 
         Stream GetContent(ICertificate certificate, bool persistKey, string password);
-
-        bool IsWindowsStore { get; }
     }
 }

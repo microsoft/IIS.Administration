@@ -8,24 +8,24 @@ namespace Microsoft.IIS.Administration.Certificates
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
 
-    class Store : IStore
+    class CertificateStoreConfiguration : ICertificateStoreConfiguration
     {
         public string Name { get; set; }
         public StoreLocation StoreLocation { get; set; }
         public string Path { get; set; }
         public IEnumerable<string> Claims { get; set; } = new List<string>();
 
-        public static Store FromSection(IConfigurationSection section)
+        public static CertificateStoreConfiguration FromSection(IConfigurationSection section)
         {
             string name = section.GetValue("name", string.Empty);
             string path = section.GetValue<string>("path");
             List<string> claims = new List<string>();
             ConfigurationBinder.Bind(section.GetSection("claims"), claims);
 
-            Store store = null;
+            CertificateStoreConfiguration store = null;
 
             if (!string.IsNullOrEmpty(name)) {
-                store = new Store() {
+                store = new CertificateStoreConfiguration() {
                     Name = name,
                     Path = path,
                     Claims = claims,

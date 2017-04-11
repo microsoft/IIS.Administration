@@ -30,7 +30,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "CentralCerts" });
 
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", cc => new { href = $"{Defines.PATH}/{new CentralCertConfigId().Uuid}" });
-            Environment.Hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}/{new CentralCertConfigId().Uuid}" });
+            Environment.Hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => new { href = CentralCertHelper.GetLocation() });
         }
 
         private void ConfigureCertificates()
@@ -50,7 +50,11 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             var ccsOptions = options.Stores.FirstOrDefault(s => s.Name.Equals(STORE_NAME, System.StringComparison.OrdinalIgnoreCase));
 
             var store = new CentralCertificateStore(STORE_NAME, ccsOptions != null ? ccsOptions.Claims : new string[] { "read" });
-            storeProvider.AddStore(store);
+
+            if (store.Enabled) {
+                storeProvider.AddStore(store);
+            }
+
             CentralCertificateStore = store;
         }
     }

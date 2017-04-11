@@ -596,7 +596,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                         ICertificate cert = null;
 
                         if (store != null) {
-                            if (!store.IsWindowsStore) {
+                            if (!(store is IWindowsCertificateStore)) {
                                 throw new ApiArgumentException("binding.certificate.store", "Unsupported certificate store for https binding");
                             }
 

@@ -1,4 +1,8 @@
-﻿namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+
+namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 {
     using System;
     using System.Collections.Generic;
@@ -10,6 +14,8 @@
     using System.IO;
     using System.Security.Cryptography.X509Certificates;
     using Win32;
+
+    public interface ICentralCertificateStore { }
 
     class CentralCertificateStore : ICertificateStore
     {
@@ -47,6 +53,7 @@
                 using (RegistryKey key = GetRegKey()) {
 
                     if (!value) {
+                        key.DeleteValue(REGVAL_USERNAME, false);
                         key.DeleteValue(REGVAL_PASSWORD, false);
                         key.DeleteValue(REGVAL_PRIVATE_KEY_PASSWORD, false);
                     }
@@ -108,7 +115,7 @@
             }
             set {
                 using (RegistryKey key = GetRegKey()) {
-                    key.SetValue(REGVAL_PASSWORD, Convert.ToBase64String(Crypto.Encrypt(value)), RegistryValueKind.String);
+                    key.SetValue(REGVAL_PASSWORD, value, RegistryValueKind.String);
                 }
 
                 _encryptedPassword = value;
@@ -122,16 +129,10 @@
             }
             set {
                 using (RegistryKey key = GetRegKey()) {
-                    key.SetValue(REGVAL_PRIVATE_KEY_PASSWORD, Convert.ToBase64String(Crypto.Encrypt(value)), RegistryValueKind.String);
+                    key.SetValue(REGVAL_PRIVATE_KEY_PASSWORD, value, RegistryValueKind.String);
                 }
 
                 _encryptedPrivateKeyPassword = value;
-            }
-        }
-
-        public bool IsWindowsStore {
-            get {
-                return false;
             }
         }
 

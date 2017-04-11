@@ -4,6 +4,7 @@
 
 namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 {
+    using Certificates;
     using Core;
     using Core.Utils;
     using Newtonsoft.Json.Linq;
@@ -39,41 +40,8 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
         public static void Update(dynamic model)
         {
-            if (model == null) {
-                throw new ApiArgumentException("model");
-            }
-
-            if (!(model is JObject)) {
-                throw new ApiArgumentException("model", ApiArgumentException.EXPECTED_OBJECT);
-            }
-
-            //
-            // Validate model and extract values
-            bool? enabled = DynamicHelper.To<bool>(model.enabled);
-            string path = DynamicHelper.Value(model.path);
-            string privateKeyPassword = DynamicHelper.Value(model.private_key_password);
-            string username = null, password = null;
-
-            if (model.identity != null) {
-                dynamic identity = model.identity;
-
-                if (!(identity is JObject)) {
-                    throw new ApiArgumentException("identity", ApiArgumentException.EXPECTED_OBJECT);
-                }
-
-                username = DynamicHelper.Value(identity.username);
-                password = DynamicHelper.Value(identity.password);
-            }
-
-            if (enabled.HasValue && enabled.Value) {
-                if (string.IsNullOrEmpty(username)) {
-                    throw new ApiArgumentException("identity.username");
-                }
-
-                if (string.IsNullOrEmpty(password)) {
-                    throw new ApiArgumentException("identity.password");
-                }
-            }
+            string username, password, path, privateKeyPassword;
+            ExtractModel(model, out username, out password, out path, out privateKeyPassword);
 
             var ccs = Startup.CentralCertificateStore;
 
@@ -94,9 +62,54 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             if (privateKeyPassword != null) {
                 ccs.EncryptedPrivateKeyPassword = Convert.ToBase64String(Crypto.Encrypt(privateKeyPassword));
             }
+        }
 
-            if (enabled.HasValue) {
-                ccs.Enabled = enabled.Value;
+        public static void Enable(dynamic model)
+        {
+            string username, password, path, privateKeyPassword;
+            ExtractModel(model, out username, out password, out path, out privateKeyPassword);
+
+            //
+            // Validate model and extract values
+            if (string.IsNullOrEmpty(path)) {
+                throw new ApiArgumentException("path");
+            }
+
+            if (string.IsNullOrEmpty(username)) {
+                throw new ApiArgumentException("identity.username");
+            }
+
+            if (string.IsNullOrEmpty(password)) {
+                throw new ApiArgumentException("identity.password");
+            }
+
+            var ccs = Startup.CentralCertificateStore;
+
+            //
+            // Update ccs
+            ccs.PhysicalPath = path;
+            ccs.UserName = username;
+            ccs.EncryptedPassword = Convert.ToBase64String(Crypto.Encrypt(password));
+
+            if (privateKeyPassword != null) {
+                ccs.EncryptedPrivateKeyPassword = Convert.ToBase64String(Crypto.Encrypt(privateKeyPassword));
+            }
+
+            ccs.Enabled = true;
+
+            if (CertificateStoreProviderAccessor.Instance != null) {
+                CertificateStoreProviderAccessor.Instance.AddStore(ccs);
+            }
+        }
+
+        public static void Disable()
+        {
+            var ccs = Startup.CentralCertificateStore;
+
+            ccs.Enabled = false;
+
+            if (CertificateStoreProviderAccessor.Instance != null) {
+                CertificateStoreProviderAccessor.Instance.RemoveStore(ccs);
             }
         }
 
@@ -132,6 +145,11 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                     });
                 });
             }
+        }
+
+        public static string GetLocation()
+        {
+            return $"/{Defines.PATH}/{new CentralCertConfigId().Uuid}";
         }
 
         private static SafeAccessTokenHandle LogonAsCcsUser()
@@ -173,6 +191,33 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             }
 
             return token;
+        }
+
+        private static void ExtractModel(dynamic model, out string username, out string password, out string path, out string privateKeyPassword)
+        {
+            if (model == null) {
+                throw new ApiArgumentException("model");
+            }
+
+            if (!(model is JObject)) {
+                throw new ApiArgumentException("model", ApiArgumentException.EXPECTED_OBJECT);
+            }
+
+            dynamic identity = model.identity;
+            if (identity == null) {
+                throw new ApiArgumentException("identity");
+            }
+
+            if (!(identity is JObject)) {
+                throw new ApiArgumentException("identity", ApiArgumentException.EXPECTED_OBJECT);
+            }
+
+            //
+            // Validate model and extract values
+            path = DynamicHelper.Value(model.path);
+            username = DynamicHelper.Value(identity.username);
+            password = DynamicHelper.Value(identity.password);
+            privateKeyPassword = DynamicHelper.Value(model.private_key_password);
         }
     }
 }

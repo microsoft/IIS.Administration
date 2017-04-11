@@ -20,9 +20,18 @@ namespace Microsoft.IIS.Administration.Certificates
 
         public void AddStore(ICertificateStore store)
         {
-            if (GetStore(store.Name) == null) {
-                _stores.Add(store);
+            var existing = GetStore(store.Name);
+
+            if (existing != null) {
+                RemoveStore(existing);
             }
+
+            _stores.Add(store);
+        }
+
+        public void RemoveStore(ICertificateStore store)
+        {
+            _stores.RemoveAll(s => s == store);
         }
 
         public ICertificateStore GetStore(string storeName)
