@@ -19,6 +19,10 @@ after_build:
     Get-WindowsOptionalFeature -Online | where {$_.FeatureName -match "IIS-" -and $_.State -eq [Microsoft.Dism.Commands.FeatureState]::Disabled} | % {Enable-WindowsOptionalFeature -Online -FeatureName $_.FeatureName};
     & "$env:publish_out_dir\setup\setup.ps1" Install -Verbose -Port 44326;
     $appsettings = Get-ChildItem -Recurse 'C:\Program Files\IIS Administration\' appsettings.json;
+    $securityScript = Get-ChildItem -Recurse 'C:\Program Files\IIS Administration\' security.ps1;
+    Push-Location $securityScript.Directory;
+    .\security.ps1 Add-SelfRights -Path $appsettings.FullName;
+    Pop-Location;
     Copy-Item "$env:iis_admin_solution_dir\src\Microsoft.IIS.Administration\config\appsettings.json" $appsettings.FullName -force;
     Restart-Service "Microsoft IIS Administration";
 test_script:
