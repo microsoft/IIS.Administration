@@ -240,7 +240,7 @@ namespace Microsoft.IIS.Administration.Core
             StringBuilder sb = new StringBuilder();
 
             var nl = System.Environment.NewLine;
-            sb.Append($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff zzz")}{nl}API Key ID: {apiKeyId}{nl}Method: {method}{nl}Path: {path}{nl}");
+            sb.Append($"{nl}API Key ID: {apiKeyId}{nl}Method: {method}{nl}Path: {path}{nl}");
 
             return sb;
         }

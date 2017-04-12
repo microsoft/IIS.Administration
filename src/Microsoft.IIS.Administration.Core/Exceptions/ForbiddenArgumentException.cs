@@ -10,11 +10,19 @@ namespace Microsoft.IIS.Administration.Core
         public ForbiddenArgumentException(string paramName, Exception innerException = null) : base(paramName, string.Empty, innerException) {
         }
 
-        public ForbiddenArgumentException(string paramName, string message, Exception innerException = null) : base(paramName, message == null ? string.Empty : message, innerException) {
+        public ForbiddenArgumentException(string paramName, string message, Exception innerException = null) : base(paramName, message == null ? string.Empty : message, innerException)
+        {
         }
 
+        public ForbiddenArgumentException(string paramName, string message, string value, Exception innerException = null) : base(paramName, message == null ? string.Empty : message, innerException)
+        {
+            Value = value;
+        }
+
+        public string Value { get; private set; }
+
         public override dynamic GetApiError() {
-            return Http.ErrorHelper.ForbiddenArgumentError(ParamName, Message);
+            return Http.ErrorHelper.ForbiddenArgumentError(ParamName, Message, Value);
         }
     }
 }

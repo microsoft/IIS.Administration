@@ -35,9 +35,6 @@ namespace Microsoft.IIS.Administration {
                     return;
                 }
 
-                //
-                // If it's not a handled/known exception log it
-                LogError(e);
                 throw;
             }
         }
@@ -68,22 +65,16 @@ namespace Microsoft.IIS.Administration {
             //
             // Write content
             var e = JsonConvert.SerializeObject(apiError);
-            if (Log.Logger.IsEnabled(LogEventLevel.Information))
-            {
-                await Task.Run(() => {
-                    Log.Logger.Information($"{e}{System.Environment.NewLine}{System.Environment.NewLine}");
-                });
-            }
+            LogError(e);
             await response.WriteAsync(e);
         }
 
-        private void LogError(Exception e) {
-            //
-            // If it's not a handled/known exception log it
-            if (Log.Logger.IsEnabled(LogEventLevel.Error)) {
+        private static void LogError(string errorContent)
+        {
+            if (Log.Logger.IsEnabled(LogEventLevel.Information)) {
                 Task.Run(() => {
-                    Log.Logger.Error($"{e.Message}{System.Environment.NewLine}\t{e.StackTrace}{System.Environment.NewLine}{System.Environment.NewLine}");
-                });                
+                    Log.Logger.Information($"{errorContent}{System.Environment.NewLine}{System.Environment.NewLine}");
+                });
             }
         }
     }

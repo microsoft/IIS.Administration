@@ -3,6 +3,7 @@
 
 
 namespace Microsoft.IIS.Administration.Core.Http {
+    using System.Collections.Generic;
     using System.Dynamic;
     using System.Net;
 
@@ -95,7 +96,7 @@ namespace Microsoft.IIS.Administration.Core.Http {
             };
         }
 
-        public static dynamic ForbiddenArgumentError(string paramName, string message = null)
+        public static dynamic ForbiddenArgumentError(string paramName, string message, string value)
         {
             dynamic obj = new ExpandoObject();
 
@@ -104,6 +105,10 @@ namespace Microsoft.IIS.Administration.Core.Http {
 
             if (!string.IsNullOrEmpty(message)) {
                 obj.detail = message;
+            }
+
+            if (value != null) {
+                ((IDictionary<string, object>)obj)[paramName] = value;
             }
 
             obj.status = (int)HttpStatusCode.Forbidden;
