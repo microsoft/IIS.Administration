@@ -10,6 +10,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
     using Core.Http;
     using Core.Utils;
     using Files;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -52,7 +53,6 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 sites = ManagementUnit.ServerManager.Sites;
             }
 
-
             // Set HTTP header for total count
             this.Context.Response.SetItemsCount(sites.Count());
 
@@ -77,7 +77,6 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             return SiteHelper.ToJsonModel(site, Context.Request.GetFields());
         }
 
-        // TODO should set location header on entity creation.
         [HttpPost]
         [Audit]
         [ResourceInfo(Name = Defines.WebsiteName)]
@@ -87,14 +86,13 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             Site site = SiteHelper.CreateSite(model, _fileProvider);
 
             // Check if site with name already exists
-            if(ManagementUnit.ServerManager.Sites.Any(s => s.Name.Equals(site.Name))) {
+            if (ManagementUnit.ServerManager.Sites.Any(s => s.Name.Equals(site.Name, StringComparison.OrdinalIgnoreCase))) {
                 throw new AlreadyExistsException("name");
             }
 
             // Save it
             ManagementUnit.ServerManager.Sites.Add(site);
             ManagementUnit.Current.Commit();
-
 
             // Refresh
             site = SiteHelper.GetSite(site.Id);

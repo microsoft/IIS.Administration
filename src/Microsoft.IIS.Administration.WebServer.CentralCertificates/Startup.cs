@@ -20,8 +20,16 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
         public override void Start()
         {
+            IWebServerVersion versionProvider = Environment.Host.ApplicationBuilder.ApplicationServices.GetService<IWebServerVersion>();
+            
+            if (versionProvider?.Version == null || versionProvider.Version < new System.Version(8,0)) {
+                //
+                // IIS Centralized Certificate Store was not introduced until IIS 8.0
+                // Prevent provision of CCS functionality
+                return;
+            }
+
             ConfigureCentralCerts();
-            ConfigureCertificates();
             ConfigureStoreProvider();
         }
 
@@ -29,17 +37,8 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         {
             Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "CentralCerts" });
 
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", cc => new { href = $"{Defines.PATH}/{new CentralCertConfigId().Uuid}" });
+            Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", cc => new { href = $"{Defines.PATH}/{ new CentralCertConfigId().Uuid}" });
             Environment.Hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => new { href = CentralCertHelper.GetLocation() });
-        }
-
-        private void ConfigureCertificates()
-        {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.CertificatesResource.Guid, $"{Defines.CERTIFICATES_PATH}/{{id?}}", new { controller = "CentralCertsCertificates" });
-
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.CertificatesResource.Name, _ => {
-                return new { href = $"/{Certificates.Defines.PATH}?{Certificates.Defines.StoreIdentifier}={StoreId.FromName(CentralCertificateStore.Name).Uuid}" };
-            });
         }
 
         private void ConfigureStoreProvider()

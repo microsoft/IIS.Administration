@@ -214,7 +214,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         private void EnsureAccess(CertificateAccess access)
         {
             if (!IsAccessAllowed(access)) {
-                throw new ForbiddenArgumentException("certificate_store");
+                throw new ForbiddenArgumentException("certificate_store", null, Name);
             }
         }
 

@@ -84,38 +84,10 @@ namespace Microsoft.IIS.Administration.Certificates
 
             return null;
         }
-
-        //
-        // IDisposable
+        
         public Stream GetContent(ICertificate certificate, bool persistKey, string password)
         {
-            EnsureAccess(CertificateAccess.Read | CertificateAccess.Export);
-
-            X509Certificate2 target = null;
-            Stream stream = null;
-
-            using (X509Store store = new X509Store(Name, StoreLocation.LocalMachine)) {
-                store.Open(OpenFlags.OpenExistingOnly);
-
-                foreach (X509Certificate2 cert in store.Certificates) {
-                    if (cert.Thumbprint.Equals(certificate.Thumbprint)) {
-                        target = cert;
-                    }
-                    else {
-                        cert.Dispose();
-                    }
-                }
-            }
-
-            X509ContentType contentType = persistKey ? X509ContentType.Pfx : X509ContentType.Cert;
-
-            if (target != null) {
-                byte[] bytes = password == null ? target.Export(contentType) : target.Export(contentType, password);
-                stream = new MemoryStream(bytes);
-                target.Dispose();
-            }
-
-            return stream;
+            throw new NotImplementedException();
         }
 
         private bool IsAccessAllowed(CertificateAccess access)
@@ -129,7 +101,7 @@ namespace Microsoft.IIS.Administration.Certificates
         private void EnsureAccess(CertificateAccess access)
         {
             if (!IsAccessAllowed(access)) {
-                throw new ForbiddenArgumentException("certificate_store");
+                throw new ForbiddenArgumentException("certificate_store", null, Name);
             }
         }
     }

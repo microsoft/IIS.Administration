@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration.Core
 {
     using Extensions.Configuration;
     using Newtonsoft.Json;
+    using Serilog;
     using System;
     using System.IO;
     using Utils;
@@ -17,15 +18,21 @@ namespace Microsoft.IIS.Administration.Core
 
         public static void Initialize(string filePath)
         {
-            dynamic configObject = JsonConvert.DeserializeObject(File.ReadAllText(filePath));
-            string id = DynamicHelper.Value(configObject.host_id);
+            try {
+                dynamic configObject = JsonConvert.DeserializeObject(File.ReadAllText(filePath));
+                string id = DynamicHelper.Value(configObject.host_id);
 
-            if (string.IsNullOrEmpty(id)) {
-                id = configObject.host_id = Guid.NewGuid().ToString();
-                File.WriteAllText(filePath, JsonConvert.SerializeObject(configObject, Formatting.Indented));
+                if (string.IsNullOrEmpty(id)) {
+                    id = configObject.host_id = Guid.NewGuid().ToString();
+                    File.WriteAllText(filePath, JsonConvert.SerializeObject(configObject, Formatting.Indented));
+                }
+
+                HostId = Guid.Parse(id);
             }
-
-            HostId = Guid.Parse(id);
+            catch (Exception e) {
+                Log.Fatal(e, "");
+                throw;
+            }
         }
     }
 }
