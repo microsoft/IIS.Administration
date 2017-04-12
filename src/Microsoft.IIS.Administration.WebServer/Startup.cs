@@ -17,8 +17,9 @@ namespace Microsoft.IIS.Administration.WebServer
 
         public void Use(IServiceCollection services)
         {
-            services.AddSingleton<IApplicationHostConfigProvider>(sp => new ApplicationHostConfigProvider(null));
-            services.AddSingleton<IWebServerFeatureManager>(sp => new WebServerFeatureManager());
+            services.AddSingleton<IApplicationHostConfigProvider>(new ApplicationHostConfigProvider(null));
+            services.AddSingleton<IWebServerFeatureManager>(new WebServerFeatureManager());
+            services.AddSingleton<IWebServerVersion>(new WebServerVersion());
         }
 
         public override void Start()
