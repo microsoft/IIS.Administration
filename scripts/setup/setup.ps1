@@ -157,7 +157,7 @@ function Uninstall() {
         return
     }
 
-    $children = Get-ChildItem $adminRoot | Where-Object {$_ -is [System.IO.DirectoryInfo]}
+    $children = Get-ChildItem $adminRoot | Where-Object { $_ -is [System.IO.DirectoryInfo] }
 
     $validAdminRoot = $false
     foreach ($child in $children) {
@@ -178,23 +178,23 @@ function Uninstall() {
         }
     }
     
-    $children = Get-ChildItem $adminRoot | Where-Object {$_ -is [System.IO.DirectoryInfo]}
+    $children = Get-ChildItem $adminRoot | Where-Object { $_ -is [System.IO.DirectoryInfo] }
+
+    # Other known directories
+    foreach ($child in $children) {
+        if ($expectedDirectories.Contains($child.Name)) {
+                .\security.ps1 Add-SelfRights -Path $child.FullName
+                Remove-Item -Recurse -Force $child.FullName -ErrorAction SilentlyContinue
+        }
+    }
+    
+    $children = Get-ChildItem $adminRoot | Where-Object { $_ -is [System.IO.DirectoryInfo] }
 
     # Current installation
     foreach ($child in $children) {
         if (.\config.ps1 Exists -Path $child.FullName) {
             .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding -DeleteGroup:$DeleteGroup
             break
-        }
-    }
-    
-    $children = Get-ChildItem $adminRoot | Where-Object {$_ -is [System.IO.DirectoryInfo]}
-
-    # Other directories
-    foreach ($child in $children) {
-        if ($expectedDirectories.Contains($child.Name)) {
-                .\security.ps1 Add-SelfRights -Path $child.FullName
-                Remove-Item -Recurse -Force $child.FullName -ErrorAction SilentlyContinue
         }
     }
     

@@ -213,19 +213,13 @@ if(!$outputConfigPathExists) {
     New-Item $outputConfigPath -Type directory | Out-Null
 }
 
-$outputApiKeysFolderPath = Join-Path $outputConfigPath "api-keys"
-
-if (-not($(Test-Path $outputApiKeysFolderPath))) {
-	New-Item $outputApiKeysFolderPath -Type directory | Out-Null
-}
-
 copy (Join-Path $configFolderPath "modules.json") $outputConfigPath  -Force -ErrorAction Stop;
 
 $defaultAppSettingsContent = [System.IO.File]::ReadAllText($(Join-Path $(Get-ScriptDirectory) "defaultAppSettings.json"))
 $defaultAppSettingsContent | Out-File (Join-Path $outputConfigPath "appsettings.json")
 
 $emptyApiKeysContent = [System.IO.File]::ReadAllText($(Join-Path $(Get-ScriptDirectory) "empty-api-keys.json"))
-$emptyApiKeysContent | Out-File (Join-Path $outputApiKeysFolderPath "api-keys.json")
+$emptyApiKeysContent | Out-File (Join-Path $outputConfigPath  "api-keys.json")
 
 # Dlls required for plugins reside in the plugins folder at dev time
 $pluginFolder = Join-Path $ProjectPath "plugins"

@@ -115,7 +115,6 @@ function Migrate {
     }
 
     $userFiles = .\config.ps1 Get-UserFileMap
-    $migrationMap = .\config.ps1 Get-MigrationMap
 
     # Modules should be the union of destination and source modules
     $oldModules = .\modules.ps1 Get-JsonContent -Path $(Join-Path $Source $userFiles["modules.json"])
@@ -125,10 +124,6 @@ function Migrate {
     $oldModules = @{modules = $filtered}
 
     .\security.ps1 Add-SelfRights -Path $Destination
-
-    foreach ($oldPath in $migrationMap.keys) {
-        Copy-Item -Force -Recurse $(Join-Path $Source $oldPath) $(Join-Path $Destination $migrationMap[$oldPath]) -ErrorAction SilentlyContinue
-    }
 
     foreach ($fileName in $userFiles.keys) {
         Copy-Item -Force -Recurse $(Join-Path $Source $userFiles[$fileName]) $(Join-Path $Destination $userFiles[$fileName]) -ErrorAction SilentlyContinue

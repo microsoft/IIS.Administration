@@ -439,12 +439,6 @@ function Install
     # Configure applicationHost.config based on install parameters
     .\config.ps1 Write-AppHost -AppHostPath $appHostPath -ApplicationPath $appPath -Port $Port -Version $Version
 
-    # appsettings.json must be configured to have a randomly generated host id
-    $appSettingsPath = Join-Path $adminRoot Microsoft.IIS.Administration\config\appsettings.json
-
-    # Configure appsettings
-    .\config.ps1 Write-AppSettings -AppSettingsPath $appSettingsPath
-
     if (!$SkipIisAdministrators) {
         $group = .\security.ps1 GetLocalGroup -Name $(.\globals.ps1 IISAdministratorsGroupName)
     

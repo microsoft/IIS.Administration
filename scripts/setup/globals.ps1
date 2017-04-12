@@ -12,8 +12,7 @@ Param (
                  "SERVICE_DESCRIPTION",
                  "CERT_NAME",
                  "IISAdministratorsGroupName",
-                 "IISAdministratorsDescription",
-                 "HostIdStub")]
+                 "IISAdministratorsDescription")]
     [string]
     $Command
 )
@@ -59,10 +58,6 @@ switch ($Command)
     "IISAdministratorsDescription"
     {
         return "Members of this group have complete and unrestricted access to all features of IIS."
-    }
-    "HostIdStub"
-    {
-        return "{Microsoft IIS Administration Host ID}"
     }
     default
     {

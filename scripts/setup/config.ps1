@@ -8,10 +8,8 @@ Param (
                  "Remove",
                  "Exists",
                  "Get-UserFileMap",
-                 "Get-MigrationMap",
                  "Write-Config",
                  "Write-AppHost",
-                 "Write-AppSettings",
                  "Get-AppHostPort")]
     [string]
     $Command,
@@ -56,15 +54,7 @@ function Get-UserFileMap {
         "web.config" = "Microsoft.IIS.administration/web.config"
         "modules.json" = "Microsoft.IIS.administration/config/modules.json"
         "config.json" = "Microsoft.IIS.administration/config/appsettings.json"
-        "api-keys.json" = "Microsoft.IIS.administration/config/api-keys/api-keys.json"
-    }
-}
-
-# Returns a map of user files that have changed location over the course of the products lifetime
-# Keys are the old location of the user file, values are the new location
-function Get-MigrationMap {
-    return @{
-        "Microsoft.IIS.administration/config/api-keys.json" = "Microsoft.IIS.administration/config/api-keys/api-keys.json"
+        "api-keys.json" = "Microsoft.IIS.administration/config/api-keys.json"
     }
 }
 
@@ -223,24 +213,6 @@ function Get-AppHostPort($_appHostPath) {
     return $parts[1]
 }
 
-# Sets up the host id for appsettings.json
-# AppSettingsPath: The location of the appsettings.json file
-function Write-AppSettings($_appSettingsPath) {
-
-    if ([string]::IsNullOrEmpty($_appSettingsPath)) {
-        throw "Application Settings path required"
-    }
-
-    $hostIdStub = .\globals.ps1 HostIdStub
-
-    $settings = [System.IO.File]::ReadAllText($_appSettingsPath)
-
-    if ($settings.Contains($hostIdStub)) {
-        $settings = $settings.Replace($hostIdStub, [System.Guid]::NewGuid().ToString())
-        [System.IO.File]::WriteAllText($_appSettingsPath, $settings)
-    }
-}
-
 switch ($Command)
 {
     "Get"
@@ -259,10 +231,6 @@ switch ($Command)
     {
         return Get-UserFileMap
     }
-    "Get-MigrationMap"
-    {
-        return Get-MigrationMap
-    }
     "Write-Config"
     {
         Write-Config $ConfigObject $Path
@@ -270,10 +238,6 @@ switch ($Command)
     "Write-AppHost"
     {
         Write-AppHost $AppHostPath $ApplicationPath $Port $Version
-    }
-    "Write-AppSettings"
-    {
-        Write-AppSettings $AppSettingsPath $ApplicationPath $Port $Version
     }
     "Get-AppHostPort"
     {

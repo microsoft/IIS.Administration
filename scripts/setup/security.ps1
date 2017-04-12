@@ -10,7 +10,6 @@ Param(
                  "GetLocalGroup",
                  "GroupEquals",
                  "RemoveLocalGroup",
-                 "SetAdminAcl",
                  "Set-Acls",
                  "Add-SelfRights")]
     [string]
@@ -200,51 +199,6 @@ function AddUserToGroup($userPath, $_group) {
     }
 }
 
-# Restricts the directory at the specified path to administrators only.
-# Path: The path of the target directory.
-function Set-AdminAcl($_path) {
-
-	if ([System.String]::IsNullOrEmpty($_path)) {
-		throw "Path cannot be null"
-	}
-    
-    if (-not(Test-Path $_path)) {
-        throw "Directory $_path does not exist."
-    }
-
-    # Construct an access rule that allows full control for Administrators
-    $sid = [System.Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid
-    # Construct an access rule that allows full control for Local System
-	$localSystemSid = [System.Security.Principal.WellKnownSidType]::LocalSystemSid
-    $idRef = New-Object System.Security.Principal.SecurityIdentifier($sid, $null)
-    $localSystemIdRef = New-Object System.Security.Principal.SecurityIdentifier($localSystemSid, $null)
-    $fullControl = [System.Security.AccessControl.FileSystemRights]::FullControl
-    $allow = [System.Security.AccessControl.AccessControlType]::Allow
-    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
-						$idRef, 
-						$fullControl,
-					    "ContainerInherit,ObjectInherit",
-						[System.Security.AccessControl.PropagationFlags]::None,
-						$allow)
-    $localSystemRule = New-Object System.Security.AccessControl.FileSystemAccessRule($localSystemIdRef,
-					   $fullControl,
-					   "ContainerInherit,ObjectInherit",
-					   [System.Security.AccessControl.PropagationFlags]::None,
-					   $allow)
-
-    $acl = New-Object System.Security.AccessControl.DirectorySecurity
-    # Remove rule inheritance for acl
-    $acl.SetAccessRuleProtection($true, $false)
-    # Remove all existing access rules
-    $acl.Access | %{$acl.RemoveAccessRule($_)}
-    # Add the rule for Administrators
-    $acl.AddAccessRule($rule)
-    # Add the rule for Local System
-    $acl.AddAccessRule($localSystemRule)
-    # Update the folder to use the new ACL
-    Set-Acl -Path $_path -AclObject $acl
-}
-
 function Set-Acls($_path) {
 
 	if ([System.String]::IsNullOrEmpty($_path)) {
@@ -257,8 +211,7 @@ function Set-Acls($_path) {
 
     $dir = Get-Item -Path $_path
     $logsPath = [System.IO.Path]::Combine($dir.Parent.FullName, 'logs')
-    $appsettingsPath = [System.IO.Path]::Combine($_path, 'Microsoft.IIS.Administration/config/appsettings.json')
-    $apiKeysPath = [System.IO.Path]::Combine($_path, 'Microsoft.IIS.Administration/config/api-keys')
+    $configPath = [System.IO.Path]::Combine($_path, 'Microsoft.IIS.Administration/config')
 
     $administrators = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid, $null)
     $system = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::LocalSystemSid, $null)
@@ -325,8 +278,7 @@ function Set-Acls($_path) {
     # Update the folder to use the new ACL
     Set-Acl -Path $logsPath -AclObject $acl
 
-    Add-FullControl $administrators $appsettingsPath
-    Add-FullControl $system $apiKeysPath
+    Add-FullControl $system $configPath
 }
 
 function Add-FullControl($_identity, $_path) {
@@ -382,10 +334,6 @@ switch($Command)
     "GroupEquals"
     {
         return GroupEquals $Group $Name $Description
-    }
-    "SetAdminAcl"
-    {
-        return Set-AdminAcl $Path
     }
     "Set-Acls"
     {
