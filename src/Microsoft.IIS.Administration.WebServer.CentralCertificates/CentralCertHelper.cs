@@ -7,15 +7,11 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
     using Certificates;
     using Core;
     using Core.Utils;
+    using Files;
     using Newtonsoft.Json.Linq;
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Dynamic;
     using System.IO;
-    using System.Runtime.InteropServices;
     using System.Security.Principal;
-    using System.Threading.Tasks;
     using Win32.SafeHandles;
 
     class CentralCertHelper
@@ -25,25 +21,44 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             var ccs = Startup.CentralCertificateStore;
 
             dynamic obj = new ExpandoObject();
-            obj.enabled = ccs.Enabled;
             obj.id = new CentralCertConfigId().Uuid;
-
-            if (ccs.Enabled) {
-                obj.path = ccs.PhysicalPath;
-                obj.identity = new {
-                    username = ccs.UserName
-                };
+            obj.path = ccs.PhysicalPath;
+            obj.identity = new {
+                username = ccs.UserName
             };
 
             return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj);
         }
 
-        public static void Update(dynamic model)
+        public static void Update(dynamic model, IFileProvider fileProvider)
         {
             string username, password, path, privateKeyPassword;
             ExtractModel(model, out username, out password, out path, out privateKeyPassword);
+            string physicalPath = null;
 
             var ccs = Startup.CentralCertificateStore;
+
+            // Validate path allowed
+            if (!string.IsNullOrEmpty(path)) {
+                path = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+                var expanded = System.Environment.ExpandEnvironmentVariables(path);
+
+                if (!PathUtil.IsFullPath(expanded)) {
+                    throw new ApiArgumentException("physical_path");
+                }
+                if (!fileProvider.IsAccessAllowed(expanded, FileAccess.Read)) {
+                    throw new ForbiddenArgumentException("physical_path", path);
+                }
+                if (!fileProvider.GetDirectory(expanded).Exists) {
+                    throw new NotFoundException("physical_path");
+                }
+                physicalPath = expanded;
+            }
+
+            // Validate credentials
+            if ((!string.IsNullOrEmpty(username) || !string.IsNullOrEmpty(password)) && !TestConnection(path ?? ccs.PhysicalPath, username ?? ccs.UserName, password ?? ccs.Password)) {
+                throw new ApiArgumentException("identity", "Cannot access certificate store");
+            }
 
             //
             // Update ccs
@@ -52,19 +67,19 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             }
 
             if (password != null) {
-                ccs.EncryptedPassword = Convert.ToBase64String(Crypto.Encrypt(password));
+                ccs.Password = password;
             }
 
-            if (path != null) {
-                ccs.PhysicalPath = path;
+            if (physicalPath != null) {
+                ccs.PhysicalPath = physicalPath;
             }
 
             if (privateKeyPassword != null) {
-                ccs.EncryptedPrivateKeyPassword = Convert.ToBase64String(Crypto.Encrypt(privateKeyPassword));
+                ccs.PrivateKeyPassword = privateKeyPassword;
             }
         }
 
-        public static void Enable(dynamic model)
+        public static void Enable(dynamic model, IFileProvider fileProvider)
         {
             string username, password, path, privateKeyPassword;
             ExtractModel(model, out username, out password, out path, out privateKeyPassword);
@@ -85,15 +100,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
             var ccs = Startup.CentralCertificateStore;
 
-            //
-            // Update ccs
-            ccs.PhysicalPath = path;
-            ccs.UserName = username;
-            ccs.EncryptedPassword = Convert.ToBase64String(Crypto.Encrypt(password));
-
-            if (privateKeyPassword != null) {
-                ccs.EncryptedPrivateKeyPassword = Convert.ToBase64String(Crypto.Encrypt(privateKeyPassword));
-            }
+            Update(model, fileProvider);
 
             ccs.Enabled = true;
 
@@ -113,84 +120,9 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             }
         }
 
-        public static bool TestConnection()
-        {
-            var ccs = Startup.CentralCertificateStore;
-
-            if (!ccs.Enabled) {
-                return false;
-            }
-
-            try {
-                using (SafeAccessTokenHandle ccsUser = LogonAsCcsUser()) {
-                    WindowsIdentity.RunImpersonated(ccsUser, () => {
-                        Directory.GetFiles(ccs.PhysicalPath);
-                    });
-                }
-            }
-            catch {
-                return false;
-            }
-            return true;
-        }
-
-        public static async Task<IEnumerable<string>> GetFiles()
-        {
-            var ccs = Startup.CentralCertificateStore;
-
-            using (SafeAccessTokenHandle ccsUser = LogonAsCcsUser()) {
-                return await Task.Run(() => {
-                    return WindowsIdentity.RunImpersonated(ccsUser, () => {
-                        return Directory.EnumerateFiles(ccs.PhysicalPath);
-                    });
-                });
-            }
-        }
-
         public static string GetLocation()
         {
             return $"/{Defines.PATH}/{new CentralCertConfigId().Uuid}";
-        }
-
-        private static SafeAccessTokenHandle LogonAsCcsUser()
-        {
-            var ccs = Startup.CentralCertificateStore;
-
-            if (!ccs.Enabled) {
-                throw new InvalidOperationException();
-            }
-
-            SafeAccessTokenHandle token = null;
-
-            string[] parts = ccs.UserName.Split('\\');
-            string domain = null, username = null;
-
-            if (parts.Length > 1) {
-                domain = parts[0];
-                username = parts[1];
-            }
-            else {
-                domain = ".";
-                username = parts[0];
-            }
-
-            bool loggedOn = Interop.LogonUserExExW(username,
-                domain,
-                Crypto.Decrypt(Convert.FromBase64String(ccs.EncryptedPassword)),
-                Interop.LOGON32_LOGON_INTERACTIVE,
-                Interop.LOGON32_PROVIDER_DEFAULT,
-                IntPtr.Zero,
-                out token,
-                IntPtr.Zero,
-                IntPtr.Zero,
-                IntPtr.Zero,
-                IntPtr.Zero);
-
-            if (!loggedOn) {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
-
-            return token;
         }
 
         private static void ExtractModel(dynamic model, out string username, out string password, out string path, out string privateKeyPassword)
@@ -204,20 +136,38 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             }
 
             dynamic identity = model.identity;
-            if (identity == null) {
-                throw new ApiArgumentException("identity");
-            }
-
-            if (!(identity is JObject)) {
+            if (identity != null && !(identity is JObject)) {
                 throw new ApiArgumentException("identity", ApiArgumentException.EXPECTED_OBJECT);
             }
 
             //
             // Validate model and extract values
             path = DynamicHelper.Value(model.path);
-            username = DynamicHelper.Value(identity.username);
-            password = DynamicHelper.Value(identity.password);
             privateKeyPassword = DynamicHelper.Value(model.private_key_password);
+            username = null;
+            password = null;
+
+            if (identity != null) {
+                username = DynamicHelper.Value(identity.username);
+                password = DynamicHelper.Value(identity.password);
+            }
+        }
+
+        private static bool TestConnection(string path, string username, string password)
+        {
+            var ccs = Startup.CentralCertificateStore;
+
+            try {
+                using (SafeAccessTokenHandle ccsUser = CentralCertificateStore.LogonUser(username ?? ccs.UserName, password ?? ccs.Password)) {
+                    WindowsIdentity.RunImpersonated(ccsUser, () => {
+                        Directory.GetFiles(path);
+                    });
+                }
+            }
+            catch {
+                return false;
+            }
+            return true;
         }
     }
 }

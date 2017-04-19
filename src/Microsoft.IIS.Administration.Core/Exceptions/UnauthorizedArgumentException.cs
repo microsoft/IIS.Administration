@@ -11,9 +11,20 @@ namespace Microsoft.IIS.Administration.Core {
         public UnauthorizedArgumentException(string paramName, Exception innerException = null) : base(paramName, innerException) {
         }
 
+        public UnauthorizedArgumentException(string paramName, string message, Exception innerException = null) : base(paramName, message == null ? string.Empty : message, innerException)
+        {
+        }
+
+        public UnauthorizedArgumentException(string paramName, string message, string value, Exception innerException = null) : base(paramName, message == null ? string.Empty : message, innerException)
+        {
+            Value = value;
+        }
+
+        public string Value { get; private set; }
+
 
         public override dynamic GetApiError() {
-            return Http.ErrorHelper.UnauthorizedArgumentError(ParamName);
+            return Http.ErrorHelper.UnauthorizedArgumentError(ParamName, Message, Value);
         }
     }
 }

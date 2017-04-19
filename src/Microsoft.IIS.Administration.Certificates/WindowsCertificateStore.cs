@@ -44,8 +44,11 @@ namespace Microsoft.IIS.Administration.Certificates
                 try {
                     store.Open(OpenFlags.OpenExistingOnly);
                 }
-                catch (CryptographicException) {
-                    return false;
+                catch (CryptographicException e) {
+                    if (e.HResult == HResults.NotFound) {
+                        return false;
+                    }
+                    throw;
                 }
             }
 

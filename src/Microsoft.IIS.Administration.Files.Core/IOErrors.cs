@@ -15,5 +15,6 @@ namespace Microsoft.IIS.Administration.Files
         public const int PathNotFound = 0x3;
         public const int AccessDenied = 0x5;
         public const int FileInUse = 0x20;
+        public const int FileCannotBeAccessed = 0x780;
     }
 }

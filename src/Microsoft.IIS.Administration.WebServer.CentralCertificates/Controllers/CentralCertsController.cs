@@ -7,16 +7,19 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Files;
     using System.Net;
 
     public class CentralCertsController : ApiBaseController
     {
         private const string HIDDEN_FIELDS = "identity.password,private_key_password";
         private CentralCertificateStore _ccs;
+        private IFileProvider _fileProvider;
 
-        public CentralCertsController()
+        public CentralCertsController(IFileProvider fileProvider)
         {
             _ccs = Startup.CentralCertificateStore;
+            _fileProvider = fileProvider;
         }
 
         [HttpGet]
@@ -52,7 +55,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                 return NotFound();
             }
 
-            CentralCertHelper.Update(model);
+            CentralCertHelper.Update(model, _fileProvider);
 
             return CentralCertHelper.ToJsonModel();
         }
@@ -62,7 +65,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public object Post([FromBody] dynamic model)
         {
-            CentralCertHelper.Enable(model);
+            CentralCertHelper.Enable(model, _fileProvider);
 
             return CentralCertHelper.ToJsonModel();
         }

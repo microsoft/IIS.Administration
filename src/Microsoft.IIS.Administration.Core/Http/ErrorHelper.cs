@@ -88,12 +88,23 @@ namespace Microsoft.IIS.Administration.Core.Http {
             };
         }
 
-        public static dynamic UnauthorizedArgumentError(string paramName) {
-            return new {
-                title = "Unauthorized",
-                name = paramName,
-                status = (int)HttpStatusCode.Unauthorized
-            };
+        public static dynamic UnauthorizedArgumentError(string paramName, string message, string value) {
+            dynamic obj = new ExpandoObject();
+
+            obj.title = "Unauthorized";
+            obj.name = paramName;
+
+            if (!string.IsNullOrEmpty(message)) {
+                obj.detail = message;
+            }
+
+            if (value != null) {
+                ((IDictionary<string, object>)obj)[paramName] = value;
+            }
+
+            obj.status = (int)HttpStatusCode.Unauthorized;
+
+            return obj;
         }
 
         public static dynamic ForbiddenArgumentError(string paramName, string message, string value)

@@ -64,6 +64,7 @@ namespace Microsoft.IIS.Administration.WebServer
         {
             ICertificateOptions options = Environment.Host.ApplicationBuilder.ApplicationServices.GetRequiredService<ICertificateOptions>();
             ICertificateStoreProvider storeProvider = Environment.Host.ApplicationBuilder.ApplicationServices.GetRequiredService<ICertificateStoreProvider>();
+            IWebServerVersion versionProvider = Environment.Host.ApplicationBuilder.ApplicationServices.GetService<IWebServerVersion>();
 
             const string webHosting = "WebHosting";
             const string my = "My";
@@ -74,11 +75,14 @@ namespace Microsoft.IIS.Administration.WebServer
                 storeProvider.AddStore(new WindowsCertificateStore(my, new string[] { "read" }));
             }
 
-            //
-            // WebHosting
-            if (!storeProvider.Stores.Any(s => s.Name.Equals(webHosting, System.StringComparison.OrdinalIgnoreCase)) && WindowsCertificateStore.Exists(webHosting)) {
-                storeProvider.AddStore(new WindowsCertificateStore(webHosting, new string[] { "read" }));
+            if (versionProvider?.Version != null && versionProvider.Version >= new System.Version(8, 0)) {
+                //
+                // WebHosting Certificate Store was not introduced until IIS 8.0
+                if (!storeProvider.Stores.Any(s => s.Name.Equals(webHosting, System.StringComparison.OrdinalIgnoreCase)) && WindowsCertificateStore.Exists(webHosting)) {
+                    storeProvider.AddStore(new WindowsCertificateStore(webHosting, new string[] { "read" }));
+                }
             }
+
         }
     }
 }

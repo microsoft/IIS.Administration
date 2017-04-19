@@ -20,6 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
     using Core.Http;
     using System.Dynamic;
     using Files;
+    using CentralCertificates;
 
     public static class SiteHelper
     {
@@ -206,7 +207,13 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             // 
             // bindings
             if (fields.Exists("bindings")) {
-                obj.bindings = site.Bindings.Select(b => ToJsonModel(b));
+                var bindings = new List<object>();
+
+                foreach (Binding b in site.Bindings) {
+                    bindings.Add(ToJsonModel(b));
+                }
+
+                obj.bindings = bindings;
             }
 
             //
@@ -505,7 +512,6 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             string protocol = DynamicHelper.Value(obj.protocol);
             string bindingInformation = DynamicHelper.Value(obj.binding_information);
             bool? requireSni = DynamicHelper.To<bool>(obj.require_sni);
-            bool? centralCertStore = DynamicHelper.To<bool>(obj.use_central_certificate_store);
 
             if (protocol == null) {
                 throw new ApiArgumentException("binding.protocol");
@@ -567,41 +573,37 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                         throw new ApiArgumentException("binding.require_sni");
                     }
 
-                    if (string.IsNullOrEmpty(hostname) && centralCertStore.HasValue && centralCertStore.Value) {
-                        throw new ApiArgumentException("binding.use_central_certificate_store");
+                    if (obj.certificate == null || !(obj.certificate is JObject)) {
+                        throw new ApiArgumentException("binding.certificate");
+                    }
+
+                    dynamic certificate = obj.certificate;
+                    string uuid = DynamicHelper.Value(certificate.id);
+
+                    if (string.IsNullOrEmpty(uuid)) {
+                        throw new ApiArgumentException("binding.certificate.id");
+                    }
+
+                    CertificateId id = new CertificateId(uuid);
+                    ICertificateStore store = CertificateStoreProviderAccessor.Instance?.Stores
+                                .FirstOrDefault(s => s.Name.Equals(id.StoreName, StringComparison.OrdinalIgnoreCase));
+                    ICertificate cert = null;
+
+                    if (store != null) {
+                        cert = store.GetCertificate(id.Id).Result;
+                    }
+
+                    if (cert == null) {
+                        throw new NotFoundException("binding.certificate");
+                    }
+
+                    if (!cert.Purposes.Contains("Server Authentication", StringComparer.OrdinalIgnoreCase)) {
+                        throw new ApiArgumentException("binding.certificate", "Certificate does not support server authentication");
                     }
 
                     //
-                    // SSL Cert from central cert store
-                    if (centralCertStore.HasValue && centralCertStore.Value) {
-                        binding.SslFlags |= SslFlags.CentralCertStore;
-                    }
-                    //
-                    // SSL Cert from certificate associated with binding
-                    else {
-                        if (obj.certificate == null || !(obj.certificate is JObject)) {
-                            throw new ApiArgumentException("binding.certificate");
-                        }
-
-                        dynamic certificate = obj.certificate;
-                        string uuid = DynamicHelper.Value(certificate.id);
-
-                        if (string.IsNullOrEmpty(uuid)) {
-                            throw new ApiArgumentException("binding.certificate.id");
-                        }
-
-                        CertificateId id = new CertificateId(uuid);
-                        ICertificateStore store = CertificateStoreProviderAccessor.Instance?.Stores
-                                    .FirstOrDefault(s => s.Name.Equals(id.StoreName, StringComparison.OrdinalIgnoreCase));
-                        ICertificate cert = null;
-
-                        if (store != null) {
-                            if (!(store is IWindowsCertificateStore)) {
-                                throw new ApiArgumentException("binding.certificate.store", "Unsupported certificate store for https binding");
-                            }
-
-                            cert = store.GetCertificate(id.Id).Result;
-                        }
+                    // Windows builtin store
+                    if (store is IWindowsCertificateStore) {
 
                         // The specified certificate must be in the store with a private key or else there will be an exception when we commit
                         if (cert == null) {
@@ -619,6 +621,18 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
                         binding.CertificateStoreName = id.StoreName;
                         binding.CertificateHash = bytes.ToArray();
+                    }
+
+                    //
+                    // IIS Central Certificate store
+                    else if (store is ICentralCertificateStore) {
+                        string name = Path.GetFileNameWithoutExtension(cert.Alias);
+
+                        if (string.IsNullOrEmpty(hostname) || !hostname.Replace('*', '_').Equals(name)) {
+                            throw new ApiArgumentException("binding.hostname", "Hostname must match certificate file name for central certificate store");
+                        }
+
+                        binding.SslFlags |= SslFlags.CentralCertStore;
                     }
 
                     if (requireSni.HasValue && requireSni.Value && binding.Schema.HasAttribute(sslFlagsAttribute)) {
@@ -670,22 +684,36 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 if (binding.Protocol.Equals("https")) {
                     ICertificateStore store = null;
 
+                    // Windows store
                     if (binding.CertificateStoreName != null) {
+                        string thumbprint = binding.CertificateHash == null ? null : BitConverter.ToString(binding.CertificateHash)?.Replace("-", string.Empty);
                         store = CertificateStoreProviderAccessor.Instance?.Stores
                                     .FirstOrDefault(s => s.Name.Equals(binding.CertificateStoreName, StringComparison.OrdinalIgnoreCase));
+
+                        // Certificate
+                        if (store != null) {
+                            obj.certificate = CertificateHelper.ToJsonModelRef(GetCertificate(() => store.GetCertificate(thumbprint).Result));
+                        }
                     }
 
-                    // Certificate
-                    if (store != null) {
-                        string thumbprint = binding.CertificateHash == null ? null : BitConverter.ToString(binding.CertificateHash)?.Replace("-", string.Empty);
-                        obj.certificate = CertificateHelper.ToJsonModelRef(store.GetCertificate(thumbprint).Result);
+                    // IIS Central Certificate Store
+                    else if (binding.Schema.HasAttribute(sslFlagsAttribute) && binding.SslFlags.HasFlag(SslFlags.CentralCertStore) && !string.IsNullOrEmpty(binding.Host)) {
+                        ICentralCertificateStore centralStore = null;
+
+                        if (PathUtil.IsValidFileName(binding.Host)) {
+                            centralStore = CertificateStoreProviderAccessor.Instance?.Stores.FirstOrDefault(s => s is ICentralCertificateStore) as ICentralCertificateStore;
+                        }
+
+                        // Certificate
+                        if (centralStore != null) {
+                            obj.certificate = CertificateHelper.ToJsonModelRef(GetCertificate(() => centralStore.GetCertificateByName(binding.Host.Replace('*', '_')).Result));
+                        }
                     }
 
                     //
                     // Ssl Flags
                     if (binding.Schema.HasAttribute(sslFlagsAttribute)) {
                         obj.require_sni = binding.SslFlags.HasFlag(SslFlags.Sni);
-                        obj.use_central_certificate_store = binding.SslFlags.HasFlag(SslFlags.CentralCertStore);
                     }
                 }
             }
@@ -702,6 +730,16 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 }
             }
             throw new Exception("No available Id");
+        }
+
+        private static ICertificate GetCertificate(Func<ICertificate> retreiver)
+        {
+            try {
+                return retreiver();
+            }
+            catch (AggregateException) {
+                return null;
+            }
         }
     }
 }

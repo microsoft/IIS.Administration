@@ -11,10 +11,10 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         private const char DELIMITER = '\n';
 
         private const uint THUMBPRINT_INDEX = 0;
-        private const uint NAME_INDEX = 1;
+        private const uint FILE_NAME_INDEX = 1;
 
         public string Thumbprint { get; private set; }
-        public string Name { get; private set; }
+        public string FileName { get; private set; }
 
         public string Id { get; private set; }
 
@@ -26,7 +26,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
             return new CertificateIdentifier() {
                 Thumbprint = info[THUMBPRINT_INDEX],
-                Name = info[NAME_INDEX],
+                FileName = info[FILE_NAME_INDEX],
                 Id = id
             };
         }
@@ -34,9 +34,9 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         public CertificateIdentifier(X509Certificate2 cert)
         {
             this.Thumbprint = cert.Thumbprint;
-            this.Name = cert.FriendlyName;
+            this.FileName = cert.FriendlyName;
 
-            this.Id = $"{ this.Thumbprint }{ DELIMITER }{ this.Name }";
+            this.Id = $"{ this.Thumbprint }{ DELIMITER }{ this.FileName }";
         }
     }
 }

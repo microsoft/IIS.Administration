@@ -236,7 +236,7 @@ namespace Microsoft.IIS.Administration.Files
                 throw;
             }
             catch (UnauthorizedAccessException) {
-                throw new UnauthorizedArgumentException(path);
+                throw new ForbiddenArgumentException(path);
             }
         }
 

@@ -12,12 +12,13 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
     using System.Linq;
     using System.ComponentModel;
     using System.IO;
-    using System.Security.Cryptography.X509Certificates;
     using Win32;
+    using Win32.SafeHandles;
+    using System.Runtime.InteropServices;
+    using Files;
+    using Extensions.Caching.Memory;
 
-    public interface ICentralCertificateStore { }
-
-    class CentralCertificateStore : ICertificateStore
+    sealed class CentralCertificateStore : ICertificateStore, ICentralCertificateStore, IDisposable
     {
         private const string REGKEY_CENTRAL_CERTIFICATE_STORE_PROVIDER = "SOFTWARE\\Microsoft\\IIS\\CentralCertProvider";
         private const string REGVAL_CERT_STORE_LOCATION = "CertStoreLocation";
@@ -27,7 +28,11 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         private const string REGVAL_POLLING_INTERVAL = "PollingInterval";
         private const string REGVAL_ENABLED = "Enabled";
         private const int DEFAULT_POLLING_INTERVAL = 300; // seconds
+        private const string CERTS_KEY = "certs";
+        private MemoryCache _cache;
+        private FileSystemWatcher _watcher;
         private readonly IEnumerable<string> _claims;
+        private IFileProvider _fileProvider;
         private DateTime _lastRefresh;
         private bool _enabled;
         private int _pollingInterval;
@@ -36,10 +41,23 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         private string _encryptedPassword;
         private string _encryptedPrivateKeyPassword;
 
-        public CentralCertificateStore(string name, IEnumerable<string> claims)
+        public CentralCertificateStore(string name, IEnumerable<string> claims, IFileProvider fileProvider)
         {
             Name = name;
             _claims = claims;
+            _fileProvider = fileProvider;
+            _cache = new MemoryCache(new MemoryCacheOptions() {
+                ExpirationScanFrequency = TimeSpan.FromSeconds(30)
+            });
+            
+            //
+            // File System Watcher, initially disabled
+            _watcher = new FileSystemWatcher();
+            _watcher.Changed += OnChanged;
+            _watcher.Created += OnChanged;
+            _watcher.Deleted += OnChanged;
+            _watcher.Renamed += OnChanged;
+
             Refresh();
         }
 
@@ -108,31 +126,35 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             }
         }
 
-        public string EncryptedPassword {
+        public string Password {
             get {
                 EnsureRefreshed();
-                return _encryptedPassword;
+                return Crypto.Decrypt(Convert.FromBase64String(_encryptedPassword));
             }
             set {
+                string encrypted = Convert.ToBase64String(Crypto.Encrypt(value));
+
                 using (RegistryKey key = GetRegKey()) {
-                    key.SetValue(REGVAL_PASSWORD, value, RegistryValueKind.String);
+                    key.SetValue(REGVAL_PASSWORD, encrypted, RegistryValueKind.String);
                 }
 
-                _encryptedPassword = value;
+                _encryptedPassword = encrypted;
             }
         }
 
-        public string EncryptedPrivateKeyPassword {
+        public string PrivateKeyPassword {
             get {
                 EnsureRefreshed();
-                return _encryptedPrivateKeyPassword;
+                return string.IsNullOrEmpty(_encryptedPrivateKeyPassword) ? string.Empty : Crypto.Decrypt(Convert.FromBase64String(_encryptedPrivateKeyPassword));
             }
             set {
+                string encrypted = Convert.ToBase64String(Crypto.Encrypt(value));
+
                 using (RegistryKey key = GetRegKey()) {
-                    key.SetValue(REGVAL_PRIVATE_KEY_PASSWORD, value, RegistryValueKind.String);
+                    key.SetValue(REGVAL_PRIVATE_KEY_PASSWORD, encrypted, RegistryValueKind.String);
                 }
 
-                _encryptedPrivateKeyPassword = value;
+                _encryptedPrivateKeyPassword = encrypted;
             }
         }
 
@@ -144,45 +166,92 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
         public string Name { get; private set; }
 
+        // ICentralCertificateStore.GetCertificateByName
+        // Prefer ICertificateStore.GetCertificate if possible
+        public async Task<ICertificate> GetCertificateByName(string name)
+        {
+            EnsureAccess(CertificateAccess.Read);
+            ICertificate certificate = null;
+
+            IEnumerable<ICertificate> certs = await GetCertificatesInternal(name);
+
+            foreach (var cert in certs) {
+                if (certificate == null && Path.GetFileNameWithoutExtension(cert.Alias).Equals(name, StringComparison.OrdinalIgnoreCase)) {
+                    certificate = cert;
+                    break;
+                }
+            }
+
+            return certificate;
+        }
+
         public async Task<ICertificate> GetCertificate(string id)
         {
             EnsureAccess(CertificateAccess.Read);
             CertificateIdentifier certId = CertificateIdentifier.Parse(id);
+            ICertificate certificate = null;
 
-            IEnumerable<ICertificate> certs = await GetCertificates();
+            IEnumerable<ICertificate> certs = await GetCertificatesInternal(Path.GetFileNameWithoutExtension(certId.FileName));
 
             foreach (var cert in certs) {
-                if (cert.Thumbprint.Equals(certId.Id) && cert.Alias.Equals(certId.Name, StringComparison.OrdinalIgnoreCase)) {
-                    return cert;
+                if (cert.Thumbprint.Equals(certId.Thumbprint, StringComparison.OrdinalIgnoreCase) && cert.Alias.Equals(certId.FileName, StringComparison.OrdinalIgnoreCase)) {
+                    certificate = cert;
+                    break;
                 }
             }
 
-            return null;
+            return certificate;
         }
-
 
         public async Task<IEnumerable<ICertificate>> GetCertificates()
         {
             EnsureAccess(CertificateAccess.Read);
-            List<ICertificate> certificates = null;
+            IEnumerable<ICertificate> cached = _cache.Get<IEnumerable<ICertificate>>(CERTS_KEY);
+
+            if (cached != null) {
+                return cached;
+            }
+
+            var certs = await GetCertificatesInternal(null);
+            _cache.Set(CERTS_KEY, certs, TimeSpan.FromSeconds(DEFAULT_POLLING_INTERVAL));
+            return certs;
+        }
+
+        private async Task<IEnumerable<ICertificate>> GetCertificatesInternal(string name)
+        {
+            var pswd = PrivateKeyPassword;
+            var certs = new List<ICertificate>();
+            IEnumerable<IFileInfo> files = null;
 
             try {
-                var certs = await GetCerts();
-                var l = new List<ICertificate>();
+                files = await GetFiles(name);
 
-                foreach (X509Certificate2 cert in certs) {
-                    l.Add(new Certificate(cert, this, new CertificateIdentifier(cert).Id));
-                    cert.Dispose();
-                }
-
-                certificates = l;
             }
             catch (Win32Exception) {
+                throw new ForbiddenArgumentException("certificate_store", "Invalid central certificate store credentials", Name);
             }
-            catch (IOException) {
+            catch (ForbiddenArgumentException e) {
+                throw new ForbiddenArgumentException("certificate_store", "Cannot access store", Name, e);
             }
 
-            return certificates ?? Enumerable.Empty<ICertificate>();
+            foreach (var file in files) {
+                certs.Add(new Certificate(file, this, _fileProvider, pswd));
+            }
+            return certs;
+        }
+
+        private async Task<IEnumerable<IFileInfo>> GetFiles(string filter = null)
+        {
+            var ccs = Startup.CentralCertificateStore;
+
+            if (!string.IsNullOrEmpty(filter) && !PathUtil.IsValidFileName(filter)) {
+                throw new ArgumentException(nameof(filter));
+            }
+
+            return await Task.Run(() => {
+                IFileInfo ccsDir = _fileProvider.GetDirectory(ccs.PhysicalPath);
+                return _fileProvider.GetFiles(ccsDir, string.IsNullOrEmpty(filter) ? ("*.pfx") : (filter + ".pfx"), SearchOption.TopDirectoryOnly);
+            });
         }
 
         public Stream GetContent(ICertificate certificate, bool persistKey, string password)
@@ -190,17 +259,39 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             throw new NotImplementedException();
         }
 
-        private async Task<IEnumerable<X509Certificate2>> GetCerts()
+        internal static SafeAccessTokenHandle LogonUser(string username, string password)
         {
-            return (await CentralCertHelper.GetFiles()).Select(f => {
+            SafeAccessTokenHandle token = null;
 
-                X509Certificate2 cert = !string.IsNullOrEmpty(EncryptedPrivateKeyPassword) ?
-                                            new X509Certificate2(f, Crypto.Decrypt(Convert.FromBase64String(EncryptedPrivateKeyPassword))) :
-                                            new X509Certificate2(f);
+            string[] parts = username.Split('\\');
+            string domain = null;
 
-                cert.FriendlyName = Path.GetFileName(f);
-                return cert;
-            });
+            if (parts.Length > 1) {
+                domain = parts[0];
+                username = parts[1];
+            }
+            else {
+                domain = ".";
+                username = parts[0];
+            }
+
+            bool loggedOn = Interop.LogonUserExExW(username,
+                domain,
+                password,
+                Interop.LOGON32_LOGON_INTERACTIVE,
+                Interop.LOGON32_PROVIDER_DEFAULT,
+                IntPtr.Zero,
+                out token,
+                IntPtr.Zero,
+                IntPtr.Zero,
+                IntPtr.Zero,
+                IntPtr.Zero);
+
+            if (!loggedOn) {
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            }
+
+            return token;
         }
 
         private bool IsAccessAllowed(CertificateAccess access)
@@ -236,6 +327,36 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                 _encryptedPassword = key.GetValue(REGVAL_PASSWORD, null) as string;
                 _encryptedPrivateKeyPassword = key.GetValue(REGVAL_PRIVATE_KEY_PASSWORD, null) as string;
             }
+            SetupWatcher();
+        }
+
+        private void SetupWatcher()
+        {
+            if (!Enabled) {
+                _watcher.EnableRaisingEvents = false;
+                return;
+            }
+
+            _watcher.NotifyFilter = NotifyFilters.FileName | NotifyFilters.Size;
+
+            //
+            // If system does not have access to CCS path we cannot watch for changes, but this is not an invalid scenario
+            // We won't enable the watcher
+            try {
+                _watcher.Path = PhysicalPath;
+                _watcher.EnableRaisingEvents = true;
+            }
+            catch (ArgumentException) {
+                _watcher.EnableRaisingEvents = false;
+            }
+            catch (FileNotFoundException) {
+                _watcher.EnableRaisingEvents = false;
+            }
+        }
+
+        private void OnChanged(object source, FileSystemEventArgs e)
+        {
+            this._cache.Remove(CERTS_KEY);
         }
 
         //
@@ -243,6 +364,19 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         private RegistryKey GetRegKey(bool writable = true)
         {
             return Registry.LocalMachine.OpenSubKey(REGKEY_CENTRAL_CERTIFICATE_STORE_PROVIDER, writable);
+        }
+
+        public void Dispose()
+        {
+            if (_watcher != null) {
+                _watcher.Dispose();
+                _watcher = null;
+            }
+
+            if (_cache != null) {
+                _cache.Dispose();
+                _cache = null;
+            }
         }
     }
 }

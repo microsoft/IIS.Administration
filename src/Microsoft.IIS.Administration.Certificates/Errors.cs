@@ -4,14 +4,8 @@
 
 namespace Microsoft.IIS.Administration.Certificates
 {
-    using System;
-
-    [Flags]
-    public enum CertificateAccess
+    static class HResults
     {
-        Read = 1,
-        Delete = 2,
-        Create = 4,
-        Export = 8
+        public const int NotFound = unchecked((int)0x2);
     }
 }

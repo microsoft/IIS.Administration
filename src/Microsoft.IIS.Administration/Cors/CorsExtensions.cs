@@ -45,6 +45,8 @@ namespace Microsoft.IIS.Administration.Cors
             builder.UseCors(cBuilder => {
                 cBuilder.AllowAnyHeader();
                 cBuilder.WithExposedHeaders(HeaderNames.Total_Count,
+                                            HeaderNames.AcceptRanges,
+                                            HeaderNames.ContentRange,
                                             Net.Http.Headers.HeaderNames.Location,
                                             Net.Http.Headers.HeaderNames.Allow,
                                             Net.Http.Headers.HeaderNames.WWWAuthenticate);

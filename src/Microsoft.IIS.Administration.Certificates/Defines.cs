@@ -23,7 +23,7 @@ namespace Microsoft.IIS.Administration.Certificates
         public const string StoreIdentifier = "certificate_store.id";
         public const string StoresName = "Microsoft.Certificates.Stores";
         public const string StoreName = "Microsoft.Certificate.Store";
-        public static readonly string STORES_PATH = $"{ENDPOINT}/{STORES_ENDPOINT}";
+        public static readonly string STORES_PATH = $"{PATH}/{STORES_ENDPOINT}";
         public static readonly ResDef StoresResource = new ResDef("certificate_stores", new Guid("42FEB52E-896F-4769-AB1D-D924F3617434"), STORES_ENDPOINT);
     }
 }

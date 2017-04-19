@@ -9,6 +9,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
     using Core;
     using Core.Http;
     using Extensions.DependencyInjection;
+    using Files;
     using System.Linq;
 
     public class Startup : BaseModule
@@ -37,7 +38,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         {
             Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "CentralCerts" });
 
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", cc => new { href = $"{Defines.PATH}/{ new CentralCertConfigId().Uuid}" });
+            Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", cc => new { href = $"/{Defines.PATH}/{ new CentralCertConfigId().Uuid}" });
             Environment.Hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => new { href = CentralCertHelper.GetLocation() });
         }
 
@@ -45,10 +46,11 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         {
             ICertificateOptions options = Environment.Host.ApplicationBuilder.ApplicationServices.GetRequiredService<ICertificateOptions>();
             ICertificateStoreProvider storeProvider = Environment.Host.ApplicationBuilder.ApplicationServices.GetRequiredService<ICertificateStoreProvider>();
+            IFileProvider fileProvider = Environment.Host.ApplicationBuilder.ApplicationServices.GetRequiredService<IFileProvider>();
 
             var ccsOptions = options.Stores.FirstOrDefault(s => s.Name.Equals(STORE_NAME, System.StringComparison.OrdinalIgnoreCase));
 
-            var store = new CentralCertificateStore(STORE_NAME, ccsOptions != null ? ccsOptions.Claims : new string[] { "read" });
+            var store = new CentralCertificateStore(STORE_NAME, ccsOptions != null ? ccsOptions.Claims : new string[] { "read" }, fileProvider);
 
             if (store.Enabled) {
                 storeProvider.AddStore(store);

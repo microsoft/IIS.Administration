@@ -60,7 +60,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
             // Return the site reference model collection
             return new {
-                websites = sites.Select(s => SiteHelper.ToJsonModelRef(s, fields))
+                websites = new List<object>(sites.Select(s => SiteHelper.ToJsonModelRef(s, fields)))
             };
         }
 

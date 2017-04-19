@@ -173,7 +173,7 @@ namespace Microsoft.IIS.Administration.Files
 
                 //
                 // Access Denied
-                if (error == Win32Errors.AccessDenied) {
+                if (error == Win32Errors.AccessDenied || error == Win32Errors.FileCannotBeAccessed) {
                     throw new UnauthorizedAccessException(Path);
                 }
 
@@ -257,7 +257,13 @@ namespace Microsoft.IIS.Administration.Files
             }
 
             var path = targetPath.ToString();
-            return path.StartsWith(@"\\?\") ? path.Substring(4) : path;
+
+            if (path.StartsWith(@"\\?\UNC")) {
+                return '\\' + path.Substring(7);
+            }
+            else {
+                return path.StartsWith(@"\\?\") ? path.Substring(4) : path;
+            }
         }
     }
 }

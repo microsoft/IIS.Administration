@@ -4,18 +4,20 @@
 
 namespace Microsoft.IIS.Administration.Certificates
 {
+    using Core;
     using System;
+    using System.Linq;
 
     public class CertificateId
     {
         private const string PURPOSE = "Certificates";
         private const char DELIMITER = '\n';
 
-        private const uint Id_INDEX = 0;
-        private const uint STORE_NAME_INDEX = 1;
+        private const uint STORE_NAME_INDEX = 0;
+        private const uint ID_INDEX = 1;
 
-        public string Id { get; private set; }
         public string StoreName { get; private set; }
+        public string Id { get; private set; }
 
         public string Uuid { get; private set; }
 
@@ -25,20 +27,26 @@ namespace Microsoft.IIS.Administration.Certificates
                 throw new ArgumentNullException(uuid);
             }
 
-            var info = Core.Utils.Uuid.Decode(uuid, PURPOSE).Split(DELIMITER);
+            string info = Core.Utils.Uuid.Decode(uuid, PURPOSE);
 
-            this.Id = info[Id_INDEX];
-            this.StoreName = info[STORE_NAME_INDEX];
+            int delimiter = info.IndexOf(DELIMITER);
+
+            if (delimiter < 0) {
+                throw new NotFoundException(null);
+            }
+
+            this.StoreName = info.Substring(0, delimiter);
+            this.Id = info.Substring(delimiter + 1);
 
             this.Uuid = uuid;
         }
 
         public CertificateId(string id, string storeName)
         {
-            this.Id = id;
             this.StoreName = storeName;
+            this.Id = id;
 
-            this.Uuid = Core.Utils.Uuid.Encode($"{ this.Id }{ DELIMITER }{ this.StoreName }", PURPOSE);
+            this.Uuid = Core.Utils.Uuid.Encode($"{ this.StoreName }{ DELIMITER }{ this.Id }", PURPOSE);
         }
     }
 }
