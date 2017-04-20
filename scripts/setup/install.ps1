@@ -326,7 +326,7 @@ function rollback() {
 
         try {
             Write-Host "Rolling back logs folder creation"
-            .\security.ps1 Add-SelfRights $logsPath
+            .\security.ps1 Add-SelfRights -Path $logsPath
             Remove-Item $logsPath -Force -Recurse
         }
         catch {
@@ -341,7 +341,7 @@ function rollback() {
 
         try {
             Write-Host "Rolling back installation folder creation"
-            .\security.ps1 Add-SelfRights $adminRoot
+            .\security.ps1 Add-SelfRights -Path $adminRoot
             Remove-Item $adminRoot -Force -Recurse
         }
         catch {
@@ -525,7 +525,7 @@ function Install
 
     # Register the Self Host exe as a service
     $svcExePath = Join-Path $adminRoot "host\$platform\x64\Microsoft.IIS.Host.exe"
-    sc.exe create "$ServiceName" binpath= "$svcExePath -appHostConfig:\`"$appHostPath\`" -serviceName:\`"$ServiceName\`"" start= auto
+    sc.exe create "$ServiceName" depend= http binpath= "$svcExePath -appHostConfig:\`"$appHostPath\`" -serviceName:\`"$ServiceName\`"" start= auto
     $rollbackStore.createdService = $ServiceName
 
 	try {

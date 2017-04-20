@@ -104,6 +104,7 @@ function Get($_path) {
 # Path: The parent directory of the setup configuration.
 function Remove($_path) {
     if ($(Test-Path $_path)) {
+        .\security.ps1 Add-SelfRights -Path $_path
         Remove-Item -Force $(Join-Path $_path $INSTALL_FILE)
     }
 }
