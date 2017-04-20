@@ -143,7 +143,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                                                       new X509Certificate2(bytes)) {
 
                         cert.FriendlyName = _file.Name;
-                        _cert = new Certificates.Certificate(cert, _store, new CertificateIdentifier(cert).Id);
+                        _cert = new Certificates.Certificate(cert, _store, _file.Name);
                     }
                 }
             }

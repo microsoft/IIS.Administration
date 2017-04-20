@@ -9,6 +9,6 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
     public interface ICentralCertificateStore
     {
-        Task<ICertificate> GetCertificateByName(string name);
+        Task<ICertificate> GetCertificateByHostName(string name);
     }
 }

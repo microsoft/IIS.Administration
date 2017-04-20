@@ -706,7 +706,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
                         // Certificate
                         if (centralStore != null) {
-                            obj.certificate = CertificateHelper.ToJsonModelRef(GetCertificate(() => centralStore.GetCertificateByName(binding.Host.Replace('*', '_')).Result));
+                            obj.certificate = CertificateHelper.ToJsonModelRef(GetCertificate(() => centralStore.GetCertificateByHostName(binding.Host.Replace('*', '_')).Result));
                         }
                     }
 

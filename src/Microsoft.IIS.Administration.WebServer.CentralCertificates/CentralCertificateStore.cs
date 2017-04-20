@@ -109,6 +109,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                 }
 
                 _physicalPath = value;
+                _cache.Remove(CERTS_KEY);
             }
         }
 
@@ -123,6 +124,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                 }
 
                 _username = value;
+                _cache.Remove(CERTS_KEY);
             }
         }
 
@@ -139,6 +141,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                 }
 
                 _encryptedPassword = encrypted;
+                _cache.Remove(CERTS_KEY);
             }
         }
 
@@ -155,6 +158,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                 }
 
                 _encryptedPrivateKeyPassword = encrypted;
+                _cache.Remove(CERTS_KEY);
             }
         }
 
@@ -166,9 +170,9 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
         public string Name { get; private set; }
 
-        // ICentralCertificateStore.GetCertificateByName
+        // ICentralCertificateStore.GetCertificateByHostName
         // Prefer ICertificateStore.GetCertificate if possible
-        public async Task<ICertificate> GetCertificateByName(string name)
+        public async Task<ICertificate> GetCertificateByHostName(string name)
         {
             EnsureAccess(CertificateAccess.Read);
             ICertificate certificate = null;
@@ -185,16 +189,15 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             return certificate;
         }
 
-        public async Task<ICertificate> GetCertificate(string id)
+        public async Task<ICertificate> GetCertificate(string fileName)
         {
             EnsureAccess(CertificateAccess.Read);
-            CertificateIdentifier certId = CertificateIdentifier.Parse(id);
             ICertificate certificate = null;
 
-            IEnumerable<ICertificate> certs = await GetCertificatesInternal(Path.GetFileNameWithoutExtension(certId.FileName));
+            IEnumerable<ICertificate> certs = await GetCertificatesInternal(Path.GetFileNameWithoutExtension(fileName));
 
             foreach (var cert in certs) {
-                if (cert.Thumbprint.Equals(certId.Thumbprint, StringComparison.OrdinalIgnoreCase) && cert.Alias.Equals(certId.FileName, StringComparison.OrdinalIgnoreCase)) {
+                if (cert.Alias.Equals(fileName, StringComparison.OrdinalIgnoreCase)) {
                     certificate = cert;
                     break;
                 }
