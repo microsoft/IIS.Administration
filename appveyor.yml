@@ -15,6 +15,7 @@ build:
   verbosity: minimal
 after_build:
 - ps: >
+    & "$env:iis_admin_solution_dir\scripts\Configure-DevEnvironment.ps1";
     & "$env:iis_admin_solution_dir\scripts\publish\publish.ps1" -OutputPath $env:publish_out_dir -SkipRestore -SkipPrompt;
     Get-WindowsOptionalFeature -Online | where {$_.FeatureName -match "IIS-" -and $_.State -eq [Microsoft.Dism.Commands.FeatureState]::Disabled} | % {Enable-WindowsOptionalFeature -Online -FeatureName $_.FeatureName};
     & "$env:publish_out_dir\setup\setup.ps1" Install -Verbose -Port 44326;

@@ -7,7 +7,6 @@
 $scriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
 function AllowWebConfigOverrides {
-    Write-Host "Setting up override settings in applicationHost.config."
     $appHostPath = Join-Path $scriptDir "..\.vs\config\applicationHost.config"
     if (-not(Test-Path $appHostPath)) {
         Write-Warning "Cannot find applicationHost.config file. Run the project through visual studio to generate the file then re-run this script."
@@ -27,7 +26,6 @@ function AllowWebConfigOverrides {
 }
 
 function AddCurrentUserToIISAdministrators {
-    Write-Host "Configuring local IIS Administrators group."
     $group = .\setup\security.ps1 GetLocalGroup -Name $(.\setup\globals.ps1 IISAdministratorsGroupName)
     
     if ($group -ne $null -and (-not (.\setup\security.ps1 GroupEquals -Group $group -Name $(.\setup\globals.ps1 IISAdministratorsGroupName) -Description $(.\setup\globals.ps1 IISAdministratorsDescription) ))) {
@@ -53,12 +51,19 @@ try {
     Push-Location $scriptDir
 
 	# The applicationHost.config file created by Visual Studio does not allow necesarry settings to be overwritten by default. 
+    Write-Host "Setting up override settings in applicationHost.config."
     AllowWebConfigOverrides
 
 	# Synchronize behavior with production scenario.
+    Write-Host "Configuring local IIS Administrators group."
     AddCurrentUserToIISAdministrators
 
+    Write-Host "Setting environment variables."
     SetEnvironmentVariables
+
+	# Setup machine to run Central Certificate Store Test scenarios.
+    Write-Host "Creating central certificate store test infrastructure."
+    .\tests\Create-CcsInfrastructure.ps1
 }
 finally {
     Pop-Location
