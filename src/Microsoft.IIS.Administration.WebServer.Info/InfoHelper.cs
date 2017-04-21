@@ -5,6 +5,7 @@
 namespace Microsoft.IIS.Administration.WebServer.Info
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
     using System.ServiceProcess;
 
@@ -33,15 +34,11 @@ namespace Microsoft.IIS.Administration.WebServer.Info
         {
             string version = null;
 
-            
-
-            if (File.Exists(VERSION_TEST_DLL))
-            {
-                var info = System.Diagnostics.FileVersionInfo.GetVersionInfo(VERSION_TEST_DLL);
+            if (File.Exists(VERSION_TEST_DLL)) {
+                var info = FileVersionInfo.GetVersionInfo(VERSION_TEST_DLL);
                 version = info.ProductVersion;
             }
-            else
-            {
+            else {
                 version = "Unknown";
             }
 
@@ -50,10 +47,10 @@ namespace Microsoft.IIS.Administration.WebServer.Info
 
         public static object ToJsonModel()
         {
-            var obj = new
-            {
+            var obj = new {
                 name = "Microsoft Internet Information Services",
                 id = WebServerId.CreateFromPath(ManagementUnit.Current.ApplicationHostConfigPath).Uuid,
+                supports_require_sni = true,
                 status = Enum.GetName(typeof(Status), GetStatus()).ToLower(),
                 version = GetVersion()
             };
@@ -65,8 +62,7 @@ namespace Microsoft.IIS.Administration.WebServer.Info
 
         private static Status FromServiceControllerStatus(ServiceControllerStatus svcStatus)
         {
-            switch (svcStatus)
-            {
+            switch (svcStatus) {
                 case ServiceControllerStatus.StopPending:
                 case ServiceControllerStatus.PausePending:
                     return Status.Stopping;
