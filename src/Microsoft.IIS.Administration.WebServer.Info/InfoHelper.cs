@@ -45,12 +45,14 @@ namespace Microsoft.IIS.Administration.WebServer.Info
             return version;
         }
 
-        public static object ToJsonModel()
+        public static object ToJsonModel(IWebServerVersion versionProvider)
         {
+            Version version = versionProvider.Version;
+
             var obj = new {
                 name = "Microsoft Internet Information Services",
                 id = WebServerId.CreateFromPath(ManagementUnit.Current.ApplicationHostConfigPath).Uuid,
-                supports_require_sni = true,
+                supports_sni = version != null && version > new Version(8, 0),
                 status = Enum.GetName(typeof(Status), GetStatus()).ToLower(),
                 version = GetVersion()
             };

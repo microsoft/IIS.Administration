@@ -10,11 +10,18 @@ namespace Microsoft.IIS.Administration.WebServer.Info
 
     public class WebServerInfoController : ApiBaseController
     {
+        private IWebServerVersion _versionProvider;
+
+        public WebServerInfoController(IWebServerVersion versionProvider)
+        {
+            _versionProvider = versionProvider;
+        }
+
         [HttpGet]
         [ResourceInfo(Name = Defines.InfoName)]
         public object Get()
         {
-            return InfoHelper.ToJsonModel();
+            return InfoHelper.ToJsonModel(_versionProvider);
         }
     }
 }
