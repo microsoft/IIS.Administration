@@ -50,3 +50,18 @@ if (-not($userExists)) {
     $ccsUser.UserFlags = 64 + 65536 # ADS_UF_PASSWD_CANT_CHANGE + ADS_UF_DONT_EXPIRE_PASSWD
     $ccsUser.SetInfo()
 }
+
+# Check for ccs entry in hosts file to allow local testing of ccs binding
+$hostFile = "C:\Windows\System32\drivers\etc\hosts"
+$lines = [System.IO.File]::ReadAllLines($hostFile)
+$containsCertHostName = $false
+$lines | ForEach-Object {
+    if ($_ -match $CERTIFICATE_NAME) { 
+        $containsTestEntry = $true
+    }
+}
+
+if (-not($containsCertHostName)) {
+    $lines += "127.0.0.1 $CERTIFICATE_NAME"
+    [System.IO.File]::WriteAllLines($hostFile, $lines)
+}
