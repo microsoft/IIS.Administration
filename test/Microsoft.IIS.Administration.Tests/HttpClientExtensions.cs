@@ -40,6 +40,18 @@ namespace Microsoft.IIS.Administration.Tests
             return Globals.Success(response);
         }
 
+        public static HttpResponseMessage PostRaw(this HttpClient client, string uri, string body)
+        {
+            HttpContent content = new StringContent(body, Encoding.UTF8, "application/json");
+            return client.PostAsync(uri, content).Result;
+        }
+
+        public static HttpResponseMessage PostRaw(this HttpClient client, string uri, object body)
+        {
+            HttpContent content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
+            return client.PostAsync(uri, content).Result;
+        }
+
         public static bool Post(this HttpClient client, string uri, object body, out string result)
         {
             return Post(client, uri, JsonConvert.SerializeObject(body), out result);
