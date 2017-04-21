@@ -156,31 +156,15 @@ namespace Microsoft.IIS.Administration.Tests
                         File.WriteAllText(index, $"<h1>{siteName}</h1>");
                     }
 
-                    var handler = new HttpClientHandler();
-                    handler.ServerCertificateCustomValidationCallback = (request, c, chain, errors) => {
-                        return true;
-                    };
+                    site = client.Get(Utils.Self(site));
 
-                    //
-                    // Test new ccs binding with a plain request
-                    using (var normalClient = new HttpClient(handler, true)) {
-                        bool success = false;
-                        //
-                        // Ccs binding not immediately available
-                        for (int i = 0; i < 5000; i ++) {
-                            try {
-                                HttpResponseMessage res = normalClient.GetAsync("https://" + CERT_NAME + "/index.html").Result;
-                                success = Globals.Success(res);
+                    JObject binding = site["bindings"].ToObject<IEnumerable<JObject>>().First();
+                    Assert.NotNull(binding["certificate"]);
+                    Assert.True(binding.Value<bool>("require_sni"));
 
-                                if (success) {
-                                    break;
-                                }
-                            }
-                            catch {
-                            }
-                        }
-                        Assert.True(success);
-                    }
+                    JObject certificate = client.Get(Utils.Self(binding.Value<JObject>("certificate")));
+                    Assert.NotNull(certificate);
+                    Assert.True(certificate["store"].Value<string>("name").Equals(NAME));
                 }
                 finally {
                     Sites.EnsureNoSite(client, siteName);
