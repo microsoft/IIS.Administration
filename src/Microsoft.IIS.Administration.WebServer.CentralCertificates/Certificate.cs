@@ -88,7 +88,6 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
         public ICertificateStore Store {
             get {
-                EnsureInit();
                 return _cert.Store;
             }
         }
@@ -135,16 +134,12 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             }
 
             try {
-                using (var fs = _fileProvider.GetFileStream(_file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
-                    var bytes = new byte[fs.Length];
-                    fs.Read(bytes, 0, bytes.Length);
-                    using (X509Certificate2 cert = !string.IsNullOrEmpty(_privateKeyPassword) ?
-                                                      new X509Certificate2(bytes, _privateKeyPassword) :
-                                                      new X509Certificate2(bytes)) {
+                using (X509Certificate2 cert = !string.IsNullOrEmpty(_privateKeyPassword) ?
+                                                  new X509Certificate2(_file.Path, _privateKeyPassword) :
+                                                  new X509Certificate2(_file.Path)) {
 
-                        cert.FriendlyName = _file.Name;
-                        _cert = new Certificates.Certificate(cert, _store, _file.Name);
-                    }
+                    cert.FriendlyName = _file.Name;
+                    _cert = new Certificates.Certificate(cert, _store, _file.Name);
                 }
             }
             catch (UnauthorizedAccessException) {
