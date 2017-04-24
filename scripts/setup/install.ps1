@@ -326,8 +326,7 @@ function rollback() {
 
         try {
             Write-Host "Rolling back logs folder creation"
-            .\security.ps1 Add-SelfRights -Path $logsPath
-            Remove-Item $logsPath -Force -Recurse
+            .\files.ps1 Remove-ItemForced -Path $logsPath
         }
         catch {
             write-warning "Could not delete logs folder $logsPath."
@@ -341,8 +340,7 @@ function rollback() {
 
         try {
             Write-Host "Rolling back installation folder creation"
-            .\security.ps1 Add-SelfRights -Path $adminRoot
-            Remove-Item $adminRoot -Force -Recurse
+            .\files.ps1 Remove-ItemForced -Path $adminRoot
         }
         catch {
             write-warning "Could not delete installation folder $adminRoot."

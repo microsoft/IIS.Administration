@@ -105,10 +105,9 @@ function Set-JsonContent($_path, $_jsonObject) {
     if ($_jsonObject -eq $null) {
         throw "JsonObject required"
     }
-
-    New-Item -Type File $_path -Force -ErrorAction Stop | Out-Null
     
-    Serialize $_jsonObject | Out-File $_path -ErrorAction Stop
+    $content = Serialize $_jsonObject
+    .\files.ps1 Write-FileForced -Path $_path -Content $content
 }
 
 # Removes a property from an object

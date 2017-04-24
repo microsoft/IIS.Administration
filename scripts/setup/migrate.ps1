@@ -123,10 +123,8 @@ function Migrate {
     $filtered = .\modules.ps1 Remove-DeprecatedModules -Modules $joined
     $oldModules = @{modules = $filtered}
 
-    .\security.ps1 Add-SelfRights -Path $Destination
-
     foreach ($fileName in $userFiles.keys) {
-        Copy-Item -Force -Recurse $(Join-Path $Source $userFiles[$fileName]) $(Join-Path $Destination $userFiles[$fileName]) -ErrorAction SilentlyContinue
+        .\files.ps1 Copy-FileForced -Source $(Join-Path $Source $userFiles[$fileName]) -Destination $(Join-Path $Destination $userFiles[$fileName]) -ErrorAction SilentlyContinue
     }
 
     .\modules.ps1 Set-JsonContent -Path $(Join-Path $Destination $userFiles["modules.json"]) -JsonObject $oldModules
@@ -170,7 +168,7 @@ function Migrate {
     
     # Register the Self Host exe as a service
     $svcExePath = Join-Path $destination "host\$platform\x64\Microsoft.IIS.Host.exe"
-    sc.exe create "$($sourceSettings.ServiceName)" binpath= "$svcExePath -appHostConfig:\`"$appHostPath\`" -serviceName:\`"$($sourceSvc.Name)\`"" start= auto | Out-Null
+    sc.exe create "$($sourceSettings.ServiceName)" depend= http binpath= "$svcExePath -appHostConfig:\`"$appHostPath\`" -serviceName:\`"$($sourceSvc.Name)\`"" start= auto | Out-Null
 
     if ($LASTEXITCODE -ne 0) {
         throw "Could not create new service"

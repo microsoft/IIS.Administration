@@ -89,7 +89,7 @@ function Upgrade() {
         }
         catch {
             # Uninstall must not throw
-            Write-Warning -Exception $_.exception -Message $($_.Exception.Message + [Environment]::NewLine + $_.InvocationInfo.PositionMessage)
+            Write-Warning -Message $($_.Exception.Message + [Environment]::NewLine + $_.InvocationInfo.PositionMessage)
         }
     }
     catch {
@@ -99,7 +99,7 @@ function Upgrade() {
             }
             catch {
                 # Uninstall must not throw
-                Write-Warning -Exception $_.exception -Message $($_.Exception.Message + [Environment]::NewLine + $_.InvocationInfo.PositionMessage)
+                Write-Warning -Message $($_.Exception.Message + [Environment]::NewLine + $_.InvocationInfo.PositionMessage)
             }
         }
         throw $_
@@ -112,10 +112,12 @@ function Uninstall() {
     .\uninstall.ps1 -Path $adminRoot -KeepFiles
 }
 
+Require-Script "acl-util"
 Require-Script "cache"
 Require-Script "cert"
 Require-Script "config"
 Require-Script "dependencies"
+Require-Script "files"
 Require-Script "globals"
 Require-Script "migrate"
 Require-Script "modules"
@@ -130,6 +132,7 @@ Require-Script "ver"
 try {
     Push-Location $(Get-ScriptDirectory)
     .\require.ps1 Is-Administrator
+    Set-Variable -Name $(.\globals.ps1 INSTALL_METHOD_KEY) -Value "MSI" -Scope Global
     
     switch($Command)
     {
@@ -151,7 +154,7 @@ try {
                 Uninstall
             }
             catch {
-                Write-Warning -Exception $_.exception -Message $($_.Exception.Message + [Environment]::NewLine + $_.InvocationInfo.PositionMessage)
+                Write-Warning -Message $($_.Exception.Message + [Environment]::NewLine + $_.InvocationInfo.PositionMessage)
             }
         }
         default
@@ -165,6 +168,7 @@ catch {
     exit -1
 }
 finally {
+    Clear-Variable -Name $(.\globals.ps1 INSTALL_METHOD_KEY) -Scope Global
     Pop-Location
 }
 exit 0

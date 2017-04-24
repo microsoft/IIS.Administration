@@ -11,7 +11,9 @@ Param(
                  "GroupEquals",
                  "RemoveLocalGroup",
                  "Set-Acls",
-                 "Add-SelfRights")]
+                 "Add-SelfRights",
+                 "Set-AclForced",
+                 "Add-FullControl")]
     [string]
     $Command,
     
@@ -33,7 +35,19 @@ Param(
     
     [parameter()]
     [string]
-    $Path
+    $Path,
+    
+    [parameter()]
+    [System.Security.AccessControl.FileSystemSecurity]
+    $Acl,
+    
+    [parameter()]
+    [System.Object]
+    $Identity,
+    
+    [parameter()]
+    [switch]
+    $Recurse
 )
 
 # Nano Server does not support ADSI provider
@@ -278,10 +292,101 @@ function Set-Acls($_path) {
     # Update the folder to use the new ACL
     Set-Acl -Path $logsPath -AclObject $acl
 
-    Add-FullControl $system $configPath
+    Add-FullControl $configPath $system $true
 }
 
-function Add-FullControl($_identity, $_path) {
+# Gives full control of the directory at the specified path to the caller.
+# Path: The path of the target directory.
+# Recurse: Flag for whether or not full control will be forced for children objects
+function Add-SelfRights($_path, $_recurse) {
+    $acl = Get-Acl $_path
+    Add-FullControl $_path ([System.Security.Principal.WindowsIdentity]::GetCurrent().User) $_recurse
+}
+
+# Sets an ACL for a given path. Privileges are enabled to allow manipulating the ACL if necessary
+# Path: The path of the file system object to set the ACL for
+# Acl: The acl to set for the object
+# Recurse: Flag for whether or not the ACL will be forced for children objects
+function Set-AclForced($_path, $_acl, $_recurse) {
+    try {
+        Set-Acl -AclObject $_acl -Path $_path -ErrorAction Stop
+    }
+    catch {
+        _Set-AclForced $_path $_acl $_recurse
+    }
+}
+
+function _Set-AclForced($_path, $_acl, $_recurse) {
+    .\acl-util.ps1 Enable-AclUtil
+    $item = Get-Item $_path -ErrorAction Stop
+    $previousOwner = $item.GetAccessControl().GetOwner([System.Security.Principal.SecurityIdentifier])
+    $newOwner = $_acl.GetOwner([System.Security.Principal.SecurityIdentifier])
+
+    $takeOwnerShip = [Microsoft.IIS.Administration.Setup.AclUtil]::HasPrivilege([Microsoft.IIS.Administration.Setup.AclUtil]::TAKE_OWNERSHIP_PRIVILEGE)
+    $restore = [Microsoft.IIS.Administration.Setup.AclUtil]::HasPrivilege([Microsoft.IIS.Administration.Setup.AclUtil]::RESTORE_PRIVILEGE)
+    [Microsoft.IIS.Administration.Setup.AclUtil]::SetPrivilege([Microsoft.IIS.Administration.Setup.AclUtil]::TAKE_OWNERSHIP_PRIVILEGE, $true)
+    [Microsoft.IIS.Administration.Setup.AclUtil]::SetPrivilege([Microsoft.IIS.Administration.Setup.AclUtil]::RESTORE_PRIVILEGE, $true)
+
+    try {
+        # If the ACL is being set recursively, the current identity must be the owner of the child objects/containers
+        if ($_recurse -and ($item -is [System.IO.DirectoryInfo])) {
+            Get-ChildItem $item.FullName -Recurse | ForEach-Object {
+                $tAcl = $_.GetAccessControl('owner')
+                $tAcl.SetOwner([System.Security.Principal.WindowsIdentity]::GetCurrent().User)
+                $_.SetAccessControl($tAcl)
+            }
+        }
+
+        # Obtain ownership of target
+        $acl = $item.GetAccessControl('owner')
+        $acl.SetOwner([System.Security.Principal.WindowsIdentity]::GetCurrent().User)
+        $item.SetAccessControl($acl)
+
+        # Set ACL
+        Set-Acl -AclObject $_acl -Path $_path
+
+    }
+    finally {
+        
+        # Restore any ownership taken
+        try {
+                
+            # If the provided ACL did not set an owner, restore to previous
+            if ($newOwner -eq $null) {
+                $acl = $item.GetAccessControl('owner')
+                $acl.SetOwner($previousOwner)
+                $item.SetAccessControl($acl)
+            }
+
+            # If acl is being set recursively, restore ownership of children
+            if ($_recurse -and ($item -is [System.IO.DirectoryInfo])) {
+                Get-ChildItem $item.FullName -Recurse | ForEach-Object {
+                    $tAcl = $_.GetAccessControl('owner')
+                    $tAcl.SetOwner($previousOwner)
+                    $_.SetAccessControl($tAcl)
+                }
+            }
+        }
+        catch {
+            # Fail state: owner will be the Administrator running the process
+            Write-Warning "Could not restore owner for $($item.fullname)"
+        }
+
+        # Revert any token privileges adjusted
+        [Microsoft.IIS.Administration.Setup.AclUtil]::SetPrivilege([Microsoft.IIS.Administration.Setup.AclUtil]::TAKE_OWNERSHIP_PRIVILEGE, $takeOwnerShip)
+        [Microsoft.IIS.Administration.Setup.AclUtil]::SetPrivilege([Microsoft.IIS.Administration.Setup.AclUtil]::RESTORE_PRIVILEGE, $restore)
+    }
+}
+
+# Adds a full control entry to an ACL
+# Path: The item to add full control to
+# Identity: The identity who will be granted full control
+# Recurse: Flag for whether or not full control will be forced for children objects
+function Add-FullControl($_path, $_identity, $_recurse) {
+
+	if ([System.String]::IsNullOrEmpty($_path)) {
+		throw "Path cannot be null"
+	}
 
     if ([System.IO.File]::Exists($_path)) {
         $inherit = [System.Security.AccessControl.InheritanceFlags]::None
@@ -296,17 +401,10 @@ function Add-FullControl($_identity, $_path) {
 					    $inherit, 
 						[System.Security.AccessControl.PropagationFlags]::None,
 						[System.Security.AccessControl.AccessControlType]::Allow)
-
     
     $acl = Get-Acl -Path $_path
-    $acl.AddAccessRule($fullControl)
-    Set-Acl -Path $_path -AclObject $acl
-}
-
-# Gives full control of the directory at the specified path to the caller.
-# Path: The path of the target directory.
-function Add-SelfRights($_path) {
-    Add-FullControl ([System.Security.Principal.WindowsIdentity]::GetCurrent().User) $_path
+    $acl.SetAccessRule($fullControl)
+    Set-AclForced $_path $acl $_recurse
 }
 
 switch($Command)
@@ -341,7 +439,15 @@ switch($Command)
     }
     "Add-SelfRights"
     {
-        return Add-SelfRights $Path
+        return Add-SelfRights $Path $Recurse
+    }
+    "Set-AclForced"
+    {
+        return Set-AclForced $Path $Acl $Recurse
+    }
+    "Add-FullControl"
+    {
+        return Add-FullControl $Path $Identity $Recurse
     }
     default
     {

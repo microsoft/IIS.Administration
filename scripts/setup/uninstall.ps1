@@ -83,13 +83,19 @@ function Uninstall($_path)
     .\cache.ps1 Destroy
     
     $InstallationDirectory = Get-Item $adminRoot -ErrorAction SilentlyContinue
-    if ($InstallationDirectory -ne $null) {   
-        try {
-            .\security.ps1 Add-SelfRights -Path $InstallationDirectory.FullName
+    if ($InstallationDirectory -ne $null) {  
+
+        # Add system full control to directory so MSI can remove the files
+        if ($(.\globals.ps1 INSTALL_METHOD_VALUE) -eq "MSI") {
+            try {
+                $system = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::LocalSystemSid, $null)
+                .\security.ps1 Add-FullControl -Path $InstallationDirectory.FullName -Identity system -Recurse
+            }
+            catch {
+                Write-Warning "Unable to obtain full control of installation directory"
+            }
         }
-        catch {
-            Write-Warning "Unable to obtain full control of installation directory"
-        }     
+
         if (-not($KeepFiles)) {
 
             Try
@@ -98,15 +104,15 @@ function Uninstall($_path)
 
                 foreach ($file in $files) {
                     if ($file.name -ne "setup") {
-                        Remove-Item $file.FullName -Force -Recurse -ErrorAction SilentlyContinue
+                        .\files.ps1 Remove-ItemForced -path $file.FullName -ErrorAction SilentlyContinue
                     }
                     else {
-                        Get-ChildItem $file.FullName | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
-                        Remove-Item $file.FullName -Force -Recurse -ErrorAction SilentlyContinue
+                        Get-ChildItem $file.FullName | ForEach-Object{ .\files.ps1 Remove-ItemForced -Path $_.FullName -ErrorAction SilentlyContinue }
+                        .\files.ps1 Remove-ItemForced -Path $file.FullName -ErrorAction SilentlyContinue
                     }
                 }
 
-                Remove-Item $InstallationDirectory.FullName -Force -Recurse -ErrorAction Stop
+                .\files.ps1 Remove-ItemForced -Path $InstallationDirectory.FullName -ErrorAction Stop
                 Write-Verbose "Successfully removed installation folder."
             }
             Catch
@@ -117,7 +123,7 @@ function Uninstall($_path)
         else {
             try {
                 $setupConfig = Get-Item $(Join-Path $InstallationDirectory.FullName "setup.config")
-                Remove-Item $setupConfig -Force -ErrorAction Stop
+                .\files.ps1 Remove-ItemForced -Path $setupConfig -ErrorAction Stop
             }
             catch {
                 Write-Warning "Could not remove installation configuration file"

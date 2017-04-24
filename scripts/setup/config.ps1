@@ -104,8 +104,7 @@ function Get($_path) {
 # Path: The parent directory of the setup configuration.
 function Remove($_path) {
     if ($(Test-Path $_path)) {
-        .\security.ps1 Add-SelfRights -Path $_path
-        Remove-Item -Force $(Join-Path $_path $INSTALL_FILE)
+        .\files.ps1 Remove-ItemForced -Path $(Join-Path $_path $INSTALL_FILE)
     }
 }
 
@@ -128,10 +127,20 @@ function Write-Config($obj, $_path) {
         $xConfig.AppendChild($xElem) | Out-Null
     }     
     $xml.AppendChild($xConfig) | Out-Null
-
-    $sw = New-Object System.IO.StreamWriter -ArgumentList (Join-Path $_path $INSTALL_FILE)
+    
+    $ms = New-Object System.IO.MemoryStream
+    $sw = New-Object System.IO.StreamWriter -ArgumentList $ms
     $xml.Save($sw) | Out-Null
+
+    $position = $ms.Seek(0, [System.IO.SeekOrigin]::Begin)
+    $sr = New-Object System.IO.StreamReader -ArgumentList $ms
+    $content = $sr.ReadToEnd()
+
+    $sr.Dispose()
     $sw.Dispose()
+    $ms.Dispose()
+
+    .\files.ps1 Write-FileForced -Path $(Join-Path $_path $INSTALL_FILE) -Content $content
 }
 
 # Sets the applicationHost.config file to host the Microsoft.IIS.Administration application given the specified settings.
@@ -171,9 +180,20 @@ function Write-AppHost($_appHostPath, $_applicationPath, $_port, $_version) {
     $site.application.SetAttribute("applicationPool", "$IISAdminPoolName")
     $site.application.virtualDirectory.SetAttribute("physicalPath", "$_applicationPath")
     $site.bindings.binding.SetAttribute("bindingInformation", "*:$($_port):")
-    $sw = New-Object System.IO.StreamWriter -ArgumentList $_appHostPath
-    $xml.Save($sw)
+    
+    $ms = New-Object System.IO.MemoryStream
+    $sw = New-Object System.IO.StreamWriter -ArgumentList $ms
+    $xml.Save($sw) | Out-Null
+
+    $position = $ms.Seek(0, [System.IO.SeekOrigin]::Begin)
+    $sr = New-Object System.IO.StreamReader -ArgumentList $ms
+    $content = $sr.ReadToEnd()
+
+    $sr.Dispose()
     $sw.Dispose()
+    $ms.Dispose()
+    
+    .\files.ps1 Write-FileForced -Path $_appHostPath -Content $content
 }
 
 # Gets the port that the IIS Administration site is configured to listen on in the applicationHost.config file.

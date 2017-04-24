@@ -8,6 +8,8 @@ Param (
                  "DEFAULT_ADMIN_ROOT_NAME",
                  "DEFAULT_INSTALL_PATH",
                  "IIS_HWC_APP_ID",
+                 "INSTALL_METHOD_KEY",
+                 "INSTALL_METHOD_VALUE",
                  "DEFAULT_SERVICE_NAME",
                  "SERVICE_DESCRIPTION",
                  "CERT_NAME",
@@ -16,6 +18,8 @@ Param (
     [string]
     $Command
 )
+
+$INSTALL_METHOD_KEY = "IIS_ADMIN_INSTALL_METHOD"
 
 switch ($Command)
 {
@@ -36,6 +40,20 @@ switch ($Command)
     "IIS_HWC_APP_ID"
     {
         return "{4dc3e181-e14b-4a21-b022-59fc669b0914}"
+    }
+    # Key for retrieving the installation strategy used
+    "INSTALL_METHOD_KEY"
+    {
+        return $INSTALL_METHOD_KEY
+    }
+    # Value of installation strategy
+    "INSTALL_METHOD_VALUE"
+    {
+        $installMethod = Get-Variable -Name $INSTALL_METHOD_KEY -ErrorAction SilentlyContinue
+        if ($installMethod -ne $null) {
+            $installMethod = $installMethod.Value
+        }
+        return $installMethod
     }
     # Application service name
     "DEFAULT_SERVICE_NAME"

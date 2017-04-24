@@ -182,19 +182,24 @@ function Uninstall() {
 
     # Other known directories
     foreach ($child in $children) {
-        if ($expectedDirectories.Contains($child.Name)) {
-                .\security.ps1 Add-SelfRights -Path $child.FullName
-                Remove-Item -Recurse -Force $child.FullName -ErrorAction SilentlyContinue
+        # Use nested for loop to support missing System.Object[].Contains
+        foreach ($dir in $expectedDirectories) {
+            if ($dir -eq $child.Name) {
+                .\files.ps1 Remove-ItemForced -Path $child.FullName -ErrorAction SilentlyContinue
+            }
         }
     }
     
+    # Can be null if uninstalled from outside installation directory
     $children = Get-ChildItem $adminRoot | Where-Object { $_ -is [System.IO.DirectoryInfo] }
 
-    # Current installation
-    foreach ($child in $children) {
-        if (.\config.ps1 Exists -Path $child.FullName) {
-            .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding -DeleteGroup:$DeleteGroup
-            break
+    if ($children -ne $null) {
+        # Current installation
+        foreach ($child in $children) {
+            if (.\config.ps1 Exists -Path $child.FullName) {
+                .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding -DeleteGroup:$DeleteGroup
+                break
+            }
         }
     }
     
@@ -219,10 +224,12 @@ function Uninstall() {
     }
 }
 
+Require-Script "acl-util"
 Require-Script "cache"
 Require-Script "cert"
 Require-Script "config"
 Require-Script "dependencies"
+Require-Script "files"
 Require-Script "globals"
 Require-Script "migrate"
 Require-Script "modules"
@@ -237,6 +244,7 @@ Require-Script "ver"
 try {
     Push-Location $(Get-ScriptDirectory)
     .\require.ps1 Is-Administrator
+    Set-Variable -Name $(.\globals.ps1 INSTALL_METHOD_KEY) -Value "Script" -Scope Global
     
     switch($Command)
     {
@@ -261,6 +269,7 @@ catch {
     exit -1
 }
 finally {
+    Clear-Variable -Name $(.\globals.ps1 INSTALL_METHOD_KEY) -Scope Global
     Pop-Location
 }
 exit 0
