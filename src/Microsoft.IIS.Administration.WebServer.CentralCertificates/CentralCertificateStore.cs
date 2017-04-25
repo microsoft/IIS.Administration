@@ -170,6 +170,19 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
         public string Name { get; private set; }
 
+        public void Dispose()
+        {
+            if (_watcher != null) {
+                _watcher.Dispose();
+                _watcher = null;
+            }
+
+            if (_cache != null) {
+                _cache.Dispose();
+                _cache = null;
+            }
+        }
+
         // ICentralCertificateStore.GetCertificateByHostName
         // Prefer ICertificateStore.GetCertificate if possible
         public async Task<ICertificate> GetCertificateByHostName(string name)
@@ -323,12 +336,22 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         {
             _lastRefresh = DateTime.UtcNow;
             using (RegistryKey key = GetRegKey(false)) {
-                _enabled = (int)(key.GetValue(REGVAL_ENABLED, 0)) != 0;
-                _physicalPath = key.GetValue(REGVAL_CERT_STORE_LOCATION, null) as string;
-                _username = key.GetValue(REGVAL_USERNAME, null) as string;
-                _pollingInterval = (int)key.GetValue(REGVAL_POLLING_INTERVAL, DEFAULT_POLLING_INTERVAL);
-                _encryptedPassword = key.GetValue(REGVAL_PASSWORD, null) as string;
-                _encryptedPrivateKeyPassword = key.GetValue(REGVAL_PRIVATE_KEY_PASSWORD, null) as string;
+                if (key == null) {
+                    _enabled = false;
+                    _physicalPath = null;
+                    _username = null;
+                    _pollingInterval = DEFAULT_POLLING_INTERVAL;
+                    _encryptedPassword = null;
+                    _encryptedPrivateKeyPassword = null;
+                }
+                else {
+                    _enabled = (int)(key.GetValue(REGVAL_ENABLED, 0)) != 0;
+                    _physicalPath = key.GetValue(REGVAL_CERT_STORE_LOCATION, null) as string;
+                    _username = key.GetValue(REGVAL_USERNAME, null) as string;
+                    _pollingInterval = (int)key.GetValue(REGVAL_POLLING_INTERVAL, DEFAULT_POLLING_INTERVAL);
+                    _encryptedPassword = key.GetValue(REGVAL_PASSWORD, null) as string;
+                    _encryptedPrivateKeyPassword = key.GetValue(REGVAL_PRIVATE_KEY_PASSWORD, null) as string;
+                }
             }
             SetupWatcher();
         }
@@ -367,19 +390,6 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         private RegistryKey GetRegKey(bool writable = true)
         {
             return Registry.LocalMachine.OpenSubKey(REGKEY_CENTRAL_CERTIFICATE_STORE_PROVIDER, writable);
-        }
-
-        public void Dispose()
-        {
-            if (_watcher != null) {
-                _watcher.Dispose();
-                _watcher = null;
-            }
-
-            if (_cache != null) {
-                _cache.Dispose();
-                _cache = null;
-            }
         }
     }
 }

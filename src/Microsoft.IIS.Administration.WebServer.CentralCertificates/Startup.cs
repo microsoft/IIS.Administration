@@ -52,7 +52,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
             var store = new CentralCertificateStore(STORE_NAME, ccsOptions != null ? ccsOptions.Claims : new string[] { "read" }, fileProvider);
 
-            if (store.Enabled) {
+            if (CentralCertHelper.FeatureEnabled && store.Enabled) {
                 storeProvider.AddStore(store);
             }
 

@@ -9,6 +9,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
     using Core.Http;
     using Files;
     using System.Net;
+    using System.Threading.Tasks;
 
     public class CentralCertsController : ApiBaseController
     {
@@ -63,19 +64,19 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         [HttpPost]
         [ResourceInfo(Name = Defines.CentralCertsName)]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
-        public object Post([FromBody] dynamic model)
+        public async Task<object> Post([FromBody] dynamic model)
         {
-            CentralCertHelper.Enable(model, _fileProvider);
+            await CentralCertHelper.Enable(model, _fileProvider);
 
             return CentralCertHelper.ToJsonModel();
         }
 
         [HttpDelete]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
-        public void Delete(string id)
+        public async Task Delete(string id)
         {
             if (id.Equals(new CentralCertConfigId().Uuid)) {
-                CentralCertHelper.Disable();
+                await CentralCertHelper.Disable();
             }
 
             // Success
@@ -86,7 +87,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
         private void RequireEnabled()
         {
-            if (!_ccs.Enabled) {
+            if (!CentralCertHelper.FeatureEnabled || !_ccs.Enabled) {
                 throw new FeatureNotFoundException("IIS Central Certificate Store");
             }
         }
