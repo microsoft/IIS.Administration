@@ -52,7 +52,7 @@ namespace Microsoft.IIS.Administration.WebServer.Info
             var obj = new {
                 name = "Microsoft Internet Information Services",
                 id = WebServerId.CreateFromPath(ManagementUnit.Current.ApplicationHostConfigPath).Uuid,
-                supports_sni = version != null && version > new Version(8, 0),
+                supports_sni = version != null && version >= new Version(8, 0),
                 status = Enum.GetName(typeof(Status), GetStatus()).ToLower(),
                 version = GetVersion()
             };
