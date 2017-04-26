@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Microsoft.IIS.Administration.Files Class Library",
   "authors": [ "Microsoft" ],
   "frameworks": {
@@ -13,6 +13,6 @@
   },
   "dependencies": {
     "Microsoft.AspNetCore.StaticFiles": "1.0.0",
-    "Microsoft.IIS.Administration.Files.Core": "1.0.1"
+    "Microsoft.IIS.Administration.Files.Core": "1.1.0"
   }
 }

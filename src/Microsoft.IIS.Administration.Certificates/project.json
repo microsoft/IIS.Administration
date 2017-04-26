@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Microsoft.IIS.Administration.Certificates Class Library",
   "authors": [ "Microsoft" ],
   "frameworks": {
@@ -12,7 +12,7 @@
     }
   },
   "dependencies": {
-    "Microsoft.IIS.Administration.Files": "1.0.1",
+    "Microsoft.IIS.Administration.Files": "1.1.0",
     "System.Security.Cryptography.X509Certificates": "4.1.0"
   }
 }
