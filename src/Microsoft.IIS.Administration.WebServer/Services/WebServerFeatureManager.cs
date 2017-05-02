@@ -22,7 +22,7 @@ namespace Microsoft.IIS.Administration.WebServer
 
         private Task SetFeatureEnabled(bool enabled, params string[] features)
         {
-            string arguments = $"/Online {(enabled ? "/Enable-Feature" : "/Disable-Feature")}";
+            string arguments = $"/Quiet /NoRestart /Online {(enabled ? "/Enable-Feature" : "/Disable-Feature")}";
 
             foreach (string feature in features) {
                 arguments += $" /FeatureName:{feature}";
