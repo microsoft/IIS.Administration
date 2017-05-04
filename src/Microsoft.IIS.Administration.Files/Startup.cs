@@ -91,6 +91,8 @@ namespace Microsoft.IIS.Administration.Files
             hal.ProvideLink(Defines.CopyResource.Guid, "self", copy => new { href = MoveHelper.GetLocation(copy.id, true) });
 
             hal.ProvideLink(Defines.FilesResource.Guid, Defines.CopyResource.Name, file => new { href = $"/{Defines.COPY_PATH}" });
+
+            hal.ProvideLink(Defines.DirectoriesResource.Guid, Defines.CopyResource.Name, dir => new { href = $"/{Defines.COPY_PATH}" });
         }
 
         private void ConfigureMove()
@@ -104,6 +106,8 @@ namespace Microsoft.IIS.Administration.Files
             hal.ProvideLink(Defines.MoveResource.Guid, "self", move => new { href = MoveHelper.GetLocation(move.id, false) });
 
             hal.ProvideLink(Defines.FilesResource.Guid, Defines.MoveResource.Name, file => new { href = $"/{Defines.MOVE_PATH}" });
+
+            hal.ProvideLink(Defines.DirectoriesResource.Guid, Defines.MoveResource.Name, dir => new { href = $"/{Defines.MOVE_PATH}" });
         }
     }
 }

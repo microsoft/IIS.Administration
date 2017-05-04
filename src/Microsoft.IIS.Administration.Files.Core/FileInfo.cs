@@ -127,7 +127,12 @@ namespace Microsoft.IIS.Administration.Files
 
         public long Size {
             get {
-                return _info.Length;
+                try {
+                    return _info.Length;
+                }
+                catch (FileNotFoundException) {
+                    return 0;
+                }
             }
         }
 

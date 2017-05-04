@@ -154,21 +154,19 @@ namespace Microsoft.IIS.Administration.Files
 
         private MoveOperation MoveDirectory(IFileInfo source, IFileInfo destination, bool copy)
         {
-            Task t;
-            MoveOperation op = null;
+            var op = new MoveOperation(source, destination, null, _fileService);
 
             if (copy) {
-                t = CopyDirectory(source, destination, (s, d) => SafeMoveFile(s, d, PathUtil.GetTempFilePath(d.Path), true).ContinueWith(t2 => {
+                op.Task = CopyDirectory(source, destination, (s, d) => SafeMoveFile(s, d, PathUtil.GetTempFilePath(d.Path), true).ContinueWith(t2 => {
                     if (op != null) {
                         op.CurrentSize += _fileService.GetFile(d.Path).Size;
                     }
                 }));
             }
             else {
-                t = Task.Run(() => _fileService.Move(source, destination));
+                op.Task = Task.Run(() => _fileService.Move(source, destination));
             }
 
-            op = new MoveOperation(t, source, destination, null, _fileService);
             return op;
         }
 
@@ -176,9 +174,11 @@ namespace Microsoft.IIS.Administration.Files
         {
             string temp = PathUtil.GetTempFilePath(destination.Path);
 
-            Task t = SafeMoveFile(source, destination, temp, copy);
+            var op = new MoveOperation(source, destination, temp, _fileService);
 
-            return new MoveOperation(t, source, destination, temp, _fileService);
+            op.Task = SafeMoveFile(source, destination, temp, copy);
+
+            return op;
         }
 
         private async Task SafeMoveFile(IFileInfo source, IFileInfo destination, string temp, bool copy)

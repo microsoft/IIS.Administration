@@ -13,11 +13,10 @@ namespace Microsoft.IIS.Administration.Files
 
     class MoveOperation
     {
-        private long _totalSize = -1;
         private long _currentSize = -1;
         private IFileProvider _fileProvider;
 
-        public MoveOperation(Task task, IFileInfo source, IFileInfo destination, string tempPath, IFileProvider fileProvider)
+        public MoveOperation(IFileInfo source, IFileInfo destination, string tempPath, IFileProvider fileProvider)
         {
             var bytes = new byte[32];
             using (var rng = RandomNumberGenerator.Create()) {
@@ -25,38 +24,22 @@ namespace Microsoft.IIS.Administration.Files
                 this.Id = Base64.Encode(bytes);
             }
             
-            this.Task = task;
             this.Source = source;
             this.Destination = destination;
             this.Created = DateTime.UtcNow;
             this.TempPath = tempPath;
             _fileProvider = fileProvider;
+            Initialize();
         }
 
         public string Id { get; private set; }
-        public Task Task { get; private set; }
+        public Task Task { get; set; }
         public FileType Type { get; private set; }
         public string TempPath { get; private set; }
         public DateTime Created { get; private set; }
         public IFileInfo Destination { get; private set; }
         public IFileInfo Source { get; private set; }
-
-        public long TotalSize {
-            get {
-                if (_totalSize != -1) {
-                    return _totalSize;
-                }
-
-                if (Source.Type == FileType.File) {
-                    _totalSize = Source.Exists ? Source.Size : 0;
-                }
-                else {
-                    _totalSize = Source.Exists ? _fileProvider.GetFiles(Source, "*", SearchOption.AllDirectories).Aggregate(0L, (prev, f) => prev + (f.Exists ? f.Size : 0)) : 0;
-                }
-
-                return _totalSize;
-            }
-        }
+        public long TotalSize { get; private set; }
 
         public long CurrentSize {
             get {
@@ -75,6 +58,21 @@ namespace Microsoft.IIS.Administration.Files
             }
             set {
                 _currentSize = value;
+            }
+        }
+
+        private void Initialize()
+        {
+            if (Source.Type == FileType.File) {
+                TotalSize = Source.Exists ? Source.Size : 0;
+            }
+            else {
+                try {
+                    TotalSize = Source.Exists ? _fileProvider.GetFiles(Source, "*", SearchOption.AllDirectories).Aggregate(0L, (prev, f) => prev + f.Size) : 0;
+                }
+                catch (DirectoryNotFoundException) {
+                    TotalSize = 0;
+                }
             }
         }
     }

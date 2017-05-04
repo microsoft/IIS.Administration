@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net;
     using System.Net.Http;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Web.Administration;
     using Xunit;
@@ -319,6 +320,108 @@ namespace Microsoft.IIS.Administration.Tests
                     }
                     if (copyInfo != null) {
                         Assert.True(client.Delete(Utils.Self(copyInfo.Value<JObject>("file"))));
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void MoveDirectory()
+        {
+            string startName = "move_dir_test";
+            string destName = "move_dir_dest";
+            var physicalPath = Path.Combine(Configuration.TEST_ROOT_PATH, startName);
+            var destPhysicalPath = Path.Combine(Configuration.TEST_ROOT_PATH, destName);
+
+            CreateTestDirectory(physicalPath);
+
+            JObject site = null;
+            using (HttpClient client = ApiHttpClient.Create()) {
+                Sites.EnsureNoSite(client, FILE_TEST_SITE_NAME);
+                site = Sites.CreateSite(client, FILE_TEST_SITE_NAME, Utils.GetAvailablePort(), physicalPath);
+
+                try {
+                    var rootDir = Utils.FollowLink(client, site, "files");
+                    var rootDirFileInfo = Utils.FollowLink(client, rootDir.Value<JObject>("file_info"), "self");
+
+                    object move = new {
+                        name = destName,
+                        parent = rootDirFileInfo.Value<JObject>("parent"),
+                        file = rootDirFileInfo
+                    };
+
+                    var moveInfo = client.Post(Utils.GetLink(rootDirFileInfo, "move"), move);
+
+                    // Wait for move to finish
+                    HttpResponseMessage res = null;
+                    while (res == null || res.StatusCode == HttpStatusCode.OK) {
+                        res = client.GetAsync(Utils.Self(moveInfo)).Result;
+                        Thread.Sleep(25);
+                    }
+
+                    Assert.True(!Directory.Exists(physicalPath));
+                    Assert.True(VerifyTestDirectory(destPhysicalPath));
+                }
+                finally {
+                    if (site != null) {
+                        Sites.DeleteSite(client, Utils.Self(site));
+                    }
+
+                    if (Directory.Exists(destPhysicalPath)) {
+                        Directory.Delete(destPhysicalPath, true);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public void CopyDirectory()
+        {
+            string startName = "copy_dir_test";
+            string destName = "copy_dir_dest";
+            var physicalPath = Path.Combine(Configuration.TEST_ROOT_PATH, startName);
+            var destPhysicalPath = Path.Combine(Configuration.TEST_ROOT_PATH, destName);
+
+            CreateTestDirectory(physicalPath);
+
+            JObject site = null;
+            using (HttpClient client = ApiHttpClient.Create()) {
+                Sites.EnsureNoSite(client, FILE_TEST_SITE_NAME);
+                site = Sites.CreateSite(client, FILE_TEST_SITE_NAME, Utils.GetAvailablePort(), physicalPath);
+
+                try {
+                    var rootDir = Utils.FollowLink(client, site, "files");
+                    var rootDirFileInfo = Utils.FollowLink(client, rootDir.Value<JObject>("file_info"), "self");
+
+                    object copy = new {
+                        name = destName,
+                        parent = rootDirFileInfo.Value<JObject>("parent"),
+                        file = rootDirFileInfo
+                    };
+
+                    var copyInfo = client.Post(Utils.GetLink(rootDirFileInfo, "copy"), copy);
+
+                    //
+                    // Wait for copy to finish
+                    HttpResponseMessage res = null;
+                    do {
+                        res = client.GetAsync(Utils.Self(copyInfo)).Result;
+                    } while (res.StatusCode == HttpStatusCode.OK);
+
+                    Assert.True(VerifyTestDirectory(physicalPath));
+                    Assert.True(VerifyTestDirectory(destPhysicalPath));
+                }
+                finally {
+                    if (site != null) {
+                        Sites.DeleteSite(client, Utils.Self(site));
+                    }
+
+                    if (Directory.Exists(physicalPath)) {
+                        Directory.Delete(physicalPath, true);
+                    }
+
+                    if (Directory.Exists(destPhysicalPath)) {
+                        Directory.Delete(destPhysicalPath, true);
                     }
                 }
             }
@@ -741,6 +844,64 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.True(file != null);
 
             return Utils.FollowLink(client, file, "self");
+        }
+
+        private void CreateTestDirectory(string path)
+        {
+            if (Directory.Exists(path)) {
+                Directory.Delete(path, true);
+                Directory.CreateDirectory(path);
+            }
+
+            //
+            // Create directory with large amount of files to move
+            var tasks = new List<Task>();
+            var kb = GetFileSlice(0, 1000);
+            for (var i = 0; i < 50; i++) {
+                string dir = Path.Combine(path, i.ToString());
+
+                tasks.Add(Task.Run(() => {
+                    Directory.CreateDirectory(dir);
+                    for (var j = 0; j < 50; j++) {
+                        using (var stream = File.Create(Path.Combine(dir, j.ToString()))) {
+                            for (var k = 0; k < 10; k++) {
+                                stream.Write(kb, 0, kb.Length);
+                            }
+                        }
+                    }
+                }));
+            }
+            Task.WaitAll(tasks.ToArray());
+        }
+
+        private bool VerifyTestDirectory(string path)
+        {
+            if (!Directory.Exists(path)) {
+                return false;
+            }
+
+            var kb = GetFileSlice(0, 1000);
+            for (var i = 0; i < 50; i++) {
+                string dir = Path.Combine(path, i.ToString());
+
+                if (!Directory.Exists(dir)) {
+                    return false;
+                }
+
+                for (var j = 0; j < 50; j++) {
+                    var bytes = File.ReadAllBytes(Path.Combine(dir, j.ToString()));
+
+                    for (var k = 0; k < 10; k++) {
+                        for (var l = 0; l < kb.Length; l++) {
+                            if (bytes[(k * kb.Length) + l] != kb[l]) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return true;
         }
     }
 }
