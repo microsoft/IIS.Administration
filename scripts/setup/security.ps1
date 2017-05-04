@@ -321,6 +321,7 @@ function _Set-AclForced($_path, $_acl, $_recurse) {
     $item = Get-Item $_path -ErrorAction Stop
     $previousOwner = $item.GetAccessControl().GetOwner([System.Security.Principal.SecurityIdentifier])
     $newOwner = $_acl.GetOwner([System.Security.Principal.SecurityIdentifier])
+    $administrators = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::BuiltinAdministratorsSid, $null)
 
     $takeOwnerShip = [Microsoft.IIS.Administration.Setup.AclUtil]::HasPrivilege([Microsoft.IIS.Administration.Setup.AclUtil]::TAKE_OWNERSHIP_PRIVILEGE)
     $restore = [Microsoft.IIS.Administration.Setup.AclUtil]::HasPrivilege([Microsoft.IIS.Administration.Setup.AclUtil]::RESTORE_PRIVILEGE)
@@ -332,14 +333,14 @@ function _Set-AclForced($_path, $_acl, $_recurse) {
         if ($_recurse -and ($item -is [System.IO.DirectoryInfo])) {
             Get-ChildItem $item.FullName -Recurse | ForEach-Object {
                 $tAcl = $_.GetAccessControl('owner')
-                $tAcl.SetOwner([System.Security.Principal.WindowsIdentity]::GetCurrent().User)
+                $tAcl.SetOwner($administrators)
                 $_.SetAccessControl($tAcl)
             }
         }
 
         # Obtain ownership of target
         $acl = $item.GetAccessControl('owner')
-        $acl.SetOwner([System.Security.Principal.WindowsIdentity]::GetCurrent().User)
+        $acl.SetOwner($administrators)
         $item.SetAccessControl($acl)
 
         # Set ACL
@@ -368,7 +369,7 @@ function _Set-AclForced($_path, $_acl, $_recurse) {
             }
         }
         catch {
-            # Fail state: owner will be the Administrator running the process
+            # Fail state: owner will be the Administrators group
             Write-Warning "Could not restore owner for $($item.fullname)"
         }
 
