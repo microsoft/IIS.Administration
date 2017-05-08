@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
     public class FilesHelper
     {
-        private static readonly Fields RefFields = new Fields("name", "id", "type", "path", "physical_path");
+        internal static readonly Fields RefFields = new Fields("name", "id", "type", "path", "physical_path");
 
         private IFileProvider _fileProvider;
         private Administration.Files.FilesHelper _filesHelper;
@@ -127,13 +127,13 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
         }
 
-        internal object DirectoryToJsonModelRef(Site site, string path, Fields fields = null)
+        internal object DirectoryToJsonModelRef(Site site, string path, Fields fields = null, object parent = null)
         {
             if (fields == null || !fields.HasFields) {
-                return DirectoryToJsonModel(site, path, RefFields, false);
+                return DirectoryToJsonModel(site, path, RefFields, false, parent);
             }
             else {
-                return DirectoryToJsonModel(site, path, fields, false);
+                return DirectoryToJsonModel(site, path, fields, false, parent);
             }
         }
 
@@ -201,17 +201,17 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             return Core.Environment.Hal.Apply(Defines.FilesResource.Guid, obj, full);
         }
 
-        internal object FileToJsonModelRef(Site site, string path, Fields fields = null)
+        internal object FileToJsonModelRef(Site site, string path, Fields fields = null, object parent = null)
         {
             if (fields == null || !fields.HasFields) {
-                return FileToJsonModel(site, path, RefFields, false);
+                return FileToJsonModel(site, path, RefFields, false, parent);
             }
             else {
-                return FileToJsonModel(site, path, fields, false);
+                return FileToJsonModel(site, path, fields, false, parent);
             }
         }
 
-        internal object VdirToJsonModel(Vdir vdir, Fields fields = null, bool full = true)
+        internal object VdirToJsonModel(Vdir vdir, Fields fields = null, bool full = true, object parent = null)
         {
             if (vdir == null) {
                 return null;
@@ -221,7 +221,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
                 fields = Fields.All;
             }
             
-            var directory = _fileProvider.GetDirectory(GetPhysicalPath(vdir.Site, vdir.Path));
+
 
             dynamic obj = new ExpandoObject();
             var FileId = new FileId(vdir.Site.Id, vdir.Path);
@@ -253,7 +253,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // parent
             if (fields.Exists("parent")) {
-                obj.parent = GetParentVdirJsonModelRef(vdir, fields.Filter("parent"));
+                obj.parent = parent ?? GetParentVdirJsonModelRef(vdir, fields.Filter("parent"));
             }
 
             //
@@ -265,19 +265,30 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             //
             // file_info
             if (fields.Exists("file_info")) {
-                obj.file_info = _filesHelper.ToJsonModelRef(directory, fields.Filter("file_info"));
+
+                string physicalPath = GetPhysicalPath(vdir.Site, vdir.Path);
+
+                //
+                // Virtual directory can be at an arbitrary path from which we can not retrieve the file info
+                // Serializing children (parent != null) should not throw
+                if (parent != null && !_fileProvider.IsAccessAllowed(physicalPath, FileAccess.Read)) {
+                    obj.file_info = null;
+                }
+                else {
+                    obj.file_info = _filesHelper.ToJsonModelRef(_fileProvider.GetDirectory(physicalPath), fields.Filter("file_info"));
+                }
             }
 
             return Core.Environment.Hal.Apply(Defines.DirectoriesResource.Guid, obj, full);
         }
 
-        internal object VdirToJsonModelRef(Vdir vdir, Fields fields = null)
+        internal object VdirToJsonModelRef(Vdir vdir, Fields fields = null, object parent = null)
         {
             if (fields == null || !fields.HasFields) {
-                return VdirToJsonModel(vdir, RefFields, false);
+                return VdirToJsonModel(vdir, RefFields, false, parent);
             }
             else {
-                return VdirToJsonModel(vdir, fields, false);
+                return VdirToJsonModel(vdir, fields, false, parent);
             }
         }
 
