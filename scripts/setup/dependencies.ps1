@@ -29,7 +29,7 @@ function Is-NanoServer() {
 }
 
 function Enable-Feature($_featureName) {
-    dism.exe /Online /Enable-Feature /FeatureName:"$_featureName"
+    dism.exe /Quiet /NoRestart /Online /Enable-Feature /FeatureName:"$_featureName"
     if ($LASTEXITCODE -ne 0) {
         Write-Warning "Error enabling $_featureName"
         throw $(new-object "System.ComponentModel.Win32Exception" -ArgumentList $LASTEXITCODE)
