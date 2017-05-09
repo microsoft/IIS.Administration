@@ -3,23 +3,22 @@
 
 
 Param(
-    
-    [parameter(Mandatory=$true , Position=0)]
+    [parameter(Mandatory=$true)]
+	[String]$Uri,
+
+    [parameter(Mandatory=$true)]
 	[String]$RootDirectory,
     
-    [parameter(Mandatory=$true , Position=1)]
-    [String]$Port
-)
+    [parameter(Mandatory=$true)]
+    [int]$StartPort,
 
-$rootDir = Get-Item $RootDirectory -ErrorAction SilentlyContinue
-if($rootDir -eq $null -or !($rootDir -is [System.IO.DirectoryInfo])){
-	Write-Host "Usage: Create100Sites.ps1 -RootDirectory <absolue path for sites home> -Port <Port running the API>"
-	exit
-}
+    [parameter()]
+    [int]$Number = 100
+)
 
 function Get-ApiHeadersObject() {
 
-	$apiKey = .\utils.ps1 Generate-AccessToken -url "https://localhost:55539"
+	$apiKey = .\utils.ps1 Generate-AccessToken -url $Uri
 
 	Write-Host $apiKey
 
@@ -30,9 +29,15 @@ function Get-ApiHeadersObject() {
 	return $reqHeaders;
 }
 
+$rootDir = Get-Item $RootDirectory -ErrorAction Stop
+
+if (-not($rootDir -is [System.IO.DirectoryInfo])) {
+  throw "RootDirectory must be an existing directory"
+}
+
 Push-Location $rootDir
 
-for($i = 1; $i -le 100 ; $i++){
+for($i = 1; $i -le $Number ; $i++){
 
 	if(-not (Test-Path ("site$i")) ) {
 		mkdir "site$i";
@@ -60,29 +65,27 @@ Pop-Location
 
 $apiHeaders = Get-ApiHeadersObject;
 
-$jsonDir = $rootDir.fullname;
-for($i = 1; $i -le 100; $i++) {
+$jsonDir = $rootDir.FullName;
+for($i = 1; $i -le $Number; $i++) {
 
-	$portNumber = 40000 + $i;
+	$portNumber = $StartPort + $i;
     $physicalPath = (Join-Path $jsonDir "site$i\wwwroot").Replace("\", "\\")
 	 $newSite = @" 
 	{ "name":"site$i", 
 		"physical_path":"$physicalPath", 
 		"bindings": 
 		[ 
-		{ 
+		  { 
 			"ip_address": "*", 
 			"port": "$portNumber", 
 			"hostname": "", 
-			"is_https": "false", 
-			"certificate_hash": null, 
-			"certificate_store_name": null 
-		} 
+			"protocol": "http"
+		  } 
 		] 
 	}
 "@; 
 
-	$response = Invoke-RestMethod "https://localhost:$Port/api/webserver/websites" -UseDefaultCredentials -Method Post -Body $newSite -ContentType "application/json" -Headers $apiHeaders;
+	$response = Invoke-RestMethod "$Uri/api/webserver/websites" -UseDefaultCredentials -Method Post -Body $newSite -ContentType "application/json" -Headers $apiHeaders;
 	Write-Host $response | ConvertTo-Json;
 
     $physicalPath = (Join-Path $jsonDir "site$i\application1").Replace("\", "\\")
@@ -96,7 +99,7 @@ for($i = 1; $i -le 100; $i++) {
      }
 "@;
 
-	$response = Invoke-RestMethod "https://localhost:$Port/api/webserver/webapps" -UseDefaultCredentials -Method Post -Body $newApp -ContentType "application/json" -Headers $apiHeaders;
+	$response = Invoke-RestMethod "$Uri/api/webserver/webapps" -UseDefaultCredentials -Method Post -Body $newApp -ContentType "application/json" -Headers $apiHeaders;
 	Write-Host $response | ConvertTo-Json;
 }
 
