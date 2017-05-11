@@ -4,20 +4,11 @@
 
 Param (
     [string]
-    $IisAdministrationPath
+    $Source
 )
 
-# Acquire the log path the installation is using
-# Get all log/audit files
-# Sanitize the log/audit files
-
-# 131377878541327692 ---> Thursday, April 27, 2017 5:30:54 PM  (UTC)
-$Release = [System.DateTime]::FromFileTimeUtc(131377878541327692)
-
 function Get-LogsPath($IisAdminPath) {
-    # Only 1.1.0 affected
-    $version = "1.1.0"
-    $appSettingsPath = [System.IO.Path]::Combine($IisAdminPath, "$version\Microsoft.IIS.Administration\config\appsettings.json")
+    $appSettingsPath = [System.IO.Path]::Combine($IisAdminPath, "Microsoft.IIS.Administration\config\appsettings.json")
 
     Write-Verbose "Obtaining logs path for installation at $IisAdministrationPath"
 
@@ -26,8 +17,8 @@ function Get-LogsPath($IisAdminPath) {
     if ($(Test-Path $appSettingsPath)) {
         $settings = .\modules.ps1 Get-JsonContent -Path $appSettingsPath
 
-        if ($settings -ne $null -and $settings.logging -ne $null -and $settings.logging.path -ne $null) {
-            $logsPath = [System.Environment]::ExpandEnvironmentVariables($settings.logging.path)
+        if ($settings -ne $null -and $settings.auditing -ne $null -and $settings.auditing.path -ne $null) {
+            $logsPath = [System.Environment]::ExpandEnvironmentVariables($settings.auditing.path)
         }
     }
 
@@ -40,14 +31,15 @@ function Get-LogsPath($IisAdminPath) {
             $resolved = $logsPath
         }
         else {
-            $appPath = [System.IO.Path]::Combine($IisAdminPath, "$version\Microsoft.IIS.Administration")
+            $appPath = [System.IO.Path]::Combine($IisAdminPath, "Microsoft.IIS.Administration")
             $resolved = [System.IO.Path]::Combine($appPath, $logsPath)
         }
     }
 
     # If log path not obtained from appsettings, use default location
     if ($resolved -eq $null) {
-        $resolved = [System.IO.Path]::Combine($IisAdminPath, "logs")
+        $root = [System.IO.Path]::GetDirectoryName($IisAdminPath)
+        $resolved = [System.IO.Path]::Combine($root, "logs")
     }
 
     Write-Verbose "Resolved log path: $resolved"
@@ -55,8 +47,27 @@ function Get-LogsPath($IisAdminPath) {
     return $resolved
 }
 
+function Get-LogsExtension($IisAdminPath) {
+    $appSettingsPath = [System.IO.Path]::Combine($IisAdminPath, "Microsoft.IIS.Administration\config\appsettings.json")
+
+    $logsExtension = $null
+    if ($(Test-Path $appSettingsPath)) {
+        $settings = .\modules.ps1 Get-JsonContent -Path $appSettingsPath
+
+        if ($settings -ne $null -and $settings.auditing -ne $null -and $settings.auditing.name -ne $null) {
+            $logsExtension = [System.IO.Path]::GetExtension($settings.auditing.name)
+        }
+    }
+
+    if ($logsExtension -eq $null) {
+        $logsExtension = ".txt"
+    }
+
+    return $logsExtension
+}
+
 # Removes unsafe lines from a file
-function Sanitize-Audit($filePath) {
+function Clear-CcsAuditPasswordsFromFile($filePath) {
 
     Write-Verbose "Sanitizing $filePath"
 
@@ -70,43 +81,47 @@ function Sanitize-Audit($filePath) {
     [System.IO.File]::WriteAllLines($filePath, [string[]]$lines)
 }
 
+function Clear-CcsAuditPasswords($IisAdministrationPath) {
+    # Get the logs path the installation is configured to use
+    $logsPath = Get-LogsPath $IisAdministrationPath
+    $logsExtension = Get-LogsExtension $IisAdministrationPath
 
-
-# Get the logs path the installation is configured to use
-$logsPath = Get-LogsPath $IisAdministrationPath
-
-if (-not(Test-Path $logsPath)) {
-    return
-}
-
-$logsDir = Get-Item $logsPath
-if (-not($logsDir -is [System.IO.DirectoryInfo])) {
-    return
-}
-
-$acl = Get-Acl $logsDir.FullName
-.\security.ps1 Add-SelfRights -Path $logsPath -Recurse
-
-try {
-    # Get all files in the logs directory
-    $logFiles = Get-ChildItem $logsPath | Where {$_ -is [System.IO.FileInfo]}
-
-    # Null if empty dir
-    if ($logFiles -eq $null) {
+    if (-not(Test-Path $logsPath)) {
         return
     }
 
-    # Filter unaffected files
-    $targetFiles = $logFiles | where { $_.LastWriteTimeUtc -ge $Release }
-
-    if ($targetFiles -eq $null) {
+    $logsDir = Get-Item $logsPath
+    if (-not($logsDir -is [System.IO.DirectoryInfo])) {
         return
     }
 
-    foreach ($file in $targetFiles) {
-        Sanitize-Audit -filePath $file.FullName
+    $acl = Get-Acl $logsDir.FullName
+    .\security.ps1 Add-SelfRights -Path $logsPath -Recurse
+
+    try {
+        # Get all files in the logs directory
+        $logFiles = Get-ChildItem -Path $logsPath -Filter "*$logsExtension" | Where {$_ -is [System.IO.FileInfo]}
+
+        # Null if empty dir
+        if ($logFiles -eq $null) {
+            return
+        }
+
+        foreach ($file in $logFiles) {
+            try {
+                Clear-CcsAuditPasswordsFromFile -filePath $file.FullName
+            }
+            catch {
+                #If one file fails, do not block the remaining files
+            }
+        }
+    }
+    finally {
+        .\security.ps1 Set-AclForced -Acl $acl -Path $logsPath
     }
 }
-finally {
-    .\security.ps1 Set-AclForced -Acl $acl -Path $logsPath
+
+
+if ($Source.Contains("1.1.0")) {
+    Clear-CcsAuditPasswords -IisAdministrationPath $Source
 }

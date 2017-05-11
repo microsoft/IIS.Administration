@@ -111,8 +111,12 @@ function Migrate {
         $migrateRollback.stoppedSourceService = $sourceSvc.Name
     }
 
-    if ($Source.Contains("1.1.0")) {
-        .\sanitize-logs.ps1 -IisAdministrationPath $([System.IO.Path]::GetDirectoryName($source))
+    # Do any necessary sanitization of log files
+    try {
+        .\sanitize-logs.ps1 -Source $source
+    }
+    catch {
+        # Never fail
     }
 
     if ($destinationSvc.Status -eq [System.ServiceProcess.ServiceControllerStatus]::Running) {
