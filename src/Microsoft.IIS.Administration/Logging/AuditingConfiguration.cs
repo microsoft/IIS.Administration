@@ -16,6 +16,7 @@ namespace Microsoft.IIS.Administration.Logging
         public string AuditingRoot { get; set; }
         public LogLevel MinLevel { get; set; }
         public string FileName { get; set; }
+        public int MaxFiles { get; set; }
 
         public AuditingConfiguration(IConfiguration configuration)
         {
@@ -23,6 +24,7 @@ namespace Microsoft.IIS.Administration.Logging
             AuditingRoot = Environment.ExpandEnvironmentVariables(configuration.GetValue("auditing:path", string.Empty));
             MinLevel = LogLevel.Information;
             FileName = configuration.GetValue("auditing:file_name", "audit-{Date}.txt");
+            MaxFiles = configuration.GetValue("auditing:max_files", 100);
         }
 
         public string GetDefaultAuditRoot(IHostingEnvironment env)

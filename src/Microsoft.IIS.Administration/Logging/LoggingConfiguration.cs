@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.Logging
         public string LogsRoot { get; set; }
         public LogLevel MinLevel { get; set; }
         public string FileName { get; set; }
+        public int MaxFiles { get; set; }
 
         public LoggingConfiguration(IConfiguration configuration)
         {
@@ -24,6 +25,7 @@ namespace Microsoft.IIS.Administration.Logging
             LogsRoot = Environment.ExpandEnvironmentVariables(configuration.GetValue("logging:path", string.Empty));
             MinLevel = configuration.GetValue("logging:min_level", LogLevel.Error);
             FileName = configuration.GetValue("logging:file_name", "log-{Date}.txt");
+            MaxFiles = configuration.GetValue("logging:max_files", 50);
         }
 
         public static LogEventLevel ToLogEventLevel(LogLevel logLevel)

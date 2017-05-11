@@ -36,7 +36,7 @@ namespace Microsoft.IIS.Administration.Logging
                 .MinimumLevel
                 .Is(LoggingConfiguration.ToLogEventLevel(minLevel))
                 .WriteTo
-                .RollingFile(Path.Combine(logsRoot, loggingConfiguration.FileName), retainedFileCountLimit: null)
+                .RollingFile(Path.Combine(logsRoot, loggingConfiguration.FileName), retainedFileCountLimit: loggingConfiguration.MaxFiles)
                 .CreateLogger();
             
             //
@@ -68,7 +68,7 @@ namespace Microsoft.IIS.Administration.Logging
                 .MinimumLevel
                 .Is(LoggingConfiguration.ToLogEventLevel(minLevel))
                 .WriteTo
-                .RollingFile(Path.Combine(auditRoot, auditingConfiguration.FileName), retainedFileCountLimit: null)
+                .RollingFile(Path.Combine(auditRoot, auditingConfiguration.FileName), retainedFileCountLimit: auditingConfiguration.MaxFiles)
                 .CreateLogger();
 
             return services;
