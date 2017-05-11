@@ -20,15 +20,12 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     {
         public void Use(IServiceCollection services)
         {
-            ServiceDescriptor redirectDesc = services.FirstOrDefault(service => service.ServiceType == typeof(IFileRedirectService));
-            ServiceDescriptor downloadDesc = services.FirstOrDefault(service => service.ServiceType == typeof(IDownloadService));
+            //
+            // Chain freb xsl provider with previous file provider through aggregation
 
-            if (redirectDesc != null && downloadDesc != null) {
-                //
-                // Chain freb xsl provider with previous file provider through aggregation
+            ServiceDescriptor previous = services.FirstOrDefault(service => service.ServiceType == typeof(IFileProvider));
 
-                ServiceDescriptor previous = services.FirstOrDefault(service => service.ServiceType == typeof(IFileProvider));
-
+            if (previous != null) {
                 ServiceDescriptor frebProvider = ServiceDescriptor.Singleton<IFileProvider>(sp => {
                     var env = (IHostingEnvironment)sp.GetService(typeof(IHostingEnvironment));
                     var configProvider = (IApplicationHostConfigProvider)sp.GetService(typeof(IApplicationHostConfigProvider));
@@ -57,7 +54,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
             if (redirects != null && downloads != null) {
                 IDownload download = downloads.Create(FrebXslFileInfo.FILE_NAME, null /* Never expires */);
-                redirects.AddRedirect(download.PhysicalPath, () => download.Href, true);
+                redirects.AddRedirect(download.PhysicalPath, () => download.Href, false);
             }
         }
 
