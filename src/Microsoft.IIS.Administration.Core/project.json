@@ -16,10 +16,10 @@
     "Serilog.Extensions.Logging": "1.0.0",
     "Serilog": "2.0.0",
     "Serilog.Sinks.RollingFile": "2.1.0",
-    "Microsoft.AspNetCore.Mvc": "1.0.4",
-    "Microsoft.AspNetCore.Authorization": "1.0.3",
-    "Microsoft.AspNetCore.Mvc.WebApiCompatShim": "1.0.4",
+    "Microsoft.AspNetCore.Mvc": "1.0.1",
+    "Microsoft.AspNetCore.Authorization": "1.0.0",
+    "Microsoft.AspNetCore.Mvc.WebApiCompatShim": "1.0.1",
     "System.Diagnostics.FileVersionInfo": "4.0.0",
-    "Microsoft.Extensions.Configuration.Binder": "1.0.2"
+    "Microsoft.Extensions.Configuration.Binder": "1.0.0"
   }
 }
