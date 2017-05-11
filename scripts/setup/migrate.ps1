@@ -110,6 +110,11 @@ function Migrate {
         Stop-Service $sourceSvc.Name -ErrorAction Stop
         $migrateRollback.stoppedSourceService = $sourceSvc.Name
     }
+
+    if ($Source.Contains("1.1.0")) {
+        .\sanitize-logs.ps1 -IisAdministrationPath $([System.IO.Path]::GetDirectoryName($source))
+    }
+
     if ($destinationSvc.Status -eq [System.ServiceProcess.ServiceControllerStatus]::Running) {
         Stop-Service $destinationSvc.Name -ErrorAction Stop
     }

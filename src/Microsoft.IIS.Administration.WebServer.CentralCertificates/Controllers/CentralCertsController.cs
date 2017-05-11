@@ -13,7 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
     public class CentralCertsController : ApiBaseController
     {
-        private const string HIDDEN_FIELDS = "identity.password,private_key_password";
+        private const string HIDDEN_FIELDS = "model.identity.password,model.private_key_password";
         private CentralCertificateStore _ccs;
         private IFileProvider _fileProvider;
 
