@@ -18,19 +18,20 @@ namespace Microsoft.IIS.Administration.Core
 
     public class AuditAttribute : ActionFilterAttribute
     {
+        public const string ALL = "*";
+        public static ILogger Logger { get; set; }
+
         private const string AUDIT_TARGET = "IIS.ADMIN.AUDIT";
         private const string HIDDEN_VALUE = "{HIDDEN}";
+        private static readonly string[] SENSITIVE_KEYWORDS = new string[] { "private", "password", "key", "hash" };
 
         // 2D array because we store fields as arrays of segments, i.e. model.identity.password -> ["model", "identity", "password"]
         private string[][] _enabledFields;
         private string[][] _hiddenFields;
+        private string[] _approvedFields;
         private bool _allFieldsEnabled = false;
-
-        public const string ALL = "*";
-
-        public static ILogger Logger { get; set; }
         
-        public AuditAttribute(string fields = "*", string hiddenFields = null)
+        public AuditAttribute(string fields = "*", string hiddenFields = null, string approvedFields = null)
         {
             _enabledFields = MakeFields(fields);
             _hiddenFields = MakeFields(hiddenFields);
@@ -46,6 +47,8 @@ namespace Microsoft.IIS.Administration.Core
                     _allFieldsEnabled = true;
                 }
             }
+
+            _approvedFields = approvedFields?.Split(',') ?? new string[0];
         }
 
         public override void OnActionExecuted(ActionExecutedContext context)
@@ -196,6 +199,8 @@ namespace Microsoft.IIS.Administration.Core
                 cachedState.Add(new KeyValuePair<string[], JToken>(hf, seeker[hf[hf.Length - 1]]));
                 seeker[hf[hf.Length - 1]] = HIDDEN_VALUE;
             }
+
+            AssertSensitiveFieldsHidden(v, argName);
 
             return cachedState;
         }
@@ -362,6 +367,33 @@ namespace Microsoft.IIS.Administration.Core
             }
 
             return dissection.ToArray();
+        }
+
+        private void AssertSensitiveFieldsHidden(JObject model, string parentJPath)
+        {
+#if DEBUG
+            if (model == null) {
+                return;
+            }
+
+            foreach (JProperty property in model.Properties()) {
+                
+                JObject jChild = property.Value as JObject;
+                if (jChild != null) {
+                    AssertSensitiveFieldsHidden(jChild, parentJPath + "." + property.Name);
+                    continue;
+                }
+
+                bool containsSensitiveKeyword = SENSITIVE_KEYWORDS.Any(keyword => property.Name.ToLowerInvariant().Contains(keyword));
+
+                string field = parentJPath + "." + property.Name;
+                if (containsSensitiveKeyword
+                        && (property.Value.Type != JTokenType.String || property.Value.Value<string>() != HIDDEN_VALUE)
+                        && !_approvedFields.Contains(field, StringComparer.OrdinalIgnoreCase)) {
+                    throw new Exception("Possibly sensitive field not marked hidden or given an exception status");
+                }
+            }
+#endif
         }
 
         private JToken RemoveLinks(JObject o)
