@@ -8,7 +8,7 @@ namespace Microsoft.IIS.Administration {
     using AspNetCore.Builder;
     using Net.Http.Server;
     using Microsoft.Extensions.Configuration;
-
+    using Microsoft.AspNetCore.Hosting.Server.Features;
 
     public class Program {
         public static void Main(string[] args) {
@@ -22,10 +22,17 @@ namespace Microsoft.IIS.Administration {
                 .UseConfiguration(config)
                 .UseStartup<Startup>()
                 .UseWebListener(o => {
+                    //
+                    // Kernel mode Windows Authentication
                     o.ListenerSettings.Authentication.Schemes = AuthenticationSchemes.Negotiate | AuthenticationSchemes.NTLM;
+
+                    //
+                    // Need Anonymos to allow CORs preflight requests
+                    // app.UseWindowsAuthentication ensures the request is authenticated to proceed
                     o.ListenerSettings.Authentication.AllowAnonymous = true;
                 })
-                .Build()) {
+                .Build()
+                .UseHttps()) {
 
                 host.Run();
             }

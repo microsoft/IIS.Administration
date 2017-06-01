@@ -15,8 +15,9 @@ namespace Microsoft.IIS.Administration.Security.Authorization {
 
         public static IServiceCollection AddAuthorizationPolicy(this IServiceCollection services) {
             var config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+            var policy = new AuthorizationPolicy(config);
 
-            return services.AddAuthorization(o => new AuthorizationPolicy(config).Configure(o))
+            return services.AddAuthorization(o => policy.Configure(o))
                            .AddSingleton<IAuthorizationHandler, AuthorizationHandler>();
         }
 
