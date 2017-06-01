@@ -24,13 +24,13 @@ namespace Microsoft.IIS.Administration.Security.Authorization {
         public async Task Challenge(HttpContext ctx) {
             HttpResponse response = ctx.Response;
 
-            if (!response.Headers.Keys.Contains(Headers.HeaderNames.WWWAuthenticate)) {
-                response.Headers.Append(Headers.HeaderNames.WWWAuthenticate, "Negotiate");
-                response.Headers.Append(Headers.HeaderNames.WWWAuthenticate, "NTLM");
-            }
-
+            //
+            // Set HTTP 401
+            // The WebHost should set the supported WWW-Authenticate values
             response.StatusCode = StatusCodes.Status401Unauthorized;
 
+            //
+            // Write response
             response.ContentType = JsonProblem.CONTENT_TYPE;
             response.Headers[Headers.HeaderNames.ContentLanguage] = JsonProblem.CONTENT_LANG;
 

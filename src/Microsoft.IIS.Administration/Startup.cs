@@ -168,6 +168,7 @@ namespace Microsoft.IIS.Administration {
             //
             // Authentication
             //
+            app.UseWindowsAuthentication();
             app.UseBearerAuthentication();
 
 

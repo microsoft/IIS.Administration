@@ -7,9 +7,12 @@ namespace Microsoft.IIS.Administration.Files
     using AspNetCore.Http;
     using AspNetCore.Mvc;
     using Core.Http;
+    using Microsoft.AspNetCore.Authorization;
     using System.IO;
     using System.Threading.Tasks;
 
+
+    [AllowAnonymous]
     public class DownloadsController : ApiBaseController
     {
         private IFileProvider _fileProvider;

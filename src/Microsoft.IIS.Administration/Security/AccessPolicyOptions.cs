@@ -4,7 +4,10 @@
 
 namespace Microsoft.IIS.Administration.Security {
     using Microsoft.Extensions.Configuration;
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Security;
 
 
     class AccessPolicyOptions {
@@ -17,6 +20,22 @@ namespace Microsoft.IIS.Administration.Security {
             Api = GetPolicies(section, "api", "users:administrators+AccessKey");
             ApiKeys = GetPolicies(section, "api_keys", "users:administrators");
             System = GetPolicies(section, "system", "users:owners+AccessKey");
+
+
+            //
+            // Check minimum requirements
+            if (Api.FirstOrDefault(r => r.Equals("AccessKey", StringComparison.OrdinalIgnoreCase)) == null) {
+                throw new SecurityException("security.access_policy.api requires AccessKey");
+            }
+
+            if (System.FirstOrDefault(r => r.Equals("AccessKey", StringComparison.OrdinalIgnoreCase)) == null &&
+                System.FirstOrDefault(r => r.Equals("Forbidden", StringComparison.OrdinalIgnoreCase)) == null) {
+                throw new SecurityException("security.access_policy.system requires AccessKey");
+            }
+
+            if (ApiKeys.Count() == 0) {
+                throw new SecurityException("security.access_policy.api_keys cannot be empty");
+            }
         }
 
         public IEnumerable<string> Api { get; private set; }
