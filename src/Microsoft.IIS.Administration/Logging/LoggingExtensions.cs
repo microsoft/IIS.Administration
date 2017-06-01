@@ -12,11 +12,16 @@ namespace Microsoft.IIS.Administration.Logging
     using AspNetCore.Hosting;
     using Serilog.Events;
     using Extensions.Configuration;
+    using System;
 
     public static class LoggingExtensions
     {
-        public static IServiceCollection AddApiLogging(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
-        {
+        public static IServiceCollection AddApiLogging(this IServiceCollection services) {
+            IServiceProvider sp = services.BuildServiceProvider();
+
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            var env = sp.GetRequiredService<IHostingEnvironment>();
+
             var loggingConfiguration = new LoggingConfiguration(configuration);
             var logsRoot = loggingConfiguration.LogsRoot;
             var minLevel = loggingConfiguration.MinLevel;
@@ -47,8 +52,13 @@ namespace Microsoft.IIS.Administration.Logging
             return services;
         }
 
-        public static IServiceCollection AddApiAuditing(this IServiceCollection services, IConfiguration configuration, IHostingEnvironment env)
+        public static IServiceCollection AddApiAuditing(this IServiceCollection services)
         {
+            IServiceProvider sp = services.BuildServiceProvider();
+
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            var env = sp.GetRequiredService<IHostingEnvironment>();
+
             var auditingConfiguration = new AuditingConfiguration(configuration);
             var auditRoot = auditingConfiguration.AuditingRoot;
             var minLevel = auditingConfiguration.MinLevel;

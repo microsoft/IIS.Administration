@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.6
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}"
 EndProject
@@ -11,7 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
 		scripts\Configure-DevEnvironment.ps1 = scripts\Configure-DevEnvironment.ps1
-		global.json = global.json
 		scripts\publish\publish.ps1 = scripts\publish\publish.ps1
 		README.md = README.md
 		scripts\setup\setup.ps1 = scripts\setup\setup.ps1
@@ -19,75 +18,75 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		scripts\setup\version.json = scripts\setup\version.json
 	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration", "src\Microsoft.IIS.Administration\Microsoft.IIS.Administration.xproj", "{9C2ED81D-E4BF-4BF1-A9A0-278654B89313}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration", "src\Microsoft.IIS.Administration\Microsoft.IIS.Administration.csproj", "{9C2ED81D-E4BF-4BF1-A9A0-278654B89313}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer", "src\Microsoft.IIS.Administration.WebServer\Microsoft.IIS.Administration.WebServer.xproj", "{46906A4C-6A49-4D1D-B556-DBBD6F744976}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer", "src\Microsoft.IIS.Administration.WebServer\Microsoft.IIS.Administration.WebServer.csproj", "{46906A4C-6A49-4D1D-B556-DBBD6F744976}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.RequestFiltering", "src\Microsoft.IIS.Administration.WebServer.RequestFiltering\Microsoft.IIS.Administration.WebServer.RequestFiltering.xproj", "{E4C27952-D7E9-4914-8DCE-1F55008E1F6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.RequestFiltering", "src\Microsoft.IIS.Administration.WebServer.RequestFiltering\Microsoft.IIS.Administration.WebServer.RequestFiltering.csproj", "{E4C27952-D7E9-4914-8DCE-1F55008E1F6D}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.DefaultDocuments", "src\Microsoft.IIS.Administration.WebServer.DefaultDocuments\Microsoft.IIS.Administration.WebServer.DefaultDocuments.xproj", "{3FA5663A-BA46-4E31-8EB2-BBB57BBF9BDC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.DefaultDocuments", "src\Microsoft.IIS.Administration.WebServer.DefaultDocuments\Microsoft.IIS.Administration.WebServer.DefaultDocuments.csproj", "{3FA5663A-BA46-4E31-8EB2-BBB57BBF9BDC}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Compression", "src\Microsoft.IIS.Administration.WebServer.Compression\Microsoft.IIS.Administration.WebServer.Compression.xproj", "{88408DBC-2D46-4152-8EC0-1E9A5CA1B8BC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Compression", "src\Microsoft.IIS.Administration.WebServer.Compression\Microsoft.IIS.Administration.WebServer.Compression.csproj", "{88408DBC-2D46-4152-8EC0-1E9A5CA1B8BC}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.Core", "src\Microsoft.IIS.Administration.Core\Microsoft.IIS.Administration.Core.xproj", "{A3ADB83A-C602-4DE4-A8DD-085FE5DD29CD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.Core", "src\Microsoft.IIS.Administration.Core\Microsoft.IIS.Administration.Core.csproj", "{A3ADB83A-C602-4DE4-A8DD-085FE5DD29CD}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Modules", "src\Microsoft.IIS.Administration.WebServer.Modules\Microsoft.IIS.Administration.WebServer.Modules.xproj", "{7A888725-698A-44CC-B462-7CB50BA74BEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Modules", "src\Microsoft.IIS.Administration.WebServer.Modules\Microsoft.IIS.Administration.WebServer.Modules.csproj", "{7A888725-698A-44CC-B462-7CB50BA74BEB}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.DirectoryBrowsing", "src\Microsoft.IIS.Administration.WebServer.DirectoryBrowsing\Microsoft.IIS.Administration.WebServer.DirectoryBrowsing.xproj", "{973047BF-0432-40FA-8E63-4572BD208254}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.DirectoryBrowsing", "src\Microsoft.IIS.Administration.WebServer.DirectoryBrowsing\Microsoft.IIS.Administration.WebServer.DirectoryBrowsing.csproj", "{973047BF-0432-40FA-8E63-4572BD208254}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Logging", "src\Microsoft.IIS.Administration.WebServer.Logging\Microsoft.IIS.Administration.WebServer.Logging.xproj", "{373A43D3-531C-415E-8A06-BB3ADB8B1E0C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Logging", "src\Microsoft.IIS.Administration.WebServer.Logging\Microsoft.IIS.Administration.WebServer.Logging.csproj", "{373A43D3-531C-415E-8A06-BB3ADB8B1E0C}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.HttpResponseHeaders", "src\Microsoft.IIS.Administration.WebServer.HttpResponseHeaders\Microsoft.IIS.Administration.WebServer.HttpResponseHeaders.xproj", "{E48EDD4B-A971-41BF-B99E-F29C3B4265B6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.HttpResponseHeaders", "src\Microsoft.IIS.Administration.WebServer.HttpResponseHeaders\Microsoft.IIS.Administration.WebServer.HttpResponseHeaders.csproj", "{E48EDD4B-A971-41BF-B99E-F29C3B4265B6}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.StaticContent", "src\Microsoft.IIS.Administration.WebServer.StaticContent\Microsoft.IIS.Administration.WebServer.StaticContent.xproj", "{8C8F1B8A-05B4-4FD3-B072-3BDF8EEA3AAA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.StaticContent", "src\Microsoft.IIS.Administration.WebServer.StaticContent\Microsoft.IIS.Administration.WebServer.StaticContent.csproj", "{8C8F1B8A-05B4-4FD3-B072-3BDF8EEA3AAA}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Sites", "src\Microsoft.IIS.Administration.WebServer.Sites\Microsoft.IIS.Administration.WebServer.Sites.xproj", "{056C022B-19A4-4004-8512-4331EEEB3555}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Sites", "src\Microsoft.IIS.Administration.WebServer.Sites\Microsoft.IIS.Administration.WebServer.Sites.csproj", "{056C022B-19A4-4004-8512-4331EEEB3555}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.AppPools", "src\Microsoft.IIS.Administration.WebServer.AppPools\Microsoft.IIS.Administration.WebServer.AppPools.xproj", "{7675A545-E9EA-4941-833B-9D213D769A8F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.AppPools", "src\Microsoft.IIS.Administration.WebServer.AppPools\Microsoft.IIS.Administration.WebServer.AppPools.csproj", "{7675A545-E9EA-4941-833B-9D213D769A8F}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Applications", "src\Microsoft.IIS.Administration.WebServer.Applications\Microsoft.IIS.Administration.WebServer.Applications.xproj", "{4F45F2E0-D81A-4EF9-BA74-7BEC57516914}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Applications", "src\Microsoft.IIS.Administration.WebServer.Applications\Microsoft.IIS.Administration.WebServer.Applications.csproj", "{4F45F2E0-D81A-4EF9-BA74-7BEC57516914}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.VirtualDirectories", "src\Microsoft.IIS.Administration.WebServer.VirtualDirectories\Microsoft.IIS.Administration.WebServer.VirtualDirectories.xproj", "{8C6CC5D4-DE7F-488B-BC4C-F7C34CF9BA71}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.VirtualDirectories", "src\Microsoft.IIS.Administration.WebServer.VirtualDirectories\Microsoft.IIS.Administration.WebServer.VirtualDirectories.csproj", "{8C6CC5D4-DE7F-488B-BC4C-F7C34CF9BA71}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.IPRestrictions", "src\Microsoft.IIS.Administration.WebServer.IPRestrictions\Microsoft.IIS.Administration.WebServer.IPRestrictions.xproj", "{C6DEA80E-89EA-40C1-80A7-035D30454B5C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.IPRestrictions", "src\Microsoft.IIS.Administration.WebServer.IPRestrictions\Microsoft.IIS.Administration.WebServer.IPRestrictions.csproj", "{C6DEA80E-89EA-40C1-80A7-035D30454B5C}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Delegation", "src\Microsoft.IIS.Administration.WebServer.Delegation\Microsoft.IIS.Administration.WebServer.Delegation.xproj", "{40D9A548-0A74-4BFA-A291-EFFBD3ADE426}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Delegation", "src\Microsoft.IIS.Administration.WebServer.Delegation\Microsoft.IIS.Administration.WebServer.Delegation.csproj", "{40D9A548-0A74-4BFA-A291-EFFBD3ADE426}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Handlers", "src\Microsoft.IIS.Administration.WebServer.Handlers\Microsoft.IIS.Administration.WebServer.Handlers.xproj", "{F2049AF9-0457-405F-8A50-3DEC0CB428BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Handlers", "src\Microsoft.IIS.Administration.WebServer.Handlers\Microsoft.IIS.Administration.WebServer.Handlers.csproj", "{F2049AF9-0457-405F-8A50-3DEC0CB428BE}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Authentication", "src\Microsoft.IIS.Administration.WebServer.Authentication\Microsoft.IIS.Administration.WebServer.Authentication.xproj", "{704450D2-5386-45A2-9475-3A9F585317BE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Authentication", "src\Microsoft.IIS.Administration.WebServer.Authentication\Microsoft.IIS.Administration.WebServer.Authentication.csproj", "{704450D2-5386-45A2-9475-3A9F585317BE}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.Certificates", "src\Microsoft.IIS.Administration.Certificates\Microsoft.IIS.Administration.Certificates.xproj", "{3E20985C-5629-41B0-A507-67C0AF024644}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.Certificates", "src\Microsoft.IIS.Administration.Certificates\Microsoft.IIS.Administration.Certificates.csproj", "{3E20985C-5629-41B0-A507-67C0AF024644}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.SslSettings", "src\Microsoft.IIS.Administration.WebServer.SslSettings\Microsoft.IIS.Administration.WebServer.SslSettings.xproj", "{BC861A82-6C97-49D1-9711-D77495AFEB96}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.SslSettings", "src\Microsoft.IIS.Administration.WebServer.SslSettings\Microsoft.IIS.Administration.WebServer.SslSettings.csproj", "{BC861A82-6C97-49D1-9711-D77495AFEB96}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.WorkerProcesses", "src\Microsoft.IIS.Administration.WebServer.WorkerProcesses\Microsoft.IIS.Administration.WebServer.WorkerProcesses.xproj", "{0CCE6387-131C-4834-B549-963440F948D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.WorkerProcesses", "src\Microsoft.IIS.Administration.WebServer.WorkerProcesses\Microsoft.IIS.Administration.WebServer.WorkerProcesses.csproj", "{0CCE6387-131C-4834-B549-963440F948D2}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Authorization", "src\Microsoft.IIS.Administration.WebServer.Authorization\Microsoft.IIS.Administration.WebServer.Authorization.xproj", "{B82ABB45-60C0-4866-BAD3-0794852D3C66}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Authorization", "src\Microsoft.IIS.Administration.WebServer.Authorization\Microsoft.IIS.Administration.WebServer.Authorization.csproj", "{B82ABB45-60C0-4866-BAD3-0794852D3C66}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.RequestMonitor", "src\Microsoft.IIS.Administration.WebServer.RequestMonitor\Microsoft.IIS.Administration.WebServer.RequestMonitor.xproj", "{BD6EFE51-5B2C-4B29-A745-09CC8A081334}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.RequestMonitor", "src\Microsoft.IIS.Administration.WebServer.RequestMonitor\Microsoft.IIS.Administration.WebServer.RequestMonitor.csproj", "{BD6EFE51-5B2C-4B29-A745-09CC8A081334}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.AccessManagement", "src\Microsoft.IIS.Administration.AccessManagement\Microsoft.IIS.Administration.AccessManagement.xproj", "{AF203E48-EAA7-4486-B5ED-8A5007AC9536}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.AccessManagement", "src\Microsoft.IIS.Administration.AccessManagement\Microsoft.IIS.Administration.AccessManagement.csproj", "{AF203E48-EAA7-4486-B5ED-8A5007AC9536}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Scm", "src\Microsoft.IIS.Administration.WebServer.Scm\Microsoft.IIS.Administration.WebServer.Scm.xproj", "{E38D3DCC-FA34-4EFA-A628-C924093931E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Scm", "src\Microsoft.IIS.Administration.WebServer.Scm\Microsoft.IIS.Administration.WebServer.Scm.csproj", "{E38D3DCC-FA34-4EFA-A628-C924093931E8}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Info", "src\Microsoft.IIS.Administration.WebServer.Info\Microsoft.IIS.Administration.WebServer.Info.xproj", "{463B55E9-768C-462F-88ED-6105F48AF093}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Info", "src\Microsoft.IIS.Administration.WebServer.Info\Microsoft.IIS.Administration.WebServer.Info.csproj", "{463B55E9-768C-462F-88ED-6105F48AF093}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Packager", "src\Packager\Packager.xproj", "{45D76FD8-CD19-4E16-BD42-6BAD177B9B79}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.HttpRequestTracing", "src\Microsoft.IIS.Administration.WebServer.HttpRequestTracing\Microsoft.IIS.Administration.WebServer.HttpRequestTracing.csproj", "{2B1FDC49-CABC-4A6E-9561-8B04031F6355}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.HttpRequestTracing", "src\Microsoft.IIS.Administration.WebServer.HttpRequestTracing\Microsoft.IIS.Administration.WebServer.HttpRequestTracing.xproj", "{2B1FDC49-CABC-4A6E-9561-8B04031F6355}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.Tests", "test\Microsoft.IIS.Administration.Tests\Microsoft.IIS.Administration.Tests.csproj", "{61B68BC3-B92B-40D4-B8C0-B8C4A8C02ADA}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.Tests", "test\Microsoft.IIS.Administration.Tests\Microsoft.IIS.Administration.Tests.xproj", "{61B68BC3-B92B-40D4-B8C0-B8C4A8C02ADA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.Files", "src\Microsoft.IIS.Administration.Files\Microsoft.IIS.Administration.Files.csproj", "{5D3BEEB8-5798-4037-8BB0-A35A7A42999A}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.Files", "src\Microsoft.IIS.Administration.Files\Microsoft.IIS.Administration.Files.xproj", "{5D3BEEB8-5798-4037-8BB0-A35A7A42999A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.Files", "src\Microsoft.IIS.Administration.WebServer.Files\Microsoft.IIS.Administration.WebServer.Files.csproj", "{42FDCED0-CE1D-4C16-AED0-0CF6A212F782}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.Files", "src\Microsoft.IIS.Administration.WebServer.Files\Microsoft.IIS.Administration.WebServer.Files.xproj", "{42FDCED0-CE1D-4C16-AED0-0CF6A212F782}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.Files.Core", "src\Microsoft.IIS.Administration.Files.Core\Microsoft.IIS.Administration.Files.Core.csproj", "{60F7757A-14AE-41BE-9FD0-ED4C63718408}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.Files.Core", "src\Microsoft.IIS.Administration.Files.Core\Microsoft.IIS.Administration.Files.Core.xproj", "{60F7757A-14AE-41BE-9FD0-ED4C63718408}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.HttpRedirect", "src\Microsoft.IIS.Administration.WebServer.HttpRedirect\Microsoft.IIS.Administration.WebServer.HttpRedirect.csproj", "{1BF40243-71BD-487F-9FD9-50959D100536}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.HttpRedirect", "src\Microsoft.IIS.Administration.WebServer.HttpRedirect\Microsoft.IIS.Administration.WebServer.HttpRedirect.xproj", "{1BF40243-71BD-487F-9FD9-50959D100536}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.CentralCertificates", "src\Microsoft.IIS.Administration.WebServer.CentralCertificates\Microsoft.IIS.Administration.WebServer.CentralCertificates.csproj", "{408A6FF5-966E-4989-8D66-41146A78A367}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.IIS.Administration.WebServer.CentralCertificates", "src\Microsoft.IIS.Administration.WebServer.CentralCertificates\Microsoft.IIS.Administration.WebServer.CentralCertificates.xproj", "{408A6FF5-966E-4989-8D66-41146A78A367}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Packager", "src\Packager\Packager\Packager.csproj", "{BA51ADAF-9335-471B-8786-0470CE358F93}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -203,10 +202,6 @@ Global
 		{463B55E9-768C-462F-88ED-6105F48AF093}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{463B55E9-768C-462F-88ED-6105F48AF093}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{463B55E9-768C-462F-88ED-6105F48AF093}.Release|Any CPU.Build.0 = Release|Any CPU
-		{45D76FD8-CD19-4E16-BD42-6BAD177B9B79}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{45D76FD8-CD19-4E16-BD42-6BAD177B9B79}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{45D76FD8-CD19-4E16-BD42-6BAD177B9B79}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{45D76FD8-CD19-4E16-BD42-6BAD177B9B79}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2B1FDC49-CABC-4A6E-9561-8B04031F6355}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2B1FDC49-CABC-4A6E-9561-8B04031F6355}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B1FDC49-CABC-4A6E-9561-8B04031F6355}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -235,6 +230,10 @@ Global
 		{408A6FF5-966E-4989-8D66-41146A78A367}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{408A6FF5-966E-4989-8D66-41146A78A367}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{408A6FF5-966E-4989-8D66-41146A78A367}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA51ADAF-9335-471B-8786-0470CE358F93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA51ADAF-9335-471B-8786-0470CE358F93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA51ADAF-9335-471B-8786-0470CE358F93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA51ADAF-9335-471B-8786-0470CE358F93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -267,7 +266,6 @@ Global
 		{AF203E48-EAA7-4486-B5ED-8A5007AC9536} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{E38D3DCC-FA34-4EFA-A628-C924093931E8} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{463B55E9-768C-462F-88ED-6105F48AF093} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
-		{45D76FD8-CD19-4E16-BD42-6BAD177B9B79} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{2B1FDC49-CABC-4A6E-9561-8B04031F6355} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{61B68BC3-B92B-40D4-B8C0-B8C4A8C02ADA} = {5504DA5E-BCF3-409E-A285-E59EDBBBB8B8}
 		{5D3BEEB8-5798-4037-8BB0-A35A7A42999A} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
@@ -275,5 +273,6 @@ Global
 		{60F7757A-14AE-41BE-9FD0-ED4C63718408} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{1BF40243-71BD-487F-9FD9-50959D100536} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{408A6FF5-966E-4989-8D66-41146A78A367} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
+		{BA51ADAF-9335-471B-8786-0470CE358F93} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 	EndGlobalSection
 EndGlobal

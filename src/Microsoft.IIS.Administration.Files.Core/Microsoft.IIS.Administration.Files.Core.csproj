@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Microsoft.IIS.Administration.Files.Core Class Library</Description>
+    <VersionPrefix>1.1.0</VersionPrefix>
+    <Authors>Microsoft</Authors>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <AssemblyName>Microsoft.IIS.Administration.Files.Core</AssemblyName>
+    <PackageId>Microsoft.IIS.Administration.Files.Core</PackageId>
+    <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;dnxcore50;portable-net45+win8</PackageTargetFallback>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.IIS.Administration.Core\Microsoft.IIS.Administration.Core.csproj" />
+  </ItemGroup>
+
+</Project>

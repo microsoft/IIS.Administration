@@ -5,23 +5,20 @@
 namespace Microsoft.IIS.Administration.Security {
     using System;
     using System.Collections.Generic;
-    using System.IdentityModel.Tokens;
     using System.Security.Claims;
     using Core.Http;
     using Core.Security;
     using AspNetCore.Authentication.JwtBearer;
     using IdentityModel.Tokens;
 
+
+
     public class BearerTokenValidator : ISecurityTokenValidator {
         private IApiKeyProvider _keyProvider;
 
 
         public BearerTokenValidator(IApiKeyProvider keyProvider) {
-            if (keyProvider == null) {
-                throw new ArgumentNullException(nameof(keyProvider));
-            }
-
-            _keyProvider = keyProvider;
+            _keyProvider = keyProvider ?? throw new ArgumentNullException(nameof(keyProvider));
         }
 
         public bool CanValidateToken {
@@ -107,6 +104,7 @@ namespace Microsoft.IIS.Administration.Security {
         }
 
         public void OnValidatedToken(TokenValidatedContext ctx) {
+            /*
             // 
             // Join identities if successfully authenticated
             if (ctx.Ticket?.Principal?.Identity?.IsAuthenticated == true) {
@@ -117,6 +115,7 @@ namespace Microsoft.IIS.Administration.Security {
                     ctx.HttpContext.User = ctx.Ticket.Principal;
                 }
             }
+            */
         }
     }
 }

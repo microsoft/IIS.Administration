@@ -26,7 +26,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     //  CORs MUST be explicitly disabled
     //  AntiForgery MUST be applied
     /// </summary>
-    [Authorize]
+    [Authorize(Policy = "ApiKeys")]
     [DisableCors]
     public class ApiKeysController : ApiBaseController {
         IApiKeyProvider _keyProvider;

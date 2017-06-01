@@ -6,7 +6,7 @@ namespace Microsoft.IIS.Administration {
     using System.Net;
 
 
-    public static class ErrorHelper {
+    static class ErrorHelper {
 
         public static dynamic AntiforgeryValidationError() {
             return new {
@@ -16,11 +16,11 @@ namespace Microsoft.IIS.Administration {
             };
         }
 
-        public static dynamic UnauthorizedError(string schema) {
+        public static dynamic UnauthorizedError(string schema, int status) {
             return new {
                 title = "Unauthorized",
                 authentication_scheme = schema,
-                status = (int)HttpStatusCode.Forbidden
+                status = status
             };
         }
     }
