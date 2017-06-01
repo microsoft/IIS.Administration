@@ -4,7 +4,6 @@
 
 namespace Microsoft.IIS.Administration.AccessManagement {
     using System;
-    using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
     using System.Web.Http;
@@ -24,7 +23,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     //  CORs MUST be explicitly disabled
     //  AntiForgery MUST be applied
     /// </summary>
-    [Authorize]
+    [Authorize(Policy = "ApiKeys")]
     [DisableCors]
     public class AccessTokensController : ApiController {
         IApiKeyProvider _keyProvider;
@@ -62,7 +61,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
         }
 
 
-        //[ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken]
         [HttpPost]
         [ResourceInfo(Name = Defines.AccessTokenName)]
         public async Task<object> Post([FromBody] dynamic model) {

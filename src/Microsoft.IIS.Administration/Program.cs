@@ -2,24 +2,33 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-namespace Microsoft.IIS.Administration
-{
+namespace Microsoft.IIS.Administration {
     using System.IO;
     using AspNetCore.Hosting;
     using AspNetCore.Builder;
+    using Net.Http.Server;
+    using Microsoft.Extensions.Configuration;
 
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var host = new WebHostBuilder()
-                .UseKestrel()
+
+    public class Program {
+        public static void Main(string[] args) {
+            IConfigurationRoot config = Startup.LoadConfig(Path.Combine(Directory.GetCurrentDirectory(), "config"));
+
+            //
+            // Host
+            using (var host = new WebHostBuilder()
                 .UseContentRoot(Directory.GetCurrentDirectory())
-                .UseIISIntegration()
+                .UseUrls("https://*:55539") // Config can override it. Use "urls":"https://*:55539"
+                .UseConfiguration(config)
                 .UseStartup<Startup>()
-                .Build();
+                .UseWebListener(o => {
+                    o.ListenerSettings.Authentication.Schemes = AuthenticationSchemes.Negotiate | AuthenticationSchemes.NTLM;
+                    o.ListenerSettings.Authentication.AllowAnonymous = true;
+                })
+                .Build()) {
 
-            host.Run();
+                host.Run();
+            }
         }
     }
 }

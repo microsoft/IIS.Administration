@@ -10,7 +10,8 @@ namespace Microsoft.IIS.Administration.Core.Http {
     using AspNetCore.Mvc;
     using Utils;
 
-    [Authorize]
+
+    [Authorize(Policy ="Api")]
     public abstract class ApiBaseController : ApiController {
         
         [HttpGet]

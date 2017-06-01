@@ -7,6 +7,7 @@ $(document).ready(function () {
         $("#modal, #newTokenForm, #tokenForm").hide();
         $("#purpose").val("");
         $("#key").html("");
+        window.location.hash = "";
     });
 
     $("#showNewForm").click(function () {
@@ -72,5 +73,11 @@ $(document).ready(function () {
 
     if (sessionStorage['page'] == document.URL) {
         $(document).scrollTop(sessionStorage['scrollTop']);
+    }
+
+    //
+    // Open create form
+    if (window.location.hash == '#new') {
+        $("#showNewForm").click();
     }
 });

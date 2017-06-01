@@ -23,6 +23,10 @@
       "environmentVariables": {
         "Hosting:Environment": "Development"
       }
+    },
+    "Microsoft.IIS.Administration": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:55539"
     }
   }
 }

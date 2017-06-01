@@ -102,7 +102,7 @@ function signOut() {
 
 
 function isAccessTokenError(xhr) {
-    if (xhr.status == "403" && xhr.responseText) {
+    if ((xhr.status == "401" || xhr.status == "403") && xhr.responseText) {
         try {
             var json = $.parseJSON(xhr.responseText);
             return json.authentication_scheme == "Bearer";

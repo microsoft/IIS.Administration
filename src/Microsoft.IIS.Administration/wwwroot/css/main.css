@@ -215,7 +215,7 @@ fieldset {
 .border,
 input[type="text"] {
     border: 1px solid #0094ff;
-    padding: 3px;
+    padding: 8px;
 }
 
 .radio-row {

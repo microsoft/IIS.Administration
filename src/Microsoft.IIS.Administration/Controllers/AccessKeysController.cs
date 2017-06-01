@@ -11,10 +11,11 @@ namespace Microsoft.IIS.Administration {
     using AspNetCore.Mvc;
     using Core.Security;
     using Core.Utils;
-
+    using Microsoft.AspNetCore.Authorization;
 
 
     [DisableCors]
+    [Authorize(Policy ="ApiKeys")]
     public class AccessKeysController : Controller {
         private static IComparer<ApiKey> _comparer = new ApiKeyComparer();
         private IApiKeyProvider _keyProvider;
