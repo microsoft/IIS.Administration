@@ -88,6 +88,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administratio
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Packager", "src\Packager\Packager\Packager.csproj", "{BA51ADAF-9335-471B-8786-0470CE358F93}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.UrlRewrite", "src\Microsoft.IIS.Administration.WebServer.UrlRewrite\Microsoft.IIS.Administration.WebServer.UrlRewrite.xproj", "{AE4B4D83-70CB-4194-82B1-57DF26279A47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -234,6 +236,10 @@ Global
 		{BA51ADAF-9335-471B-8786-0470CE358F93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA51ADAF-9335-471B-8786-0470CE358F93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA51ADAF-9335-471B-8786-0470CE358F93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE4B4D83-70CB-4194-82B1-57DF26279A47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE4B4D83-70CB-4194-82B1-57DF26279A47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE4B4D83-70CB-4194-82B1-57DF26279A47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE4B4D83-70CB-4194-82B1-57DF26279A47}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -274,5 +280,6 @@ Global
 		{1BF40243-71BD-487F-9FD9-50959D100536} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{408A6FF5-966E-4989-8D66-41146A78A367} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{BA51ADAF-9335-471B-8786-0470CE358F93} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
+		{AE4B4D83-70CB-4194-82B1-57DF26279A47} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 	EndGlobalSection
 EndGlobal
