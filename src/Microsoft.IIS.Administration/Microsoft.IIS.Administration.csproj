@@ -19,6 +19,9 @@
     <None Update="Properties\PublishProfiles;node_modules;bower_components;**.xproj;**.user;**.vspscc;approot;log.txt;logs;config\**\*;plugins">
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
+    <Content Update="bower.json;approot;log.txt;logs;config\**\*;plugins\**\*">
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
