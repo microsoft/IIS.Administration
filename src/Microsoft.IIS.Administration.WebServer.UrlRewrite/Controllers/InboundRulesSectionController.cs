@@ -12,10 +12,14 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System.Net;
     using Web.Administration;
 
-    public class UrlRewriteController : ApiBaseController
+    public class InboundRulesSectionController : ApiBaseController
     {
+        //
+        // Support ?rewrite.id={}
+        // & ?website.id={}&path=/abc/def
+        // & ?scope=default web site/abc/def
         [HttpGet]
-        [ResourceInfo(Name = Defines.UrlRewriteName)]
+        [ResourceInfo(Name = Defines.InboundRulesSectionName)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -25,24 +29,24 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return NotFound();
             }
 
-            dynamic d = RewriteHelper.ToJsonModel(site, path);
-            return LocationChanged(RewriteHelper.GetLocation(d.id), d);
+            dynamic d = InboundRulesHelper.SectionToJsonModelRef(site, path);
+            return LocationChanged(InboundRulesHelper.GetSectionLocation(d.id), d);
         }
 
         [HttpGet]
-        [ResourceInfo(Name = Defines.UrlRewriteName)]
+        [ResourceInfo(Name = Defines.InboundRulesSectionName)]
         public object Get(string id)
         {
-            var rewriteId = new RewriteId(id);
+            var inboundRulesSectionId = new InboundRulesSectionId(id);
 
-            Site site = rewriteId.SiteId == null ? null : SiteHelper.GetSite(rewriteId.SiteId.Value);
+            Site site = inboundRulesSectionId.SiteId == null ? null : SiteHelper.GetSite(inboundRulesSectionId.SiteId.Value);
 
-            if (rewriteId.SiteId != null && site == null) {
+            if (inboundRulesSectionId.SiteId != null && site == null) {
                 Context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return null;
             }
 
-            return RewriteHelper.ToJsonModel(site, rewriteId.Path);
+            return InboundRulesHelper.SectionToJsonModel(site, inboundRulesSectionId.Path);
         }
     }
 }

@@ -12,10 +12,10 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System.Net;
     using Web.Administration;
 
-    public class UrlRewriteController : ApiBaseController
+    public class ServerVariablesController : ApiBaseController
     {
         [HttpGet]
-        [ResourceInfo(Name = Defines.UrlRewriteName)]
+        [ResourceInfo(Name = Defines.ServerVariablesName)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -25,24 +25,24 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return NotFound();
             }
 
-            dynamic d = RewriteHelper.ToJsonModel(site, path);
-            return LocationChanged(RewriteHelper.GetLocation(d.id), d);
+            dynamic d = ServerVariablesHelper.ToJsonModel(site, path);
+            return LocationChanged(ServerVariablesHelper.GetLocation(d.id), d);
         }
 
         [HttpGet]
-        [ResourceInfo(Name = Defines.UrlRewriteName)]
+        [ResourceInfo(Name = Defines.ServerVariablesName)]
         public object Get(string id)
         {
-            var rewriteId = new RewriteId(id);
+            var serverVariablesId = new ServerVariablesId(id);
 
-            Site site = rewriteId.SiteId == null ? null : SiteHelper.GetSite(rewriteId.SiteId.Value);
+            Site site = serverVariablesId.SiteId == null ? null : SiteHelper.GetSite(serverVariablesId.SiteId.Value);
 
-            if (rewriteId.SiteId != null && site == null) {
+            if (serverVariablesId.SiteId != null && site == null) {
                 Context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return null;
             }
 
-            return RewriteHelper.ToJsonModel(site, rewriteId.Path);
+            return ServerVariablesHelper.ToJsonModel(site, serverVariablesId.Path);
         }
     }
 }
