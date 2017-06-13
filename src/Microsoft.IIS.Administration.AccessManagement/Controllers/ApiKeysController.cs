@@ -28,15 +28,11 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     /// </summary>
     [Authorize(Policy = "ApiKeys")]
     [DisableCors]
-    public class ApiKeysController : ApiBaseController {
+    public class ApiKeysController : ApiEdgeController {
         IApiKeyProvider _keyProvider;
 
         public ApiKeysController(IApiKeyProvider keyProvider) {
-            if (keyProvider == null) {
-                throw new ArgumentNullException(nameof(keyProvider));
-            }
-
-            _keyProvider = keyProvider;
+            _keyProvider = keyProvider ?? throw new ArgumentNullException(nameof(keyProvider));
         }
 
         [HttpGet]

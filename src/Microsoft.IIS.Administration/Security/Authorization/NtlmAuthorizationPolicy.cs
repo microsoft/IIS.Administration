@@ -15,8 +15,16 @@ namespace Microsoft.IIS.Administration.Security.Authorization {
 
     sealed class NtlmAuthorizationPolicy : IAssertAuthorizationRequirement, IAuthorizationPolicy {
 
-        public NtlmAuthorizationPolicy(string role, RoleMapping mapping) {
-            Assert = ctx => mapping.IsUserInRole(ctx.User, role);
+        public NtlmAuthorizationPolicy(string roles, RoleMapping mapping) {
+            Assert = (ctx) => {
+                foreach (var r in roles.Split(',')) {
+                    string role = r.Trim();
+                    if (!string.IsNullOrEmpty(role) && mapping.IsUserInRole(ctx.User, role)) {
+                        return true;
+                    }
+                }
+                return false;
+            };
         }
 
         public Func<AuthorizationHandlerContext, bool> Assert { get; private set; }

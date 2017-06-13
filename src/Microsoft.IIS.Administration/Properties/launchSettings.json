@@ -26,6 +26,9 @@
     },
     "Microsoft.IIS.Administration": {
       "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
       "applicationUrl": "http://localhost:55539"
     }
   }

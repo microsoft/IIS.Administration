@@ -3,23 +3,41 @@
 
 
 namespace Microsoft.IIS.Administration {
-    using System.IO;
-    using AspNetCore.Hosting;
     using AspNetCore.Builder;
-    using Net.Http.Server;
+    using AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.AspNetCore.Hosting.Server.Features;
+    using Microsoft.IIS.Administration.WindowsService;
+    using Net.Http.Server;
+    using System;
+    using System.IO;
+
 
     public class Program {
         public static void Main(string[] args) {
-            IConfigurationRoot config = Startup.LoadConfig(Path.Combine(Directory.GetCurrentDirectory(), "config"));
+
+            string rootPath = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != null ?
+                              Directory.GetCurrentDirectory() : Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+
+            //
+            // Load Config
+            string basePath = Path.Combine(rootPath, "config");
+            if (!Directory.Exists(basePath)) {
+                throw new FileNotFoundException($"Configuration path \"{basePath}\" doesn't exist. Make sure the working directory is correct.", basePath);
+            }
+
+            Startup.Config = new ConfigurationBuilder()
+                                .SetBasePath(basePath)
+                                .AddJsonFile("appsettings.json")
+                                .AddEnvironmentVariables()
+                                .AddCommandLine(args)
+                                .Build();
 
             //
             // Host
             using (var host = new WebHostBuilder()
-                .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseContentRoot(rootPath)
                 .UseUrls("https://*:55539") // Config can override it. Use "urls":"https://*:55539"
-                .UseConfiguration(config)
+                .UseConfiguration(Startup.Config)
                 .UseStartup<Startup>()
                 .UseWebListener(o => {
                     //
@@ -28,13 +46,20 @@ namespace Microsoft.IIS.Administration {
 
                     //
                     // Need Anonymos to allow CORs preflight requests
-                    // app.UseWindowsAuthentication ensures the request is authenticated to proceed
+                    // app.UseWindowsAuthentication ensures (if needed) the request is authenticated to proceed
                     o.ListenerSettings.Authentication.AllowAnonymous = true;
                 })
                 .Build()
                 .UseHttps()) {
 
-                host.Run();
+                var svcHelper = new ServiceHelper(Startup.Config);
+
+                if (svcHelper.IsService) {
+                    svcHelper.Run(token => host.Run(token)).Wait();
+                }
+                else {
+                    host.Run();
+                }
             }
         }
     }
