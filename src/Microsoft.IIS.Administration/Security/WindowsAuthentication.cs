@@ -13,9 +13,9 @@ namespace Microsoft.IIS.Administration.Security {
 
         public static IApplicationBuilder UseWindowsAuthentication(this IApplicationBuilder builder) {
             var config = (IConfiguration) builder.ApplicationServices.GetService(typeof(IConfiguration));
-            bool enforceWindowsAuth = config.GetSection("security").GetValue("windows_authentication", true);
+            bool requireWindowsAuth = config.GetSection("security")?.GetValue("require_windows_authentication", true) ?? true;
 
-            if (!enforceWindowsAuth) {
+            if (!requireWindowsAuth) {
                 return builder;
             }
 

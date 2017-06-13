@@ -26,32 +26,25 @@ namespace Microsoft.IIS.Administration {
     using System.Collections.Generic;
     using System.IO;
 
+
     public class Startup : BaseModule {
-        private IConfiguration _config;
         private IHostingEnvironment _hostingEnv;
 
 
-        public static IConfigurationRoot LoadConfig(string path) {
-            //
-            // Set up Configuration
-            return new ConfigurationBuilder()
-                .SetBasePath(path)
-                .AddJsonFile("appsettings.json")
-                .AddEnvironmentVariables()
-                .Build();
-        }
-
         public Startup(IHostingEnvironment env) {
             _hostingEnv = env;
-            _config = ConfigurationHelper.Configuration = LoadConfig(env.GetConfigPath());
+            ConfigurationHelper.Configuration = Config;
         }
+
+        public static IConfiguration Config { set; get; }
+
 
         // This method gets called by a runtime.
         // Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services) {
             //
             // Configuration
-            services.AddSingleton<IConfiguration>(_config);
+            services.AddSingleton<IConfiguration>(Config);
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             //

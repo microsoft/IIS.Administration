@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration {
     using AspNetCore.Hosting;
     using Microsoft.AspNetCore.Hosting.Server.Features;
     using System;
+    using System.Threading;
 
 
     public static class IWebHostExtentions  {
