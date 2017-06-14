@@ -169,7 +169,9 @@ Copy-Item $(Join-Path $(Get-SolutionDirectory) scripts/setup) $OutputPath -Recur
 Copy-Item $(Join-Path $(Get-SolutionDirectory) ThirdPartyNotices.txt) $OutputPath -ErrorAction Stop
 
 # Remove all unnecessary files
-Get-ChildItem $OutputPath *.pdb -Recurse | Remove-Item -Force | Out-Null
+if (-not($ConfigDebug)) {
+	Get-ChildItem $OutputPath *.pdb -Recurse | Remove-Item -Force | Out-Null
+}
 
 # Remove non-windows runtime dlls
 $runtimeDirs = Get-ChildItem -Recurse $OutputPath runtimes
@@ -182,7 +184,8 @@ Get-ChildItem $outputPluginsFolder -File | where {-not($_.Name -match ".dll$")} 
 Remove-Item (Join-Path $outputPluginsFolder Bundle.dll) -Force
 
 $mainDlls = Get-ChildItem $applicationPath *.dll
-$pluginDlls = Get-ChildItem $outputPluginsFolder *.dll
+$mainDlls += $(Get-ChildItem -Recurse $applicationPath/runtimes/*.dll)
+$pluginDlls = Get-ChildItem -Recurse $outputPluginsFolder *.dll
 
 # Ensure no intersection between plugin dlls and application dlls
 foreach ($pluginDll in $pluginDlls) {

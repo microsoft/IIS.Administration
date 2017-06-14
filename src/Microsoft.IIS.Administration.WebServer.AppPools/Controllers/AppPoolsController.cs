@@ -16,10 +16,10 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
     using System;
     using Microsoft.AspNetCore.Authorization;
     using System.Threading.Tasks;
-    using System.Security.Claims;
 
     public class AppPoolsController : ApiBaseController {
-        private const string HIDDEN_FIELDS = "model.identity.password";
+        private const string AUDIT_FIELDS = "*,model.recycling.log_events.private_memory,model.recycling.periodic_restart.private_memory";
+        private const string MASKED_FIELDS = "model.identity.password";
         private IAuthorizationService _authorization;
 
         public AppPoolsController(IAuthorizationService svc) {
@@ -60,7 +60,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
         }
 
         [HttpPost]
-        [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
+        [Audit(fields: AUDIT_FIELDS, maskedFields: MASKED_FIELDS)]
         [ResourceInfo(Name = Defines.AppPoolName)]
         public async Task<object> Post([FromBody]dynamic model)
         {
@@ -90,7 +90,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
         }
 
         [HttpDelete]
-        [Audit]
+        [Audit(fields: AUDIT_FIELDS, maskedFields: MASKED_FIELDS)]
         public void Delete(string id)
         {
             string name = AppPoolId.CreateFromUuid(id).Name;
@@ -108,7 +108,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
 
 
         [HttpPatch]
-        [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
+        [Audit(fields: AUDIT_FIELDS, maskedFields: MASKED_FIELDS)]
         [ResourceInfo(Name = Defines.AppPoolName)]
         public async Task<object> Patch(string id, [FromBody] dynamic model)
         {
