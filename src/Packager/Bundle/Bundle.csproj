@@ -6,6 +6,7 @@
     <AssemblyName>Bundle</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>Microsoft IIS Administration API Bundle</PackageId>
+    <RuntimeFrameworkVersion>1.0.0</RuntimeFrameworkVersion>
     <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;dnxcore50;portable-net45+win8</PackageTargetFallback>
   </PropertyGroup>
 
