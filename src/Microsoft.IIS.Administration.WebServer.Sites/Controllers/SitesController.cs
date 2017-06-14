@@ -20,6 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
     public class SitesController : ApiBaseController
     {
+        private const string AUDIT_FIELDS = "*,model.key";
         private IFileProvider _fileProvider;
 
         public SitesController(IFileProvider fileProvider)
@@ -78,7 +79,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         }
 
         [HttpPost]
-        [Audit]
+        [Audit(AUDIT_FIELDS)]
         [ResourceInfo(Name = Defines.WebsiteName)]
         public object Post([FromBody] dynamic model)
         {
@@ -106,7 +107,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         }
 
         [HttpPatch]
-        [Audit]
+        [Audit(AUDIT_FIELDS)]
         [ResourceInfo(Name = Defines.WebsiteName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
@@ -149,7 +150,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         }
 
         [HttpDelete]
-        [Audit]
+        [Audit(AUDIT_FIELDS)]
         public void Delete(string id)
         {
             Site site = SiteHelper.GetSite(new SiteId(id).Id);
