@@ -81,6 +81,8 @@ namespace Microsoft.IIS.Administration.Logging
                 .RollingFile(Path.Combine(auditRoot, auditingConfiguration.FileName), retainedFileCountLimit: auditingConfiguration.MaxFiles)
                 .CreateLogger();
 
+            services.AddSingleton<INonsensitiveAuditingFields>(new NonsensitiveAuditingFields());
+
             return services;
         }
     }
