@@ -19,6 +19,7 @@ namespace Microsoft.IIS.Administration {
     using Extensions.DependencyInjection.Extensions;
     using Files;
     using Logging;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Microsoft.IIS.Administration.Security.Authorization;
     using Security;
     using Serilog;
@@ -33,7 +34,7 @@ namespace Microsoft.IIS.Administration {
 
         public Startup(IHostingEnvironment env) {
             _hostingEnv = env;
-            ConfigurationHelper.Configuration = Config;
+            Uuid.Key = Guid.Parse(Config.GetValue<string>("host_id")).ToByteArray();
         }
 
         public static IConfiguration Config { set; get; }
@@ -44,7 +45,7 @@ namespace Microsoft.IIS.Administration {
         public void ConfigureServices(IServiceCollection services) {
             //
             // Configuration
-            services.AddSingleton<IConfiguration>(Config);
+            services.AddSingleton(Config);
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             //
@@ -135,9 +136,6 @@ namespace Microsoft.IIS.Administration {
 
             // Context accessor
             HttpHelper.HttpContextAccessor = contextAccessor;
-
-            // Initalize Config
-            ConfigurationHelper.Initialize(_hostingEnv.GetConfigPath("appsettings.json"));
 
 
             //

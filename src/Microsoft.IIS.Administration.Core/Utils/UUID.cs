@@ -15,12 +15,14 @@ namespace Microsoft.IIS.Administration.Core.Utils
     //
     public static class Uuid
     {
-
-        private static readonly byte[] Key = ConfigurationHelper.HostId.ToByteArray();
+        public static byte[] Key { get; set; }
 
         public static string Encode(string value, string purpose)
         {
-            
+            if (Key == null) {
+                throw new ArgumentNullException("Key");
+            }
+
             using (var aes = Aes.Create())
             {
                 aes.Key = Key;
@@ -46,6 +48,10 @@ namespace Microsoft.IIS.Administration.Core.Utils
 
         public static string Decode(string uuid, string purpose)
         {
+            if (Key == null) {
+                throw new ArgumentNullException("Key");
+            }
+
             try {
                 var data2 = Base64.Decode(uuid);
 

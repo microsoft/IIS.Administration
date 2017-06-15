@@ -18,7 +18,6 @@ namespace Microsoft.IIS.Administration.WindowsService {
         private delegate int SvcCtrlHandlerEx(int control, int eventType, IntPtr eventData, IntPtr eventContext);
         private delegate void SvcMainHandler(int argCount, IntPtr args);
 
-        private IConfiguration _config;
         private string _serviceName;
         private Task _svcInitTask;
         private CancellationTokenSource _cancellationToken = new CancellationTokenSource();
@@ -29,8 +28,11 @@ namespace Microsoft.IIS.Administration.WindowsService {
 
 
         public ServiceHelper(IConfiguration config) {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _serviceName = _config.GetValue<string>("serviceName")?.Trim() ?? string.Empty;
+            if (config == null) {
+                throw new ArgumentNullException(nameof(config));
+            }
+
+            _serviceName = config.GetValue<string>("serviceName")?.Trim() ?? string.Empty;
 
             _svcMainHandler = new SvcMainHandler(SvcMain);
             _svcCtrlHandlerEx = new SvcCtrlHandlerEx(SvcCtrlHandler);
