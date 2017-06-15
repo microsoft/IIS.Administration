@@ -8,34 +8,21 @@ namespace Microsoft.IIS.Administration {
     using Microsoft.Extensions.Configuration;
     using Microsoft.IIS.Administration.WindowsService;
     using Net.Http.Server;
-    using System;
-    using System.IO;
 
 
     public class Program {
         public static void Main(string[] args) {
 
-            string rootPath = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != null ?
-                              Directory.GetCurrentDirectory() : Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-
             //
-            // Load Config
-            string basePath = Path.Combine(rootPath, "config");
-            if (!Directory.Exists(basePath)) {
-                throw new FileNotFoundException($"Configuration path \"{basePath}\" doesn't exist. Make sure the working directory is correct.", basePath);
-            }
+            // Build Config
+            var config = new ConfigurationHelper();
 
-            Startup.Config = new ConfigurationBuilder()
-                                .SetBasePath(basePath)
-                                .AddJsonFile("appsettings.json")
-                                .AddEnvironmentVariables()
-                                .AddCommandLine(args)
-                                .Build();
+            Startup.Config = config.Build(args);
 
             //
             // Host
             using (var host = new WebHostBuilder()
-                .UseContentRoot(rootPath)
+                .UseContentRoot(config.RootPath)
                 .UseUrls("https://*:55539") // Config can override it. Use "urls":"https://*:55539"
                 .UseConfiguration(Startup.Config)
                 .UseStartup<Startup>()
@@ -52,7 +39,7 @@ namespace Microsoft.IIS.Administration {
                 .Build()
                 .UseHttps()) {
 
-                var svcHelper = new ServiceHelper(Startup.Config);
+                var svcHelper = new ServiceHelper((IConfiguration)host.Services.GetService(typeof(IConfiguration)));
 
                 if (svcHelper.IsService) {
                     svcHelper.Run(token => host.Run(token)).Wait();
