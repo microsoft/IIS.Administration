@@ -60,10 +60,6 @@ try {
 
     Write-Host "Setting environment variables."
     SetEnvironmentVariables
-
-	# Setup machine to run Central Certificate Store Test scenarios.
-    Write-Host "Creating central certificate store test infrastructure."
-    .\tests\Create-CcsInfrastructure.ps1
 }
 finally {
     Pop-Location
