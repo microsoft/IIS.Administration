@@ -3,9 +3,9 @@
 
 
 namespace Microsoft.IIS.Administration.WindowsService {
-    using Microsoft.Extensions.Configuration;
     using System;
     using System.ComponentModel;
+    using System.Runtime.ExceptionServices;
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
@@ -26,19 +26,21 @@ namespace Microsoft.IIS.Administration.WindowsService {
         SvcMainHandler _svcMainHandler;
         SvcCtrlHandlerEx _svcCtrlHandlerEx;
 
+        class TaskState {
+            public ExceptionDispatchInfo Exception { get; set; }
+        }
 
-        public ServiceHelper(IConfiguration config) {
-            if (config == null) {
-                throw new ArgumentNullException(nameof(config));
+        public ServiceHelper(string serviceName) {
+            if (string.IsNullOrEmpty(serviceName)) {
+                throw new ArgumentNullException(nameof(serviceName));
             }
 
-            _serviceName = config.GetValue<string>("serviceName")?.Trim() ?? string.Empty;
-
+            _serviceName = serviceName;
             _svcMainHandler = new SvcMainHandler(SvcMain);
             _svcCtrlHandlerEx = new SvcCtrlHandlerEx(SvcCtrlHandler);
         }
 
-        public bool IsService {
+        private bool IsService {
             get {
                 return !string.IsNullOrEmpty(_serviceName);
             }
@@ -69,7 +71,7 @@ namespace Microsoft.IIS.Administration.WindowsService {
                 return _svcInitTask;
             }
 
-            _svcInitTask = new Task(() => { });
+            _svcInitTask = CreateInitTask();
 
             //
             // Start StartServiceCtrlDispatcher
@@ -82,7 +84,7 @@ namespace Microsoft.IIS.Administration.WindowsService {
                     IntPtr ptr = Marshal.AllocHGlobal(2 * Marshal.SizeOf<Interop.SERVICE_TABLE_ENTRY>());
 
                     Marshal.StructureToPtr(new Interop.SERVICE_TABLE_ENTRY() { callback = _svcMainHandler, name = namePtr }, ptr, true);
-                    Marshal.StructureToPtr(new Interop.SERVICE_TABLE_ENTRY() { callback = null, name = IntPtr.Zero }, 
+                    Marshal.StructureToPtr(new Interop.SERVICE_TABLE_ENTRY() { callback = null, name = IntPtr.Zero },
                                            new IntPtr(ptr.ToInt64() + Marshal.SizeOf<Interop.SERVICE_TABLE_ENTRY>()), true);
 
                     //
@@ -90,6 +92,10 @@ namespace Microsoft.IIS.Administration.WindowsService {
                     if (!Interop.StartServiceCtrlDispatcherW(ptr)) {
                         throw new Win32Exception();
                     }
+                }
+                catch (Exception e) {
+                    CompleteInitTask(e);
+                    throw e;
                 }
                 finally {
                     Marshal.FreeHGlobal(namePtr);
@@ -127,16 +133,17 @@ namespace Microsoft.IIS.Administration.WindowsService {
 
 
                 //
-                // 
-                _svcInitTask.Start();
+                //
+                CompleteInitTask(null);
+
 
                 //
                 // Wait for stop event
                 _cancellationToken.Token.WaitHandle.WaitOne();
             }
-            catch (Win32Exception) {
-                //
-                // Exit on Win32 errors.
+            catch (Exception e) {
+                CompleteInitTask(e);
+                throw e;
             }
             finally {
                 //
@@ -178,6 +185,31 @@ namespace Microsoft.IIS.Administration.WindowsService {
             };
 
             Interop.SetServiceStatus(_serviceHandle, ref status); // Ignore errors
+        }
+
+        private Task CreateInitTask() {
+            return new Task(s => {
+                var state = (TaskState)s;
+
+                if (state.Exception != null) {
+                    state.Exception.Throw();
+                }
+            }, 
+            new TaskState());
+        }
+
+        private void CompleteInitTask(Exception e) {
+            if (_svcInitTask.Status != TaskStatus.Created) {
+                return; // The task has been started already
+            }
+
+            //
+            // Fail the task
+            if (e != null) {
+                ((TaskState)_svcInitTask.AsyncState).Exception = ExceptionDispatchInfo.Capture(e);
+            }
+
+            _svcInitTask.Start();
         }
     }
 }

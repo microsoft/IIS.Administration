@@ -11,7 +11,7 @@ namespace Microsoft.IIS.Administration
     using System.Net;
     using System.Threading.Tasks;
 
-    class HeadTransform
+    sealed class HeadTransform
     {
         internal const string FOUND_ACTION = "_foundAction";
         private RequestDelegate _next;

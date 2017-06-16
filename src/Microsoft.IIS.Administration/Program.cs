@@ -6,25 +6,25 @@ namespace Microsoft.IIS.Administration {
     using AspNetCore.Builder;
     using AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.IIS.Administration.WindowsService;
     using Net.Http.Server;
 
 
     public class Program {
         public static void Main(string[] args) {
-
             //
             // Build Config
-            var config = new ConfigurationHelper();
-
-            Startup.Config = config.Build(args);
+            var configHelper = new ConfigurationHelper(args);
+            IConfiguration config = configHelper.Build();
 
             //
             // Host
             using (var host = new WebHostBuilder()
-                .UseContentRoot(config.RootPath)
+                .UseContentRoot(configHelper.RootPath)
                 .UseUrls("https://*:55539") // Config can override it. Use "urls":"https://*:55539"
-                .UseConfiguration(Startup.Config)
+                .UseConfiguration(config)
+                .ConfigureServices(s => s.AddSingleton(config)) // Configuration Service
                 .UseStartup<Startup>()
                 .UseWebListener(o => {
                     //
@@ -39,12 +39,17 @@ namespace Microsoft.IIS.Administration {
                 .Build()
                 .UseHttps()) {
 
-                var svcHelper = new ServiceHelper((IConfiguration)host.Services.GetService(typeof(IConfiguration)));
+                string serviceName = config.GetValue<string>("serviceName")?.Trim();
 
-                if (svcHelper.IsService) {
-                    svcHelper.Run(token => host.Run(token)).Wait();
+                if (!string.IsNullOrEmpty(serviceName)) {
+                    //
+                    // Run as a Service
+                    new ServiceHelper(serviceName).Run(token => host.Run(token))
+                                                  .Wait();
                 }
                 else {
+                    //
+                    // Run interactive
                     host.Run();
                 }
             }
