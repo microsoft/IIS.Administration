@@ -13,9 +13,11 @@ namespace Microsoft.IIS.Administration {
 
     sealed class ConfigurationHelper {
         private string _basePath;
+        private string[] _args;
 
+        public ConfigurationHelper(string[] args) {
+            _args = args;
 
-        public ConfigurationHelper() {
             RootPath = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != null ?
                        Directory.GetCurrentDirectory() : Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
 
@@ -28,7 +30,7 @@ namespace Microsoft.IIS.Administration {
 
         public string RootPath { get; private set; }
 
-        public IConfiguration Build(string[] args) {
+        public IConfiguration Build() {
             //
             // Run transformation before building the configuration system
             TransformAppSettings();
@@ -39,7 +41,7 @@ namespace Microsoft.IIS.Administration {
                             .SetBasePath(_basePath)
                             .AddJsonFile("appsettings.json")
                             .AddEnvironmentVariables()
-                            .AddCommandLine(args)
+                            .AddCommandLine(_args)
                             .Build();
         }
 

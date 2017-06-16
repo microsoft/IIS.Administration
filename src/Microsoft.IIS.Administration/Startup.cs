@@ -30,22 +30,21 @@ namespace Microsoft.IIS.Administration {
 
     public class Startup : BaseModule {
         private IHostingEnvironment _hostingEnv;
+        private IConfiguration _config;
 
+        public Startup(IHostingEnvironment env, IConfiguration config) {
+            _hostingEnv = env ?? throw new ArgumentNullException(nameof(env));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
 
-        public Startup(IHostingEnvironment env) {
-            _hostingEnv = env;
-            Uuid.Key = Guid.Parse(Config.GetValue<string>("host_id")).ToByteArray();
+            Uuid.Key = Guid.Parse(_config.GetValue<string>("host_id")).ToByteArray();
         }
-
-        public static IConfiguration Config { set; get; }
 
 
         // This method gets called by a runtime.
         // Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services) {
             //
-            // Configuration
-            services.AddSingleton(Config);
+            // IHttpContextAccessor
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             //
