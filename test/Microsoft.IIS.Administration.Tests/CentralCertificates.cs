@@ -23,8 +23,8 @@ namespace Microsoft.IIS.Administration.Tests
         private static readonly string FOLDER_PATH = Path.Combine(Environment.ExpandEnvironmentVariables("%iis_admin_solution_dir%"), "test", FOLDER_NAME);
         private const string NAME = "IIS Central Certificate Store";
         private const string FOLDER_NAME = "CentralCertStore";
-        private const string USER_NAME = "IisAdminCcsTestR";
-        private const string USER_PASS = "IisAdmin*12@";
+        private const string USER_NAME = "";
+        private const string USER_PASS = "";
         private const string CERT_NAME = "IISAdminLocalTest";
         private const string PVK_PASS = "abcdefg";
         private ITestOutputHelper _output;
