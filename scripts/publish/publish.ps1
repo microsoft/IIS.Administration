@@ -4,7 +4,7 @@
 
 Param(    
     # The path to place the published app
-    [parameter(Mandatory=$true , Position=0)]
+    [parameter(Position = 0)]
     [string]
     $OutputPath,
     
@@ -64,6 +64,10 @@ function DeletePreExistingFiles($targetPath)
     foreach($item in $items) {    
         Remove-Item ($item.FullName) -Recurse
     }
+}
+
+if ([string]::IsNullOrEmpty($OutputPath)) {
+    $OutputPath = Join-Path $(Get-ScriptDirectory) bin
 }
 
 $ProjectPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Microsoft.IIS.Administration)).Path
