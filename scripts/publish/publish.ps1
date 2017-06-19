@@ -152,6 +152,14 @@ if(!(Test-Path $outputPluginsFolder)) {
 try {
 	$packagerPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Packager/Bundle)).Path
 
+    if (-not($SkipRestore)) {
+        dotnet restore $packagerPath
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Plugin restore failed"
+        }
+    }
+
 	dotnet publish $packagerPath -o $outputPluginsFolder --configuration $configuration
 
 	if ($LASTEXITCODE -ne 0) {

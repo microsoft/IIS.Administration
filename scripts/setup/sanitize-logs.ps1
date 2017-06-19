@@ -15,7 +15,7 @@ function Get-LogsPath($IisAdminPath) {
     # Get logs path entry from appsettings.json
     $logsPath = $null
     if ($(Test-Path $appSettingsPath)) {
-        $settings = .\modules.ps1 Get-JsonContent -Path $appSettingsPath
+        $settings = .\json.ps1 Get-JsonContent -Path $appSettingsPath
 
         if ($settings -ne $null -and $settings.auditing -ne $null -and $settings.auditing.path -ne $null) {
             $logsPath = [System.Environment]::ExpandEnvironmentVariables($settings.auditing.path)
@@ -52,7 +52,7 @@ function Get-LogsExtension($IisAdminPath) {
 
     $logsExtension = $null
     if ($(Test-Path $appSettingsPath)) {
-        $settings = .\modules.ps1 Get-JsonContent -Path $appSettingsPath
+        $settings = .\json.ps1 Get-JsonContent -Path $appSettingsPath
 
         if ($settings -ne $null -and $settings.auditing -ne $null -and $settings.auditing.name -ne $null) {
             $logsExtension = [System.IO.Path]::GetExtension($settings.auditing.name)
