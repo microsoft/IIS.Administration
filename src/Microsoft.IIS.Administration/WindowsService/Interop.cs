@@ -8,8 +8,7 @@ namespace Microsoft.IIS.Administration.WindowsService {
 
 
     static class Interop {
-        private const string SERVICE_CORE_API_SET = "api-ms-win-service-core-l1-1-1";
-        private const string SERVICE_MANAGEMENT_API_SET = "api-ms-win-service-management-l1-1-0";
+        private const string SERVICE_CORE_API_SET = "api-ms-win-service-core-l1-1-0";
 
         public const int SERVICE_TYPE_WIN32_OWN_PROCESS = 0x00000010;
         public const int SERVICE_TYPE_WIN32_SHARE_PROCESS = 0x00000020;
