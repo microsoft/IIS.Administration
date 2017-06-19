@@ -3,7 +3,6 @@
   <PropertyGroup>
     <VersionPrefix>1.1.1</VersionPrefix>
     <TargetFramework>netcoreapp1.0</TargetFramework>
-    <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>Microsoft.IIS.Administration</AssemblyName>
     <OutputType>Exe</OutputType>
