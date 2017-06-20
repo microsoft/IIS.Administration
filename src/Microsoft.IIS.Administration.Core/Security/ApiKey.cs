@@ -12,11 +12,9 @@ namespace Microsoft.IIS.Administration.Core.Security {
 
 
     public class ApiKey {
-        public ApiKey(string tokenHash, string tokenType) {
-            if (string.IsNullOrEmpty(tokenHash)) {
-                throw new ArgumentNullException(nameof(tokenHash));
-            }
+        private string _tokenHash;
 
+        public ApiKey(string tokenHash, string tokenType) {
             TokenHash = tokenHash;
             TokenType = tokenType ?? string.Empty;
         }
@@ -31,8 +29,20 @@ namespace Microsoft.IIS.Administration.Core.Security {
 
         public DateTime LastModified { get; set; }
 
-        public string TokenHash { get; private set; }
+        public string TokenHash {
+            get {
+                return _tokenHash;
+            }
 
-        public string TokenType { get; private set; }
+            set {
+                if (string.IsNullOrEmpty(value)) {
+                    throw new ArgumentNullException();
+                }
+
+                _tokenHash = value;
+            }
+        }
+
+        public string TokenType { get; set; }
     }
 }

@@ -82,11 +82,11 @@ namespace Microsoft.IIS.Administration.AccessManagement {
             }
 
             // Renew the token
-            ApiToken token = await _keyProvider.RenewToken(key);
+            string token = await _keyProvider.RenewToken(key);
 
             //
             // Create response
-            dynamic obj = AccessTokenHelper.ToJsonModel(token);
+            dynamic obj = AccessTokenHelper.ToJsonModel(new ApiToken() { Token=token, Key=key });
             return Created(AccessTokenHelper.GetLocation(key.Id), obj);
         }
 

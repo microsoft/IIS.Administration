@@ -8,7 +8,6 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using AspNetCore.Antiforgery;
     using AspNetCore.Authorization;
     using AspNetCore.Cors;
@@ -37,10 +36,10 @@ namespace Microsoft.IIS.Administration.AccessManagement {
 
         [HttpGet]
         [ResourceInfo(Name = Defines.ApiKeysName)]
-        public object Get() {
+        public async Task<object> Get() {
             SetAntiForgeryTokens();
 
-            IEnumerable<ApiKey> keys = _keyProvider.GetAllKeys();
+            IEnumerable<ApiKey> keys = await _keyProvider.GetAllKeys();
 
             // Set HTTP header for total count
             Context.Response.SetItemsCount(keys.Count());

@@ -8,21 +8,25 @@ namespace Microsoft.IIS.Administration.Security {
     using Extensions.DependencyInjection;
     using System;
     using Core.Security;
+    using Microsoft.Extensions.Configuration;
 
 
     public static class ApiKeysExtentions  {
         public static IServiceCollection AddApiKeyProvider(this IServiceCollection services, Action<ApiKeyOptions> o = null) {
-            var env = services.BuildServiceProvider().GetRequiredService<IHostingEnvironment>();
             var options = new ApiKeyOptions();
-
             if (o != null) {
                 o.Invoke(options);
             }
 
-            services.AddSingleton<IApiKeyProvider>(
-                new ApiKeyProvider(env.GetConfigPath("api-keys.json"), options));
+            IHostingEnvironment env = services.BuildServiceProvider().GetRequiredService<IHostingEnvironment>();
+            IConfiguration config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
 
-            return services;
+            var provider = new ApiKeyProvider(options);
+
+            provider.UseStorage(new ApiKeyFileStorage(env.GetConfigPath("api-keys.json")));
+            provider.UseStorage(new ApiKeyConfigStorage(config));
+
+            return services.AddSingleton<IApiKeyProvider>(provider);
         }
     }
 }
