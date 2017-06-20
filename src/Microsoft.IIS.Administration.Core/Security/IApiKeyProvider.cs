@@ -10,11 +10,11 @@ namespace Microsoft.IIS.Administration.Core.Security {
     public interface IApiKeyProvider {
         ApiToken GenerateKey(string purpose);
 
-        Task<ApiToken> RenewToken(ApiKey key);
+        Task<string> RenewToken(ApiKey key);
 
         ApiKey FindKey(string token);
 
-        IEnumerable<ApiKey> GetAllKeys();
+        Task<IEnumerable<ApiKey>> GetAllKeys();
 
         ApiKey GetKey(string id);
 

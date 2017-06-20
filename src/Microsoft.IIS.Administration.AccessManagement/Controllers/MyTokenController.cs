@@ -48,10 +48,10 @@ namespace Microsoft.IIS.Administration.AccessManagement {
             }
 
             // Renew the key
-            ApiToken newKey = await _keyProvider.RenewToken(key);
+            string token = await _keyProvider.RenewToken(key);
 
             return Created(Request.RequestUri.PathAndQuery,
-                           AccessTokenHelper.ToJsonModel(newKey));
+                           AccessTokenHelper.ToJsonModel(new ApiToken() { Token=token, Key=key }));
         }
 
 
