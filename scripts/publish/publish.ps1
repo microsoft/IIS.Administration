@@ -4,7 +4,7 @@
 
 Param(    
     # The path to place the published app
-    [parameter(Mandatory=$true , Position=0)]
+    [parameter(Position = 0)]
     [string]
     $OutputPath,
     
@@ -64,6 +64,10 @@ function DeletePreExistingFiles($targetPath)
     foreach($item in $items) {    
         Remove-Item ($item.FullName) -Recurse
     }
+}
+
+if ([string]::IsNullOrEmpty($OutputPath)) {
+    $OutputPath = Join-Path $(Get-ScriptDirectory) bin
 }
 
 $ProjectPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Microsoft.IIS.Administration)).Path
@@ -151,6 +155,14 @@ if(!(Test-Path $outputPluginsFolder)) {
 # Publish plugins to the plugins directory
 try {
 	$packagerPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Packager/Bundle)).Path
+
+    if (-not($SkipRestore)) {
+        dotnet restore $packagerPath
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Plugin restore failed"
+        }
+    }
 
 	dotnet publish $packagerPath -o $outputPluginsFolder --configuration $configuration
 

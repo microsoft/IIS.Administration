@@ -28,10 +28,6 @@ Param(
     [parameter()]
     [switch]
     $SkipVerification,
-
-    [parameter()]
-    [switch]
-    $SkipIisAdministrators,
     
     [parameter()]
     [switch]
@@ -39,11 +35,7 @@ Param(
     
     [parameter()]
     [switch]
-    $DeleteBinding,
-    
-    [parameter()]
-    [switch]
-    $DeleteGroup
+    $DeleteBinding
 )
 
 Set-StrictMode -Off
@@ -75,7 +67,7 @@ function CheckInstallParameters() {
         throw "Cannot find version information."
     }
     try {
-        $Script:Version = $(.\modules.ps1 Get-JsonContent -Path $versionInfoPath).version
+        $Script:Version = $(.\json.ps1 Get-JsonContent -Path $versionInfoPath).version
         if ([string]::IsNullOrEmpty($Script:Version)) {
             throw "Could not obtain version information."
         }
@@ -103,7 +95,7 @@ function Install() {
     }
     else {
         $ServiceName = .\globals.ps1 DEFAULT_SERVICE_NAME
-        .\install.ps1 -Path $adminRoot -Port $Port -SkipVerification:$SkipVerification -SkipIisAdministrators:$SkipIisAdministrators -DistributablePath $DistributablePath -CertHash $CertHash -Version $Version -ServiceName $ServiceName
+        .\install.ps1 -Path $adminRoot -Port $Port -SkipVerification:$SkipVerification -DistributablePath $DistributablePath -CertHash $CertHash -Version $Version -ServiceName $ServiceName
     }
 }
 
@@ -131,7 +123,7 @@ function Upgrade() {
 
     $installed = $false
     try {
-        .\install.ps1 -Path $adminRoot -Version $Version -SkipVerification:$SkipVerification -SkipIisAdministrators:$SkipIisAdministrators -ServiceName $ServiceName -Port 0 -DistributablePath $DistributablePath -CertHash $CertHash
+        .\install.ps1 -Path $adminRoot -Version $Version -SkipVerification:$SkipVerification -ServiceName $ServiceName -Port 0 -DistributablePath $DistributablePath -CertHash $CertHash
         $installed = $true
         .\migrate.ps1 -Source $latest -Destination $(Join-Path $adminRoot $Version)
     }
@@ -174,7 +166,7 @@ function Uninstall() {
     # Previous installations if any
     foreach ($child in $children) {
         if ($(.\config.ps1 Exists -Path $child.FullName) -and -not($(Get-ScriptDirectory).StartsWith($child.FullName)) ) {
-            .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding -DeleteGroup:$DeleteGroup
+            .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding
         }
     }
     
@@ -197,7 +189,7 @@ function Uninstall() {
         # Current installation
         foreach ($child in $children) {
             if (.\config.ps1 Exists -Path $child.FullName) {
-                .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding -DeleteGroup:$DeleteGroup
+                .\uninstall.ps1 -Path $child.FullName -DeleteCert:$DeleteCert -DeleteBinding:$DeleteBinding
                 break
             }
         }
@@ -231,6 +223,7 @@ Require-Script "config"
 Require-Script "dependencies"
 Require-Script "files"
 Require-Script "globals"
+Require-Script "json"
 Require-Script "migrate"
 Require-Script "modules"
 Require-Script "net"

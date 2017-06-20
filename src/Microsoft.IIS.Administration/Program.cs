@@ -9,7 +9,7 @@ namespace Microsoft.IIS.Administration {
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.IIS.Administration.WindowsService;
     using Net.Http.Server;
-
+    using Serilog;
 
     public class Program {
         public static void Main(string[] args) {
@@ -32,7 +32,7 @@ namespace Microsoft.IIS.Administration {
                     o.ListenerSettings.Authentication.Schemes = AuthenticationSchemes.Negotiate | AuthenticationSchemes.NTLM;
 
                     //
-                    // Need Anonymos to allow CORs preflight requests
+                    // Need anonymous to allow CORS preflight requests
                     // app.UseWindowsAuthentication ensures (if needed) the request is authenticated to proceed
                     o.ListenerSettings.Authentication.AllowAnonymous = true;
                 })
@@ -44,6 +44,7 @@ namespace Microsoft.IIS.Administration {
                 if (!string.IsNullOrEmpty(serviceName)) {
                     //
                     // Run as a Service
+                    Log.Information($"Running as service: {serviceName}");
                     new ServiceHelper(serviceName).Run(token => host.Run(token))
                                                   .Wait();
                 }

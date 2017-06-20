@@ -7,12 +7,6 @@ Param (
     [ValidateSet("Is-NanoServer",
                  "IisEnabled",
                  "EnableIis",
-                 "UrlAuthEnabled",
-                 "EnableUrlAuth",
-                 "WinAuthEnabled",
-                 "EnableWinAuth",
-                 "HostableWebCoreEnabled",
-                 "EnableHostableWebCore",
                  "NetFx3Enabled",
                  "EnableNetFx3")]
     [string]
@@ -92,72 +86,6 @@ function EnableIis {
     }
 }
 
-function WinAuthEnabled
-{
-    return Test-Path $env:windir\system32\inetsrv\authsspi.dll
-}
-
-function EnableWinAuth {    
-    if ($OptionalFeatureCommand -ne $null) {
-        $winAuth = Get-WindowsOptionalFeature -Online -FeatureName "IIS-WindowsAuthentication" -Verbose:$false -ErrorAction SilentlyContinue
-
-        if ($winAuth -eq $null) {
-            throw "Unable to enable Windows Authentication"
-        }
-        
-        Enable-WindowsOptionalFeature -Online -FeatureName "IIS-WindowsAuthentication" -NoRestart -ErrorAction Stop
-    }
-    else {
-        Enable-Feature "IIS-WindowsAuthentication"
-    }
-}
-
-function UrlAuthEnabled
-{
-    return Test-Path $env:windir\system32\inetsrv\urlauthz.dll
-}
-
-function EnableUrlAuth {    
-    if ($OptionalFeatureCommand -ne $null) {
-        $urlAuth = Get-WindowsOptionalFeature -Online -FeatureName "IIS-URLAuthorization" -Verbose:$false -ErrorAction SilentlyContinue
-
-        if ($urlAuth -eq $null) {
-            throw "Unable to enable URL Authorization"
-        }
-        
-        Enable-WindowsOptionalFeature -Online -FeatureName "IIS-URLAuthorization" -NoRestart -ErrorAction Stop
-    }
-    else {
-        Enable-Feature "IIS-URLAuthorization"
-    }
-}
-
-function HostableWebCoreEnabled {
-    # Nano Server IIS has hostable web core enabled by default. Any IIS feature that is used must be enabled separately.
-    if (Is-NanoServer) {
-        return IisEnabled
-    }
-    return Feature-Enabled "IIS-HostableWebCore"
-}
-
-function EnableHostableWebCore { 
-    if (Is-NanoServer) {
-        return
-    }
-    if ($OptionalFeatureCommand -ne $null) {
-        $hwc = Get-WindowsOptionalFeature -Online -FeatureName "IIS-HostableWebCore" -Verbose:$false -ErrorAction SilentlyContinue
-
-        if ($hwc -eq $null) {
-            throw "Unable to enable IIS Hostable Web Core"
-        }
-        
-        Enable-WindowsOptionalFeature -Online -FeatureName "IIS-HostableWebCore" -NoRestart -ErrorAction Stop
-    }
-    else {
-        Enable-Feature "IIS-HostableWebCore"
-    }
-}
-
 function NetFx3Enabled {
     return Feature-Enabled "NetFx3"
 }
@@ -179,30 +107,6 @@ switch ($Command)
     "EnableIis"
     {
         return EnableIis
-    }
-    "UrlAuthEnabled"
-    {
-        return UrlAuthEnabled
-    }
-    "EnableUrlAuth"
-    {
-        return EnableUrlAuth
-    }
-    "WinAuthEnabled"
-    {
-        return WinAuthEnabled
-    }
-    "EnableWinAuth"
-    {
-        return EnableWinAuth
-    }
-    "HostableWebCoreEnabled"
-    {
-        return HostableWebCoreEnabled
-    }
-    "EnableHostableWebCore"
-    {
-        return EnableHostableWebCore
     }
     "NetFx3Enabled"
     {

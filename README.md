@@ -5,9 +5,7 @@ Microsoft IIS Administration API
 
 ### Requirements: ###
 * IIS installed
-* Windows authentication enabled
-* Hostable Web Core enabled
-* ASP.NET Core Module installed (https://go.microsoft.com/fwlink/?LinkId=817246)
+* .NET Core installed (https://www.microsoft.com/net/download/core#/runtime)
 
 ### Nano Server Installation: ###
 There is a blog post to get up and running on Nano Server located at https://blogs.iis.net/adminapi/microsoft-iis-administration-on-nano-server.
@@ -20,7 +18,8 @@ There is a blog post to get up and running on Nano Server located at https://blo
 ### Publish and Install: ###
 * Run PowerShell as an Administrator
 * Run the Publish.ps1 script located in the scripts directory
-* \<OutputDirectory>\setup\setup.ps1 Install -Verbose
+* (SolutionRoot)\scripts\publish\publish.ps1
+* (SolutionRoot)\scripts\publish\bin\setup\setup.ps1 Install -Verbose
 
 ### Using the new API ###
 1. Navigate to https://manage.iis.net
@@ -30,20 +29,13 @@ There is a blog post to get up and running on Nano Server located at https://blo
 5. Paste the access token into the Access Token field of the connection screen
 6. Click 'Connect'
 
-#### Dev Setup ####
-1. Open the solution in VS 2015, which will automatically trigger a package restore
-2. Build the solution
-3. Run the solution (F5) so Visual Studio automatically generates required IIS Express files
-4. Using PowerShell, run the **Configure-DevEnvironment.ps1** script in the scripts directory
-
 ## Examples ##
 
 ### Intialize Api Client ###
 ```
-var httpClientHandler = new HttpClientHandler()
-    {
-        Credentials = new NetworkCredential(userName, password, domain)
-    };
+var httpClientHandler = new HttpClientHandler() {
+    Credentials = new NetworkCredential(userName, password, domain)
+};
 var apiClient = new HttpClient(httpClientHandler);
 
 // Set access token for every request

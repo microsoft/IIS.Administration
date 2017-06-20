@@ -124,29 +124,10 @@ function Migrate {
     }
 
     $userFiles = .\config.ps1 Get-UserFileMap
-
-    # Modules should be the union of destination and source modules
-    $oldModules = .\modules.ps1 Get-JsonContent -Path $(Join-Path $Source $userFiles["modules.json"])
-    $newModules = .\modules.ps1 Get-JsonContent -Path $(Join-Path $Destination $userFiles["modules.json"])
-    $joined = .\modules.ps1 Add-NewModules -OldModules $oldModules.modules -NewModules $newModules.modules
-    $filtered = .\modules.ps1 Remove-DeprecatedModules -Modules $joined
-    $oldModules = @{modules = $filtered}
-
-    foreach ($fileName in $userFiles.keys) {
-        .\files.ps1 Copy-FileForced -Source $(Join-Path $Source $userFiles[$fileName]) -Destination $(Join-Path $Destination $userFiles[$fileName]) -ErrorAction SilentlyContinue
-    }
-
-    .\modules.ps1 Set-JsonContent -Path $(Join-Path $Destination $userFiles["modules.json"]) -JsonObject $oldModules
-
-    $appHostPath = Join-Path $Destination host\applicationHost.config
-    $appPath = Join-Path $Destination Microsoft.IIS.Administration
-    $sourceAppHostPath = Join-Path $Source host\applicationHost.config
-    $Port = .\config.ps1 Get-AppHostPort -AppHostPath $sourceAppHostPath
-
-    $destDir = Get-Item $Destination
-
-    # Configure applicationHost.config based on install parameters
-    .\config.ps1 Write-AppHost -AppHostPath $appHostPath -ApplicationPath $appPath -Port $Port -Version $destDir.Name
+    
+    .\modules.ps1 Migrate-Modules -Source $Source -Destination $Destination
+    .\config.ps1 Migrate-AppSettings -Source $Source -Destination $Destination
+    .\files.ps1 Copy-FileForced -Source $(Join-Path $Source $userFiles["api-keys.json"]) -Destination $(Join-Path $Destination $userFiles["api-keys.json"]) -ErrorAction SilentlyContinue
 
     Start-Service $destinationSvc.Name -ErrorAction Stop
     Stop-Service $destinationSvc.Name -ErrorAction Stop
@@ -169,15 +150,9 @@ function Migrate {
             throw "Could not delete source service"
         }
     }
-
-    $platform = "onecore"
-    if (!$(.\globals.ps1 ONECORE)) {
-        $platform = "win32"
-    }
     
     # Register the Self Host exe as a service
-    $svcExePath = Join-Path $destination "host\$platform\x64\Microsoft.IIS.Host.exe"
-    sc.exe create "$($sourceSettings.ServiceName)" depend= http binpath= "$svcExePath -appHostConfig:\`"$appHostPath\`" -serviceName:\`"$($sourceSvc.Name)\`"" start= auto | Out-Null
+    .\services.ps1 Create-IisAdministration -Name $sourceSettings.ServiceName -Path $destination
 
     if ($LASTEXITCODE -ne 0) {
         throw "Could not create new service"

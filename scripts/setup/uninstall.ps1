@@ -17,10 +17,6 @@ Param(
     
     [parameter()]
     [switch]
-    $DeleteGroup,
-    
-    [parameter()]
-    [switch]
     $KeepFiles
 )
 
@@ -71,11 +67,6 @@ function Uninstall($_path)
         .\net.ps1 DeleteSslBinding -Port $Port
     }
 
-    if ($DeleteGroup) {
-        Write-Verbose "Deleting $(.\globals.ps1 IISAdministratorsGroupName) group"
-        .\security.ps1 RemoveLocalGroup -Name $(.\globals.ps1 IISAdministratorsGroupName)
-    }
-
     if ($ownsSvc) {
         sc.exe delete $ServiceName
     }
@@ -89,7 +80,7 @@ function Uninstall($_path)
         if ($(.\globals.ps1 INSTALL_METHOD_VALUE) -eq "MSI") {
             try {
                 $system = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::LocalSystemSid, $null)
-                .\security.ps1 Add-FullControl -Path $InstallationDirectory.FullName -Identity system -Recurse
+                .\security.ps1 Add-FullControl -Path $InstallationDirectory.FullName -Identity $system -Recurse
             }
             catch {
                 Write-Warning "Unable to obtain full control of installation directory"
