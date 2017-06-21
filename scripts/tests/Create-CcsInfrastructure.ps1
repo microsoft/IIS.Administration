@@ -20,7 +20,13 @@ function New-CcsSelfSignedCertificate($certName) {
     $cert
 }
 
-$ccsPath = [System.IO.Path]::Combine($env:iis_admin_solution_dir, "test", $CCS_FOLDER_NAME)
+$testRoot = $env:iis_admin_test_dir
+
+if ([string]::IsNullOrEmpty($testRoot)) {
+    $testRoot = "$env:SystemDrive\tests\iisadmin"
+}
+
+$ccsPath = [System.IO.Path]::Combine($testRoot, $CCS_FOLDER_NAME)
 
 if (-not(Test-Path $ccsPath)) {
     New-Item -Type Directory -Path $ccsPath -ErrorAction Stop | Out-Null

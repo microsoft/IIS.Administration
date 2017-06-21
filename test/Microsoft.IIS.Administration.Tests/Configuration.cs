@@ -4,6 +4,7 @@
 
 namespace Microsoft.IIS.Administration.Tests {
     using Newtonsoft.Json.Linq;
+    using System;
     using System.IO;
 
     public static class Configuration {
@@ -18,30 +19,41 @@ namespace Microsoft.IIS.Administration.Tests {
                 return _config.Value<string>("test_server");
             }
         }
+
         public static string TEST_PORT {
             get {
                 return _config.Value<string>("test_port");
             }
         }
+
         public static string TEST_SERVER_URL {
             get {
                 return $"{TEST_SERVER}:{TEST_PORT}";
             }
         }
+
         public static string TEST_ROOT_PATH {
             get {
                 var val = _config.Value<string>("test_root_path");
 
                 if (string.IsNullOrEmpty(val)) {
-                    val = System.AppContext.BaseDirectory;
+                    val = AppContext.BaseDirectory;
                 }
 
-                return val;
+                return Environment.ExpandEnvironmentVariables(val);
             }
         }
 
+        public static JObject Raw {
+            get {
+                return _config;
+            }
+        }
+
+
+
         private static void Initialize() {
-            var content = File.ReadAllText(Path.Combine(System.AppContext.BaseDirectory, "test.config.json"));
+            var content = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "test.config.json"));
             _config = JObject.Parse(content);
         }
     }
