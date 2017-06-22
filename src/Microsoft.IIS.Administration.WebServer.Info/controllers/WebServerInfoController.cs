@@ -8,6 +8,8 @@ namespace Microsoft.IIS.Administration.WebServer.Info
     using Core;
     using Core.Http;
 
+
+    [RequireWebServer]
     public class WebServerInfoController : ApiBaseController
     {
         private IWebServerVersion _versionProvider;

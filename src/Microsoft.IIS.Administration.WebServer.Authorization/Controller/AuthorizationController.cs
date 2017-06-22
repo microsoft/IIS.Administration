@@ -10,9 +10,10 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
     using Core.Http;
     using Sites;
     using System.Net;
-    using System.Threading.Tasks;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class AuthorizationController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Authorization";

@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRedirect
     using System.Threading.Tasks;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class HttpRedirectController : ApiBaseController
     {
         private const string DISPLAY_NAME = "HTTP Redirect";

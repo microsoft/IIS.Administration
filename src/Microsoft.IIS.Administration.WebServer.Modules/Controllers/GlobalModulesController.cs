@@ -13,6 +13,9 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
     using Core.Http;
     using Core.Utils;
     using Core;
+
+
+    [RequireWebServer]
     public class GlobalModulesController : ApiBaseController
     {
         [HttpGet]

@@ -14,6 +14,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using System.Threading.Tasks;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class HttpRequestTracingController : ApiBaseController
     {
         private IFileProvider _fileProvider;

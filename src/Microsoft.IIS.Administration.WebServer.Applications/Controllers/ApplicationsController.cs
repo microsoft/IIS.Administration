@@ -15,6 +15,8 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
     using System.Net;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class ApplicationsController : ApiBaseController
     {
         private IFileProvider _fileProvider;
