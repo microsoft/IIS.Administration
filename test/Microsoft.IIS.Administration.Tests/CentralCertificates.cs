@@ -60,9 +60,11 @@ namespace Microsoft.IIS.Administration.Tests
 
             CcsUser user = await CcsUser.Get();
 
-            dynamic ccsInfo = new {
+            dynamic ccsInfo = new
+            {
                 path = path,
-                identity = new {
+                identity = new
+                {
                     username = user.Username,
                     password = user.Password
                 },
@@ -73,7 +75,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject webserver = client.Get($"{Configuration.TEST_SERVER_URL}/api/webserver/");
                 string ccsLink = Utils.GetLink(webserver, "central_certificates");
                 HttpResponseMessage res = client.PostRaw(ccsLink, (object)ccsInfo);
-                Assert.True((int) res.StatusCode == 403);
+                Assert.True((int)res.StatusCode == 403);
             }
         }
 
@@ -83,9 +85,11 @@ namespace Microsoft.IIS.Administration.Tests
             RequireCcsTestInfrastructure();
             Assert.True(Disable());
 
-            dynamic ccsInfo = new {
+            dynamic ccsInfo = new
+            {
                 path = FOLDER_PATH,
-                identity = new {
+                identity = new
+                {
                     username = CcsTestUsername,
                     password = "fgsfds"
                 },
@@ -191,9 +195,11 @@ namespace Microsoft.IIS.Administration.Tests
 
         private bool Enable(string physicalPath, string username, string password, string privateKeyPassword)
         {
-            dynamic ccsInfo = new {
+            dynamic ccsInfo = new
+            {
                 path = physicalPath,
-                identity = new {
+                identity = new
+                {
                     username = username,
                     password = password
                 },
@@ -203,7 +209,7 @@ namespace Microsoft.IIS.Administration.Tests
             using (var client = ApiHttpClient.Create()) {
                 JObject webserver = client.Get($"{Configuration.TEST_SERVER_URL}/api/webserver/");
                 string ccsLink = Utils.GetLink(webserver, "central_certificates");
-                return client.Post(ccsLink, (object) ccsInfo) != null;
+                return client.Post(ccsLink, (object)ccsInfo) != null;
             }
         }
 
@@ -286,7 +292,7 @@ namespace Microsoft.IIS.Administration.Tests
             return loggedOn;
         }
 
-        
+
 
     }
 
@@ -326,35 +332,15 @@ namespace Microsoft.IIS.Administration.Tests
             user.Username = CentralCertificates.CcsTestUsername;
             user.Password = Guid.NewGuid().ToString();
 
-            try {
-                await GetLocalUser(user.Username);
-                await RemoveLocalUser(user.Username);
-            }
-            catch {
-            }
-
             await CreateLocalUser(user.Username, user.Password);
 
             return user;
         }
 
-        public void GetAccess(string path)
-        {
-        }
-
-        private static Task GetLocalUser(string username)
-        {
-            return RunProcess("PowerShell.exe", $"Get-LocalUser -Name {username}");
-        }
-
         private static Task CreateLocalUser(string username, string password)
         {
-            return RunProcess("PowerShell.exe", $"New-LocalUser -Name {username} -Password $(ConvertTo-SecureString -AsPlainText -Force '{password}')");
-        }
-
-        private static Task RemoveLocalUser(string username)
-        {
-            return RunProcess("PowerShell.exe", $"Remove-LocalUser -Name {username}");
+            // User creation already implemented in powershell install scripts, vs many interop calls
+            return RunProcess("PowerShell.exe", $@"""c:\\src\\repos\\iis.administration\\scripts\tests\\Create-User.ps1"" -Name '{username}' -Password '{password}'");
         }
 
         private static Task RunProcess(string tool, string arguments)

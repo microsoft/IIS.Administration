@@ -127,7 +127,7 @@ function Write-AppSettings($_appSettingsPath, $_port) {
     $settings.security.users.owners += $(.\security.ps1 CurrentAdUser)
 
     if ($_port -ne $null -and $_port -ne $(.\globals.ps1 DEFAULT_PORT)) {
-        $settings.urls = "https://*:$_port"
+        .\json.ps1 Add-Property -JsonObject $settings -Name "urls" -Value "https://*:$_port"
     }
 
     .\json.ps1 Set-JsonContent -Path $AppSettingsPath -JsonObject $settings
