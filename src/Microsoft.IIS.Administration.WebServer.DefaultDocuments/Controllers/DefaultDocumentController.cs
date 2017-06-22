@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
     using Core.Http;
     using System.Threading.Tasks;
 
+
+    [RequireWebServer]
     public class DefaultDocumentController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Default Document";

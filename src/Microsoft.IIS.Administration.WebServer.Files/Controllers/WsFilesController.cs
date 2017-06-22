@@ -17,6 +17,8 @@ namespace Microsoft.IIS.Administration.WebServer.Files
     using System.Net;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class WsFilesController : ApiBaseController
     {
         private const string _units = "files";

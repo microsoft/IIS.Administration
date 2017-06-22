@@ -17,6 +17,8 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
     using System.Net;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class VirtualDirectoriesController : ApiBaseController
     {
         private const string HIDDEN_FIELDS = "model.identity.password";

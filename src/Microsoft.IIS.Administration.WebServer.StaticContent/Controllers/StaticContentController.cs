@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
     using Core;
     using System.Threading.Tasks;
 
+
+    [RequireWebServer]
     public class StaticContentController : ApiBaseController
     {
         [HttpGet]

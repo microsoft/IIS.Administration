@@ -17,6 +17,8 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
     using Microsoft.AspNetCore.Authorization;
     using System.Threading.Tasks;
 
+
+    [RequireWebServer]
     public class AppPoolsController : ApiBaseController {
         private const string AUDIT_FIELDS = "*,model.recycling.log_events.private_memory,model.recycling.periodic_restart.private_memory";
         private const string MASKED_FIELDS = "model.identity.password";

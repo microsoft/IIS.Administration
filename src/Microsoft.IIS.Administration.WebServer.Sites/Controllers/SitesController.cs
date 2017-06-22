@@ -18,10 +18,13 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
     using System.Threading;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class SitesController : ApiBaseController
     {
         private const string AUDIT_FIELDS = "*,model.key";
         private IFileProvider _fileProvider;
+        
 
         public SitesController(IFileProvider fileProvider)
         {

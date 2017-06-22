@@ -11,6 +11,8 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
     using System.Net;
     using System.Threading.Tasks;
 
+
+    [RequireWebServer]
     public class CentralCertsController : ApiBaseController
     {
         private const string HIDDEN_FIELDS = "model.identity.password,model.private_key_password";

@@ -12,6 +12,8 @@ namespace Microsoft.IIS.Administration.WebServer.Delegation
     using Core.Http;
     using Core;
 
+
+    [RequireWebServer]
     public class DelegationController : ApiBaseController
     {
         [HttpGet]

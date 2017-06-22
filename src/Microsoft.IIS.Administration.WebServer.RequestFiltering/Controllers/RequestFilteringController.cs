@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core;
     using System.Threading.Tasks;
 
+
+    [RequireWebServer]
     public class RequestFilteringController : ApiBaseController
     {
         [HttpGet]

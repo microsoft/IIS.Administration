@@ -14,6 +14,8 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
     using System.Net;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class ModulesGeneralController : ApiBaseController
     {
         [HttpGet]

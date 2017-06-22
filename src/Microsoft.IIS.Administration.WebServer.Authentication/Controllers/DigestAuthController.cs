@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using System.Threading.Tasks;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class DigestAuthController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Digest Authentication";

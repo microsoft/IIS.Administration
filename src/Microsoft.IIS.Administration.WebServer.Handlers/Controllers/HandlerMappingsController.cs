@@ -16,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
     using Core.Http;
 
 
+    [RequireWebServer]
     public class HandlerMappingsController : ApiBaseController
     {
         [HttpGet]
