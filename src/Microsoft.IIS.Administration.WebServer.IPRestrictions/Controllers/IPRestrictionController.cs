@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
     using Core;
     using System.Threading.Tasks;
 
+
+    [RequireWebServer]
     public class IPRestrictionController : ApiBaseController
     {
         private const string DISPLAY_NAME = "IP and Domain Restrictions";

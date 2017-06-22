@@ -11,8 +11,9 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Web.Administration;
     using Core.Http;
     using Core;
-    using System.Threading.Tasks;
+    
 
+    [RequireWebServer]
     public class WinAuthController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Windows Authentication";

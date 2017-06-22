@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Core;
     using System.Threading.Tasks;
 
+
+    [RequireWebServer]
     public class BasicAuthController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Basic Authentication";

@@ -9,6 +9,8 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor
     using Core.Http;
     using System.Threading.Tasks;
 
+
+    [RequireWebServer]
     public class RequestMonitoringController : ApiBaseController
     {
         [HttpGet]

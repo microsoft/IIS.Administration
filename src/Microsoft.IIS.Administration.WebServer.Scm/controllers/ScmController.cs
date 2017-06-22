@@ -8,6 +8,8 @@ namespace Microsoft.IIS.Administration.WebServer.Scm
     using Core.Utils;
     using Core.Http;
     using Core;
+
+    [RequireWebServer]
     public class ScmController : ApiBaseController
     {
         [HttpGet]

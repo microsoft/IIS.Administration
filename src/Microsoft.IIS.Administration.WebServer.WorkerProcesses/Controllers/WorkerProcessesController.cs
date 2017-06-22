@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
     using Core.Utils;
     using Core;
 
+    [RequireWebServer]
     public class WorkerProcessesController : ApiBaseController {
 
         [HttpGet]

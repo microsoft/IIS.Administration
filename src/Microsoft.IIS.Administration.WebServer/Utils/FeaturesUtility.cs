@@ -22,5 +22,15 @@ namespace Microsoft.IIS.Administration.WebServer
 
             return collection.Any(configElem => ((string)configElem["name"]).Equals(moduleName, StringComparison.OrdinalIgnoreCase));
         }
+
+        public static bool HasAnyGlobalModule() {
+            ServerManager sm = ManagementUnit.ServerManager;
+
+            var config = sm.GetApplicationHostConfiguration();
+
+            var section = config.GetSection("system.webServer/globalModules");
+
+            return section != null && section.GetCollection().Count() > 0;
+        }
     }
 }
