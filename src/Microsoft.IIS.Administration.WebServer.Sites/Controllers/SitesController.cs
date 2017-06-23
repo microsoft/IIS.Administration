@@ -149,7 +149,16 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             // Refresh data
             site = ManagementUnit.ServerManager.Sites[site.Name];
 
-            return SiteHelper.ToJsonModel(site, Context.Request.GetFields());
+            //
+            // Create response
+            dynamic sModel = SiteHelper.ToJsonModel(site, Context.Request.GetFields());
+
+            // The Id could change by changing the sites key
+            if (sModel.id != id) {
+                return LocationChanged(SiteHelper.GetLocation(sModel.id), sModel);
+            }
+
+            return sModel;
         }
 
         [HttpDelete]
