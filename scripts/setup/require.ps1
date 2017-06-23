@@ -24,7 +24,14 @@ function Dotnet {
     Write-Verbose "Verifying .NET Core shared framework installed"
     $dotnet = Get-Command "dotnet.exe" -ErrorAction SilentlyContinue
 
-    if($dotnet -eq $null -or -not($dotnet.Source -eq $(Join-Path $env:ProgramFiles "dotnet\dotnet.exe"))) {
+    if ($dotnet -ne $null -and $dotnet.Source -ne $null) {
+        $source = $dotnet.Source
+    }
+    elseif ($dotnet -ne $null) {
+        $source = $dotnet.Definition
+    }
+
+    if(-not($source -eq $(Join-Path $env:ProgramFiles "dotnet\dotnet.exe"))) {
         Write-Warning ".NET Core Shared Framework not installed"
         Write-Warning "Download the .NET Core Runtime (LTS) 'https://www.microsoft.com/net/download/core#/runtime'"
         throw ".NET Core required to continue"
