@@ -54,8 +54,9 @@ namespace Microsoft.IIS.Administration {
 
                 if (string.IsNullOrEmpty(id)) {
                     id = configObject.host_id = Guid.NewGuid().ToString();
-                    File.WriteAllText(filePath, JsonConvert.SerializeObject(configObject, Formatting.Indented));
                 }
+
+                File.WriteAllText(filePath, JsonConvert.SerializeObject(configObject, Formatting.Indented));
             }
             catch (Exception e) {
                 Log.Fatal(e, "");
