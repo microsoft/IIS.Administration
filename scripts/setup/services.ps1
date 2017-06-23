@@ -82,13 +82,7 @@ function Get-ServiceRegEntry($_name) {
 # Name: The name for the service
 # Path: The root path of the application, Ex: C:\Program Files\IIS Administration\1.1.1
 function Create-IisAdministration($_name, $_path) {
-    if ($(.\globals.ps1 IS_NANO)) {
-        $cmd = Get-Command dotnet.exe
-        $dotnetPath = $cmd.Source
-    }
-    else {
-        $dotnetPath = "$($env:ProgramFiles)\dotnet\dotnet.exe"    
-    }
+    $dotnetPath = Join-Path $env:ProgramFiles "dotnet\dotnet.exe"    
 
     if (-not(Test-Path $dotnetPath)) {
         Throw "Dotnet runtime launcher not found in expected location: $dotnetPath"

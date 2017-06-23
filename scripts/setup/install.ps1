@@ -81,20 +81,7 @@ function InstallationPreparationCheck
 {
     Write-Host "Checking installation requirements"
 
-    if (!$SkipVerification) {        
-        Write-Verbose "Verifying IIS is enabled"
-        $iisInstalled = .\dependencies.ps1 IisEnabled
-        if (!$iisInstalled) {
-            Write-Warning "IIS-WebServer not enabled"
-			Write-Host "Enabling IIS"
-			try {
-                .\dependencies.ps1 EnableIis
-			}
-			catch {
-				Write-Warning "Could not enable IIS"
-				throw $_
-			}
-        }
+    if (!$SkipVerification) { 
         Write-Verbose "Ok"
         # We require.NET 3.5 for JSON manipulation if it isn't available through built in powershell commands
         if ($(Get-Command "ConvertFrom-Json" -ErrorAction SilentlyContinue) -eq $null) {

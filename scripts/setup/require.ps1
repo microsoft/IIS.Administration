@@ -22,7 +22,9 @@ function Is-Administrator {
 # Throws if .NET Core has not been installed.
 function Dotnet {
     Write-Verbose "Verifying .NET Core shared framework installed"
-    if($(Get-Command "dotnet.exe" -ErrorAction SilentlyContinue) -eq $null) {
+    $dotnet = Get-Command "dotnet.exe" -ErrorAction SilentlyContinue
+
+    if($dotnet -eq $null -or -not($dotnet.Source -eq $(Join-Path $env:ProgramFiles "dotnet\dotnet.exe"))) {
         Write-Warning ".NET Core Shared Framework not installed"
         Write-Warning "Download the .NET Core Runtime (LTS) 'https://www.microsoft.com/net/download/core#/runtime'"
         throw ".NET Core required to continue"

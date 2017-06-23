@@ -5,7 +5,6 @@
 Param (
     [parameter(Mandatory=$true , Position=0)]
     [ValidateSet("ONECORE",
-                 "IS_NANO",
                  "DEFAULT_ADMIN_ROOT_NAME",
                  "DEFAULT_INSTALL_PATH",
                  "DEFAULT_PORT",
@@ -26,15 +25,6 @@ switch ($Command)
     "ONECORE"
     {
         return [System.Environment]::OSVersion.Version.Major -ge 10
-    }
-    "IS_NANO"
-    {
-        $EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
-
-        return ($EditionId -eq "ServerStandardNano") -or
-            ($EditionId -eq "ServerDataCenterNano") -or
-            ($EditionId -eq "NanoServer") -or
-            ($EditionId -eq "ServerTuva")
     }
     # Application directory name
     "DEFAULT_ADMIN_ROOT_NAME"
