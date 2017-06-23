@@ -24,6 +24,8 @@ namespace Microsoft.IIS.Administration.Tests
         //[InlineData("/api/webserver/http-request-tracing")]
         //[InlineData("/api/webserver/authentication/basic-authentication")]
         //[InlineData("/api/webserver/authentication/digest-authentication")]
+        //[InlineData("/api/webserver/authentication/windows-authentication")]
+        //[InlineData("/api/webserver/authorization")]
         //[InlineData("/api/webserver/ip-restrictions")]
         //[InlineData("/api/webserver/logging")]
         //[InlineData("/api/webserver/http-request-tracing")]

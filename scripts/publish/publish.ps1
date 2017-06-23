@@ -4,7 +4,7 @@
 
 Param(    
     # The path to place the published app
-    [parameter(Mandatory=$true , Position=0)]
+    [parameter(Position = 0)]
     [string]
     $OutputPath,
     
@@ -38,15 +38,6 @@ function Get-SolutionDirectory
     return $(Resolve-Path $(Join-Path $(Get-ScriptDirectory) "../..")).Path
 }
 
-function Bump-Version
-{
-    $v = Get-VersionObject
-    $version = [System.Version]::New($v.version)
-    $bumpedVersion = [System.Version]::New($version.Major, $version.Minor, $version.Build + 1)
-    $v.version = $bumpedVersion.ToString()
-    [System.IO.File]::WriteAllText($(Resolve-Path Join-Path $(Get-ScriptDirectory) "..\setup\version.json").Path, $(ConvertTo-Json $v))
-}
-
 function Get-VersionObject
 {
     $versionPath = $(Resolve-Path $(Join-Path $(Get-ScriptDirectory) "..\setup\version.json")).Path
@@ -75,72 +66,8 @@ function DeletePreExistingFiles($targetPath)
     }
 }
 
-function Extract-ZipArchive($archivePath, $outputPath) {
-    if(-not(Test-Path $archivePath)) {
-        throw "Archive not found at $archivePath"
-    }
-    if(-not(Test-Path $outputPath)) {
-        New-Item -Type Directory $outputPath | Out-Null
-    }
-
-    $fullArchivePath = $(Get-Item $archivePath).FullName
-    $fullOutputPath = $(Get-Item $outputPath).FullName
-
-    $shell = new-object -com shell.application
-    $zip = $shell.NameSpace($fullArchivePath)
-
-    foreach($item in $zip.Items()) {
-        $shell.NameSpace($fullOutputPath).copyhere($item)
-    }
-}
-
-function DownloadAndUnzip($url, $outputPath) {
-
-    if ($url -eq $null) {
-        throw "Url is required";
-    }
-
-    if ($outputPath -eq $null) {
-        throw "outputPath is required";
-    }
-
-    $fileName = [System.Guid]::NewGuid().ToString() + ".zip"
-    
-    Invoke-WebRequest -Uri $url -OutFile $fileName
-    Extract-ZipArchive $fileName $outputPath
-    Remove-Item -Force $fileName
-}
-
-function Get-IISAdministrationHost($destinationDirectory) {
-
-    if ($destinationDirectory -eq $null) {
-        throw "Destination directory is required";
-    }
-
-    if (-not(Test-Path $destinationDirectory)) {
-        New-Item -type directory -Path $destinationDirectory | out-null
-    }
-
-    Push-Location $destinationDirectory
-    try {
-        $url = "https://www.nuget.org/api/v2/package/Microsoft.IIS.Host/1.0.0-rc1"
-        $outputPath = "host"
-
-        mkdir $outputPath | Out-Null
-        cd $outputPath
-
-        DownloadAndUnzip $url "temp"
-        Get-ChildItem "temp" | %{
-            if ($_.Name -eq "Win32" -or $_.Name -eq "OneCore") {
-                Copy-Item -Recurse -Force $_.FullName .
-            }
-        }
-        Remove-Item -Recurse -Force "temp"
-        cd ..
-    }
-    finally {
-        Pop-Location
-    }
+if ([string]::IsNullOrEmpty($OutputPath)) {
+    $OutputPath = Join-Path $(Get-ScriptDirectory) bin
 }
 
 $ProjectPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Microsoft.IIS.Administration)).Path
@@ -164,9 +91,9 @@ if(!$configPathExists) {
 }
 
 try {
-    dotnet -v | Out-Null
+    $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
 
-	if ($LASTEXITCODE -ne 0) {
+	if ($dotnet -eq $null) {
 		throw ".NET SDK not installed"
 	}
 }
@@ -213,13 +140,9 @@ if(!$outputConfigPathExists) {
     New-Item $outputConfigPath -Type directory | Out-Null
 }
 
-copy (Join-Path $configFolderPath "modules.json") $outputConfigPath  -Force -ErrorAction Stop;
-
-$defaultAppSettingsContent = [System.IO.File]::ReadAllText($(Join-Path $(Get-ScriptDirectory) "defaultAppSettings.json"))
-$defaultAppSettingsContent | Out-File (Join-Path $outputConfigPath "appsettings.json")
-
-$emptyApiKeysContent = [System.IO.File]::ReadAllText($(Join-Path $(Get-ScriptDirectory) "empty-api-keys.json"))
-$emptyApiKeysContent | Out-File (Join-Path $outputConfigPath  "api-keys.json")
+Copy-Item (Join-Path $configFolderPath "modules.default.json") (Join-Path $outputConfigPath "modules.json")  -Force -ErrorAction Stop;
+Copy-Item (Join-Path $configFolderPath "api-keys.default.json") (Join-Path $outputConfigPath "api-keys.json")  -Force -ErrorAction Stop;
+Copy-Item (Join-Path $configFolderPath "appsettings.default.json") (Join-Path $outputConfigPath "appsettings.json")  -Force -ErrorAction Stop;
 
 # Dlls required for plugins reside in the plugins folder at dev time
 $pluginFolder = Join-Path $ProjectPath "plugins"
@@ -231,7 +154,15 @@ if(!(Test-Path $outputPluginsFolder)) {
 
 # Publish plugins to the plugins directory
 try {
-	$packagerPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Packager)).Path
+	$packagerPath = $(Resolve-Path $(join-path $(Get-SolutionDirectory) src/Packager/Bundle)).Path
+
+    if (-not($SkipRestore)) {
+        dotnet restore $packagerPath
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Plugin restore failed"
+        }
+    }
 
 	dotnet publish $packagerPath -o $outputPluginsFolder --configuration $configuration
 
@@ -249,22 +180,24 @@ Copy-Item $(Join-Path $(Get-SolutionDirectory) scripts/setup) $OutputPath -Recur
 # Copy thirdpartynotices.txt
 Copy-Item $(Join-Path $(Get-SolutionDirectory) ThirdPartyNotices.txt) $OutputPath -ErrorAction Stop
 
-
-# Place Admin Host
-Get-IISAdministrationHost $OutputPath
-
-# Copy applicationHost.config
-Copy-Item $(Join-Path $(Get-SolutionDirectory) scripts/publish/applicationHost.config) $(Join-Path $OutputPath host) -Recurse -ErrorAction Stop
-
 # Remove all unnecessary files
-Get-ChildItem $OutputPath *.pdb -Recurse | Remove-Item -Force | Out-Null
-Get-ChildItem -Recurse $OutputPath "*unix" | where {$_.Name -eq "unix"} | Remove-Item -Force -Recurse
+if (-not($ConfigDebug)) {
+	Get-ChildItem $OutputPath *.pdb -Recurse | Remove-Item -Force | Out-Null
+}
+
+# Remove non-windows runtime dlls
+$runtimeDirs = Get-ChildItem -Recurse $OutputPath runtimes
+foreach ($runtimeDir in $runtimeDirs) {
+    Get-ChildItem $runtimeDir.FullName | Where-Object { $_.name -ne "win" } | ForEach-Object { Remove-Item $_.FullName -Force -Recurse }
+}
 
 # Remove non dlls from plugins
 Get-ChildItem $outputPluginsFolder -File | where {-not($_.Name -match ".dll$")} | Remove-Item -Force
+Remove-Item (Join-Path $outputPluginsFolder Bundle.dll) -Force
 
 $mainDlls = Get-ChildItem $applicationPath *.dll
-$pluginDlls = Get-ChildItem $outputPluginsFolder *.dll
+$mainDlls += $(Get-ChildItem -Recurse $applicationPath/runtimes/*.dll)
+$pluginDlls = Get-ChildItem -Recurse $outputPluginsFolder *.dll
 
 # Ensure no intersection between plugin dlls and application dlls
 foreach ($pluginDll in $pluginDlls) {

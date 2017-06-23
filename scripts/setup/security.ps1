@@ -174,7 +174,7 @@ function RemoveLocalGroup($_name) {
 
 # Returns a representation of the current user for use in group manipulation
 function CurrentAdUser {
-    return [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 }
 
 # Adds a user to a local group.
@@ -424,7 +424,7 @@ switch($Command)
     }
     "CurrentAdUser"
     {
-        return CurrentAdUser
+        CurrentAdUser
     }
     "AddUserToGroup"
     {

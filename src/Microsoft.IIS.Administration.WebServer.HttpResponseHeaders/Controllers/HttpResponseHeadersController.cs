@@ -12,6 +12,8 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
     using Core.Http;
     using Core;
 
+
+    [RequireWebServer]
     public class HttpResponseHeadersController : ApiBaseController
     {
         [HttpGet]

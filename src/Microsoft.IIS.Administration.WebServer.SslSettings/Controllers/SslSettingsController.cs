@@ -12,6 +12,8 @@ namespace Microsoft.IIS.Administration.WebServer.SslSettings
     using System.Net;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class SslSettingsController : ApiBaseController
     {
         [HttpGet]

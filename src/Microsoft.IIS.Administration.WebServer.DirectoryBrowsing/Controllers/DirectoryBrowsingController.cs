@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
     using Core;
     using System.Threading.Tasks;
 
+
+    [RequireWebServer]
     public class DirectoryBrowsingController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Directory Browsing";

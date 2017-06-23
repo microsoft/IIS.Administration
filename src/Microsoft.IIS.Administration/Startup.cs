@@ -2,11 +2,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-namespace Microsoft.IIS.Administration
-{
+namespace Microsoft.IIS.Administration {
     using AspNetCore.Antiforgery.Internal;
-    using AspNetCore.Authentication.JwtBearer;
-    using AspNetCore.Authorization;
     using AspNetCore.Builder;
     using AspNetCore.Hosting;
     using AspNetCore.Http;
@@ -22,47 +19,41 @@ namespace Microsoft.IIS.Administration
     using Extensions.DependencyInjection.Extensions;
     using Files;
     using Logging;
+    using Microsoft.IIS.Administration.Core.Utils;
+    using Microsoft.IIS.Administration.Security.Authorization;
     using Security;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.IO;
 
-    public class Startup : BaseModule
-    {
-        public IConfiguration Configuration { get; set; }
 
-        public IHostingEnvironment HostingEnvironment { get; set; }
+    public class Startup : BaseModule {
+        private IHostingEnvironment _hostingEnv;
+        private IConfiguration _config;
 
-        public Startup(IHostingEnvironment env)
-        {
-            HostingEnvironment = env;
+        public Startup(IHostingEnvironment env, IConfiguration config) {
+            _hostingEnv = env ?? throw new ArgumentNullException(nameof(env));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
 
-            // Set up configuration sources.
-            var builder = new ConfigurationBuilder();
-            builder.SetBasePath(env.GetConfigPath());
-            builder.AddJsonFile("appsettings.json")
-                .AddEnvironmentVariables();
-            Configuration = ConfigurationHelper.Configuration = builder.Build();
-
+            Uuid.Key = Guid.Parse(_config.GetValue<string>("host_id")).ToByteArray();
         }
+
 
         // This method gets called by a runtime.
         // Use this method to add services to the container
-        public void ConfigureServices(IServiceCollection services)
-        {
+        public void ConfigureServices(IServiceCollection services) {
             //
-            // Configuration
-            services.AddSingleton((s) => Configuration);
+            // IHttpContextAccessor
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             //
             // Logging
-            services.AddApiLogging(Configuration, HostingEnvironment);
+            services.AddApiLogging();
 
             //
             // Auditing
-            services.AddApiAuditing(Configuration, HostingEnvironment);
+            services.AddApiAuditing();
 
             //
             // Files
@@ -70,8 +61,8 @@ namespace Microsoft.IIS.Administration
 
             //
             // Load plugins
-            ModuleConfig modConfig = new ModuleConfig(HostingEnvironment.GetConfigPath("modules.json"));
-            ModuleLoader loader = new ModuleLoader(HostingEnvironment);
+            ModuleConfig modConfig = new ModuleConfig(_hostingEnv.GetConfigPath("modules.json"));
+            ModuleLoader loader = new ModuleLoader(_hostingEnv);
             LoadPlugins(loader, modConfig.Modules);
             AdminHost.Instance.ConfigureModules(services);
 
@@ -86,21 +77,15 @@ namespace Microsoft.IIS.Administration
             //
             // Authentication
             services.AddAuthentication();
-            services.AddAuthorization(o => {
-                o.AddPolicy("AccessToken", p => p.RequireAuthenticatedUser().RequireClaim(Core.Security.ClaimTypes.AccessToken));
 
-                o.AddPolicy("Administrators", p => p.RequireAuthenticatedUser().RequireRole("Administrators"));
-
-                o.AddPolicy("AdministrativeGroup", p => p.RequireAuthenticatedUser().RequireAssertion(authContext =>
-                    IsUserInAdministrators(authContext, Configuration)
-                ));
-            });
+            //
+            // Authorization
+            services.AddAuthorizationPolicy();
 
             //
             // Antiforgery
             services.TryAddSingleton<IAntiforgeryTokenStore, AntiForgeryTokenStore>();
-            services.AddAntiforgery(o =>
-            {
+            services.AddAntiforgery(o => {
                 o.RequireSsl = true;
                 o.CookieName = o.FormFieldName = HeaderNames.XSRF_TOKEN;
             });
@@ -140,9 +125,7 @@ namespace Microsoft.IIS.Administration
         }
 
         // Configure is called after ConfigureServices is called.
-        public void Configure(IApplicationBuilder app,
-                              IHttpContextAccessor contextAccessor)
-        {
+        public void Configure(IApplicationBuilder app, IHttpContextAccessor contextAccessor) {
             //
             // Initialize the Environment
             //
@@ -153,19 +136,12 @@ namespace Microsoft.IIS.Administration
             // Context accessor
             HttpHelper.HttpContextAccessor = contextAccessor;
 
-            // Initalize Config
-            ConfigurationHelper.Initialize(HostingEnvironment.GetConfigPath("appsettings.json"));
-
 
             //
             // Error handling
             //
             app.UseErrorHandler();
 
-            //
-            // Ensure SSL
-            //
-            app.UseMiddleware<SSLCheck>();
 
             //
             // Static files
@@ -182,32 +158,20 @@ namespace Microsoft.IIS.Administration
             //
             // Authentication
             //
+            app.UseWindowsAuthentication();
             app.UseBearerAuthentication();
 
 
             //
             // Authorization
             // 
-            app.UseUrlAuthorization(new UrlAuthorizatonOptions
-            {
-                Path = "/" + Globals.API_PATH,  // /api
-                AuthenticationScheme = JwtBearerDefaults.AuthenticationScheme,
-                PolicyName = "AccessToken"
-            });
-
-            app.UseUrlAuthorization(new UrlAuthorizatonOptions
-            {
-                Path = "/" + Globals.SECURITY_PATH, // /security
-                AuthenticationScheme = "NTLM",
-                PolicyName = "AdministrativeGroup"
-            });
+            app.UseAuthorizationPolicy();
 
 
             //
             // Disable client cache
             //
-            app.Use(async (context, next) =>
-            {
+            app.Use(async (context, next) => {
                 context.Response.Headers[Net.Http.Headers.HeaderNames.CacheControl] = "public, max-age=0";
                 await next.Invoke();
             });
@@ -216,7 +180,6 @@ namespace Microsoft.IIS.Administration
             //
             // Allow HEAD requests as GET
             app.UseMiddleware<HeadTransform>();
-
 
 
             //
@@ -344,47 +307,6 @@ namespace Microsoft.IIS.Administration
                     break;
                 }
             }
-        }
-
-        private static bool IsUserInAdministrators(AuthorizationHandlerContext authContext, IConfiguration configuration)
-        {
-            var administrators = new List<string>();
-            ConfigurationBinder.Bind(configuration.GetSection("administrators"), administrators);
-
-            var winUser = HttpHelper.Current.Authentication.AuthenticateAsync("NTLM").Result;
-
-            foreach (var identifier in administrators)
-            {
-
-                // Is user in an administrative role
-                if (authContext.User.IsInRole(identifier))
-                {
-                    return true;
-                }
-
-                // Is user an administrative user
-                foreach (var identity in authContext.User.Identities)
-                {
-                    if (identity.Name != null && identity.Name.Equals(identifier, StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                }
-
-                //
-                // Aspnet/Common bug #85 https://github.com/aspnet/Common/issues/85
-                // AuthorizationHandlerContext.User.IsInRole does not work for integrated authentication
-                // Work around is explicitly calling authenticate for NTLM
-                //
-                if (winUser != null)
-                {
-                    if (winUser.IsInRole(identifier))
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
 
         public override void Start()

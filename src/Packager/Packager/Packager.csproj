@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Publish all of the core plugins for the Microsoft IIS Administration API</Description>
+    <TargetFramework>netcoreapp1.0</TargetFramework>
+  </PropertyGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="dotnet.exe restore $(ProjectDir)..\Bundle" />
+  </Target>
+  <Target Name="PostPostBuild" AfterTargets="PostBuild">
+    <Exec Command="dotnet.exe publish $(ProjectDir)..\Bundle -o $(ProjectDir)..\..\Microsoft.IIS.Administration\plugins" />
+  </Target>
+</Project>

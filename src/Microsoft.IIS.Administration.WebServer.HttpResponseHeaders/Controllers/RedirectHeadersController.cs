@@ -15,7 +15,9 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
     using System.Net;
     using Web.Administration;
     using Core.Http;
-    
+
+
+    [RequireWebServer]
     public class RedirectHeadersController : ApiBaseController
     {
         [HttpGet]

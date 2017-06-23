@@ -10,7 +10,9 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Core.Http;
     using Sites;
     using Web.Administration;
-    
+
+
+    [RequireWebServer]
     public class AuthenticationController : ApiBaseController
     {
         [HttpGet]

@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Microsoft.IIS.Administration.WebServer.Sites Class Library</Description>
+    <VersionPrefix>1.1.0</VersionPrefix>
+    <Authors>Microsoft</Authors>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
+    <AssemblyName>Microsoft.IIS.Administration.WebServer.Sites</AssemblyName>
+    <PackageId>Microsoft.IIS.Administration.WebServer.Sites</PackageId>
+    <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;dnxcore50;portable-net45+win8</PackageTargetFallback>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.IIS.Administration.Files\Microsoft.IIS.Administration.Files.csproj" />
+    <ProjectReference Include="..\Microsoft.IIS.Administration.WebServer.AppPools\Microsoft.IIS.Administration.WebServer.AppPools.csproj" />
+    <ProjectReference Include="..\Microsoft.IIS.Administration.WebServer.CentralCertificates\Microsoft.IIS.Administration.WebServer.CentralCertificates.csproj" />
+  </ItemGroup>
+
+</Project>

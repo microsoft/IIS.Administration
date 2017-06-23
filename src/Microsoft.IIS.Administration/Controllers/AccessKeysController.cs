@@ -11,26 +11,24 @@ namespace Microsoft.IIS.Administration {
     using AspNetCore.Mvc;
     using Core.Security;
     using Core.Utils;
-
+    using Microsoft.AspNetCore.Authorization;
 
 
     [DisableCors]
+    [Authorize(Policy ="ApiKeys")]
     public class AccessKeysController : Controller {
         private static IComparer<ApiKey> _comparer = new ApiKeyComparer();
         private IApiKeyProvider _keyProvider;
 
-        public AccessKeysController(IApiKeyProvider keyProvider) {
-            if (keyProvider == null) {
-                throw new ArgumentNullException(nameof(keyProvider));
-            }
 
-            _keyProvider = keyProvider;
+        public AccessKeysController(IApiKeyProvider keyProvider) {
+            _keyProvider = keyProvider ?? throw new ArgumentNullException(nameof(keyProvider));
         }
 
         [HttpGet]
-        public IActionResult Index() {
+        public async Task<IActionResult> Index() {
             return View("Index", new {
-                Keys = GetAllKeys(),
+                Keys = await GetAllKeys(),
                 NewToken = (object)null
             }.ToExpando());
         }
@@ -62,7 +60,7 @@ namespace Microsoft.IIS.Administration {
             await _keyProvider.SaveKey(key.Key);
 
             return View("Index", new {
-                Keys = GetAllKeys(),
+                Keys = await GetAllKeys(),
                 NewToken = new {
                     Purpose = purpose,
                     Value = key.Token
@@ -95,19 +93,19 @@ namespace Microsoft.IIS.Administration {
                 return NotFound();
             }
 
-            ApiToken token = await _keyProvider.RenewToken(key);
+            string token = await _keyProvider.RenewToken(key);
 
             return View("Index", new {
-                Keys = GetAllKeys(),
+                Keys = await GetAllKeys(),
                 NewToken = new {
-                    Purpose = token.Key.Purpose,
-                    Value = token.Token
+                    Purpose = key.Purpose,
+                    Value = token
                 }.ToExpando()
             }.ToExpando());
         }
 
-        private IEnumerable<ApiKey> GetAllKeys() {
-            return _keyProvider.GetAllKeys().OrderBy(k => k, _comparer);
+        private async Task<IEnumerable<ApiKey>> GetAllKeys() {
+            return (await _keyProvider.GetAllKeys()).OrderBy(k => k, _comparer);
         }
     }
 

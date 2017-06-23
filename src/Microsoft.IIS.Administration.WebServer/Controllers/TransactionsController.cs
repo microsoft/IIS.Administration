@@ -10,6 +10,8 @@ namespace Microsoft.IIS.Administration.WebServer
     using System.Collections.Generic;
     using System.Linq;
 
+
+    [RequireWebServer]
     public class TransactionsController : ApiBaseController
     {
         private IApplicationHostConfigProvider _configProvider;

@@ -14,6 +14,8 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
     using System.Threading.Tasks;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class CompressionController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Compression";

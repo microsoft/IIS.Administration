@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Microsoft.IIS.Administration.AccessManagement</Description>
+    <VersionPrefix>1.1.0</VersionPrefix>
+    <Authors>Microsoft</Authors>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
+    <AssemblyName>Microsoft.IIS.Administration.AccessManagement</AssemblyName>
+    <PackageId>Microsoft.IIS.Administration.AccessManagement</PackageId>
+    <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;dnxcore50;portable-net45+win8</PackageTargetFallback>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.IIS.Administration.Core\Microsoft.IIS.Administration.Core.csproj" />
+  </ItemGroup>
+
+</Project>

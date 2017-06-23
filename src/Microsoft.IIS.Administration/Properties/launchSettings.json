@@ -23,6 +23,15 @@
       "environmentVariables": {
         "Hosting:Environment": "Development"
       }
+    },
+    "Microsoft.IIS.Administration": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "launchBrowser": true,
+      "launchUrl": "https://localhost:44326",
+      "applicationUrl": "https://localhost:44326"
     }
   }
 }

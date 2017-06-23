@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Bundles together all of the core plugins for the Microsoft IIS Administration API</Description>
+    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <AssemblyName>Bundle</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <PackageId>Microsoft IIS Administration API Bundle</PackageId>
+    <RuntimeFrameworkVersion>1.0.0</RuntimeFrameworkVersion>
+    <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;dnxcore50;portable-net45+win8</PackageTargetFallback>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.AccessManagement\Microsoft.IIS.Administration.AccessManagement.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.Certificates\Microsoft.IIS.Administration.Certificates.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.Files\Microsoft.IIS.Administration.Files.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer\Microsoft.IIS.Administration.WebServer.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Applications\Microsoft.IIS.Administration.WebServer.Applications.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.AppPools\Microsoft.IIS.Administration.WebServer.AppPools.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Authentication\Microsoft.IIS.Administration.WebServer.Authentication.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Authorization\Microsoft.IIS.Administration.WebServer.Authorization.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.CentralCertificates\Microsoft.IIS.Administration.WebServer.CentralCertificates.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Compression\Microsoft.IIS.Administration.WebServer.Compression.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.DefaultDocuments\Microsoft.IIS.Administration.WebServer.DefaultDocuments.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Delegation\Microsoft.IIS.Administration.WebServer.Delegation.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.DirectoryBrowsing\Microsoft.IIS.Administration.WebServer.DirectoryBrowsing.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Files\Microsoft.IIS.Administration.WebServer.Files.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Handlers\Microsoft.IIS.Administration.WebServer.Handlers.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.HttpRedirect\Microsoft.IIS.Administration.WebServer.HttpRedirect.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.HttpRequestTracing\Microsoft.IIS.Administration.WebServer.HttpRequestTracing.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.HttpResponseHeaders\Microsoft.IIS.Administration.WebServer.HttpResponseHeaders.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Info\Microsoft.IIS.Administration.WebServer.Info.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.IPRestrictions\Microsoft.IIS.Administration.WebServer.IPRestrictions.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Logging\Microsoft.IIS.Administration.WebServer.Logging.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Modules\Microsoft.IIS.Administration.WebServer.Modules.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.RequestFiltering\Microsoft.IIS.Administration.WebServer.RequestFiltering.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.RequestMonitor\Microsoft.IIS.Administration.WebServer.RequestMonitor.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Scm\Microsoft.IIS.Administration.WebServer.Scm.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Sites\Microsoft.IIS.Administration.WebServer.Sites.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.SslSettings\Microsoft.IIS.Administration.WebServer.SslSettings.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.StaticContent\Microsoft.IIS.Administration.WebServer.StaticContent.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.VirtualDirectories\Microsoft.IIS.Administration.WebServer.VirtualDirectories.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.WorkerProcesses\Microsoft.IIS.Administration.WebServer.WorkerProcesses.csproj" />
+  </ItemGroup>
+
+</Project>

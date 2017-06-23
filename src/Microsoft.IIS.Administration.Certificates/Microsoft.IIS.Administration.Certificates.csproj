@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>Microsoft.IIS.Administration.Certificates Class Library</Description>
+    <VersionPrefix>1.1.0</VersionPrefix>
+    <Authors>Microsoft</Authors>
+    <TargetFramework>netstandard1.6</TargetFramework>
+    <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
+    <AssemblyName>Microsoft.IIS.Administration.Certificates</AssemblyName>
+    <PackageId>Microsoft.IIS.Administration.Certificates</PackageId>
+    <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;dnxcore50;portable-net45+win8</PackageTargetFallback>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.IIS.Administration.Files\Microsoft.IIS.Administration.Files.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.1.0" />
+  </ItemGroup>
+
+</Project>

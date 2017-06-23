@@ -15,16 +15,16 @@ namespace Microsoft.IIS.Administration.Tests
     using Newtonsoft.Json;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
 
     public class CentralCertificates
     {
         private static readonly string CERTIFICATES_API_PATH = $"{Configuration.TEST_SERVER_URL}/api/certificates";
         private static readonly string STORES_API_PATH = $"{Configuration.TEST_SERVER_URL}/api/certificates/stores";
-        private static readonly string FOLDER_PATH = Path.Combine(Environment.ExpandEnvironmentVariables("%iis_admin_solution_dir%"), "test", FOLDER_NAME);
+        private static readonly string FOLDER_PATH = Path.Combine(Configuration.TEST_ROOT_PATH, FOLDER_NAME);
         private const string NAME = "IIS Central Certificate Store";
         private const string FOLDER_NAME = "CentralCertStore";
-        private const string USER_NAME = "IisAdminCcsTestR";
-        private const string USER_PASS = "IisAdmin*12@";
         private const string CERT_NAME = "IISAdminLocalTest";
         private const string PVK_PASS = "abcdefg";
         private ITestOutputHelper _output;
@@ -34,27 +34,39 @@ namespace Microsoft.IIS.Administration.Tests
             _output = output;
         }
 
-        [Fact]
-        public void CanEnable()
-        {
-            RequireCcsTestInfrastructure();
-            Assert.True(Disable());
-            Assert.True(Enable(FOLDER_PATH, USER_NAME, USER_PASS, PVK_PASS));
+        public static string CcsTestUsername {
+            get {
+                return Configuration.Raw.Value<string>("ccs_user") ?? "IisAdminCcsTestR";
+            }
         }
 
         [Fact]
-        public void PathMustBeAllowed()
+        public async Task CanEnable()
+        {
+            RequireCcsTestInfrastructure();
+            CcsUser user = await CcsUser.Get();
+
+            Assert.True(Disable());
+            Assert.True(Enable(FOLDER_PATH, user.Username, user.Password, PVK_PASS));
+        }
+
+        [Fact]
+        public async Task PathMustBeAllowed()
         {
             RequireCcsTestInfrastructure();
             const string path = @"C:\Not\Allowed\Path";
 
             Assert.True(Disable());
 
-            dynamic ccsInfo = new {
+            CcsUser user = await CcsUser.Get();
+
+            dynamic ccsInfo = new
+            {
                 path = path,
-                identity = new {
-                    username = USER_NAME,
-                    password = USER_PASS
+                identity = new
+                {
+                    username = user.Username,
+                    password = user.Password
                 },
                 private_key_password = PVK_PASS
             };
@@ -63,7 +75,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject webserver = client.Get($"{Configuration.TEST_SERVER_URL}/api/webserver/");
                 string ccsLink = Utils.GetLink(webserver, "central_certificates");
                 HttpResponseMessage res = client.PostRaw(ccsLink, (object)ccsInfo);
-                Assert.True((int) res.StatusCode == 403);
+                Assert.True((int)res.StatusCode == 403);
             }
         }
 
@@ -73,10 +85,12 @@ namespace Microsoft.IIS.Administration.Tests
             RequireCcsTestInfrastructure();
             Assert.True(Disable());
 
-            dynamic ccsInfo = new {
+            dynamic ccsInfo = new
+            {
                 path = FOLDER_PATH,
-                identity = new {
-                    username = USER_NAME,
+                identity = new
+                {
+                    username = CcsTestUsername,
                     password = "fgsfds"
                 },
                 private_key_password = PVK_PASS
@@ -94,22 +108,26 @@ namespace Microsoft.IIS.Administration.Tests
         }
 
         [Fact]
-        public void DynamicallyAddsToStores()
+        public async Task DynamicallyAddsToStores()
         {
             RequireCcsTestInfrastructure();
+            CcsUser user = await CcsUser.Get();
+
             Assert.True(Disable());
             Assert.False(GetStores().Any(store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase)));
-            Assert.True(Enable(FOLDER_PATH, USER_NAME, USER_PASS, PVK_PASS));
+            Assert.True(Enable(FOLDER_PATH, user.Username, user.Password, PVK_PASS));
             Assert.True(GetStores().Any(store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase)));
             Assert.True(Disable());
             Assert.False(GetStores().Any(store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase)));
         }
 
         [Fact]
-        public void CcsCertificatesShown()
+        public async Task CcsCertificatesShown()
         {
             RequireCcsTestInfrastructure();
-            Assert.True(Enable(FOLDER_PATH, USER_NAME, USER_PASS, PVK_PASS));
+            CcsUser user = await CcsUser.Get();
+
+            Assert.True(Enable(FOLDER_PATH, user.Username, user.Password, PVK_PASS));
             Assert.True(GetCertificates().Any(cert => {
                 return cert.Value<string>("alias").Equals(CERT_NAME + ".pfx") &&
                     cert.Value<JObject>("store").Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase);
@@ -117,10 +135,12 @@ namespace Microsoft.IIS.Administration.Tests
         }
 
         [Fact]
-        public void CanCreateCcsBinding()
+        public async Task CanCreateCcsBinding()
         {
             RequireCcsTestInfrastructure();
-            Assert.True(Enable(FOLDER_PATH, USER_NAME, USER_PASS, PVK_PASS));
+            CcsUser user = await CcsUser.Get();
+
+            Assert.True(Enable(FOLDER_PATH, user.Username, user.Password, PVK_PASS));
 
             JObject site;
             const string siteName = "CcsBindingTestSite";
@@ -175,9 +195,11 @@ namespace Microsoft.IIS.Administration.Tests
 
         private bool Enable(string physicalPath, string username, string password, string privateKeyPassword)
         {
-            dynamic ccsInfo = new {
+            dynamic ccsInfo = new
+            {
                 path = physicalPath,
-                identity = new {
+                identity = new
+                {
                     username = username,
                     password = password
                 },
@@ -187,7 +209,7 @@ namespace Microsoft.IIS.Administration.Tests
             using (var client = ApiHttpClient.Create()) {
                 JObject webserver = client.Get($"{Configuration.TEST_SERVER_URL}/api/webserver/");
                 string ccsLink = Utils.GetLink(webserver, "central_certificates");
-                return client.Post(ccsLink, (object) ccsInfo) != null;
+                return client.Post(ccsLink, (object)ccsInfo) != null;
             }
         }
 
@@ -236,11 +258,6 @@ namespace Microsoft.IIS.Administration.Tests
                 _output.WriteLine("Ccs test certificates not found");
                 throw new Exception();
             }
-
-            if (!LocalUserExists(USER_NAME, USER_PASS)) {
-                _output.WriteLine("Ccs test user not found");
-                throw new Exception();
-            }
         }
 
         private static bool LocalUserExists(string username, string password)
@@ -274,6 +291,9 @@ namespace Microsoft.IIS.Administration.Tests
             token.Dispose();
             return loggedOn;
         }
+
+
+
     }
 
     class Interop
@@ -296,5 +316,57 @@ namespace Microsoft.IIS.Administration.Tests
             IntPtr ppProfileBuffer,
             IntPtr pdwProfileLength,
             IntPtr pQuotaLimits);
+    }
+
+    class CcsUser
+    {
+        private CcsUser() { }
+
+        public string Username { get; set; }
+        public string Password { get; set; }
+
+        public static async Task<CcsUser> Get()
+        {
+            var user = new CcsUser();
+
+            user.Username = CentralCertificates.CcsTestUsername;
+            user.Password = Guid.NewGuid().ToString();
+
+            await CreateLocalUser(user.Username, user.Password);
+
+            return user;
+        }
+
+        private static Task CreateLocalUser(string username, string password)
+        {
+            // User creation already implemented in powershell install scripts, vs many interop calls
+            return RunProcess("PowerShell.exe", $@"""c:\\src\\repos\\iis.administration\\scripts\tests\\Create-User.ps1"" -Name '{username}' -Password '{password}'");
+        }
+
+        private static Task RunProcess(string tool, string arguments)
+        {
+            ProcessStartInfo info = new ProcessStartInfo(tool, arguments);
+
+            Process p = new Process()
+            {
+                StartInfo = info,
+                EnableRaisingEvents = true
+            };
+
+            var tcs = new TaskCompletionSource<int>();
+
+            p.Exited += (sender, args) => {
+                if (p.ExitCode != 0) {
+                    tcs.SetException(new Exception($"Process exited with an error: {p.ExitCode}"));
+                }
+                else {
+                    tcs.SetResult(p.ExitCode);
+                }
+                p.Dispose();
+            };
+
+            p.Start();
+            return tcs.Task;
+        }
     }
 }

@@ -384,6 +384,15 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             // Server Auto Start
             site.ServerAutoStart = DynamicHelper.To<bool>(model.server_auto_start) ?? site.ServerAutoStart;
 
+            //
+            // Key
+            long? key = DynamicHelper.To<long>(model.key);
+            if (key.HasValue) {
+                if (ManagementUnit.ServerManager.Sites.Any(s => s.Id == key.Value && site.Id != key.Value)) {
+                    throw new AlreadyExistsException("key");
+                }
+                site.Id = key.Value;
+            }
 
             //
             // Physical Path

@@ -31,10 +31,6 @@ Param(
     $SkipVerification,
 
     [parameter()]
-    [bool]
-    $SkipIisAdministrators,
-
-    [parameter()]
     [switch]
     $DontCopy
 )
@@ -85,68 +81,7 @@ function InstallationPreparationCheck
 {
     Write-Host "Checking installation requirements"
 
-    if (!$SkipVerification) {        
-        Write-Verbose "Verifying IIS is enabled"
-        $iisInstalled = .\dependencies.ps1 IisEnabled
-        if (!$iisInstalled) {
-            Write-Warning "IIS-WebServer not enabled"
-			Write-Host "Enabling IIS"
-			try {
-                .\dependencies.ps1 EnableIis
-			}
-			catch {
-				Write-Warning "Could not enable IIS"
-				throw $_
-			}
-        }
-        Write-Verbose "Ok"
-        Write-Verbose "Verifying Windows Authentication is Enabled"
-        $winAuthEnabled = .\dependencies.ps1 WinAuthEnabled
-        if (!$winAuthEnabled) {
-            Write-Warning "IIS-WindowsAuthentication not enabled"
-            Write-Host "Enabling IIS Windows Authentication"
-            try {
-                .\dependencies.ps1 EnableWinAuth
-            }
-            catch {
-				Write-Warning "Could not enable IIS Windows Authentication"
-				throw $_
-            }
-        }
-        Write-Verbose "Ok"
-        Write-Verbose "Verifying URL Authorization is Enabled"
-        $urlAuthEnabled = .\dependencies.ps1 UrlAuthEnabled
-        if (!$urlAuthEnabled) {
-            Write-Warning "IIS-URLAuthorization not enabled"
-			Write-Host "Enabling IIS URL Authorization"
-			try {
-                .\dependencies.ps1 EnableUrlAuth
-			}
-			catch {
-				Write-Warning "Could not enable IIS URL Authorization"
-				throw $_
-			}
-        }
-        Write-Verbose "Ok"
-        Write-Verbose "Verifying IIS-HostableWebCore is Enabled"
-        try {
-            $hostableWebCoreEnabled = .\dependencies.ps1 HostableWebCoreEnabled
-        }
-        catch {
-            # Assume disabled if unable to determine state
-            $hostableWebCoreEnabled = $false
-        }
-        if (!$hostableWebCoreEnabled) {
-            Write-Warning "IIS-HostableWebCore not enabled"
-			Write-Host "Enabling IIS Hostable Web Core"
-			try {
-				.\dependencies.ps1 EnableHostableWebCore
-			}
-			catch {
-				Write-Warning "Could not enable IIS Hostable Web Core"
-				throw $_
-			}
-        }
+    if (!$SkipVerification) { 
         Write-Verbose "Ok"
         # We require.NET 3.5 for JSON manipulation if it isn't available through built in powershell commands
         if ($(Get-Command "ConvertFrom-Json" -ErrorAction SilentlyContinue) -eq $null) {
@@ -172,9 +107,8 @@ function InstallationPreparationCheck
 		    Write-Verbose "Ok"
         }
     }
-    # Shared framework and ANCM
-    .\require.ps1 DotNetServerHosting
-    .\require.ps1 VCRuntime
+    # Shared framework
+    .\require.ps1 Dotnet
 
 	Write-Verbose "Checking if port `'$Port`' is available"
     $available = .\net.ps1 IsAvailable -Port $Port
@@ -183,16 +117,6 @@ function InstallationPreparationCheck
     }
     else {
         Write-Verbose "Not available"
-    } 
-
-    if (!$SkipIisAdministrators) {
-        Write-Verbose "Verifying that IIS Administrators group does not already exist"
-        $group = .\security.ps1 GetLocalGroup -Name $(.\globals.ps1 IISAdministratorsGroupName)
-
-        # It is okay if IIS Administrators group already exists if it is our group
-        if ($group -ne $null -and (-not (.\security.ps1 GroupEquals -Group $group -Name $(.\globals.ps1 IISAdministratorsGroupName) -Description $(.\globals.ps1 IISAdministratorsDescription) ))) {
-            throw "IIS Administrators group already exists."
-        }
     }
 
     Write-Host "Installation Requirements met"
@@ -220,6 +144,14 @@ function rollback() {
         }
 
         sc.exe delete "$($rollbackStore.createdService)" | Out-Null
+    }
+
+    #
+    # Revert acls to allow removal of files
+    if ($rollbackStore.setAclsPath -ne $null) {
+        $system = New-Object System.Security.Principal.SecurityIdentifier([System.Security.Principal.WellKnownSidType]::LocalSystemSid, $null)
+        .\security.ps1 Add-FullControl -Path $rollbackStore.setAclsPath -Identity $system -Recurse
+        .\security.ps1 Add-SelfRights -Path $rollbackStore.setAclsPath -Recurse
     }
 
     #
@@ -299,14 +231,6 @@ function rollback() {
     }
 
     #
-    # Remove IIS Administrators group if we created it
-    if ($rollbackStore.iisAdministratorsGroup -ne $null) {
-        Write-Host "Rolling back IIS Administrators group creation" 
-
-        .\security.ps1 RemoveLocalGroup -Name $rollbackStore.iisAdministratorsGroup
-    }
-
-    #
     # Restart the existing service if we stopped it
     if ($rollbackStore.stoppedOldService -ne $null) {    
 		
@@ -354,7 +278,7 @@ function Install
 {
     $rollbackStore = GetRollbackStore
 
-    # Mark the location that the service will be copied too
+    # Mark the location that the service will be copied to
     $adminRoot = Join-Path $Path $Version
     $rollbackStore.adminRoot = $adminRoot
 
@@ -418,7 +342,6 @@ function Install
     if (-not($DontCopy)) {
         Write-Host "Copying files"
         try {
-            Copy-Item -Recurse -Force (Join-Path $DistributablePath host) $adminRoot -ErrorAction Stop
             Copy-Item -Recurse -Force (Join-Path $DistributablePath Microsoft.IIS.Administration) $adminRoot -ErrorAction Stop
             Copy-Item -Recurse -Force (Join-Path $DistributablePath setup) $adminRoot -ErrorAction Stop
         }
@@ -428,27 +351,7 @@ function Install
         }
     }
 
-    # applicationHost.config must be configured on install for proper loading of the API
-    $appHostPath = Join-Path $adminRoot host\applicationHost.config
-
-    # The application path needs to be logged in the applicationHost.config
-    $appPath = Join-Path $adminRoot Microsoft.IIS.Administration
-
-    # Configure applicationHost.config based on install parameters
-    .\config.ps1 Write-AppHost -AppHostPath $appHostPath -ApplicationPath $appPath -Port $Port -Version $Version
-
-    if (!$SkipIisAdministrators) {
-        $group = .\security.ps1 GetLocalGroup -Name $(.\globals.ps1 IISAdministratorsGroupName)
-    
-        if ($group -eq $null) {
-            $group = .\security.ps1 CreateLocalGroup -Name $(.\globals.ps1 IISAdministratorsGroupName) -Description $(.\globals.ps1 IISAdministratorsDescription)
-            $rollbackStore.iisAdministratorsGroup = $group
-        }
-
-        # Add the user running the installer to the IIS Administrators group
-        $currentUser = .\security.ps1 CurrentAdUser
-        .\security.ps1 AddUserToGroup -AdPath $currentUser -Group $group
-    }
+    .\config.ps1 Write-AppSettings -Port $Port -AppSettingsPath (Join-Path $adminRoot "Microsoft.IIS.Administration\config\appsettings.json")
 
     # Need a cert to bind to the port the API is supposed to listen on
     $cert = $null
@@ -510,20 +413,15 @@ function Install
 
     Write-Verbose "Binding Certificate to port $Port in HTTP.Sys"
 
-    .\net.ps1 BindCert -Hash $cert.thumbprint -Port $Port -AppId $(.\globals.ps1 IIS_HWC_APP_ID)  | Out-Null
+    .\net.ps1 BindCert -Hash $cert.thumbprint -Port $Port -AppId $(.\globals.ps1 IIS_ADMINISTRATION_APP_ID)  | Out-Null
     $rollbackStore.newBoundCertPort = $Port
 
     # Construct an access rule that allows full control for Administrators
     .\security.ps1 Set-Acls -Path $adminRoot
-
-    $platform = "OneCore"
-    if (!$(.\globals.ps1 ONECORE)) {
-        $platform = "Win32"
-    }
+    $rollbackStore.setAclsPath = $adminRoot
 
     # Register the Self Host exe as a service
-    $svcExePath = Join-Path $adminRoot "host\$platform\x64\Microsoft.IIS.Host.exe"
-    sc.exe create "$ServiceName" depend= http binpath= "$svcExePath -appHostConfig:\`"$appHostPath\`" -serviceName:\`"$ServiceName\`"" start= auto
+    .\services.ps1 Create-IisAdministration -Name $ServiceName -Path $adminRoot
     $rollbackStore.createdService = $ServiceName
 
 	try {

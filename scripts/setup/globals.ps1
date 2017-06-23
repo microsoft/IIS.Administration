@@ -7,14 +7,13 @@ Param (
     [ValidateSet("ONECORE",
                  "DEFAULT_ADMIN_ROOT_NAME",
                  "DEFAULT_INSTALL_PATH",
-                 "IIS_HWC_APP_ID",
+                 "DEFAULT_PORT",
+                 "IIS_ADMINISTRATION_APP_ID",
                  "INSTALL_METHOD_KEY",
                  "INSTALL_METHOD_VALUE",
                  "DEFAULT_SERVICE_NAME",
                  "SERVICE_DESCRIPTION",
-                 "CERT_NAME",
-                 "IISAdministratorsGroupName",
-                 "IISAdministratorsDescription")]
+                 "CERT_NAME")]
     [string]
     $Command
 )
@@ -36,10 +35,14 @@ switch ($Command)
     {
         return Join-Path $env:ProgramFiles $(.\globals.ps1 DEFAULT_ADMIN_ROOT_NAME)
     }
-    # Application id for IIS Hostable Web Core
-    "IIS_HWC_APP_ID"
+    "DEFAULT_PORT"
     {
-        return "{4dc3e181-e14b-4a21-b022-59fc669b0914}"
+        return 55539
+    }
+    # Application id for IIS Administration API
+    "IIS_ADMINISTRATION_APP_ID"
+    {
+        return "{96486158-833e-4332-9432-18de8f5e66b4}"
     }
     # Key for retrieving the installation strategy used
     "INSTALL_METHOD_KEY"
@@ -67,15 +70,6 @@ switch ($Command)
     "CERT_NAME"
     {
         return "Microsoft IIS Administration Server Certificate"
-    }
-    # Application administrators group
-    "IISAdministratorsGroupName"
-    {
-        return "IIS Administrators"
-    }
-    "IISAdministratorsDescription"
-    {
-        return "Members of this group have complete and unrestricted access to all features of IIS."
     }
     default
     {

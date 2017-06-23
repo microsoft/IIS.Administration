@@ -13,6 +13,8 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
     using System.Threading.Tasks;
     using Web.Administration;
 
+
+    [RequireWebServer]
     public class LoggingController : ApiBaseController
     {
         private const string DISPLAY_NAME = "IIS Logging Tools";

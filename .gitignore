@@ -214,6 +214,8 @@ _Pvt_Extensions
 
 **logs/
 **/api-keys.json
+**/appsettings.json
+**/modules.json
 **plugins/
 **publishoutput/
 src/*/wwwroot/lib

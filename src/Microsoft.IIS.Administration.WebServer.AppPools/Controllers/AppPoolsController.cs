@@ -14,9 +14,19 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
     using Web.Administration;
     using Core.Http;
     using System;
+    using Microsoft.AspNetCore.Authorization;
+    using System.Threading.Tasks;
 
+
+    [RequireWebServer]
     public class AppPoolsController : ApiBaseController {
-        private const string HIDDEN_FIELDS = "model.identity.password";
+        private const string AUDIT_FIELDS = "*,model.recycling.log_events.private_memory,model.recycling.periodic_restart.private_memory";
+        private const string MASKED_FIELDS = "model.identity.password";
+        private IAuthorizationService _authorization;
+
+        public AppPoolsController(IAuthorizationService svc) {
+            _authorization = svc;
+        }
 
         [HttpGet]
         [ResourceInfo(Name = Defines.AppPoolsName)]
@@ -52,14 +62,16 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
         }
 
         [HttpPost]
-        [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
+        [Audit(fields: AUDIT_FIELDS, maskedFields: MASKED_FIELDS)]
         [ResourceInfo(Name = Defines.AppPoolName)]
-        public object Post([FromBody]dynamic model)
+        public async Task<object> Post([FromBody]dynamic model)
         {
             // Create AppPool
             ApplicationPool pool = AppPoolHelper.CreateAppPool(model);
 
-            EnsureAppPoolIdentityAllowed(pool);
+            if (!await IsAppPoolIdentityAllowed(pool)) {
+                return null;
+            }
 
             // Save it
             ManagementUnit.ServerManager.ApplicationPools.Add(pool);
@@ -80,7 +92,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
         }
 
         [HttpDelete]
-        [Audit]
+        [Audit(fields: AUDIT_FIELDS, maskedFields: MASKED_FIELDS)]
         public void Delete(string id)
         {
             string name = AppPoolId.CreateFromUuid(id).Name;
@@ -98,9 +110,9 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
 
 
         [HttpPatch]
-        [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
+        [Audit(fields: AUDIT_FIELDS, maskedFields: MASKED_FIELDS)]
         [ResourceInfo(Name = Defines.AppPoolName)]
-        public object Patch(string id, [FromBody] dynamic model)
+        public async Task<object> Patch(string id, [FromBody] dynamic model)
         {
             // Cut off the notion of uuid from beginning of request
             string name = AppPoolId.CreateFromUuid(id).Name;
@@ -111,8 +123,8 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
                 return NotFound();
             }
 
-            if (model.identity != null) {
-                EnsureAppPoolIdentityAllowed(appPool);
+            if (model.identity != null && !await IsAppPoolIdentityAllowed(appPool)) {
+                return new ForbidResult();
             }
 
             // Start/Stop
@@ -172,17 +184,12 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             return Status.Unknown;
         }
 
-        private void EnsureAppPoolIdentityAllowed(ApplicationPool pool) {
+        private async Task<bool> IsAppPoolIdentityAllowed(ApplicationPool pool) {
             if (pool.ProcessModel.IdentityType != ProcessModelIdentityType.LocalSystem) {
-                return;
+                return true;
             }
 
-            //
-            // Only admins can set up LocalSystem AppPool identity
-
-            if (!User.IsInRole("Administrators")) {
-                throw new UnauthorizedArgumentException("identity.identity_type");
-            }
+            return await _authorization.AuthorizeAsync(Context.User, null, "system");
         }
     }
 }

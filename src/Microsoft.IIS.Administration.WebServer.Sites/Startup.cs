@@ -27,6 +27,12 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             // Provide hypermedia for other plugins
             hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}" });
             hal.ProvideLink(AppPools.Defines.Resource.Guid, Defines.Resource.Name, pool => new { href = $"/{Defines.PATH}?{AppPools.Defines.IDENTIFIER}={pool.id}" });
+
+            // Mark appropriate website fields as nonsensitive for resources that use site references
+            INonsensitiveAuditingFields nonsensitiveFields = (INonsensitiveAuditingFields)Environment.Host.ApplicationBuilder.ApplicationServices.GetService(typeof(INonsensitiveAuditingFields));
+            if (nonsensitiveFields != null) {
+                nonsensitiveFields.Add("website.key");
+            }
         }
     }
 }

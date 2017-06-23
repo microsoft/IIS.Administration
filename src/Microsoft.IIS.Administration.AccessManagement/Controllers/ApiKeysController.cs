@@ -8,7 +8,6 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
-    using System.Web.Http;
     using AspNetCore.Antiforgery;
     using AspNetCore.Authorization;
     using AspNetCore.Cors;
@@ -26,25 +25,21 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     //  CORs MUST be explicitly disabled
     //  AntiForgery MUST be applied
     /// </summary>
-    [Authorize]
+    [Authorize(Policy = "ApiKeys")]
     [DisableCors]
-    public class ApiKeysController : ApiBaseController {
+    public class ApiKeysController : ApiEdgeController {
         IApiKeyProvider _keyProvider;
 
         public ApiKeysController(IApiKeyProvider keyProvider) {
-            if (keyProvider == null) {
-                throw new ArgumentNullException(nameof(keyProvider));
-            }
-
-            _keyProvider = keyProvider;
+            _keyProvider = keyProvider ?? throw new ArgumentNullException(nameof(keyProvider));
         }
 
         [HttpGet]
         [ResourceInfo(Name = Defines.ApiKeysName)]
-        public object Get() {
+        public async Task<object> Get() {
             SetAntiForgeryTokens();
 
-            IEnumerable<ApiKey> keys = _keyProvider.GetAllKeys();
+            IEnumerable<ApiKey> keys = await _keyProvider.GetAllKeys();
 
             // Set HTTP header for total count
             Context.Response.SetItemsCount(keys.Count());
