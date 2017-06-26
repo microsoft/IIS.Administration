@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Microsoft.IIS.Administration.WebServer.DirectoryBrowsing Class Library</Description>
-    <VersionPrefix>1.1.0</VersionPrefix>
+    <VersionPrefix>2.0.0</VersionPrefix>
     <Authors>Microsoft</Authors>
     <TargetFramework>netstandard1.6</TargetFramework>
     <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
