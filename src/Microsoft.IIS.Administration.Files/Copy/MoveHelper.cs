@@ -105,7 +105,8 @@ namespace Microsoft.IIS.Administration.Files
                 _fileService.CreateDirectory(dest);
             }
 
-            var tasks = new List<Task>();
+            var dirTasks = new List<Task>();
+            var fileTasks = new List<Task>();
             var children = Directory.EnumerateDirectories(source.Path, "*", SearchOption.AllDirectories);
 
             foreach (string dirPath in children) {
@@ -113,24 +114,25 @@ namespace Microsoft.IIS.Administration.Files
                 var destDirPath = Path.Combine(dest.Path, relative);
                 IFileInfo destDir = _fileService.GetDirectory(destDirPath);
 
-                tasks.Add(Task.Run(() => {
+                dirTasks.Add(Task.Run(() => {
                     if (!destDir.Exists) {
                         _fileService.CreateDirectory(destDir);
                     }
 
                     foreach (string filePath in Directory.EnumerateFiles(dirPath)) {
-                        tasks.Add(copyFile(_fileService.GetFile(filePath),
+                        fileTasks.Add(copyFile(_fileService.GetFile(filePath),
                                            _fileService.GetFile(Path.Combine(destDirPath, PathUtil.GetName(filePath)))));
                     }
                 }));
             }
 
             foreach (var filePath in Directory.EnumerateFiles(source.Path)) {
-                tasks.Add(copyFile(_fileService.GetFile(filePath),
+                fileTasks.Add(copyFile(_fileService.GetFile(filePath),
                                    _fileService.GetFile(Path.Combine(dest.Path, PathUtil.GetName(filePath)))));
             }
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(dirTasks);
+            await Task.WhenAll(fileTasks);
         }
 
         public MoveOperation Move(IFileInfo source, string dest, bool copy)

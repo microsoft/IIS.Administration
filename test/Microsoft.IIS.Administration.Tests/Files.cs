@@ -408,6 +408,7 @@ namespace Microsoft.IIS.Administration.Tests
                         res = client.GetAsync(Utils.Self(copyInfo)).Result;
                     } while (res.StatusCode == HttpStatusCode.OK);
 
+                    // Don't add code between copy end and verification so we can make sure files aren't being held
                     Assert.True(VerifyTestDirectory(physicalPath));
                     Assert.True(VerifyTestDirectory(destPhysicalPath));
                 }
