@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration.WebServer
 {
     using System;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using Web.Administration;
 
     public static class FeaturesUtility {
@@ -24,13 +25,21 @@ namespace Microsoft.IIS.Administration.WebServer
         }
 
         public static bool HasAnyGlobalModule() {
-            ServerManager sm = ManagementUnit.ServerManager;
 
-            var config = sm.GetApplicationHostConfiguration();
+            try {
+                ServerManager sm = ManagementUnit.ServerManager;
 
-            var section = config.GetSection("system.webServer/globalModules");
+                var config = sm.GetApplicationHostConfiguration();
 
-            return section != null && section.GetCollection().Count() > 0;
+                var section = config.GetSection("system.webServer/globalModules");
+
+                return section != null && section.GetCollection().Count() > 0;
+            }
+            catch (COMException) {
+                //
+                // If IIS is not installed, M.W.A. cannot be loaded (CLSID unregistered)
+                return false;
+            }
         }
     }
 }
