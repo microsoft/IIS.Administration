@@ -305,6 +305,13 @@ namespace Microsoft.IIS.Administration.Tests
 
                     Assert.NotNull(copyInfo);
 
+                    //
+                    // Wait for copy to finish
+                    HttpResponseMessage res = null;
+                    do {
+                        res = client.GetAsync(Utils.Self(copyInfo)).Result;
+                    } while (res.StatusCode == HttpStatusCode.OK);
+
                     var copyParent = new DirectoryInfo(physicalPath).Parent.FullName;
                     var copyPhysicalPath = Environment.ExpandEnvironmentVariables(copyInfo["file"].Value<string>("physical_path"));
 
