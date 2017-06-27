@@ -644,8 +644,18 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                         binding.SslFlags |= SslFlags.CentralCertStore;
                     }
 
-                    if (requireSni.HasValue && requireSni.Value && binding.Schema.HasAttribute(sslFlagsAttribute)) {
-                        binding.SslFlags |= SslFlags.Sni;
+                    if (requireSni.HasValue) {
+                        if (!binding.Schema.HasAttribute(sslFlagsAttribute)) {
+                            // throw on IIS 7.5 which does not have SNI support
+                            throw new ApiArgumentException("binding.require_sni", "SNI not supported on this machine");
+                        }
+
+                        if (requireSni.Value) {
+                            binding.SslFlags |= SslFlags.Sni;
+                        }
+                        else {
+                            binding.SslFlags &= ~SslFlags.Sni;
+                        }
                     }
                 }
 

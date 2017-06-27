@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.Tests
     using Core.Utils;
     using System.Net;
     using System.IO;
+    using System.Threading;
 
     public class Sites
     {
@@ -64,7 +65,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject site = CreateSite(client, TEST_SITE_NAME, TEST_PORT, Configuration.TEST_ROOT_PATH);
                 JObject cachedSite = new JObject(site);
 
-                WaitForStatus(client, site);
+                WaitForStatus(client, ref site);
 
                 Assert.True(site != null);
 
@@ -107,6 +108,8 @@ namespace Microsoft.IIS.Administration.Tests
                 Assert.True(client.Patch(Utils.Self(site), body, out result));
 
                 JObject newSite = JsonConvert.DeserializeObject<JObject>(result);
+
+                WaitForStatus(client, ref newSite);
 
                 Assert.True(Utils.JEquals<bool>(site, newSite, "server_auto_start"));
                 Assert.True(Utils.JEquals<string>(site, newSite, "physical_path"));
@@ -523,16 +526,17 @@ namespace Microsoft.IIS.Administration.Tests
             return Globals.Success(responseMessage);
         }
 
-        private void WaitForStatus(HttpClient client, JObject site)
+        private void WaitForStatus(HttpClient client, ref JObject site)
         {
             string res;
             int refreshCount = 0;
             while (site.Value<string>("status") == "unknown") {
                 refreshCount++;
-                if (refreshCount > 100) {
+                if (refreshCount > 500) {
                     throw new Exception();
                 }
 
+                Thread.Sleep(10);
                 client.Get(Utils.Self(site), out res);
                 site = JsonConvert.DeserializeObject<JObject>(res);
             }
