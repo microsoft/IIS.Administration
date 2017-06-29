@@ -39,6 +39,7 @@
     <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Sites\Microsoft.IIS.Administration.WebServer.Sites.csproj" />
     <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.SslSettings\Microsoft.IIS.Administration.WebServer.SslSettings.csproj" />
     <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.StaticContent\Microsoft.IIS.Administration.WebServer.StaticContent.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.UrlRewrite\Microsoft.IIS.Administration.WebServer.UrlRewrite.csproj" />
     <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.VirtualDirectories\Microsoft.IIS.Administration.WebServer.VirtualDirectories.csproj" />
     <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.WorkerProcesses\Microsoft.IIS.Administration.WebServer.WorkerProcesses.csproj" />
   </ItemGroup>

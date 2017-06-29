@@ -88,7 +88,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administratio
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Packager", "src\Packager\Packager\Packager.csproj", "{BA51ADAF-9335-471B-8786-0470CE358F93}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.UrlRewrite", "src\Microsoft.IIS.Administration.WebServer.UrlRewrite\Microsoft.IIS.Administration.WebServer.UrlRewrite.xproj", "{AE4B4D83-70CB-4194-82B1-57DF26279A47}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebServer.UrlRewrite", "src\Microsoft.IIS.Administration.WebServer.UrlRewrite\Microsoft.IIS.Administration.WebServer.UrlRewrite.csproj", "{AE4B4D83-70CB-4194-82B1-57DF26279A47}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
