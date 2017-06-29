@@ -114,7 +114,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
                 }
             }
             catch(FileLoadException e) {
-                throw new LockedException(mainSection.SectionPath+ "|" + dynamicSection.SectionPath, e);
+                throw new LockedException(mainSection.SectionPath + (hasDynamic ? "|" + dynamicSection.SectionPath : string.Empty), e);
             }
             catch (DirectoryNotFoundException e) {
                 throw new ConfigScopeNotFoundException(e);
