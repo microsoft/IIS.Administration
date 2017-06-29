@@ -4,6 +4,10 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
+    using Microsoft.IIS.Administration.Core;
+    using Microsoft.IIS.Administration.Core.Utils;
+    using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using Web.Administration;
 
@@ -16,7 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
         public static object ToJsonModel(Site site, string path)
         {
-            ServerVariablesId serverVariablesId = new ServerVariablesId(site?.Id, path);
+            RewriteId serverVariablesId = new RewriteId(site?.Id, path);
             var section = GetSection(site, path);
 
             var obj = new
@@ -28,7 +32,59 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 url_rewrite = RewriteHelper.ToJsonModelRef(site, path)
             };
 
-            return Core.Environment.Hal.Apply(Defines.ServerVariablesResource.Guid, obj);
+            return Environment.Hal.Apply(Defines.ServerVariablesResource.Guid, obj);
+        }
+
+        public static void UpdateFeatureSettings(dynamic model, Site site, string path, string configPath = null)
+        {
+            if (model == null) {
+                throw new ApiArgumentException("model");
+            }
+
+            AllowedServerVariablesSection section = ServerVariablesHelper.GetSection(site, path, configPath);
+
+            try {
+
+                if (model.server_variables != null) {
+                    IEnumerable<dynamic> variables = model.server_variables as IEnumerable<dynamic>;
+
+                    if (variables == null) {
+                        throw new ApiArgumentException("server_variables", ForbiddenArgumentException.EXPECTED_ARRAY);
+                    }
+
+                    List<string> variableList = new List<string>();
+
+                    // Validate all verbs provided
+                    foreach (dynamic variable in variables) {
+                        string var = DynamicHelper.Value(variable);
+
+                        if (string.IsNullOrEmpty(var)) {
+                            throw new ApiArgumentException("server_variables.item");
+                        }
+
+                        variableList.Add(var);
+                    }
+
+                    // Clear configuration's collection
+                    section.AllowedServerVariables.Clear();
+
+                    // Move from temp list to the configuration's collection
+                    variableList.ForEach(v => section.AllowedServerVariables.Add(v));
+                }
+
+
+                if (model.metadata != null) {
+                    DynamicHelper.If<OverrideMode>((object)model.metadata.override_mode, v => {
+                        section.OverrideMode = v;
+                    });
+                }
+            }
+            catch (FileLoadException e) {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
+            }
         }
 
         public static AllowedServerVariablesSection GetSection(Site site, string path, string configPath = null)

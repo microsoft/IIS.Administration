@@ -5,12 +5,17 @@
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
     using Core.Utils;
+    using Microsoft.IIS.Administration.Core;
+    using Newtonsoft.Json.Linq;
     using Sites;
     using System.Dynamic;
     using Web.Administration;
 
     static class RewriteHelper
     {
+        public const string DISPLAY_NAME = "IIS Url Rewrite";
+        public const string MODULE = "RewriteModule";
+
         private static readonly Fields RefFields = new Fields("id", "scope");
 
         public static string GetLocation(string id)
@@ -56,6 +61,26 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj, full);
+        }
+
+        public static RewriteId GetRewriteIdFromBody(dynamic model)
+        {
+            RewriteId rewriteId = null;
+
+            if (model.url_rewrite != null) {
+
+                if (!(model.url_rewrite is JObject)) {
+                    throw new ApiArgumentException("url_rewrite", ApiArgumentException.EXPECTED_OBJECT);
+                }
+
+                string id = DynamicHelper.Value(model.url_rewrite.id);
+
+                if (!string.IsNullOrEmpty(id)) {
+                    rewriteId = new RewriteId(id);
+                }
+            }
+
+            return rewriteId;
         }
     }
 }

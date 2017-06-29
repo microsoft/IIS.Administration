@@ -10,7 +10,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
         private InboundRuleCollection _rules;
         
-        public InboundRuleCollection Rules {
+        public InboundRuleCollection InboundRules {
             get {
                 if ((this._rules == null)) {
                     this._rules = ((InboundRuleCollection)(base.GetCollection(typeof(InboundRuleCollection))));

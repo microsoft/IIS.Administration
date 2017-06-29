@@ -6,36 +6,36 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
     using Web.Administration;
 
-    sealed class SetCollection : ConfigurationElementCollectionBase<SetElement> {
+    sealed class SetCollection : ConfigurationElementCollectionBase<ServerVariableAssignment> {
 
-        public SetElement Add(string name) {
-            SetElement element = this.CreateElement();
+        public ServerVariableAssignment Add(string name) {
+            ServerVariableAssignment element = this.CreateElement();
             element.Name = name;
             return base.Add(element);
         }
 
-        private SetElement AddCopy(SetElement source) {
-            SetElement element = CreateElement();
+        private ServerVariableAssignment AddCopy(ServerVariableAssignment source) {
+            ServerVariableAssignment element = CreateElement();
 
             CopyInfo(source, element);
 
             return Add(element);
         }
 
-        private static void CopyInfo(SetElement source, SetElement destination) {
+        private static void CopyInfo(ServerVariableAssignment source, ServerVariableAssignment destination) {
             ConfigurationHelper.CopyAttributes(source, destination);
 
             ConfigurationHelper.CopyMetadata(source, destination);
         }
 
         internal void CopyTo(SetCollection destination) {
-            foreach (SetElement element in this) {
+            foreach (ServerVariableAssignment element in this) {
                 destination.AddCopy(element);
             }
         }
 
-        protected override SetElement CreateNewElement(string elementTagName) {
-            return new SetElement();
+        protected override ServerVariableAssignment CreateNewElement(string elementTagName) {
+            return new ServerVariableAssignment();
         }
 
     }

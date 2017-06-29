@@ -6,8 +6,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
     using System;
 
+    // Keep public for resolution of enums from 'dynamic' types in helper classes i.e. DynamicHelper
     [Flags()]
-    enum FilterByTags {
+    public enum FilterByTags {
 
         None = 0,
 

@@ -8,14 +8,14 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
         protected override void CopyInfo(RuleElement source, RuleElement destination) {
             base.CopyInfo(source, destination);
-            InboundRuleElement sourceRuleElement = (InboundRuleElement)source;
-            InboundRuleElement destinationRuleElement = (InboundRuleElement)destination;
+            InboundRule sourceRuleElement = (InboundRule)source;
+            InboundRule destinationRuleElement = (InboundRule)destination;
 
-            sourceRuleElement.Sets.CopyTo(destinationRuleElement.Sets);
+            sourceRuleElement.ServerVariableAssignments.CopyTo(destinationRuleElement.ServerVariableAssignments);
         }
 
         protected override RuleElement CreateNewElement(string elementTagName) {
-            return new InboundRuleElement();
+            return new InboundRule();
         }
     }
 }

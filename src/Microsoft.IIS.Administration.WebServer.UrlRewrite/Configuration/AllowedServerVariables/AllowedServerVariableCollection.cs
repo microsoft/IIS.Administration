@@ -7,12 +7,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System;
     using Web.Administration;
 
-    sealed class AllowedServerVariableCollection : ConfigurationElementCollectionBase<AllowedServerVariableElement>
+    sealed class AllowedServerVariableCollection : ConfigurationElementCollectionBase<AllowedServerVariable>
     {
-        public new AllowedServerVariableElement this[string name] {
+        public new AllowedServerVariable this[string name] {
             get {
                 for (int i = 0; i < this.Count; i++) {
-                    AllowedServerVariableElement element = base[i];
+                    AllowedServerVariable element = base[i];
                     if ((string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase) == true)) {
                         return element;
                     }
@@ -21,14 +21,14 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
-        protected override AllowedServerVariableElement CreateNewElement(string elementTagName)
+        protected override AllowedServerVariable CreateNewElement(string elementTagName)
         {
-            return new AllowedServerVariableElement();
+            return new AllowedServerVariable();
         }
 
-        public AllowedServerVariableElement Add(string name)
+        public AllowedServerVariable Add(string name)
         {
-            AllowedServerVariableElement element = this.CreateElement();
+            AllowedServerVariable element = this.CreateElement();
             element.Name = name;
             return base.Add(element);
         }

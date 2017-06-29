@@ -21,7 +21,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             ConfigureUrlRewrite();
             ConfigureServerVariables();
             ConfigureInboundRules();
-            ConfigureInboundRuleEntries();
         }
 
         private void ConfigureUrlRewrite()
@@ -35,7 +34,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             // Web Server
             Environment.Hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => {
-                var id = GetRequestFilteringId(null, null);
+                var id = GetRewriteId(null, null);
                 return new { href = RewriteHelper.GetLocation(id.Uuid) };
             });
 
@@ -43,7 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             Environment.Hal.ProvideLink(Sites.Defines.Resource.Guid, Defines.Resource.Name, site => {
                 var siteId = new SiteId((string)site.id);
                 Site s = SiteHelper.GetSite(siteId.Id);
-                var id = GetRequestFilteringId(s, "/");
+                var id = GetRewriteId(s, "/");
                 return new { href = RewriteHelper.GetLocation(id.Uuid) };
             });
 
@@ -51,7 +50,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             Environment.Hal.ProvideLink(Applications.Defines.Resource.Guid, Defines.Resource.Name, app => {
                 var appId = new ApplicationId((string)app.id);
                 Site s = SiteHelper.GetSite(appId.SiteId);
-                var id = GetRequestFilteringId(s, appId.Path);
+                var id = GetRewriteId(s, appId.Path);
                 return new { href = RewriteHelper.GetLocation(id.Uuid) };
             });
         }
@@ -60,47 +59,29 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         {
             Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ServerVariablesResource.Guid, $"{Defines.SERVER_VARIABLES_PATH}/{{id?}}", new { controller = "ServerVariables" });
 
-            // Self
+            // Server Variables -> Self
             Environment.Hal.ProvideLink(Defines.ServerVariablesResource.Guid, "self", sv => new { href = ServerVariablesHelper.GetLocation(sv.id) });
 
-            // Rewrite
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.ServerVariablesResource.Name, rewrite => {
-                var rewriteId = new RewriteId((string)rewrite.id);
-                var id = new ServerVariablesId(rewriteId.SiteId, rewriteId.Path);
-                return new { href = ServerVariablesHelper.GetLocation(id.Uuid) };
-            });
+            // Rewrite -> Server Variables
+            Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.ServerVariablesResource.Name, rewrite => new { href = ServerVariablesHelper.GetLocation(rewrite.id) });
         }
 
         private void ConfigureInboundRules()
         {
             Environment.Host.RouteBuilder.MapWebApiRoute(Defines.InboundRulesSectionResource.Guid, $"{Defines.INBOUND_RULES_SECTION_PATH}/{{id?}}", new { controller = "InboundRulesSection" });
-
-            // Self
-            Environment.Hal.ProvideLink(Defines.InboundRulesSectionResource.Guid, "self", ir => new { href = InboundRulesHelper.GetSectionLocation(ir.id) });
-
-            // Rewrite
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.InboundRulesSectionResource.Name, rewrite => {
-                var rewriteId = new RewriteId((string)rewrite.id);
-                var id = new InboundRulesSectionId(rewriteId.SiteId, rewriteId.Path);
-                return new { href = InboundRulesHelper.GetSectionLocation(id.Uuid) };
-            });
-        }
-
-        private void ConfigureInboundRuleEntries()
-        {
             Environment.Host.RouteBuilder.MapWebApiRoute(Defines.InboundRulesResource.Guid, $"{Defines.INBOUND_RULES_PATH}/{{id?}}", new { controller = "InboundRules" });
 
-            // Self
+            Environment.Hal.ProvideLink(Defines.InboundRulesSectionResource.Guid, "self", ir => new { href = InboundRulesHelper.GetSectionLocation(ir.id) });
             Environment.Hal.ProvideLink(Defines.InboundRulesResource.Guid, "self", ir => new { href = InboundRulesHelper.GetRuleLocation(ir.id) });
 
-            // Section
-            Environment.Hal.ProvideLink(Defines.InboundRulesSectionResource.Guid, Defines.InboundRulesResource.Name, inboundRulesSection => {
-                var inboundRulesId = new InboundRulesSectionId((string)inboundRulesSection.id);
-                return new { href = $"{Defines.INBOUND_RULES_PATH}?{Defines.INBOUND_RULES_SECTION_IDENTIFIER}={inboundRulesId.Uuid}" };
-            });
+            // Rewrite -> Section
+            Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.InboundRulesSectionResource.Name, rewrite => new { href = InboundRulesHelper.GetSectionLocation(rewrite.id) });
+
+            // Section -> Rules
+            Environment.Hal.ProvideLink(Defines.InboundRulesSectionResource.Guid, Defines.InboundRulesResource.Name, inboundRulesSection =>  new { href = $"{Defines.INBOUND_RULES_PATH}?{Defines.INBOUND_RULES_SECTION_IDENTIFIER}={inboundRulesSection.id}" });
         }
 
-        private RewriteId GetRequestFilteringId(Site s, string path)
+        private RewriteId GetRewriteId(Site s, string path)
         {
             return new RewriteId(s?.Id, path);
         }

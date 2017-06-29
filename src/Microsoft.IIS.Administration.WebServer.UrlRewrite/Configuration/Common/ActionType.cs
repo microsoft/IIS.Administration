@@ -4,7 +4,8 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    internal enum ActionType
+    // Keep public for resolution of enums from 'dynamic' types in helper classes i.e. DynamicHelper
+    public enum ActionType
     {
         None = 0,
         Rewrite = 1,

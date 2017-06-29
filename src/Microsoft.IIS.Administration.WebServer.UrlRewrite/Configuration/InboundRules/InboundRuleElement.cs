@@ -4,7 +4,7 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    sealed class InboundRuleElement : RuleElement {
+    sealed class InboundRule : RuleElement {
         private InboundActionElement _action;
         private InboundMatchElement _match;
         private SetCollection _sets;
@@ -27,7 +27,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
-        public SetCollection Sets {
+        public SetCollection ServerVariableAssignments {
             get {
                 if ((this._sets == null)) {
                     this._sets = ((SetCollection)(base.GetCollection("serverVariables", typeof(SetCollection))));

@@ -12,6 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System.Net;
     using Web.Administration;
 
+    [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
     public class InboundRulesSectionController : ApiBaseController
     {
         //
@@ -37,16 +38,16 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [ResourceInfo(Name = Defines.InboundRulesSectionName)]
         public object Get(string id)
         {
-            var inboundRulesSectionId = new InboundRulesSectionId(id);
+            var rewriteId = new RewriteId(id);
 
-            Site site = inboundRulesSectionId.SiteId == null ? null : SiteHelper.GetSite(inboundRulesSectionId.SiteId.Value);
+            Site site = rewriteId.SiteId == null ? null : SiteHelper.GetSite(rewriteId.SiteId.Value);
 
-            if (inboundRulesSectionId.SiteId != null && site == null) {
+            if (rewriteId.SiteId != null && site == null) {
                 Context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                 return null;
             }
 
-            return InboundRulesHelper.SectionToJsonModel(site, inboundRulesSectionId.Path);
+            return InboundRulesHelper.SectionToJsonModel(site, rewriteId.Path);
         }
     }
 }

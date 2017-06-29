@@ -6,7 +6,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
     using Web.Administration;
 
-    sealed class AllowedServerVariableElement : ConfigurationElement
+    sealed class AllowedServerVariable : ConfigurationElement
     {
         public string Name {
             get {

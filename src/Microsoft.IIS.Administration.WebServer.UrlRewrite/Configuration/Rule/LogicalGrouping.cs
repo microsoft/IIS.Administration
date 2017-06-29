@@ -4,7 +4,8 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    enum LogicalGrouping {
+    // Keep public for resolution of enums from 'dynamic' types in helper classes i.e. DynamicHelper
+    public enum LogicalGrouping {
         
         MatchAll = 0,
         

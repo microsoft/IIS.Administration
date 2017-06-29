@@ -4,7 +4,8 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    enum PatternSyntax
+    // Keep public for resolution of enums from 'dynamic' types in helper classes i.e. DynamicHelper
+    public enum PatternSyntax
     {
         ECMAScript = 0,
         Wildcard = 1,

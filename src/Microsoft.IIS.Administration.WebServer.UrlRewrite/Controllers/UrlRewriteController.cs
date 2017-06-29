@@ -12,6 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System.Net;
     using Web.Administration;
 
+    [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
     public class UrlRewriteController : ApiBaseController
     {
         [HttpGet]
