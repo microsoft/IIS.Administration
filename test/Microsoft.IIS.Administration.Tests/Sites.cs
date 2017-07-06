@@ -71,7 +71,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 site["server_auto_start"] = !site.Value<bool>("server_auto_start");
                 site["physical_path"] = Configuration.TEST_ROOT_PATH;
-                site["enabled_protocols"] = "test_protocol";
+                site["enabled_protocols"] = site.Value<string>("enabled_protocols").Equals("http", StringComparison.OrdinalIgnoreCase) ? "https" : "http";
 
                 // If site status is unknown then we don't know if it will be started or stopped when it becomes available
                 // Utilizing the defaults we assume it will go from unkown to started
