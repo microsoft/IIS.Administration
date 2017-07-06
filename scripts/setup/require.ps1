@@ -30,8 +30,12 @@ function Dotnet {
     elseif ($dotnet -ne $null) {
         $source = $dotnet.Definition
     }
+    
+    $dotnetSuffix = "dotnet\dotnet.exe"
+    $isInProgramFiles = $source -eq $(Join-Path $env:ProgramFiles $dotnetSuffix)
+    $isInProgramFilesx86 = $source -eq $(Join-Path ${env:ProgramFiles(x86)} $dotnetSuffix)
 
-    if(-not($source -eq $(Join-Path $env:ProgramFiles "dotnet\dotnet.exe"))) {
+    if(-not($isInProgramFiles) -and -not($isInProgramFilesx86)) {
         Write-Warning ".NET Core Shared Framework not installed"
         Write-Warning "Download the .NET Core Runtime (LTS) 'https://www.microsoft.com/net/download/core#/runtime'"
         throw ".NET Core required to continue"
