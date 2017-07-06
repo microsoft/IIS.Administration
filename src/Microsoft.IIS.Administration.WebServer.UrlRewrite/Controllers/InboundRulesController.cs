@@ -24,7 +24,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             string inboundRulesId = Context.Request.Query[Defines.INBOUND_RULES_SECTION_IDENTIFIER];
 
             if (string.IsNullOrEmpty(inboundRulesId)) {
-                return NotFound();
+                inboundRulesId = Context.Request.Query[Defines.IDENTIFIER];
             }
 
             if (string.IsNullOrEmpty(inboundRulesId)) {

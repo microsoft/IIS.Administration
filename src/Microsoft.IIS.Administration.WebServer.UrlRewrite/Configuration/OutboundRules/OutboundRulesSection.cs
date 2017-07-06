@@ -10,14 +10,14 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
         private TagsCollection _tags;
         
-        private PreConditionsCollection _preConditions;
+        private PreConditionCollection _preConditions;
         
         private OutboundRulesCollection _rules;
 
-        public PreConditionsCollection PreConditions {
+        public PreConditionCollection PreConditions {
             get {
                 if ((this._preConditions == null)) {
-                    this._preConditions = ((PreConditionsCollection)(base.GetCollection("preConditions", typeof(PreConditionsCollection))));
+                    this._preConditions = ((PreConditionCollection)(base.GetCollection("preConditions", typeof(PreConditionCollection))));
                 }
                 return this._preConditions;
             }

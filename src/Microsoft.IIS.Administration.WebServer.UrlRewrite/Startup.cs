@@ -21,6 +21,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             ConfigureUrlRewrite();
             ConfigureServerVariables();
             ConfigureInboundRules();
+            ConfigureOutboundRules();
         }
 
         private void ConfigureUrlRewrite()
@@ -68,17 +69,43 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
         private void ConfigureInboundRules()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.InboundRulesSectionResource.Guid, $"{Defines.INBOUND_RULES_SECTION_PATH}/{{id?}}", new { controller = "InboundRulesSection" });
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.InboundRulesResource.Guid, $"{Defines.INBOUND_RULES_PATH}/{{id?}}", new { controller = "InboundRules" });
+            var builder = Environment.Host.RouteBuilder;
+            var hal = Environment.Hal;
 
-            Environment.Hal.ProvideLink(Defines.InboundRulesSectionResource.Guid, "self", ir => new { href = InboundRulesHelper.GetSectionLocation(ir.id) });
-            Environment.Hal.ProvideLink(Defines.InboundRulesResource.Guid, "self", ir => new { href = InboundRulesHelper.GetRuleLocation(ir.id) });
+            builder.MapWebApiRoute(Defines.InboundRulesSectionResource.Guid, $"{Defines.INBOUND_RULES_SECTION_PATH}/{{id?}}", new { controller = "InboundRulesSection" });
+            builder.MapWebApiRoute(Defines.InboundRulesResource.Guid, $"{Defines.INBOUND_RULES_PATH}/{{id?}}", new { controller = "InboundRules" });
+
+            hal.ProvideLink(Defines.InboundRulesSectionResource.Guid, "self", ir => new { href = InboundRulesHelper.GetSectionLocation(ir.id) });
+            hal.ProvideLink(Defines.InboundRulesResource.Guid, "self", ir => new { href = InboundRulesHelper.GetRuleLocation(ir.id) });
 
             // Rewrite -> Section
-            Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.InboundRulesSectionResource.Name, rewrite => new { href = InboundRulesHelper.GetSectionLocation(rewrite.id) });
+            hal.ProvideLink(Defines.Resource.Guid, Defines.InboundRulesSectionResource.Name, rewrite => new { href = InboundRulesHelper.GetSectionLocation(rewrite.id) });
 
             // Section -> Rules
-            Environment.Hal.ProvideLink(Defines.InboundRulesSectionResource.Guid, Defines.InboundRulesResource.Name, inboundRulesSection =>  new { href = $"{Defines.INBOUND_RULES_PATH}?{Defines.INBOUND_RULES_SECTION_IDENTIFIER}={inboundRulesSection.id}" });
+            hal.ProvideLink(Defines.InboundRulesSectionResource.Guid, Defines.InboundRulesResource.Name, inboundRulesSection =>  new { href = $"{Defines.INBOUND_RULES_PATH}?{Defines.INBOUND_RULES_SECTION_IDENTIFIER}={inboundRulesSection.id}" });
+        }
+
+        private void ConfigureOutboundRules()
+        {
+            var builder = Environment.Host.RouteBuilder;
+            var hal = Environment.Hal;
+
+            builder.MapWebApiRoute(Defines.OutboundRulesSectionResource.Guid, $"{Defines.OUTBOUND_RULES_SECTION_PATH}/{{id?}}", new { controller = "OutboundRulesSection" });
+            builder.MapWebApiRoute(Defines.OutboundRulesResource.Guid, $"{Defines.OUTBOUND_RULES_PATH}/{{id?}}", new { controller = "OutboundRules" });
+            builder.MapWebApiRoute(Defines.PreConditionsResource.Guid, $"{Defines.PRECONDITIONS_PATH}/{{id?}}", new { controller = "PreConditions" });
+
+            hal.ProvideLink(Defines.OutboundRulesSectionResource.Guid, "self", ir => new { href = OutboundRulesHelper.GetSectionLocation(ir.id) });
+            hal.ProvideLink(Defines.OutboundRulesResource.Guid, "self", ir => new { href = OutboundRulesHelper.GetRuleLocation(ir.id) });
+            hal.ProvideLink(Defines.PreConditionsResource.Guid, "self", pc => new { href = OutboundRulesHelper.GetPreConditionLocation(pc.id) });
+
+            // Rewrite -> Section
+            hal.ProvideLink(Defines.Resource.Guid, Defines.OutboundRulesSectionResource.Name, rewrite => new { href = OutboundRulesHelper.GetSectionLocation(rewrite.id) });
+
+            // Section -> Rules
+            hal.ProvideLink(Defines.OutboundRulesSectionResource.Guid, Defines.OutboundRulesResource.Name, outboundRulesSection => new { href = $"{Defines.OUTBOUND_RULES_PATH}?{Defines.OUTBOUND_RULES_SECTION_IDENTIFIER}={outboundRulesSection.id}" });
+            
+            // Section -> PreConditions
+            hal.ProvideLink(Defines.OutboundRulesSectionResource.Guid, Defines.PreConditionsResource.Name, outboundRulesSection => new { href = $"{Defines.PRECONDITIONS_PATH}?{Defines.OUTBOUND_RULES_SECTION_IDENTIFIER}={outboundRulesSection.id}" });
         }
 
         private RewriteId GetRewriteId(Site s, string path)

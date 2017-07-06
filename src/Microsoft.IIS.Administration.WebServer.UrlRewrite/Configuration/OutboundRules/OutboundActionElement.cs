@@ -4,7 +4,7 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    sealed class OutboundActionElement : ActionElement {
+    sealed class OutboundAction : ActionElement {
 
         public string RewriteValue {
             get {

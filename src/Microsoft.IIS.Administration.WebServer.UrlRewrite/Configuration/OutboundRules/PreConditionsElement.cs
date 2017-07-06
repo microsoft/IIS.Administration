@@ -6,9 +6,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
     using Web.Administration;
 
-    sealed class PreConditionsElement : ConfigurationElement, IName {
+    sealed class PreCondition : ConfigurationElement, IName {
 
-        private ConditionCollection _preCondition;
+        private PreConditionConditionsCollection _preCondition;
 
         public string Name {
             get {
@@ -28,10 +28,19 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
-        public ConditionCollection PreCondition {
+        public LogicalGrouping LogicalGrouping {
+            get {
+                return ((LogicalGrouping)(base["logicalGrouping"]));
+            }
+            set {
+                base["logicalGrouping"] = ((int)(value));
+            }
+        }
+
+        public PreConditionConditionsCollection Conditions {
             get {
                 if ((this._preCondition == null)) {
-                    this._preCondition = ((ConditionCollection)(base.GetCollection(typeof(ConditionCollection))));
+                    this._preCondition = ((PreConditionConditionsCollection)(base.GetCollection(typeof(PreConditionConditionsCollection))));
                 }
                 return this._preCondition;
             }

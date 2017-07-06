@@ -4,23 +4,23 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    sealed class OutboundRuleElement : RuleElement {
-        private OutboundActionElement _action;
-        private OutboundMatchElement _match;
+    sealed class OutboundRule : RuleElement {
+        private OutboundAction _action;
+        private OutboundMatch _match;
 
-        public new OutboundActionElement Action {
+        public new OutboundAction Action {
             get {
                 if ((this._action == null)) {
-                    this._action = ((OutboundActionElement)(base.GetChildElement("action", typeof(OutboundActionElement))));
+                    this._action = ((OutboundAction)(base.GetChildElement("action", typeof(OutboundAction))));
                 }
                 return this._action;
             }
         }
 
-        public new OutboundMatchElement Match {
+        public new OutboundMatch Match {
             get {
                 if ((this._match == null)) {
-                    this._match = ((OutboundMatchElement)(base.GetChildElement("match", typeof(OutboundMatchElement))));
+                    this._match = ((OutboundMatch)(base.GetChildElement("match", typeof(OutboundMatch))));
                 }
                 return this._match;
             }

@@ -7,15 +7,15 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System;
     using Web.Administration;
 
-    sealed class PreConditionsCollection : ConfigurationElementCollectionBase<PreConditionsElement> {
+    sealed class PreConditionCollection : ConfigurationElementCollectionBase<PreCondition> {
 
-        public PreConditionsCollection() {
+        public PreConditionCollection() {
         }
 
-        public new PreConditionsElement this[string name] {
+        public new PreCondition this[string name] {
             get {
                 for (int i = 0; i < this.Count; i++) {
-                    PreConditionsElement element = base[i];
+                    PreCondition element = base[i];
                     if (string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase)) {
                         return element;
                     }
@@ -24,14 +24,14 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
-        public PreConditionsElement Add(string name) {
-            PreConditionsElement element = this.CreateElement();
+        public PreCondition Add(string name) {
+            PreCondition element = this.CreateElement();
             element.Name = name;
             return base.Add(element);
         }
 
-        protected override PreConditionsElement CreateNewElement(string elementTagName) {
-            return new PreConditionsElement();
+        protected override PreCondition CreateNewElement(string elementTagName) {
+            return new PreCondition();
         }
 
     }

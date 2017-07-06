@@ -1,26 +1,21 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
     using Applications;
-    using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Web.Administration;
     using Sites;
     using System.Net;
-    using Web.Administration;
 
-    [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
-    public class InboundRulesSectionController : ApiBaseController
+    public class OutboundRulesSectionController : ApiBaseController
     {
-        //
-        // ?rewrite.id={}
-        // & ?website.id={}&path=/abc/def
-        // & ?scope=default web site/abc/def
         [HttpGet]
-        [ResourceInfo(Name = Defines.InboundRulesSectionName)]
+        [ResourceInfo(Name = Defines.OutboundRulesSectionName)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -30,12 +25,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return NotFound();
             }
 
-            dynamic d = InboundRulesHelper.SectionToJsonModelRef(site, path);
-            return LocationChanged(InboundRulesHelper.GetSectionLocation(d.id), d);
+            dynamic d = OutboundRulesHelper.SectionToJsonModelRef(site, path);
+            return LocationChanged(OutboundRulesHelper.GetSectionLocation(d.id), d);
         }
 
         [HttpGet]
-        [ResourceInfo(Name = Defines.InboundRulesSectionName)]
+        [ResourceInfo(Name = Defines.OutboundRulesSectionName)]
         public object Get(string id)
         {
             var rewriteId = new RewriteId(id);
@@ -47,8 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return null;
             }
 
-            return InboundRulesHelper.SectionToJsonModel(site, rewriteId.Path);
+            return OutboundRulesHelper.SectionToJsonModel(site, rewriteId.Path);
         }
     }
 }
-

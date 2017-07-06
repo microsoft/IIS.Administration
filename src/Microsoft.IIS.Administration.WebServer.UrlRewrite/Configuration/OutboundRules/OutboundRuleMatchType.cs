@@ -4,11 +4,10 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    sealed class OutboundRulesCollection : RuleCollectionBase {
-
-        protected override RuleElement CreateNewElement(string elementTagName) {
-            return new OutboundRule();
-        }
+    // Keep public for resolution of enums from 'dynamic' types in helper classes i.e. DynamicHelper
+    public enum OutboundRuleMatchType {
+        ServerVariable,
+        HtmlTags
     }
 }
 

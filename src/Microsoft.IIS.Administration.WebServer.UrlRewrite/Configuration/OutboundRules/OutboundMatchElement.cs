@@ -4,7 +4,7 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    sealed class OutboundMatchElement : MatchElement {
+    sealed class OutboundMatch : MatchElement {
 
         public string CustomTags {
             get {
