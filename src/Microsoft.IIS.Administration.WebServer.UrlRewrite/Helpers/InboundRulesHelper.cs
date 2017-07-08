@@ -320,6 +320,29 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                                                  Globals.RulesSectionName);
         }
 
+        public static void UpdateSection(dynamic model, Site site, string path, string configPath = null)
+        {
+            if (model == null) {
+                throw new ApiArgumentException("model");
+            }
+
+            InboundRulesSection section = GetSection(site, path, configPath);
+
+            try {
+                if (model.metadata != null) {
+                    DynamicHelper.If<OverrideMode>((object)model.metadata.override_mode, v => {
+                        section.OverrideMode = v;
+                    });
+                }
+            }
+            catch (FileLoadException e) {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
+            }
+        }
+
         private static void SetRule(dynamic model, InboundRule rule, InboundRulesSection section)
         {
             if (model == null) {

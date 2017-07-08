@@ -4,18 +4,19 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    using Applications;
-    using Core;
-    using Core.Http;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.IIS.Administration.Core;
+    using Microsoft.IIS.Administration.Core.Http;
+    using Microsoft.IIS.Administration.WebServer.Applications;
+    using Microsoft.IIS.Administration.WebServer.Sites;
     using Microsoft.Web.Administration;
-    using Sites;
     using System.Net;
 
-    public class OutboundRulesSectionController : ApiBaseController
+    [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
+    public class RewriteMapsSectionController : ApiBaseController
     {
         [HttpGet]
-        [ResourceInfo(Name = Defines.OutboundRulesSectionName)]
+        [ResourceInfo(Name = Defines.RewriteMapsSectionName)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -25,12 +26,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return NotFound();
             }
 
-            dynamic d = OutboundRulesHelper.SectionToJsonModel(site, path);
-            return LocationChanged(OutboundRulesHelper.GetSectionLocation(d.id), d);
+            dynamic d = RewriteMapsHelper.SectionToJsonModel(site, path);
+            return LocationChanged(RewriteMapsHelper.GetSectionLocation(d.id), d);
         }
 
         [HttpGet]
-        [ResourceInfo(Name = Defines.OutboundRulesSectionName)]
+        [ResourceInfo(Name = Defines.RewriteMapsSectionName)]
         public object Get(string id)
         {
             var rewriteId = new RewriteId(id);
@@ -42,7 +43,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return null;
             }
 
-            return OutboundRulesHelper.SectionToJsonModel(site, rewriteId.Path);
+            return RewriteMapsHelper.SectionToJsonModel(site, rewriteId.Path);
         }
     }
 }

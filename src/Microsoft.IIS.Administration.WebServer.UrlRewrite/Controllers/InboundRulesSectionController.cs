@@ -15,10 +15,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
     public class InboundRulesSectionController : ApiBaseController
     {
-        //
-        // ?rewrite.id={}
-        // & ?website.id={}&path=/abc/def
-        // & ?scope=default web site/abc/def
         [HttpGet]
         [ResourceInfo(Name = Defines.InboundRulesSectionName)]
         public object Get()
@@ -30,7 +26,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return NotFound();
             }
 
-            dynamic d = InboundRulesHelper.SectionToJsonModelRef(site, path);
+            dynamic d = InboundRulesHelper.SectionToJsonModel(site, path);
             return LocationChanged(InboundRulesHelper.GetSectionLocation(d.id), d);
         }
 

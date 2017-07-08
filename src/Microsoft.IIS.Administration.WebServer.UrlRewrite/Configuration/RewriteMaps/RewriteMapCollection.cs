@@ -7,12 +7,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System;
     using Web.Administration;
 
-    sealed class RewriteMapCollection : ConfigurationElementCollectionBase<RewriteMapElement> {
+    sealed class RewriteMapCollection : ConfigurationElementCollectionBase<RewriteMap> {
         
-        public new RewriteMapElement this[string rewriteMapName] {
+        public new RewriteMap this[string rewriteMapName] {
             get {
                 for (int i = 0; i < Count; i++) {
-                    RewriteMapElement element = base[i];
+                    RewriteMap element = base[i];
                     if (String.Equals(rewriteMapName, element.Name, StringComparison.OrdinalIgnoreCase)) {
                         return element;
                     }
@@ -21,8 +21,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
-        protected override RewriteMapElement CreateNewElement(string elementTagName) {
-            return new RewriteMapElement();
+        protected override RewriteMap CreateNewElement(string elementTagName) {
+            return new RewriteMap();
         }
 
     }

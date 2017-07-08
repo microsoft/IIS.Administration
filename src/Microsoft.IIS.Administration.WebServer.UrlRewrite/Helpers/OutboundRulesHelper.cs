@@ -19,10 +19,16 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         public static readonly Fields SectionRefFields = new Fields("id", "scope");
         public static readonly Fields RuleRefFields = new Fields("name", "id");
         public static readonly Fields PreConditionRefFields = new Fields("name", "id");
+        public static readonly Fields CustomTagsRefFields = new Fields("name", "id");
 
         public static string GetSectionLocation(string id)
         {
             return $"/{Defines.OUTBOUND_RULES_SECTION_PATH}/{id}";
+        }
+
+        public static string GetCustomTagsLocation(string id)
+        {
+            return $"/{Defines.CUSTOM_TAGS_PATH}/{id}";
         }
 
         public static string GetPreConditionLocation(string id)
@@ -75,6 +81,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
+            // rewrite_before_cache
+            if (fields.Exists("rewrite_before_cache")) {
+                obj.rewrite_before_cache = section.RewriteBeforeCache;
+            }
+
+            //
             // url_rewrite
             if (fields.Exists("url_rewrite")) {
                 obj.url_rewrite = RewriteHelper.ToJsonModelRef(site, path);
@@ -97,6 +109,66 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return ManagementUnit.IsSectionLocal(site?.Id,
                                                  path,
                                                  Globals.OutboundRulesSectionName);
+        }
+
+        public static object TagsToJsonModelRef(TagsElement tags, Site site, string path, Fields fields = null)
+        {
+            if (fields == null || !fields.HasFields)
+            {
+                return TagsToJsonModel(tags, site, path, CustomTagsRefFields, false);
+            }
+            else
+            {
+                return TagsToJsonModel(tags, site, path, fields, false);
+            }
+        }
+
+        public static object TagsToJsonModel(TagsElement tags, Site site, string path, Fields fields = null, bool full = true)
+        {
+            if (tags == null)
+            {
+                return null;
+            }
+
+            if (fields == null)
+            {
+                fields = Fields.All;
+            }
+
+            dynamic obj = new ExpandoObject();
+
+            //
+            // name
+            if (fields.Exists("name"))
+            {
+                obj.name = tags.Name;
+            }
+
+            //
+            // id
+            if (fields.Exists("id"))
+            {
+                obj.id = new CustomTagsId(site?.Id, path, tags.Name).Uuid;
+            }
+
+            //
+            // tags
+            if (fields.Exists("tags"))
+            {
+                obj.tags = tags.Tags.Select(t => new {
+                    name = t.Name,
+                    attribute = t.Attribute
+                });
+            }
+
+            //
+            // outbound_rules
+            if (fields.Exists("outbound_rules"))
+            {
+                obj.outbound_rules = SectionToJsonModelRef(site, path);
+            }
+
+            return Core.Environment.Hal.Apply(Defines.CustomTagsResource.Guid, obj, full);
         }
 
         public static object PreConditionToJsonModelRef(PreCondition precondition, Site site, string path, Fields fields = null)
@@ -221,13 +293,14 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             // html_tags
             if (fields.Exists("html_tags") && matchType == OutboundRuleMatchType.HtmlTags) {
-                obj.html_tags = null;
+                obj.html_tags = new ExpandoObject();
+                obj.html_tags.standard = TagsToDict(rule.Match.FilterByTags);
 
-                if (string.IsNullOrEmpty(rule.Match.ServerVariable)) {
-                    obj.html_tags = new ExpandoObject();
-                    obj.html_tags.standard = TagsToDict(rule.Match.FilterByTags);
-                    obj.html_tags.custom = rule.Match.FilterByTags.HasFlag(FilterByTags.CustomTags) ? rule.Match.CustomTags : null;
-                }
+                TagsElement customTags = rule.Match.FilterByTags.HasFlag(FilterByTags.CustomTags) ?
+                                            section.Tags.FirstOrDefault(t => t.Name.Equals(rule.Match.CustomTags, StringComparison.OrdinalIgnoreCase)) :
+                                            null;
+
+                obj.html_tags.custom = customTags == null ? null : TagsToJsonModelRef(customTags, site, path, fields.Filter("html_tags.custom"));
             }
 
             //
@@ -293,6 +366,31 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return Core.Environment.Hal.Apply(Defines.OutboundRulesResource.Guid, obj, full);
         }
 
+        public static void UpdateSection(dynamic model, Site site, string path, string configPath = null)
+        {
+            if (model == null) {
+                throw new ApiArgumentException("model");
+            }
+
+            OutboundRulesSection section = GetSection(site, path, configPath);
+
+            try {
+                DynamicHelper.If<bool>((object)model.rewrite_before_cache, v => section.RewriteBeforeCache = v);
+
+                if (model.metadata != null) {
+                    DynamicHelper.If<OverrideMode>((object)model.metadata.override_mode, v => {
+                        section.OverrideMode = v;
+                    });
+                }
+            }
+            catch (FileLoadException e) {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
+            }
+        }
+
         public static void UpdateRule(dynamic model, OutboundRule rule, OutboundRulesSection section)
         {
             SetRule(model, rule, section);
@@ -316,7 +414,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("pattern_syntax");
             }
 
-            if (DynamicHelper.To<OutboundRuleMatchType>(model.match_type == null)) {
+            if (DynamicHelper.To<OutboundRuleMatchType>(model.match_type) == null) {
                 throw new ApiArgumentException("match_type");
             }
 
@@ -406,7 +504,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             if (section.PreConditions.Any(r => r.Name.Equals(precondition.Name))) {
-                throw new AlreadyExistsException("precondition");
+                throw new AlreadyExistsException("name");
             }
 
             try {
@@ -436,6 +534,87 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     throw new LockedException(section.SectionPath, e);
                 }
                 catch (DirectoryNotFoundException e) {
+                    throw new ConfigScopeNotFoundException(e);
+                }
+            }
+        }
+
+        public static void UpdateCustomTags(dynamic model, TagsElement tags, OutboundRulesSection section)
+        {
+            SetCustomTags(model, tags, section);
+        }
+
+        public static TagsElement CreateCustomTags(dynamic model, OutboundRulesSection section)
+        {
+            if (model == null)
+            {
+                throw new ApiArgumentException("model");
+            }
+
+            if (string.IsNullOrEmpty(DynamicHelper.Value(model.name)))
+            {
+                throw new ApiArgumentException("name");
+            }
+
+            TagsElement tags = section.Tags.CreateElement();
+
+            SetCustomTags(model, tags, section);
+
+            return tags;
+        }
+
+        public static void AddCustomTags(TagsElement tags, OutboundRulesSection section)
+        {
+            if (tags == null)
+            {
+                throw new ArgumentNullException(nameof(tags));
+            }
+
+            if (tags.Name == null)
+            {
+                throw new ArgumentNullException("tags.Name");
+            }
+
+            if (section.PreConditions.Any(r => r.Name.Equals(tags.Name)))
+            {
+                throw new AlreadyExistsException("name");
+            }
+
+            try
+            {
+                section.Tags.Add(tags);
+            }
+            catch (FileLoadException e)
+            {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e)
+            {
+                throw new ConfigScopeNotFoundException(e);
+            }
+        }
+
+        public static void DeleteCustomTags(TagsElement tags, OutboundRulesSection section)
+        {
+            if (tags == null)
+            {
+                return;
+            }
+
+            tags = section.Tags.FirstOrDefault(t => t.Name.Equals(tags.Name));
+
+            if (tags != null)
+            {
+                try
+                {
+                    section.Tags.Remove(tags);
+                }
+                catch (FileLoadException e)
+                {
+                    throw new LockedException(section.SectionPath, e);
+                }
+                catch (DirectoryNotFoundException e)
+                {
                     throw new ConfigScopeNotFoundException(e);
                 }
             }
@@ -576,7 +755,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
                 string id = DynamicHelper.Value(precondition.id);
 
-                if (string.IsNullOrEmpty(precondition.id)) {
+                if (string.IsNullOrEmpty(id)) {
                     throw new ApiArgumentException("precondition.id");
                 }
 
@@ -687,7 +866,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
                 foreach (dynamic requirement in requirements) {
                     if (!(requirement is JObject)) {
-                        throw new ApiArgumentException("server_variables.item");
+                        throw new ApiArgumentException("requirements.item");
                     }
 
                     string input = DynamicHelper.Value(requirement.input);
@@ -706,6 +885,68 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     req.MatchType = PreConditionMatchType.Pattern;
 
                     precondition.Conditions.Add(req);
+                }
+            }
+        }
+
+        private static void SetCustomTags(dynamic model, TagsElement tagsSet, OutboundRulesSection section)
+        {
+            if (model == null)
+            {
+                throw new ApiArgumentException("model");
+            }
+
+            string name = DynamicHelper.Value(model.name);
+            if (!string.IsNullOrEmpty(name))
+            {
+                if (!name.Equals(tagsSet.Name, StringComparison.OrdinalIgnoreCase) &&
+                        section.PreConditions.Any(pc => pc.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                {
+                    throw new AlreadyExistsException("name");
+                }
+
+                tagsSet.Name = name;
+            }
+
+            //
+            // tags
+            if (model.tags != null)
+            {
+
+                IEnumerable<dynamic> tags = model.tags as IEnumerable<dynamic>;
+
+                if (tags == null)
+                {
+                    throw new ApiArgumentException("requirements", ApiArgumentException.EXPECTED_ARRAY);
+                }
+
+                tagsSet.Tags.Clear();
+
+                foreach (dynamic requirement in tags)
+                {
+                    if (!(requirement is JObject))
+                    {
+                        throw new ApiArgumentException("tags.item");
+                    }
+
+                    string tagName = DynamicHelper.Value(requirement.name);
+                    string attribute = DynamicHelper.Value(requirement.attribute);
+
+                    if (string.IsNullOrEmpty(tagName))
+                    {
+                        throw new ApiArgumentException("tags.item.name", "Required");
+                    }
+
+                    if (string.IsNullOrEmpty(attribute))
+                    {
+                        throw new ApiArgumentException("tags.item.attribute", "Required");
+                    }
+
+                    var t = tagsSet.Tags.CreateElement();
+                    t.Name = tagName;
+                    t.Attribute = attribute;
+
+                    tagsSet.Tags.Add(t);
                 }
             }
         }

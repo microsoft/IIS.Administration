@@ -6,7 +6,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
     using Web.Administration;
 
-    sealed class RewriteMapElement : ConfigurationElement {
+    sealed class RewriteMap : ConfigurationElement {
         
         private KeyValueCollection _keyValuePairCollection;
 

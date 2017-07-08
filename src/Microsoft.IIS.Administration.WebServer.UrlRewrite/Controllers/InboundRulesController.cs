@@ -41,10 +41,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             // Set HTTP header for total count
             this.Context.Response.SetItemsCount(rules.Count());
 
-            Fields fields = Context.Request.GetFields();
-
             return new {
-                entries = rules.Select(rule => InboundRulesHelper.RuleToJsonModelRef((InboundRule)rule, site, sectionId.Path, fields))
+                entries = rules.Select(rule => InboundRulesHelper.RuleToJsonModelRef((InboundRule)rule, site, sectionId.Path, Context.Request.GetFields()))
             };
         }
 
@@ -66,7 +64,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return NotFound();
             }
 
-            return InboundRulesHelper.RuleToJsonModel(rule, site, inboundRuleId.Path);
+            return InboundRulesHelper.RuleToJsonModel(rule, site, inboundRuleId.Path, Context.Request.GetFields());
         }
 
         [HttpPatch]
@@ -93,7 +91,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             ManagementUnit.Current.Commit();
 
-            dynamic updatedRule = InboundRulesHelper.RuleToJsonModel(rule, site, inboundRuleId.Path, null, true);
+            dynamic updatedRule = InboundRulesHelper.RuleToJsonModel(rule, site, inboundRuleId.Path, Context.Request.GetFields(), true);
 
             if (updatedRule.id != id) {
                 return LocationChanged(InboundRulesHelper.GetRuleLocation(updatedRule.id), updatedRule);
@@ -130,7 +128,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             //
             // Create response
-            dynamic r = InboundRulesHelper.RuleToJsonModel(rule, site, parentId.Path, null, true);
+            dynamic r = InboundRulesHelper.RuleToJsonModel(rule, site, parentId.Path, Context.Request.GetFields(), true);
             return Created(InboundRulesHelper.GetRuleLocation(r.id), r);
         }
 

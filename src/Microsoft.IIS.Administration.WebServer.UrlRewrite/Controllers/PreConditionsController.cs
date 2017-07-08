@@ -7,7 +7,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
-    using Core.Utils;
     using Sites;
     using System;
     using System.Linq;
@@ -40,11 +39,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             this.Context.Response.SetItemsCount(preconditions.Count());
 
-            Fields fields = Context.Request.GetFields();
-
             return new
             {
-                entries = preconditions.Select(precondition => OutboundRulesHelper.PreConditionToJsonModelRef(precondition, site, sectionId.Path, fields))
+                entries = preconditions.Select(precondition => OutboundRulesHelper.PreConditionToJsonModelRef(precondition, site, sectionId.Path, Context.Request.GetFields()))
             };
         }
 
@@ -66,7 +63,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return NotFound();
             }
 
-            return OutboundRulesHelper.PreConditionToJsonModel(precondition, site, preConditionId.Path);
+            return OutboundRulesHelper.PreConditionToJsonModel(precondition, site, preConditionId.Path, Context.Request.GetFields());
         }
 
         [HttpPatch]
@@ -83,7 +80,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             OutboundRulesSection section = OutboundRulesHelper.GetSection(site, preConditionId.Path);
-            PreCondition precondition = (PreCondition)section.PreConditions.FirstOrDefault(pc => pc.Name.Equals(preConditionId.Name, StringComparison.OrdinalIgnoreCase));
+            PreCondition precondition = section.PreConditions.FirstOrDefault(pc => pc.Name.Equals(preConditionId.Name, StringComparison.OrdinalIgnoreCase));
 
             if (precondition == null) {
                 return NotFound();
@@ -93,7 +90,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             ManagementUnit.Current.Commit();
 
-            dynamic updatedPreCondition = OutboundRulesHelper.PreConditionToJsonModel(precondition, site, preConditionId.Path, null, true);
+            dynamic updatedPreCondition = OutboundRulesHelper.PreConditionToJsonModel(precondition, site, preConditionId.Path, Context.Request.GetFields(), true);
 
             if (updatedPreCondition.id != id) {
                 return LocationChanged(OutboundRulesHelper.GetPreConditionLocation(updatedPreCondition.id), updatedPreCondition);
@@ -124,8 +121,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             ManagementUnit.Current.Commit();
 
-            //
-            dynamic pc = OutboundRulesHelper.PreConditionToJsonModel(precondition, site, parentId.Path, null, true);
+            dynamic pc = OutboundRulesHelper.PreConditionToJsonModel(precondition, site, parentId.Path, Context.Request.GetFields(), true);
             return Created(OutboundRulesHelper.GetRuleLocation(pc.id), pc);
         }
 
