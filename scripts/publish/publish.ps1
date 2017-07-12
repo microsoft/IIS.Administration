@@ -23,7 +23,22 @@ Param(
     # Flag to automatically remove the content located at the output path
     [parameter()]
     [switch]
-    $SkipPrompt
+    $SkipPrompt,
+    
+    # Flag to enable signing targets if any
+    [parameter()]
+    [string]
+    $SignType,
+    
+    # Identity of the certificate to use for signing, ex: Contoso
+    [parameter()]
+    [string]
+    $SigningIdentity,
+    
+    # Identity of the certificate to use for signing setup scripts
+    [parameter()]
+    [string]
+    $ScriptSigningIdentity
 )
 
 $applicationName = "Microsoft.IIS.Administration"
@@ -90,6 +105,28 @@ if(!$configPathExists) {
     throw "Config folder does not exist"
 }
 
+if ([string]::IsNullOrEmpty($ScriptSigningIdentity)) {
+  $ScriptSigningIdentity = $SigningIdentity
+}
+
+if (-not([string]::IsNullOrEmpty($SignType))) {
+	try {
+		$msbuild = Get-Command msbuild -ErrorAction SilentlyContinue
+
+		if ($msbuild -eq $null) {
+			throw "MsBuild.exe not on path"
+		}
+	}
+	catch {
+		Write-Warning $_.Exception.Message
+		throw "Could not find msbuild"
+	}
+
+	if ([string]::IsNullOrEmpty($SigningIdentity)) {
+	  throw "SigningIdentity required to produce a signed build"
+	}
+}
+
 try {
     $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
 
@@ -122,7 +159,12 @@ if (-not($SkipRestore)) {
 }
 
 try{
-    dotnet publish $ProjectPath --framework netcoreapp1.0 --output $applicationPath  --configuration $configuration
+	if ([string]::IsNullOrEmpty($SignType)) {
+		dotnet publish $ProjectPath --framework netcoreapp1.0 --output $applicationPath  --configuration $configuration
+	}
+	else {
+		msbuild $ProjectPath /t:publish /p:Configuration=$Configuration /p:PublishDir=$applicationPath /p:SignType=$SignType /p:SigningIdentity=$SigningIdentity
+	}
 
 	if ($LASTEXITCODE -ne 0) {
 		throw "Publish failed"
@@ -164,7 +206,12 @@ try {
         }
     }
 
-	dotnet publish $packagerPath -o $outputPluginsFolder --configuration $configuration
+	if ([string]::IsNullOrEmpty($SignType)) {
+		dotnet publish $packagerPath --framework netcoreapp1.0 --output $outputPluginsFolder  --configuration $configuration
+	}
+	else {
+		msbuild $packagerPath /t:publish /p:Configuration=$Configuration /p:PublishDir=$outputPluginsFolder /p:SignType=$SignType /p:SigningIdentity=$SigningIdentity
+	}
 
 	if ($LASTEXITCODE -ne 0) {
 		throw "Plugin build failed"
@@ -175,7 +222,27 @@ catch {
 }
 
 # Copy setup
-Copy-Item $(Join-Path $(Get-SolutionDirectory) scripts/setup) $OutputPath -Recurse -ErrorAction Stop
+if ([string]::IsNullOrEmpty($SignType)) {
+    Copy-Item $(Join-Path $(Get-SolutionDirectory) scripts/setup) $OutputPath -Recurse -ErrorAction Stop
+}
+else {
+    $SetupProjectPath = $(Join-Path $(Get-SolutionDirectory) scripts/Microsoft.IIS.Administration.PsSetup.csproj)
+
+    if (-not($SkipRestore)) {
+        dotnet restore $SetupProjectPath
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "Setup script restore failed"
+        }
+    }
+
+    msbuild $SetupProjectPath /p:SignType=$SignType /p:SigningIdentity=$ScriptSigningIdentity
+    Copy-Item $(Join-Path $(Get-SolutionDirectory) scripts/bin/signed/setup) $OutputPath -Recurse -ErrorAction Stop
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Setup script build failed"
+    }
+}
 
 # Copy thirdpartynotices.txt
 Copy-Item $(Join-Path $(Get-SolutionDirectory) ThirdPartyNotices.txt) $OutputPath -ErrorAction Stop

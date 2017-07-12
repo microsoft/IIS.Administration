@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\build\sign.props" />
 
   <PropertyGroup>
     <VersionPrefix>2.0.0</VersionPrefix>
@@ -34,6 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MicroBuild.Core" Version="0.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Antiforgery" Version="1.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="1.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="1.0.3" />
@@ -53,6 +55,19 @@
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="1.0.3" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.1.0" />
   </ItemGroup>
+
+  <ItemGroup Condition=" '$(SignType)' != '' ">
+    <FilesToSign Include="$(IntermediateOutputPath)\$(TargetFileName);">
+      <Authenticode>$(SigningIdentity)</Authenticode>
+    </FilesToSign>
+  </ItemGroup>
+
+  <!-- Workaround for: Files generated during build are not copying to publish directory on first publish https://github.com/dotnet/cli/issues/5498#issuecomment-275932671 -->
+  <Target Name="AddGeneratedContentItems" BeforeTargets="AssignTargetPaths" DependsOnTargets="PrepareForPublish">
+    <ItemGroup>
+      <Content Include="wwwroot/**/*.js" CopyToPublishDirectory="PreserveNewest" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);@(Content)" />
+    </ItemGroup>
+  </Target>
 
   <Target Name="PostcompileScript" AfterTargets="Build">
     <Exec Command="bower install" />

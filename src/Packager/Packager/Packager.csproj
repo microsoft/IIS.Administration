@@ -9,6 +9,6 @@
     <Exec Command="dotnet.exe restore $(ProjectDir)..\Bundle" />
   </Target>
   <Target Name="PostPostBuild" AfterTargets="PostBuild">
-    <Exec Command="dotnet.exe publish $(ProjectDir)..\Bundle -o $(ProjectDir)..\..\Microsoft.IIS.Administration\plugins" />
+    <Exec Command="&quot;$(MsBuildToolsPath)\msbuild.exe&quot; $(ProjectDir)..\Bundle\Bundle.csproj /t:publish /p:PublishDir=$(ProjectDir)..\..\Microsoft.IIS.Administration\plugins /p:Configuration=$(Configuration) /p:SignType=$(SignType) /p:SigningIdentity=$(SigningIdentity)" />
   </Target>
 </Project>

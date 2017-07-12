@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MicroBuild.Core" Version="0.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Microsoft.IIS.Administration.WebServer.Applications\Microsoft.IIS.Administration.WebServer.Applications.csproj" />
   </ItemGroup>
 

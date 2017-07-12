@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\build\sign.props" />
+
+  <PropertyGroup>
+    <ScriptsOutputPath>bin\setup</ScriptsOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" $(SignType) != '' ">
+    <ScriptsOutputPath>bin\signed\setup</ScriptsOutputPath>
+  </PropertyGroup>
+  
+  <Target Name="CopySetupScripts" BeforeTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <_SetupScripts Include="setup\*.ps1;setup\*.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_SetupScripts)" DestinationFiles="@(_SetupScripts->'$(OutDir)setup\%(Filename)%(Extension)')" />
+  </Target>
+
+  <PropertyGroup>
+    <Description>PsSetup</Description>
+    <TargetFramework>netcoreapp1.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MicroBuild.Core" Version="0.2.0" />
+  </ItemGroup>
+
+  <Target Name="AssignScripts" BeforeTargets="SignFiles">
+    <ItemGroup Condition=" '$(SignType)' != '' ">
+      <FilesToSign Include="$(OutDir)setup\*.ps1;">
+        <Authenticode>$(SigningIdentity)</Authenticode>
+      </FilesToSign>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="PostcompileScript" AfterTargets="Build">
+    <ItemGroup>
+      <_SignedScripts Include="$(OutDir)setup\*.ps1;$(OutDir)setup\*.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_SignedScripts)" DestinationFiles="@(_SignedScripts->'$(ScriptsOutputPath)\%(Filename)%(Extension)')" />
+  </Target>
+
+  <Target Name="PostPostcompileScript" AfterTargets="PostcompileScript">
+    <RemoveDir Directories="bin\$(Configuration);" />
+  </Target>
+
+
+
+</Project>
