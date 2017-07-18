@@ -113,6 +113,10 @@
       "enabled": true
     },
     {
+      "name": "Microsoft.IIS.Administration.WebServer.UrlRewrite",
+      "enabled": true
+    },
+    {
       "name": "Microsoft.IIS.Administration.WebServer.VirtualDirectories",
       "enabled": true
     },

@@ -126,5 +126,19 @@ namespace Microsoft.IIS.Administration.Core.Http {
 
             return obj;
         }
+
+        public static dynamic NotAllowedError(string message)
+        {
+            dynamic obj = new ExpandoObject();
+            obj.title = "Not Allowed";
+
+            if (!string.IsNullOrEmpty(message)) {
+                obj.message = message;
+            }
+
+            obj.status = (int)HttpStatusCode.MethodNotAllowed;
+
+            return obj;
+        }
     }
 }

@@ -67,15 +67,5 @@ namespace Microsoft.IIS.Administration.WebServer {
                 status = (int)HttpStatusCode.InternalServerError
             };
         }
-
-        public static dynamic DownloadError(string name)
-        {
-            return new {
-                title = "Server Error",
-                detail = "Download Error",
-                product = name,
-                status = (int)HttpStatusCode.InternalServerError
-            };
-        }
     }
 }

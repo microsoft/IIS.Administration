@@ -4,13 +4,11 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    using Applications;
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
     using Sites;
     using System.Net;
-    using System.Threading.Tasks;
     using Web.Administration;
 
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
@@ -20,8 +18,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [ResourceInfo(Name = Defines.ServerVariablesName)]
         public object Get()
         {
-            Site site = ApplicationHelper.ResolveSite();
-            string path = ApplicationHelper.ResolvePath();
+            RewriteHelper.ResolveRewrite(Context, out Site site, out string path);
 
             if (path == null) {
                 return NotFound();

@@ -4,7 +4,6 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    using Applications;
     using Core;
     using Core.Http;
     using Microsoft.AspNetCore.Mvc;
@@ -18,8 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [ResourceInfo(Name = Defines.OutboundRulesSectionName)]
         public object Get()
         {
-            Site site = ApplicationHelper.ResolveSite();
-            string path = ApplicationHelper.ResolvePath();
+            RewriteHelper.ResolveRewrite(Context, out Site site, out string path);
 
             if (path == null) {
                 return NotFound();

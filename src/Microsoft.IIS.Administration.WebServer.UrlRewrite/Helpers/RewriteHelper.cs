@@ -5,7 +5,9 @@
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
     using Core.Utils;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.IIS.Administration.Core;
+    using Microsoft.IIS.Administration.WebServer.Applications;
     using Newtonsoft.Json.Linq;
     using Sites;
     using System.Dynamic;
@@ -81,6 +83,26 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             return rewriteId;
+        }
+
+        public static void ResolveRewrite(HttpContext context, out Site site, out string path)
+        {
+            site = null;
+            path = null;
+            string rewriteUuid = null;
+
+            site = ApplicationHelper.ResolveSite();
+            path = ApplicationHelper.ResolvePath();
+
+            if (path == null) {
+                rewriteUuid = context.Request.Query[Defines.IDENTIFIER];
+            }
+
+            if (!string.IsNullOrEmpty(rewriteUuid)) {
+                var rewriteId = new RewriteId(rewriteUuid);
+                site = rewriteId.SiteId == null ? null : SiteHelper.GetSite(rewriteId.SiteId.Value);
+                path = rewriteId.Path;
+            }
         }
     }
 }

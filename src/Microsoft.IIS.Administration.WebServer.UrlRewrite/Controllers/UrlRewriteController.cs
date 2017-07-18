@@ -8,7 +8,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
+    using System;
     using System.Net;
     using System.Threading.Tasks;
     using Web.Administration;
@@ -59,6 +61,10 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new AlreadyExistsException(RewriteHelper.DISPLAY_NAME);
             }
 
+            if (Os.IsNanoServer) {
+                throw new ApiNotAllowedException("Action not supported on current platform", null);
+            }
+
             await featureManager.Install();
 
             dynamic settings = RewriteHelper.ToJsonModel(null, null);
@@ -79,6 +85,11 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             // When target is webserver, uninstall
             if (rewriteId.SiteId == null && featureManager.IsInstalled()) {
+
+                if (Os.IsNanoServer) {
+                    throw new ApiNotAllowedException("Action not supported on current platform", null);
+                }
+
                 await featureManager.Uninstall();
             }
         }

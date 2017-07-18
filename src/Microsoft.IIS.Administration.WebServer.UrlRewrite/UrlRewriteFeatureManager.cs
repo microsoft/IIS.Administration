@@ -4,6 +4,7 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
+    using Microsoft.IIS.Administration.Core;
     using Microsoft.IIS.Administration.WebServer.Utils;
     using Microsoft.Win32;
     using System;
@@ -52,7 +53,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 //
                 // Verify
                 if (!IsInstallerValid(downloadPath)) {
-                    throw new DownloadException(fileName);
+                    throw new ApiException("Download failed", fileName, null);
                 }
 
                 //

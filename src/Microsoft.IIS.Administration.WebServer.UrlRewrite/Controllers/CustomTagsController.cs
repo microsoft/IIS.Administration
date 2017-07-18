@@ -7,7 +7,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.IIS.Administration.Core;
     using Microsoft.IIS.Administration.Core.Http;
-    using Microsoft.IIS.Administration.Core.Utils;
     using Microsoft.IIS.Administration.WebServer.Sites;
     using Microsoft.Web.Administration;
     using System;
