@@ -27,7 +27,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             {
                 id = serverVariablesId.Uuid,
                 scope = site == null ? string.Empty : site.Name + path,
-                server_variables = section.AllowedServerVariables.Select(v => v.Name),
+                entries = section.AllowedServerVariables.Select(v => v.Name),
                 metadata = ConfigurationUtility.MetadataToJson(section.IsLocallyStored, section.IsLocked, section.OverrideMode, section.OverrideModeEffective),
                 url_rewrite = RewriteHelper.ToJsonModelRef(site, path)
             };
@@ -45,11 +45,11 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             try {
 
-                if (model.server_variables != null) {
-                    IEnumerable<dynamic> variables = model.server_variables as IEnumerable<dynamic>;
+                if (model.entries != null) {
+                    IEnumerable<dynamic> variables = model.entries as IEnumerable<dynamic>;
 
                     if (variables == null) {
-                        throw new ApiArgumentException("server_variables", ForbiddenArgumentException.EXPECTED_ARRAY);
+                        throw new ApiArgumentException("entries", ForbiddenArgumentException.EXPECTED_ARRAY);
                     }
 
                     List<string> variableList = new List<string>();
@@ -59,7 +59,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                         string var = DynamicHelper.Value(variable);
 
                         if (string.IsNullOrEmpty(var)) {
-                            throw new ApiArgumentException("server_variables.item");
+                            throw new ApiArgumentException("entries.item");
                         }
 
                         variableList.Add(var);

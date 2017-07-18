@@ -13,4 +13,9 @@ namespace Microsoft.IIS.Administration.Core
         object Apply(Guid resourceId, object obj, bool all = true);
         IDictionary<string, dynamic> Get(Guid resourceId, object obj, bool all = true);
     }
+
+    public interface IConditionalHalService : IHalService
+    {
+        void ProvideLink(Guid resourceId, string name, Func<dynamic, dynamic> func, Func<dynamic, bool> condition);
+    }
 }

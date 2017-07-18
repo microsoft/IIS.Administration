@@ -6,11 +6,11 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
     using Web.Administration;
 
-    internal sealed class ProviderElement : ConfigurationElement {
+    internal sealed class Provider : ConfigurationElement {
 
         private SettingsCollection _settings;
 
-        public ProviderElement() {
+        public Provider() {
         }
 
         public string Name {

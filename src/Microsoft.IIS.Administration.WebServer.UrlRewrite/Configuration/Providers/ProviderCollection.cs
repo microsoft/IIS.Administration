@@ -7,12 +7,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System;
     using Web.Administration;
 
-    sealed class ProvidersCollection : ConfigurationElementCollectionBase<ProviderElement> {
+    sealed class ProvidersCollection : ConfigurationElementCollectionBase<Provider> {
 
-        public new ProviderElement this[string name] {
+        public new Provider this[string name] {
             get {
                 for (int i = 0; (i < this.Count); i = (i + 1)) {
-                    ProviderElement element = base[i];
+                    Provider element = base[i];
                     if (string.Equals(element.Name, name, StringComparison.OrdinalIgnoreCase)) {
                         return element;
                     }
@@ -21,12 +21,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
-        protected override ProviderElement CreateNewElement(string elementTagName) {
-            return new ProviderElement();
+        protected override Provider CreateNewElement(string elementTagName) {
+            return new Provider();
         }
 
-        public ProviderElement Add(string name, string typeName) {
-            ProviderElement element = this.CreateElement();
+        public Provider Add(string name, string typeName) {
+            Provider element = this.CreateElement();
             element.Name = name;
             element.TypeName = typeName;
             return base.Add(element);

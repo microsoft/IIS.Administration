@@ -41,7 +41,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             return new
             {
-                entries = preconditions.Select(precondition => OutboundRulesHelper.PreConditionToJsonModelRef(precondition, site, sectionId.Path, Context.Request.GetFields()))
+                preconditions = preconditions.Select(precondition => OutboundRulesHelper.PreConditionToJsonModelRef(precondition, site, sectionId.Path, Context.Request.GetFields()))
             };
         }
 

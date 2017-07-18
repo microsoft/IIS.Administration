@@ -8,8 +8,19 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
     sealed class InboundRulesSection : ConfigurationSection {
 
+        public const string UseOriginalUrlEncodingAttribute = "useOriginalURLEncoding";
+
         private InboundRuleCollection _rules;
-        
+
+        public bool UseOriginalURLEncoding {
+            get {
+                return ((bool)(base[UseOriginalUrlEncodingAttribute]));
+            }
+            set {
+                base[UseOriginalUrlEncodingAttribute] = value;
+            }
+        }
+
         public InboundRuleCollection InboundRules {
             get {
                 if ((this._rules == null)) {

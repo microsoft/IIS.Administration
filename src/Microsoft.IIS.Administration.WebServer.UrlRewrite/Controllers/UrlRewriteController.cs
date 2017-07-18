@@ -10,13 +10,14 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Core.Http;
     using Sites;
     using System.Net;
+    using System.Threading.Tasks;
     using Web.Administration;
 
-    [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
     public class UrlRewriteController : ApiBaseController
     {
         [HttpGet]
         [ResourceInfo(Name = Defines.UrlRewriteName)]
+        [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -32,6 +33,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
         [HttpGet]
         [ResourceInfo(Name = Defines.UrlRewriteName)]
+        [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
         public object Get(string id)
         {
             var rewriteId = new RewriteId(id);
@@ -44,6 +46,41 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             return RewriteHelper.ToJsonModel(site, rewriteId.Path);
+        }
+
+        [HttpPost]
+        [Audit]
+        [ResourceInfo(Name = Defines.UrlRewriteName)]
+        public async Task<object> Post()
+        {
+            var featureManager = new UrlRewriteFeatureManager();
+
+            if (featureManager.IsInstalled()) {
+                throw new AlreadyExistsException(RewriteHelper.DISPLAY_NAME);
+            }
+
+            await featureManager.Install();
+
+            dynamic settings = RewriteHelper.ToJsonModel(null, null);
+            return Created(RewriteHelper.GetLocation(settings.id), settings);
+        }
+
+        [HttpDelete]
+        [Audit]
+        public async Task Delete(string id)
+        {
+            RewriteId rewriteId = new RewriteId(id);
+
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            Site site = (rewriteId.SiteId != null) ? SiteHelper.GetSite(rewriteId.SiteId.Value) : null;
+
+            var featureManager = new UrlRewriteFeatureManager();
+
+            // When target is webserver, uninstall
+            if (rewriteId.SiteId == null && featureManager.IsInstalled()) {
+                await featureManager.Uninstall();
+            }
         }
     }
 }

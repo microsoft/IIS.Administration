@@ -5,6 +5,9 @@
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
     sealed class InboundRule : RuleElement {
+
+        public const string ResponseCacheDirectiveAttribute = "responseCacheDirective";
+
         private InboundActionElement _action;
         private InboundMatchElement _match;
         private SetCollection _sets;
@@ -36,6 +39,14 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
+        public ResponseCacheDirective ResponseCacheDirective {
+            get {
+                return ((ResponseCacheDirective)(base["responseCacheDirective"]));
+            }
+            set {
+                base["responseCacheDirective"] = ((int)(value));
+            }
+        }
     }
 }
 

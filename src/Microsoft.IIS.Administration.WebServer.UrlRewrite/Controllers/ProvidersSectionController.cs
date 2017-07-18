@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
@@ -13,10 +13,10 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Web.Administration;
 
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
-    public class InboundRulesSectionController : ApiBaseController
+    public class ProvidersSectionController : ApiBaseController
     {
         [HttpGet]
-        [ResourceInfo(Name = Defines.InboundRulesSectionName)]
+        [ResourceInfo(Name = Defines.ProvidersSectionName)]
         public object Get()
         {
             Site site = ApplicationHelper.ResolveSite();
@@ -26,12 +26,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return NotFound();
             }
 
-            dynamic d = InboundRulesHelper.SectionToJsonModel(site, path);
-            return LocationChanged(InboundRulesHelper.GetSectionLocation(d.id), d);
+            dynamic d = ProvidersHelper.SectionToJsonModel(site, path);
+            return LocationChanged(ProvidersHelper.GetSectionLocation(d.id), d);
         }
 
         [HttpGet]
-        [ResourceInfo(Name = Defines.InboundRulesSectionName)]
+        [ResourceInfo(Name = Defines.ProvidersSectionName)]
         public object Get(string id)
         {
             var rewriteId = new RewriteId(id);
@@ -43,47 +43,47 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return null;
             }
 
-            return InboundRulesHelper.SectionToJsonModel(site, rewriteId.Path);
+            return ProvidersHelper.SectionToJsonModel(site, rewriteId.Path);
         }
 
         [HttpPatch]
         [Audit]
-        [ResourceInfo(Name = Defines.InboundRulesSectionName)]
+        [ResourceInfo(Name = Defines.ProvidersSectionName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
 
-            RewriteId inboundRulesId = new RewriteId(id);
+            var providersId = new RewriteId(id);
 
-            Site site = inboundRulesId.SiteId == null ? null : SiteHelper.GetSite(inboundRulesId.SiteId.Value);
+            Site site = providersId.SiteId == null ? null : SiteHelper.GetSite(providersId.SiteId.Value);
 
-            if (inboundRulesId.SiteId != null && site == null) {
+            if (providersId.SiteId != null && site == null) {
                 return NotFound();
             }
 
             string configPath = model == null ? null : ManagementUnit.ResolveConfigScope(model);
 
-            InboundRulesHelper.UpdateSection(model, site, inboundRulesId.Path, configPath);
+            ProvidersHelper.UpdateSection(model, site, providersId.Path, configPath);
 
             ManagementUnit.Current.Commit();
 
-            return InboundRulesHelper.SectionToJsonModel(site, inboundRulesId.Path);
+            return ProvidersHelper.SectionToJsonModel(site, providersId.Path);
         }
 
         [HttpDelete]
         [Audit]
         public void Delete(string id)
         {
-            var inboundRulesId = new RewriteId(id);
+            var providersId = new RewriteId(id);
 
             Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
 
-            Site site = (inboundRulesId.SiteId != null) ? SiteHelper.GetSite(inboundRulesId.SiteId.Value) : null;
+            Site site = (providersId.SiteId != null) ? SiteHelper.GetSite(providersId.SiteId.Value) : null;
 
             if (site != null) {
-                var section = InboundRulesHelper.GetSection(site, inboundRulesId.Path, ManagementUnit.ResolveConfigScope());
+                var section = ProvidersHelper.GetSection(site, providersId.Path, ManagementUnit.ResolveConfigScope());
                 section.RevertToParent();
                 ManagementUnit.Current.Commit();
             }

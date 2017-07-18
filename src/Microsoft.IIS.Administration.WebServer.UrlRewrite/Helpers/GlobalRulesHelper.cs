@@ -1,32 +1,67 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
-    using Core.Utils;
     using Microsoft.IIS.Administration.Core;
+    using Microsoft.IIS.Administration.Core.Utils;
+    using Microsoft.Web.Administration;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Dynamic;
     using System.IO;
     using System.Linq;
-    using Web.Administration;
 
-    static class InboundRulesHelper
+    static class GlobalRulesHelper
     {
         public static readonly Fields SectionRefFields = new Fields("id", "scope");
         public static readonly Fields RuleRefFields = new Fields("name", "id");
 
         public static string GetSectionLocation(string id)
         {
-            return $"/{Defines.INBOUND_RULES_SECTION_PATH}/{id}";
+            return $"/{Defines.GLOBAL_RULES_SECTION_PATH}/{id}";
         }
 
         public static string GetRuleLocation(string id)
         {
-            return $"/{Defines.INBOUND_RULES_PATH}/{id}";
+            return $"/{Defines.GLOBAL_RULES_PATH}/{id}";
+        }
+
+        public static RewriteId GetSectionIdFromBody(dynamic model)
+        {
+            if (model.global_rules == null) {
+                throw new ApiArgumentException("global_rules");
+            }
+
+            if (!(model.global_rules is JObject)) {
+                throw new ApiArgumentException("global_rules", ApiArgumentException.EXPECTED_OBJECT);
+            }
+
+            string rewriteId = DynamicHelper.Value(model.global_rules.id);
+
+            if (rewriteId == null) {
+                throw new ApiArgumentException("global_rules.id");
+            }
+
+            return new RewriteId(rewriteId);
+        }
+
+        public static InboundRulesSection GetSection(Site site, string path, string configPath = null)
+        {
+            return (InboundRulesSection)ManagementUnit.GetConfigSection(site?.Id,
+                                                                           path,
+                                                                           Globals.GlobalRulesSectionName,
+                                                                           typeof(InboundRulesSection),
+                                                                           configPath);
+        }
+
+        public static bool IsSectionLocal(Site site, string path)
+        {
+            return ManagementUnit.IsSectionLocal(site?.Id,
+                                                 path,
+                                                 Globals.GlobalRulesSectionName);
         }
 
         public static object SectionToJsonModelRef(Site site, string path, Fields fields = null)
@@ -80,7 +115,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 obj.url_rewrite = RewriteHelper.ToJsonModelRef(site, path);
             }
 
-            return Core.Environment.Hal.Apply(Defines.InboundRulesSectionResource.Guid, obj, full);
+            return Core.Environment.Hal.Apply(Defines.GlobalRulesSectionResource.Guid, obj, full);
         }
 
         public static object RuleToJsonModelRef(InboundRule rule, Site site, string path, Fields fields = null)
@@ -103,7 +138,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 fields = Fields.All;
             }
 
-            var inboundRuleId = new InboundRuleId(site?.Id, path, rule.Name);
+            var globalRuleId = new InboundRuleId(site?.Id, path, rule.Name);
 
             dynamic obj = new ExpandoObject();
 
@@ -116,7 +151,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             //
             // id
             if (fields.Exists("id")) {
-                obj.id = inboundRuleId.Uuid;
+                obj.id = globalRuleId.Uuid;
             }
 
             //
@@ -192,12 +227,40 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
-            // inbound_rules
-            if (fields.Exists("inbound_rules")) {
-                obj.inbound_rules = SectionToJsonModelRef(site, path);
+            // global_rules
+            if (fields.Exists("global_rules")) {
+                obj.global_rules = SectionToJsonModelRef(site, path);
             }
 
-            return Core.Environment.Hal.Apply(Defines.InboundRulesResource.Guid, obj);
+            return Core.Environment.Hal.Apply(Defines.GlobalRulesResource.Guid, obj);
+        }
+
+        public static void UpdateSection(dynamic model, Site site, string path, string configPath = null)
+        {
+            if (model == null) {
+                throw new ApiArgumentException("model");
+            }
+
+            InboundRulesSection section = GetSection(site, path, configPath);
+
+            try {
+                // UseOriginalURLEncoding introduced in 2.1
+                if (section.Schema.HasAttribute(InboundRulesSection.UseOriginalUrlEncodingAttribute)) {
+                    DynamicHelper.If<bool>((object)model.use_original_url_encoding, v => section.UseOriginalURLEncoding = v);
+                }
+
+                if (model.metadata != null) {
+                    DynamicHelper.If<OverrideMode>((object)model.metadata.override_mode, v => {
+                        section.OverrideMode = v;
+                    });
+                }
+            }
+            catch (FileLoadException e) {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
+            }
         }
 
         public static void UpdateRule(dynamic model, InboundRule rule, InboundRulesSection section)
@@ -294,69 +357,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 catch (DirectoryNotFoundException e) {
                     throw new ConfigScopeNotFoundException(e);
                 }
-            }
-        }
-
-        public static RewriteId GetSectionIdFromBody(dynamic model)
-        {
-            if (model.inbound_rules == null) {
-                throw new ApiArgumentException("inbound_rules");
-            }
-
-            if (!(model.inbound_rules is JObject)) {
-                throw new ApiArgumentException("inbound_rules", ApiArgumentException.EXPECTED_OBJECT);
-            }
-
-            string rewriteId = DynamicHelper.Value(model.inbound_rules.id);
-
-            if (rewriteId == null) {
-                throw new ApiArgumentException("inbound_rules.id");
-            }
-
-            return new RewriteId(rewriteId);
-        }
-
-        public static InboundRulesSection GetSection(Site site, string path, string configPath = null)
-        {
-            return (InboundRulesSection)ManagementUnit.GetConfigSection(site?.Id,
-                                                                           path,
-                                                                           Globals.RulesSectionName,
-                                                                           typeof(InboundRulesSection),
-                                                                           configPath);
-        }
-
-        public static bool IsSectionLocal(Site site, string path)
-        {
-            return ManagementUnit.IsSectionLocal(site?.Id,
-                                                 path,
-                                                 Globals.RulesSectionName);
-        }
-
-        public static void UpdateSection(dynamic model, Site site, string path, string configPath = null)
-        {
-            if (model == null) {
-                throw new ApiArgumentException("model");
-            }
-
-            InboundRulesSection section = GetSection(site, path, configPath);
-
-            try {
-                // UseOriginalURLEncoding introduced in 2.1
-                if (section.Schema.HasAttribute(InboundRulesSection.UseOriginalUrlEncodingAttribute)) {
-                    DynamicHelper.If<bool>((object)model.use_original_url_encoding, v => section.UseOriginalURLEncoding = v);
-                }
-
-                if (model.metadata != null) {
-                    DynamicHelper.If<OverrideMode>((object)model.metadata.override_mode, v => {
-                        section.OverrideMode = v;
-                    });
-                }
-            }
-            catch (FileLoadException e) {
-                throw new LockedException(section.SectionPath, e);
-            }
-            catch (DirectoryNotFoundException e) {
-                throw new ConfigScopeNotFoundException(e);
             }
         }
 
@@ -458,31 +458,27 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     }
 
                     string input = DynamicHelper.Value(condition.input);
-                    MatchType? matchType = DynamicHelper.To<MatchType>(condition.match_type);
 
                     if (string.IsNullOrEmpty(input)) {
                         throw new ApiArgumentException("conditions.item.input", "Required");
                     }
 
-                    if (matchType == null) {
-                        throw new ApiArgumentException("conditions.item.match_type", "Required");
-                    }
-
                     var con = rule.Conditions.CreateElement();
                     con.Input = input;
-                    con.MatchType = matchType.Value;
+                    //
+                    // Only pattern match type allowed in schema
+                    con.MatchType = MatchType.Pattern;
                     con.Pattern = DynamicHelper.Value(condition.pattern);
                     con.Negate = DynamicHelper.To<bool>(condition.negate);
                     con.IgnoreCase = DynamicHelper.To<bool>(condition.ignore_case);
 
                     rule.Conditions.Add(con);
                 }
+            }
 
-                if (rule.Schema.HasAttribute(InboundRule.ResponseCacheDirectiveAttribute)) {
-                    DynamicHelper.If<ResponseCacheDirective>((object)model.response_cache_directive, v => rule.ResponseCacheDirective = v);
-                }
+            if (rule.Schema.HasAttribute(InboundRule.ResponseCacheDirectiveAttribute)) {
+                DynamicHelper.If<ResponseCacheDirective>((object)model.response_cache_directive, v => rule.ResponseCacheDirective = v);
             }
         }
     }
 }
-

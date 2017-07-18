@@ -696,12 +696,17 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             // Html Tags
             dynamic htmlTags = null;
             dynamic standardTags = null;
+            dynamic customTags = null;
 
             if (model.html_tags != null) {
                 if (!(model.html_tags is JObject)) {
                     throw new ApiArgumentException("html_tags", ApiArgumentException.EXPECTED_OBJECT);
                 }
                 htmlTags = model.html_tags;
+
+                // Clear custom tags
+                rule.Match.CustomTags = null;
+                rule.Match.FilterByTags &= ~FilterByTags.CustomTags;
             }
 
             if (htmlTags != null) {
@@ -711,20 +716,11 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     throw new ApiArgumentException("html_tags.standard", ApiArgumentException.EXPECTED_OBJECT);
                 }
 
-                // Set custom tags
-                DynamicHelper.If((object)htmlTags.custom, v => {
-                    TagsElement targetCustomTags = section.Tags.FirstOrDefault(t => t.Name.Equals(v, StringComparison.OrdinalIgnoreCase));
+                customTags = htmlTags.custom;
 
-                    if (!string.IsNullOrEmpty(v) && targetCustomTags == null) {
-                        throw new NotFoundException("html_tags.custom");
-                    }
-
-                    if (targetCustomTags != null) {
-                        rule.Match.FilterByTags |= FilterByTags.CustomTags;
-                    }
-
-                    rule.Match.CustomTags = targetCustomTags?.Name;
-                });
+                if (customTags != null && !(customTags is JObject)) {
+                    throw new ApiArgumentException("html_tags.custom", ApiArgumentException.EXPECTED_OBJECT);
+                }
             }
 
             // Set standard tags
@@ -744,6 +740,24 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 DynamicHelper.If<bool>((object)standardTags.script, v => SetTagFlag(ref ruleTags, FilterByTags.Script, v));
 
                 rule.Match.FilterByTags = ruleTags;
+            }
+
+            // Set custom tags
+            if (customTags != null) {
+                string ctId = DynamicHelper.Value(customTags.id);
+
+                if (string.IsNullOrEmpty(ctId)) {
+                    throw new ArgumentException("html_tags.custom.id", "required");
+                }
+
+                TagsElement targetCustomTags = section.Tags.FirstOrDefault(t => t.Name.Equals(new CustomTagsId(ctId).Name, StringComparison.OrdinalIgnoreCase));
+
+                if (targetCustomTags == null) {
+                    throw new NotFoundException("html_tags.custom");
+                }
+
+                rule.Match.FilterByTags |= FilterByTags.CustomTags;
+                rule.Match.CustomTags = targetCustomTags.Name;
             }
 
             if (model.precondition != null) {

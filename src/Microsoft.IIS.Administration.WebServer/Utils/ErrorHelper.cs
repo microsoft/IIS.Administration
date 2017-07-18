@@ -5,9 +5,11 @@
 namespace Microsoft.IIS.Administration.WebServer {
     using System.Net;
 
-    static class ErrorHelper {
+    static class ErrorHelper
+    {
 
-        public static dynamic InvalidScopeTypeError(string scope) {
+        public static dynamic InvalidScopeTypeError(string scope)
+        {
             return new {
                 title = "Scope is not allowed",
                 scope = scope,
@@ -15,7 +17,8 @@ namespace Microsoft.IIS.Administration.WebServer {
             };
         }
 
-        public static dynamic ScopeNotFoundError(string scope) {
+        public static dynamic ScopeNotFoundError(string scope)
+        {
             return new {
                 title = "Scope not found",
                 scope = scope,
@@ -23,7 +26,8 @@ namespace Microsoft.IIS.Administration.WebServer {
             };
         }
 
-        public static dynamic ConfigScopeNotFoundError(ConfigScopeNotFoundException ex) {
+        public static dynamic ConfigScopeNotFoundError(ConfigScopeNotFoundException ex)
+        {
             return new {
                 title = "Configuration scope not found",
                 detail = ex.Message ?? "",
@@ -32,7 +36,8 @@ namespace Microsoft.IIS.Administration.WebServer {
             };
         }
 
-        public static dynamic FeatureNotFoundError(string name) {
+        public static dynamic FeatureNotFoundError(string name)
+        {
             return new {
                 title = "Not found",
                 detail = "IIS feature not installed",
@@ -48,7 +53,28 @@ namespace Microsoft.IIS.Administration.WebServer {
                 detail = "Dism Error",
                 feature = featureName,
                 exit_code = exitCode.ToString("X"),
-                status = (int) HttpStatusCode.InternalServerError
+                status = (int)HttpStatusCode.InternalServerError
+            };
+        }
+
+        public static dynamic InstallationError(int exitCode, string productName)
+        {
+            return new {
+                title = "Server Error",
+                detail = "Installation Error",
+                product = productName,
+                exit_code = exitCode.ToString("X"),
+                status = (int)HttpStatusCode.InternalServerError
+            };
+        }
+
+        public static dynamic DownloadError(string name)
+        {
+            return new {
+                title = "Server Error",
+                detail = "Download Error",
+                product = name,
+                status = (int)HttpStatusCode.InternalServerError
             };
         }
     }

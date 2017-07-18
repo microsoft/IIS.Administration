@@ -44,5 +44,48 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             return OutboundRulesHelper.SectionToJsonModel(site, rewriteId.Path);
         }
+
+        [HttpPatch]
+        [Audit]
+        [ResourceInfo(Name = Defines.OutboundRulesSectionName)]
+        public object Patch(string id, [FromBody] dynamic model)
+        {
+            if (model == null) {
+                throw new ApiArgumentException("model");
+            }
+
+            var outboundRulesId = new RewriteId(id);
+
+            Site site = outboundRulesId.SiteId == null ? null : SiteHelper.GetSite(outboundRulesId.SiteId.Value);
+
+            if (outboundRulesId.SiteId != null && site == null) {
+                return NotFound();
+            }
+
+            string configPath = model == null ? null : ManagementUnit.ResolveConfigScope(model);
+
+            OutboundRulesHelper.UpdateSection(model, site, outboundRulesId.Path, configPath);
+
+            ManagementUnit.Current.Commit();
+
+            return OutboundRulesHelper.SectionToJsonModel(site, outboundRulesId.Path);
+        }
+
+        [HttpDelete]
+        [Audit]
+        public void Delete(string id)
+        {
+            var outboundRulesId = new RewriteId(id);
+
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            Site site = (outboundRulesId.SiteId != null) ? SiteHelper.GetSite(outboundRulesId.SiteId.Value) : null;
+
+            if (site != null) {
+                var section = OutboundRulesHelper.GetSection(site, outboundRulesId.Path, ManagementUnit.ResolveConfigScope());
+                section.RevertToParent();
+                ManagementUnit.Current.Commit();
+            }
+        }
     }
 }

@@ -10,13 +10,17 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     public class Defines
     {
         private const string ENDPOINT = "url-rewrite";
-        private const string SERVER_VARIABLES_ENDPOINT = "server-variables";
+        private const string SERVER_VARIABLES_ENDPOINT = "allowed-server-variables";
+        private const string PROVIDERS_SECTION_ENDPOINT = "providers";
+        private const string PROVIDERS_ENDPOINT = "entries";
         private const string REWRITE_MAPS_SECTION_ENDPOINT = "rewrite-maps";
         private const string REWRITE_MAPS_ENDPOINT = "maps";
+        private const string GLOBAL_RULES_SECTION_ENDPOINT = "global-rules";
+        private const string GLOBAL_RULES_ENDPOINT = "rules";
         private const string INBOUND_RULES_SECTION_ENDPOINT = "inbound-rules";
-        private const string INBOUND_RULES_ENDPOINT = "entries";
+        private const string INBOUND_RULES_ENDPOINT = "rules";
         private const string OUTBOUND_RULES_SECTION_ENDPOINT = "outbound-rules";
-        private const string OUTBOUND_RULES_ENDPOINT = "entries";
+        private const string OUTBOUND_RULES_ENDPOINT = "rules";
         private const string PRECONDITIONS_ENDPOINT = "preconditions";
         private const string CUSTOM_TAGS_ENDPOINT = "custom_tags";
 
@@ -32,6 +36,19 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         public static readonly string SERVER_VARIABLES_PATH = $"{PATH}/{SERVER_VARIABLES_ENDPOINT}";
         public const string SERVER_VARIABLE_IDENTIFIER = "allowed_server_variable.id";
 
+        // Providers Section
+        public const string ProvidersSectionName = "Microsoft.WebServer.UrlRewrite.Providers";
+        public static ResDef ProvidersSectionResource = new ResDef("providers", new Guid("87E8C244-4329-48E1-9905-561C38CFBB0C"), PROVIDERS_SECTION_ENDPOINT);
+        public static readonly string PROVIDERS_SECTION_PATH = $"{PATH}/{PROVIDERS_SECTION_ENDPOINT}";
+        public const string PROVIDERS_SECTION_IDENTIFIER = "providers.id";
+
+        // Providers
+        public const string ProvidersName = "Microsoft.WebServer.UrlRewrite.Providers.entries";
+        public const string ProviderName = "Microsoft.WebServer.UrlRewrite.Provider.Entry";
+        public static ResDef ProvidersResource = new ResDef("entries", new Guid("C055EFAF-4968-4E9F-8FF0-51793BA04A65"), PROVIDERS_ENDPOINT);
+        public static readonly string PROVIDERS_PATH = $"{PROVIDERS_SECTION_PATH}/{PROVIDERS_ENDPOINT}";
+        public const string PROVIDER_IDENTIFIER = "provider.id";
+
         // Rewrite Maps Section
         public const string RewriteMapsSectionName = "Microsoft.WebServer.UrlRewrite.RewriteMaps";
         public static ResDef RewriteMapsSectionResource = new ResDef("rewrite_maps", new Guid("F5F65122-BF1A-4A5B-9734-FCF35F2131B5"), REWRITE_MAPS_SECTION_ENDPOINT);
@@ -45,6 +62,19 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         public static readonly string REWRITE_MAPS_PATH = $"{REWRITE_MAPS_SECTION_PATH}/{REWRITE_MAPS_ENDPOINT}";
         public const string REWRITE_MAPS_IDENTIFIER = "map.id";
 
+        // Global Rules Section
+        public const string GlobalRulesSectionName = "Microsoft.WebServer.UrlRewrite.GlobalRules";
+        public static ResDef GlobalRulesSectionResource = new ResDef("global_rules", new Guid("59F0C4C2-B7E9-456C-92DE-CFDB4D313991"), GLOBAL_RULES_SECTION_ENDPOINT);
+        public static readonly string GLOBAL_RULES_SECTION_PATH = $"{PATH}/{GLOBAL_RULES_SECTION_ENDPOINT}";
+        public const string GLOBAL_RULES_SECTION_IDENTIFIER = "global_rules.id";
+
+        // Global Rules
+        public const string GlobalRulesName = "Microsoft.WebServer.UrlRewrite.GlobalRules.Rules";
+        public const string GlobalRuleName = "Microsoft.WebServer.UrlRewrite.GlobalRules.Rule";
+        public static ResDef GlobalRulesResource = new ResDef("rules", new Guid("FC4204F8-D217-47D9-9EF3-CFAA6A0B6384"), GLOBAL_RULES_ENDPOINT);
+        public static readonly string GLOBAL_RULES_PATH = $"{GLOBAL_RULES_SECTION_PATH}/{GLOBAL_RULES_ENDPOINT}";
+        public const string GLOBAL_RULE_IDENTIFIER = "global_rule.id";
+
         // Inbound Rules Section
         public const string InboundRulesSectionName = "Microsoft.WebServer.UrlRewrite.InboundRules";
         public static ResDef InboundRulesSectionResource = new ResDef("inbound_rules", new Guid("DA8765E5-42BA-4282-9D06-016191EAE4A5"), INBOUND_RULES_SECTION_ENDPOINT);
@@ -52,9 +82,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         public const string INBOUND_RULES_SECTION_IDENTIFIER = "inbound_rules.id";
 
         // Inbound Rules
-        public const string InboundRulesName = "Microsoft.WebServer.UrlRewrite.InboundRules.Entries";
-        public const string InboundRuleName = "Microsoft.WebServer.UrlRewrite.InboundRules.Entry";
-        public static ResDef InboundRulesResource = new ResDef("entries", new Guid("F78AD889-464B-407D-926F-F52B7CAF7595"), INBOUND_RULES_ENDPOINT);
+        public const string InboundRulesName = "Microsoft.WebServer.UrlRewrite.InboundRules.Rules";
+        public const string InboundRuleName = "Microsoft.WebServer.UrlRewrite.InboundRules.Rule";
+        public static ResDef InboundRulesResource = new ResDef("rules", new Guid("F78AD889-464B-407D-926F-F52B7CAF7595"), INBOUND_RULES_ENDPOINT);
         public static readonly string INBOUND_RULES_PATH = $"{INBOUND_RULES_SECTION_PATH}/{INBOUND_RULES_ENDPOINT}";
         public const string INBOUND_RULE_IDENTIFIER = "inbound_rule.id";
 
@@ -65,9 +95,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         public const string OUTBOUND_RULES_SECTION_IDENTIFIER = "outbound_rules.id";
 
         // Outbound Rules
-        public const string OutboundRulesName = "Microsoft.WebServer.UrlRewrite.OutboundRules.Entries";
-        public const string OutboundRuleName = "Microsoft.WebServer.UrlRewrite.OutboundRules.Entry";
-        public static ResDef OutboundRulesResource = new ResDef("entries", new Guid("64d4131c-572a-48db-95e7-95fd74843ccd"), OUTBOUND_RULES_ENDPOINT);
+        public const string OutboundRulesName = "Microsoft.WebServer.UrlRewrite.OutboundRules.Rules";
+        public const string OutboundRuleName = "Microsoft.WebServer.UrlRewrite.OutboundRules.Rule";
+        public static ResDef OutboundRulesResource = new ResDef("rules", new Guid("64d4131c-572a-48db-95e7-95fd74843ccd"), OUTBOUND_RULES_ENDPOINT);
         public static readonly string OUTBOUND_RULES_PATH = $"{OUTBOUND_RULES_SECTION_PATH}/{OUTBOUND_RULES_ENDPOINT}";
         public const string OUTBOUND_RULE_IDENTIFIER = "outbound_rule.id";
 

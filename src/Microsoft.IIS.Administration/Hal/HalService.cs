@@ -14,19 +14,24 @@ namespace Microsoft.IIS.Administration
     using Core.Utils;
 
 
-    public class HalService : IHalService
+    public class HalService : IConditionalHalService
     {
         private const string HAL_KEY = "Microsoft.IIS.Administration.Hal";
-        private readonly Dictionary<Guid, SortedList<string, Func<dynamic, dynamic>>> _links = new Dictionary<Guid, SortedList<string, Func<dynamic, dynamic>>>();
+        private readonly Dictionary<Guid, SortedList<string, LinkExecutionData>> _links = new Dictionary<Guid, SortedList<string, LinkExecutionData>>();
 
         public void ProvideLink(Guid resourceId, string name, Func<dynamic, dynamic> func)
         {
-            if (!_links.Keys.Contains(resourceId)) {
-                _links[resourceId] = new SortedList<string, Func<dynamic,dynamic>>();
-            }
-            _links[resourceId].Add(name, func);
+            ProvideLink(resourceId, name, func, d => true);
         }
 
+        public void ProvideLink(Guid resourceId, string name, Func<dynamic, dynamic> func, Func<dynamic, bool> condition)
+        {
+            if (!_links.Keys.Contains(resourceId)) {
+
+                _links[resourceId] = new SortedList<string, LinkExecutionData>();
+            }
+            _links[resourceId].Add(name, new LinkExecutionData(func, condition));
+        }
 
         public object Apply(Guid resourceId, object obj, bool all = true) {
             if (!IsHalAccepted()) {
@@ -36,7 +41,7 @@ namespace Microsoft.IIS.Administration
             }
 
             ExpandoObject o = null;
-            if( obj is ExpandoObject) {
+            if (obj is ExpandoObject) {
                 o = (ExpandoObject)obj;
             }
             else {
@@ -68,13 +73,17 @@ namespace Microsoft.IIS.Administration
                 var self = funcs.Where(kvp => kvp.Key.Equals("self", StringComparison.OrdinalIgnoreCase));
                 if (self.Count() > 0) {
                     var kvp = self.First();
-                    resourceLinks.Add(kvp.Key, ExecuteLink(kvp.Value, obj));
+                    if (ConditionalExecuteLink(kvp.Value, obj, out dynamic link)) {
+                        resourceLinks.Add(kvp.Key, link);
+                    }
                 }
             }
             else {
                 for (int i = 0; i < funcs.Count; i++) {
                     var kvp = funcs.ElementAt(i);
-                    resourceLinks.Add(kvp.Key, ExecuteLink(kvp.Value, obj));
+                    if (ConditionalExecuteLink(kvp.Value, obj, out dynamic link)) {
+                        resourceLinks.Add(kvp.Key, link);
+                    }
                 }
             }
 
@@ -88,17 +97,24 @@ namespace Microsoft.IIS.Administration
             }
         }
 
-        private static dynamic ExecuteLink(Func<dynamic, dynamic> func, dynamic obj) {
-            dynamic value;
+        private static bool ConditionalExecuteLink(LinkExecutionData execution, dynamic obj, out dynamic link)
+        {
+            link = null;
+            bool shouldExecute = false;
 
             try {
-                value = func(obj);
+                shouldExecute = execution.Condition(obj);
+
+                if (shouldExecute) {
+                    link = execution.Create(obj);
+                }
             }
             catch (Exception e) {
-                value = LinkProvisionError(e.Message);
+                link = LinkProvisionError(e.Message);
+                return true;
             }
 
-            return value;
+            return shouldExecute;
         }
 
         private static dynamic LinkProvisionError(string message) {
@@ -136,6 +152,18 @@ namespace Microsoft.IIS.Administration
             }
 
             return hal.Value;
+        }
+
+        class LinkExecutionData
+        {
+            public LinkExecutionData(Func<dynamic, dynamic> create, Func<dynamic, bool> condition)
+            {
+                Create = create;
+                Condition = condition;
+            }
+
+            public Func<dynamic, dynamic> Create { get; private set; }
+            public Func<dynamic, bool> Condition { get; private set; }
         }
     }
 }

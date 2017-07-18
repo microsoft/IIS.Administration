@@ -43,7 +43,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             return new
             {
-                entries = tags.Select(tag => OutboundRulesHelper.TagsToJsonModelRef(tag, site, sectionId.Path, Context.Request.GetFields()))
+                custom_tags = tags.Select(tag => OutboundRulesHelper.TagsToJsonModelRef(tag, site, sectionId.Path, Context.Request.GetFields()))
             };
         }
 

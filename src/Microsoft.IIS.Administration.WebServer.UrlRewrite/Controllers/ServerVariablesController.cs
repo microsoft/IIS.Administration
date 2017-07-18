@@ -10,6 +10,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Core.Http;
     using Sites;
     using System.Net;
+    using System.Threading.Tasks;
     using Web.Administration;
 
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
@@ -70,6 +71,23 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             ManagementUnit.Current.Commit();
 
             return ServerVariablesHelper.ToJsonModel(site, serverVariablesId.Path);
+        }
+
+        [HttpDelete]
+        [Audit]
+        public void Delete(string id)
+        {
+            var serverVariablesId = new RewriteId(id);
+
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            Site site = (serverVariablesId.SiteId != null) ? SiteHelper.GetSite(serverVariablesId.SiteId.Value) : null;
+
+            if (site != null) {
+                var section = ServerVariablesHelper.GetSection(site, serverVariablesId.Path, ManagementUnit.ResolveConfigScope());
+                section.RevertToParent();
+                ManagementUnit.Current.Commit();
+            }
         }
     }
 }

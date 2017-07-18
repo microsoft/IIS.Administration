@@ -45,5 +45,48 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             return RewriteMapsHelper.SectionToJsonModel(site, rewriteId.Path);
         }
+
+        [HttpPatch]
+        [Audit]
+        [ResourceInfo(Name = Defines.RewriteMapsSectionName)]
+        public object Patch(string id, [FromBody] dynamic model)
+        {
+            if (model == null) {
+                throw new ApiArgumentException("model");
+            }
+
+            var rewriteMapsId = new RewriteId(id);
+
+            Site site = rewriteMapsId.SiteId == null ? null : SiteHelper.GetSite(rewriteMapsId.SiteId.Value);
+
+            if (rewriteMapsId.SiteId != null && site == null) {
+                return NotFound();
+            }
+
+            string configPath = model == null ? null : ManagementUnit.ResolveConfigScope(model);
+
+            RewriteMapsHelper.UpdateSection(model, site, rewriteMapsId.Path, configPath);
+
+            ManagementUnit.Current.Commit();
+
+            return RewriteMapsHelper.SectionToJsonModel(site, rewriteMapsId.Path);
+        }
+
+        [HttpDelete]
+        [Audit]
+        public void Delete(string id)
+        {
+            var rewriteMapsId = new RewriteId(id);
+
+            Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
+
+            Site site = (rewriteMapsId.SiteId != null) ? SiteHelper.GetSite(rewriteMapsId.SiteId.Value) : null;
+
+            if (site != null) {
+                var section = RewriteMapsHelper.GetSection(site, rewriteMapsId.Path, ManagementUnit.ResolveConfigScope());
+                section.RevertToParent();
+                ManagementUnit.Current.Commit();
+            }
+        }
     }
 }

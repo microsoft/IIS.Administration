@@ -7,7 +7,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
-    using Core.Utils;
     using Sites;
     using System;
     using System.Linq;
@@ -43,7 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             return new
             {
-                entries = rules.Select(rule => OutboundRulesHelper.RuleToJsonModelRef((OutboundRule)rule, site, sectionId.Path, Context.Request.GetFields()))
+                rules = rules.Select(rule => OutboundRulesHelper.RuleToJsonModelRef((OutboundRule)rule, site, sectionId.Path, Context.Request.GetFields()))
             };
         }
 
