@@ -16,7 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
     class UrlRewriteFeatureManager
     {
-        private const string DOWNLOAD_URL = "http://download.microsoft.com/download/D/D/E/DDE57C26-C62C-4C59-A1BB-31D58B36ADA2/rewrite_amd64_en-US.msi";
+        private const string DOWNLOAD_URL = "https://go.microsoft.com/fwlink/?linkid=853092";
         private const string REGKEY_INSTALLED_PRODUCTS = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall";
         private const string REGKEY_URL_REWRITE_INSTALLED = @"SOFTWARE\Microsoft\IIS Extensions\URL Rewrite";
 
