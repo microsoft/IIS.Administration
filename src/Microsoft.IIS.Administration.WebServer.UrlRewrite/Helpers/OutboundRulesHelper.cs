@@ -214,8 +214,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             //
             // pattern_syntax
             if (fields.Exists("pattern_syntax")) {
-                obj.pattern_syntax = Enum.GetName(typeof(PatternSyntax), precondition.PatternSyntax).ToLowerInvariant();
-        }
+                obj.pattern_syntax = PatternSyntaxHelper.ToJsonModel(precondition.PatternSyntax);
+            }
 
             //
             // requirements
@@ -312,7 +312,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             //
             // pattern_syntax
             if (fields.Exists("pattern_syntax")) {
-                obj.pattern_syntax = Enum.GetName(typeof(PatternSyntax), rule.PatternSyntax).ToLowerInvariant();
+                obj.pattern_syntax = PatternSyntaxHelper.ToJsonModel(rule.PatternSyntax);
             }
 
             //
@@ -410,7 +410,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("pattern");
             }
 
-            if (DynamicHelper.To<PatternSyntax>(model.pattern_syntax) == null) {
+            if (string.IsNullOrEmpty(DynamicHelper.Value(model.pattern_syntax))) {
                 throw new ApiArgumentException("pattern_syntax");
             }
 
@@ -664,6 +664,19 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
         private static void SetRule(dynamic model, OutboundRule rule, OutboundRulesSection section)
         {
+            try {
+                AssignRuleFromModel(model, rule, section);
+            }
+            catch (FileLoadException e) {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
+            }
+        }
+
+        private static void AssignRuleFromModel(dynamic model, OutboundRule rule, OutboundRulesSection section)
+        {
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -684,8 +697,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             DynamicHelper.If((object)model.rewrite_value, v => rule.Action.RewriteValue = v);
             DynamicHelper.If<bool>((object)model.ignore_case, v => rule.Match.IgnoreCase = v);
             DynamicHelper.If<bool>((object)model.negate, v => rule.Match.Negate = v);
-            DynamicHelper.If<PatternSyntax>((object)model.pattern_syntax, v => rule.PatternSyntax = v);
             DynamicHelper.If<bool>((object)model.stop_processing, v => rule.StopProcessing = v);
+            DynamicHelper.If((object)model.pattern_syntax, v => rule.PatternSyntax = PatternSyntaxHelper.FromJsonModel(v));
 
             //
             // Server Variable
@@ -838,68 +851,76 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("model");
             }
 
-            string name = DynamicHelper.Value(model.name);
-            if (!string.IsNullOrEmpty(name)) {
-                if (!name.Equals(precondition.Name, StringComparison.OrdinalIgnoreCase) &&
-                        section.PreConditions.Any(pc => pc.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) {
-                    throw new AlreadyExistsException("name");
+            try {
+                string name = DynamicHelper.Value(model.name);
+                if (!string.IsNullOrEmpty(name)) {
+                    if (!name.Equals(precondition.Name, StringComparison.OrdinalIgnoreCase) &&
+                            section.PreConditions.Any(pc => pc.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) {
+                        throw new AlreadyExistsException("name");
+                    }
+
+                    precondition.Name = name;
                 }
 
-                precondition.Name = name;
+                //
+                // Match (Logical Grouping)
+                DynamicHelper.If((object)model.match, v => {
+                    switch (v.ToLowerInvariant()) {
+                        case "all":
+                            precondition.LogicalGrouping = LogicalGrouping.MatchAll;
+                            break;
+                        case "any":
+                            precondition.LogicalGrouping = LogicalGrouping.MatchAny;
+                            break;
+                        default:
+                            throw new ApiArgumentException("match");
+                    }
+                });
+
+                // Pattern Syntax
+                DynamicHelper.If((object)model.pattern_syntax, v => precondition.PatternSyntax = PatternSyntaxHelper.FromJsonModel(v));
+
+                //
+                // requirements
+                if (model.requirements != null) {
+
+                    IEnumerable<dynamic> requirements = model.requirements as IEnumerable<dynamic>;
+
+                    if (requirements == null) {
+                        throw new ApiArgumentException("requirements", ApiArgumentException.EXPECTED_ARRAY);
+                    }
+
+                    precondition.Conditions.Clear();
+
+                    foreach (dynamic requirement in requirements) {
+                        if (!(requirement is JObject)) {
+                            throw new ApiArgumentException("requirements.item");
+                        }
+
+                        string input = DynamicHelper.Value(requirement.input);
+
+                        if (string.IsNullOrEmpty(input)) {
+                            throw new ApiArgumentException("requirements.item.input", "Required");
+                        }
+
+                        var req = precondition.Conditions.CreateElement();
+                        req.Input = input;
+                        req.Pattern = DynamicHelper.Value(requirement.pattern);
+                        req.Negate = DynamicHelper.To<bool>(requirement.negate);
+                        req.IgnoreCase = DynamicHelper.To<bool>(requirement.ignore_case);
+
+                        // Schema only specifies pattern match type for outbound rules
+                        req.MatchType = PreConditionMatchType.Pattern;
+
+                        precondition.Conditions.Add(req);
+                    }
+                }
             }
-
-            //
-            // Match (Logical Grouping)
-            DynamicHelper.If((object)model.match, v => {
-                switch (v.ToLowerInvariant()) {
-                    case "all":
-                        precondition.LogicalGrouping = LogicalGrouping.MatchAll;
-                        break;
-                    case "any":
-                        precondition.LogicalGrouping = LogicalGrouping.MatchAny;
-                        break;
-                    default:
-                        throw new ApiArgumentException("match");
-                }
-            });
-
-            // Pattern Syntax
-            DynamicHelper.If<PatternSyntax>((object)model.pattern_syntax, v => precondition.PatternSyntax = v);
-
-            //
-            // requirements
-            if (model.requirements != null) {
-
-                IEnumerable<dynamic> requirements = model.requirements as IEnumerable<dynamic>;
-
-                if (requirements == null) {
-                    throw new ApiArgumentException("requirements", ApiArgumentException.EXPECTED_ARRAY);
-                }
-
-                precondition.Conditions.Clear();
-
-                foreach (dynamic requirement in requirements) {
-                    if (!(requirement is JObject)) {
-                        throw new ApiArgumentException("requirements.item");
-                    }
-
-                    string input = DynamicHelper.Value(requirement.input);
-
-                    if (string.IsNullOrEmpty(input)) {
-                        throw new ApiArgumentException("requirements.item.input", "Required");
-                    }
-
-                    var req = precondition.Conditions.CreateElement();
-                    req.Input = input;
-                    req.Pattern = DynamicHelper.Value(requirement.pattern);
-                    req.Negate = DynamicHelper.To<bool>(requirement.negate);
-                    req.IgnoreCase = DynamicHelper.To<bool>(requirement.ignore_case);
-
-                    // Schema only specifies pattern match type for outbound rules
-                    req.MatchType = PreConditionMatchType.Pattern;
-
-                    precondition.Conditions.Add(req);
-                }
+            catch (FileLoadException e) {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
             }
         }
 
@@ -910,58 +931,58 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("model");
             }
 
-            string name = DynamicHelper.Value(model.name);
-            if (!string.IsNullOrEmpty(name))
-            {
-                if (!name.Equals(tagsSet.Name, StringComparison.OrdinalIgnoreCase) &&
-                        section.PreConditions.Any(pc => pc.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
-                {
-                    throw new AlreadyExistsException("name");
+            try {
+                string name = DynamicHelper.Value(model.name);
+                if (!string.IsNullOrEmpty(name)) {
+                    if (!name.Equals(tagsSet.Name, StringComparison.OrdinalIgnoreCase) &&
+                            section.PreConditions.Any(pc => pc.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) {
+                        throw new AlreadyExistsException("name");
+                    }
+
+                    tagsSet.Name = name;
                 }
 
-                tagsSet.Name = name;
+                //
+                // tags
+                if (model.tags != null) {
+
+                    IEnumerable<dynamic> tags = model.tags as IEnumerable<dynamic>;
+
+                    if (tags == null) {
+                        throw new ApiArgumentException("requirements", ApiArgumentException.EXPECTED_ARRAY);
+                    }
+
+                    tagsSet.Tags.Clear();
+
+                    foreach (dynamic requirement in tags) {
+                        if (!(requirement is JObject)) {
+                            throw new ApiArgumentException("tags.item");
+                        }
+
+                        string tagName = DynamicHelper.Value(requirement.name);
+                        string attribute = DynamicHelper.Value(requirement.attribute);
+
+                        if (string.IsNullOrEmpty(tagName)) {
+                            throw new ApiArgumentException("tags.item.name", "Required");
+                        }
+
+                        if (string.IsNullOrEmpty(attribute)) {
+                            throw new ApiArgumentException("tags.item.attribute", "Required");
+                        }
+
+                        var t = tagsSet.Tags.CreateElement();
+                        t.Name = tagName;
+                        t.Attribute = attribute;
+
+                        tagsSet.Tags.Add(t);
+                    }
+                }
             }
-
-            //
-            // tags
-            if (model.tags != null)
-            {
-
-                IEnumerable<dynamic> tags = model.tags as IEnumerable<dynamic>;
-
-                if (tags == null)
-                {
-                    throw new ApiArgumentException("requirements", ApiArgumentException.EXPECTED_ARRAY);
-                }
-
-                tagsSet.Tags.Clear();
-
-                foreach (dynamic requirement in tags)
-                {
-                    if (!(requirement is JObject))
-                    {
-                        throw new ApiArgumentException("tags.item");
-                    }
-
-                    string tagName = DynamicHelper.Value(requirement.name);
-                    string attribute = DynamicHelper.Value(requirement.attribute);
-
-                    if (string.IsNullOrEmpty(tagName))
-                    {
-                        throw new ApiArgumentException("tags.item.name", "Required");
-                    }
-
-                    if (string.IsNullOrEmpty(attribute))
-                    {
-                        throw new ApiArgumentException("tags.item.attribute", "Required");
-                    }
-
-                    var t = tagsSet.Tags.CreateElement();
-                    t.Name = tagName;
-                    t.Attribute = attribute;
-
-                    tagsSet.Tags.Add(t);
-                }
+            catch (FileLoadException e) {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
             }
         }
 

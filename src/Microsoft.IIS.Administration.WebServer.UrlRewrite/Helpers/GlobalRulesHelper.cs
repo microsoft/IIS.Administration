@@ -163,7 +163,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             //
             // pattern_syntax
             if (fields.Exists("pattern_syntax")) {
-                obj.pattern_syntax = Enum.GetName(typeof(PatternSyntax), rule.PatternSyntax).ToLowerInvariant();
+                obj.pattern_syntax = PatternSyntaxHelper.ToJsonModel(rule.PatternSyntax);
             }
 
             //
@@ -282,7 +282,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("pattern");
             }
 
-            if (DynamicHelper.To<PatternSyntax>(model.pattern_syntax) == null) {
+            if (string.IsNullOrEmpty(DynamicHelper.Value(model.pattern_syntax))) {
                 throw new ApiArgumentException("pattern_syntax");
             }
 
@@ -381,8 +381,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             DynamicHelper.If((object)model.pattern, v => rule.Match.Pattern = v);
             DynamicHelper.If<bool>((object)model.ignore_case, v => rule.Match.IgnoreCase = v);
             DynamicHelper.If<bool>((object)model.negate, v => rule.Match.Negate = v);
-            DynamicHelper.If<PatternSyntax>((object)model.pattern_syntax, v => rule.PatternSyntax = v);
             DynamicHelper.If<bool>((object)model.stop_processing, v => rule.StopProcessing = v);
+            DynamicHelper.If((object)model.pattern_syntax, v => rule.PatternSyntax = PatternSyntaxHelper.FromJsonModel(v));
 
             //
             // Action

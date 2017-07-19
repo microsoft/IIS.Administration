@@ -150,8 +150,20 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
-            // maps
-            if (fields.Exists("maps")) {
+            // default_value
+            if (fields.Exists("default_value")) {
+                obj.default_value = map.DefaultValue;
+            }
+
+            //
+            // ignore_case
+            if (fields.Exists("ignore_case")) {
+                obj.ignore_case = map.IgnoreCase;
+            }
+
+            //
+            // entries
+            if (fields.Exists("entries")) {
                 obj.entries = map.KeyValuePairCollection.Select(kvp => new {
                     key = kvp.Key,
                     value = kvp.Value
@@ -264,52 +276,63 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("model");
             }
 
-            //
-            // Name, check for already existing name
-            string name = DynamicHelper.Value(model.name);
-            if (!string.IsNullOrEmpty(name)) {
-                if (!name.Equals(map.Name, StringComparison.OrdinalIgnoreCase) &&
-                        section.RewriteMaps.Any(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) {
-                    throw new AlreadyExistsException("name");
+            try {
+                //
+                // Name, check for already existing name
+                string name = DynamicHelper.Value(model.name);
+                if (!string.IsNullOrEmpty(name)) {
+                    if (!name.Equals(map.Name, StringComparison.OrdinalIgnoreCase) &&
+                            section.RewriteMaps.Any(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) {
+                        throw new AlreadyExistsException("name");
+                    }
+
+                    map.Name = name;
                 }
 
-                map.Name = name;
+                DynamicHelper.If((object)model.default_value, v => map.DefaultValue = v);
+                DynamicHelper.If<bool>((object)model.ignore_case, v => map.IgnoreCase = v);
+
+                //
+                // entries
+                if (model.entries != null) {
+
+                    IEnumerable<dynamic> entries = model.entries as IEnumerable<dynamic>;
+
+                    if (entries == null) {
+                        throw new ApiArgumentException("entries", ApiArgumentException.EXPECTED_ARRAY);
+                    }
+
+                    map.KeyValuePairCollection.Clear();
+
+                    foreach (dynamic entry in entries) {
+                        if (!(entry is JObject)) {
+                            throw new ApiArgumentException("entries.item");
+                        }
+
+                        string key = DynamicHelper.Value(entry.key);
+                        string value = DynamicHelper.Value(entry.value);
+
+                        if (string.IsNullOrEmpty(key)) {
+                            throw new ApiArgumentException("entries.item.name", "Required");
+                        }
+
+                        if (string.IsNullOrEmpty(value)) {
+                            throw new ApiArgumentException("entries.item.value", "Required");
+                        }
+
+                        KeyValueElement kvp = map.KeyValuePairCollection.CreateElement();
+                        kvp.Key = key;
+                        kvp.Value = value;
+
+                        map.KeyValuePairCollection.Add(kvp);
+                    }
+                }
             }
-
-            //
-            // entries
-            if (model.entries != null) {
-
-                IEnumerable<dynamic> entries = model.entries as IEnumerable<dynamic>;
-
-                if (entries == null) {
-                    throw new ApiArgumentException("entries", ApiArgumentException.EXPECTED_ARRAY);
-                }
-
-                map.KeyValuePairCollection.Clear();
-
-                foreach (dynamic entry in entries) {
-                    if (!(entry is JObject)) {
-                        throw new ApiArgumentException("entries.item");
-                    }
-
-                    string key = DynamicHelper.Value(entry.key);
-                    string value = DynamicHelper.Value(entry.value);
-
-                    if (string.IsNullOrEmpty(key)) {
-                        throw new ApiArgumentException("entries.item.name", "Required");
-                    }
-
-                    if (string.IsNullOrEmpty(value)) {
-                        throw new ApiArgumentException("entries.item.value", "Required");
-                    }
-
-                    KeyValueElement kvp = map.KeyValuePairCollection.CreateElement();
-                    kvp.Key = key;
-                    kvp.Value = value;
-
-                    map.KeyValuePairCollection.Add(kvp);
-                }
+            catch (FileLoadException e) {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
             }
         }
     }

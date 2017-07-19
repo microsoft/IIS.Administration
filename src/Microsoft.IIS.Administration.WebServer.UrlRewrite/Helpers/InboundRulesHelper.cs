@@ -128,7 +128,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             //
             // pattern_syntax
             if (fields.Exists("pattern_syntax")) {
-                obj.pattern_syntax = Enum.GetName(typeof(PatternSyntax), rule.PatternSyntax).ToLowerInvariant();
+                obj.pattern_syntax = PatternSyntaxHelper.ToJsonModel(rule.PatternSyntax);
             }
 
             //
@@ -200,12 +200,15 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return Core.Environment.Hal.Apply(Defines.InboundRulesResource.Guid, obj);
         }
 
-        public static void UpdateRule(dynamic model, InboundRule rule, InboundRulesSection section)
+        public static void UpdateRule(dynamic model, InboundRule rule, Site site, string path, string configPath = null)
         {
-            SetRule(model, rule, section);
+            InboundRulesSection section = GetSection(site, path, configPath);
+            AllowedServerVariablesSection serverVariablesSection = ServerVariablesHelper.GetSection(site, path, configPath);
+
+            SetRule(model, rule, section, serverVariablesSection);
         }
 
-        public static InboundRule CreateRule(dynamic model, InboundRulesSection section)
+        public static InboundRule CreateRule(dynamic model, Site site, string path, string configPath = null)
         {
             if (model == null) {
                 throw new ApiArgumentException("model");
@@ -219,7 +222,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("pattern");
             }
 
-            if (DynamicHelper.To<PatternSyntax>(model.pattern_syntax) == null) {
+            if (string.IsNullOrEmpty(DynamicHelper.Value(model.pattern_syntax))) {
                 throw new ApiArgumentException("pattern_syntax");
             }
 
@@ -239,9 +242,13 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("action.url");
             }
 
+            InboundRulesSection section = GetSection(site, path, configPath);
+            AllowedServerVariablesSection serverVariablesSection = ServerVariablesHelper.GetSection(site, path, configPath);
+
+
             var rule = (InboundRule)section.InboundRules.CreateElement();
 
-            SetRule(model, rule, section);
+            SetRule(model, rule, section, serverVariablesSection);
 
             return rule;
         }
@@ -360,7 +367,20 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
-        private static void SetRule(dynamic model, InboundRule rule, InboundRulesSection section)
+        private static void SetRule(dynamic model, InboundRule rule, InboundRulesSection section, AllowedServerVariablesSection serverVariablesSection)
+        {
+            try {
+                AssignRuleFromModel(model, rule, section, serverVariablesSection);
+            }
+            catch (FileLoadException e) {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
+            }
+        }
+
+        private static void AssignRuleFromModel(dynamic model, InboundRule rule, InboundRulesSection section, AllowedServerVariablesSection serverVariablesSection)
         {
             if (model == null) {
                 throw new ApiArgumentException("model");
@@ -381,8 +401,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             DynamicHelper.If((object)model.pattern, v => rule.Match.Pattern = v);
             DynamicHelper.If<bool>((object)model.ignore_case, v => rule.Match.IgnoreCase = v);
             DynamicHelper.If<bool>((object)model.negate, v => rule.Match.Negate = v);
-            DynamicHelper.If<PatternSyntax>((object)model.pattern_syntax, v => rule.PatternSyntax = v);
             DynamicHelper.If<bool>((object)model.stop_processing, v => rule.StopProcessing = v);
+            DynamicHelper.If((object)model.pattern_syntax, v => rule.PatternSyntax = PatternSyntaxHelper.FromJsonModel(v));
 
             //
             // Action
@@ -436,6 +456,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     svAssignment.Value = svValue;
                     svAssignment.Replace = svReplace;
 
+                    AddAllowedServerVariable(serverVariablesSection, svAssignment.Name);
+
                     rule.ServerVariableAssignments.Add(svAssignment);
                 }
             }
@@ -481,6 +503,33 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 if (rule.Schema.HasAttribute(InboundRule.ResponseCacheDirectiveAttribute)) {
                     DynamicHelper.If<ResponseCacheDirective>((object)model.response_cache_directive, v => rule.ResponseCacheDirective = v);
                 }
+            }
+        }
+
+        private static void AddAllowedServerVariable(AllowedServerVariablesSection serverVariablesSection, string name)
+        {
+            //
+            // The list of server variables that are allowed to be overwritten in distributed inbound rules
+            AllowedServerVariableCollection allowedServerVariables = serverVariablesSection.AllowedServerVariables;
+
+            if (allowedServerVariables.Any(sv => sv.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) {
+                return;
+            }
+
+            //
+            // Try to add the server variable to the allowed list, otherwise inbound rules using it will not work
+            try {
+                AllowedServerVariable allowedServerVariable = allowedServerVariables.CreateElement();
+
+                allowedServerVariable.Name = name;
+
+                allowedServerVariables.Add(allowedServerVariable);
+            }
+            catch (FileLoadException e) {
+                throw new LockedException(serverVariablesSection.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
             }
         }
     }

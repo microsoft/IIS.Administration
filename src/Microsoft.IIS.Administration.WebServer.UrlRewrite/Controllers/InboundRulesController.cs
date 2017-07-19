@@ -86,7 +86,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return NotFound();
             }
 
-            InboundRulesHelper.UpdateRule(model, rule, section);
+            InboundRulesHelper.UpdateRule(model, rule, site, inboundRuleId.Path, ManagementUnit.ResolveConfigScope(model));
 
             ManagementUnit.Current.Commit();
 
@@ -117,7 +117,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             InboundRulesSection section = InboundRulesHelper.GetSection(site, parentId.Path, configPath);
 
             // Create rule
-            InboundRule rule = InboundRulesHelper.CreateRule(model, section);
+            InboundRule rule = InboundRulesHelper.CreateRule(model, site, parentId.Path, ManagementUnit.ResolveConfigScope(model));
 
             // Add it
             InboundRulesHelper.AddRule(rule, section);

@@ -282,54 +282,62 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("model");
             }
 
-            //
-            // Name, check for already existing name
-            string name = DynamicHelper.Value(model.name);
-            if (!string.IsNullOrEmpty(name)) {
-                if (!name.Equals(provider.Name, StringComparison.OrdinalIgnoreCase) &&
-                        section.Providers.Any(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) {
-                    throw new AlreadyExistsException("name");
+            try {
+                //
+                // Name, check for already existing name
+                string name = DynamicHelper.Value(model.name);
+                if (!string.IsNullOrEmpty(name)) {
+                    if (!name.Equals(provider.Name, StringComparison.OrdinalIgnoreCase) &&
+                            section.Providers.Any(r => r.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) {
+                        throw new AlreadyExistsException("name");
+                    }
+
+                    provider.Name = name;
                 }
 
-                provider.Name = name;
+                DynamicHelper.If((object)model.type, v => provider.TypeName = v);
+
+                //
+                // settings
+                if (model.settings != null) {
+
+                    IEnumerable<dynamic> settings = model.settings as IEnumerable<dynamic>;
+
+                    if (settings == null) {
+                        throw new ApiArgumentException("settings", ApiArgumentException.EXPECTED_ARRAY);
+                    }
+
+                    provider.Settings.Clear();
+
+                    foreach (dynamic setting in settings) {
+                        if (!(setting is JObject)) {
+                            throw new ApiArgumentException("settings.item");
+                        }
+
+                        string key = DynamicHelper.Value(setting.key);
+                        string value = DynamicHelper.Value(setting.value);
+
+                        if (string.IsNullOrEmpty(key)) {
+                            throw new ApiArgumentException("settings.item.key", "Required");
+                        }
+
+                        if (string.IsNullOrEmpty(value)) {
+                            throw new ApiArgumentException("settings.item.value", "Required");
+                        }
+
+                        var set = provider.Settings.CreateElement();
+                        set.Key = key;
+                        set.Value = value;
+
+                        provider.Settings.Add(set);
+                    }
+                }
             }
-
-            DynamicHelper.If((object)model.type, v => provider.TypeName = v);
-
-            //
-            // settings
-            if (model.settings != null) {
-
-                IEnumerable<dynamic> settings = model.settings as IEnumerable<dynamic>;
-
-                if (settings == null) {
-                    throw new ApiArgumentException("settings", ApiArgumentException.EXPECTED_ARRAY);
-                }
-
-                provider.Settings.Clear();
-
-                foreach (dynamic setting in settings) {
-                    if (!(setting is JObject)) {
-                        throw new ApiArgumentException("settings.item");
-                    }
-
-                    string key = DynamicHelper.Value(setting.key);
-                    string value = DynamicHelper.Value(setting.value);
-
-                    if (string.IsNullOrEmpty(key)) {
-                        throw new ApiArgumentException("settings.item.key", "Required");
-                    }
-
-                    if (string.IsNullOrEmpty(value)) {
-                        throw new ApiArgumentException("settings.item.value", "Required");
-                    }
-
-                    var set = provider.Settings.CreateElement();
-                    set.Key = key;
-                    set.Value = value;
-
-                    provider.Settings.Add(set);
-                }
+            catch (FileLoadException e) {
+                throw new LockedException(section.SectionPath, e);
+            }
+            catch (DirectoryNotFoundException e) {
+                throw new ConfigScopeNotFoundException(e);
             }
         }
     }

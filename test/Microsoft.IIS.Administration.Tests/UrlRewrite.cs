@@ -7,6 +7,7 @@ namespace Microsoft.IIS.Administration.Tests
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Net.Http;
     using System.Threading.Tasks;
     using Xunit;
@@ -32,7 +33,8 @@ namespace Microsoft.IIS.Administration.Tests
                     Assert.NotNull(siteFeature);
 
                     const string testRuleName = "RewriteTestRule";
-                    string updatedTestRuleName = testRuleName + "2";
+                    const string updatedTestRuleName = testRuleName + "2";
+                    const string testServerVariable1 = "abc", testServerVariable2 = "def";
 
                     JObject inboundRulesSection = Utils.FollowLink(client, siteFeature, "inbound_rules");
                     string inboundRulesLink = Utils.GetLink(inboundRulesSection, "rules");
@@ -45,10 +47,15 @@ namespace Microsoft.IIS.Administration.Tests
                         }
                     }
 
+                    //
+                    // Ensure server variables allowed
+                    await AddAllowedServerVariable(testServerVariable1);
+                    await AddAllowedServerVariable(testServerVariable2);
+
                     JObject rule = JObject.FromObject(new {
                         name = testRuleName,
                         pattern = "^([^/]+)/([^/]+)/?$",
-                        pattern_syntax = "ecmascript",
+                        pattern_syntax = "regular_expression",
                         ignore_case = true,
                         negate = true,
                         stop_processing = true,
@@ -61,7 +68,7 @@ namespace Microsoft.IIS.Administration.Tests
                         },
                         server_variables = new object[] {
                             new {
-                                name = "abc",
+                                name = testServerVariable1,
                                 value = "def",
                                 replace = true
                             }
@@ -100,7 +107,7 @@ namespace Microsoft.IIS.Administration.Tests
                         },
                         server_variables = new object[] {
                             new {
-                                name = "def",
+                                name = testServerVariable2,
                                 value = "abc",
                                 replace = false
                             }
@@ -154,7 +161,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject rule = JObject.FromObject(new {
                     name = testRuleName,
                     pattern = "^([^/]+)/([^/]+)/?$",
-                    pattern_syntax = "ecmascript",
+                    pattern_syntax = "regular_expression",
                     ignore_case = true,
                     negate = true,
                     stop_processing = true,
@@ -289,6 +296,8 @@ namespace Microsoft.IIS.Administration.Tests
 
                 JObject map = JObject.FromObject(new {
                     name = testMapName,
+                    default_value = "def1",
+                    ignore_case = false,
                     entries = new object[] {
                             new {
                                 key = "abc",
@@ -310,6 +319,8 @@ namespace Microsoft.IIS.Administration.Tests
 
                 JObject updateMap = JObject.FromObject(new {
                     name = updatedTestMapName,
+                    default_value = "def2",
+                    ignore_case = true,
                     entries = new object[] {
                             new {
                                 key = "igloo",
@@ -363,7 +374,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject precondition = JObject.FromObject(new {
                     name = testName,
                     match = "all",
-                    pattern_syntax = "ecmascript",
+                    pattern_syntax = "regular_expression",
                     requirements = new object[] {
                             new {
                                 input = "{RESPONSE_CONTENT_TYPE}",
@@ -390,7 +401,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject updatePrecondition = JObject.FromObject(new {
                     name = updatedName,
                     match = "any",
-                    pattern_syntax = "ecmascript",
+                    pattern_syntax = "regular_expression",
                     requirements = new object[] {
                             new {
                                 input = "{RESPONSE_SERVE}",
@@ -532,7 +543,7 @@ namespace Microsoft.IIS.Administration.Tests
                         custom = customTags
                     },
                     pattern = "abc.aspx?a=b&c=d",
-                    pattern_syntax = "ecmascript",
+                    pattern_syntax = "regular_expression",
                     ignore_case = false,
                     negate = true,
                     stop_processing = false,
@@ -767,6 +778,8 @@ namespace Microsoft.IIS.Administration.Tests
         private void AssertRewriteMapsEqual(JObject a, JObject b)
         {
             Assert.Equal(a.Value<string>("name"), b.Value<string>("name"));
+            Assert.Equal(a.Value<string>("default_value"), b.Value<string>("default_value"));
+            Assert.Equal(a.Value<bool>("ignore_case"), b.Value<bool>("ignore_case"));
 
             JObject[] aMaps = a["entries"].ToObject<JObject[]>();
             JObject[] bMaps = b["entries"].ToObject<JObject[]>();
@@ -945,7 +958,7 @@ namespace Microsoft.IIS.Administration.Tests
             JObject precondition = JObject.FromObject(new {
                 name = name,
                 match = "all",
-                pattern_syntax = "ecmascript",
+                pattern_syntax = "regular_expression",
                 requirements = new object[] {
                             new {
                                 input = "{RESPONSE_CONTENT_TYPE}",
@@ -981,6 +994,28 @@ namespace Microsoft.IIS.Administration.Tests
             }
 
             Assert.NotNull(client.Post(REWRITE_URL, new { }));
+        }
+
+        private async Task<bool> AddAllowedServerVariable(string variable)
+        {
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                await EnsureEnabled(client);
+
+                JObject webserverFeature = Utils.GetFeature(client, REWRITE_URL, "", null);
+
+                JObject allowedServerVariablesResource = Utils.FollowLink(client, webserverFeature, "allowed_server_variables");
+
+                var allowedVariables = allowedServerVariablesResource["entries"].ToObject<List<string>>();
+
+                if (!allowedVariables.Any(v => v.Equals(variable, StringComparison.OrdinalIgnoreCase))) {
+                    allowedVariables.Add(variable);
+                    allowedServerVariablesResource["entries"] = JToken.FromObject(allowedVariables);
+                    return client.Patch(Utils.Self(allowedServerVariablesResource), allowedServerVariablesResource) != null;
+                }
+
+                return true;
+            }
         }
     }
 }

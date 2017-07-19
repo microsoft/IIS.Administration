@@ -101,11 +101,18 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         {
             X509Certificate2 cert = CertificateUtility.CreateCertificateFromFile(path);
 
-            var chain = new X509Chain();
-            chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
-            chain.ChainPolicy.VerificationFlags |= X509VerificationFlags.IgnoreNotTimeValid;
+            //
+            // Only use Microsoft signed MSI
+            if (cert.Subject.Contains("O=Microsoft Corporation,")) {
+                var chain = new X509Chain();
 
-            return chain.Build(cert);
+                chain.ChainPolicy.RevocationFlag = X509RevocationFlag.EntireChain;
+                chain.ChainPolicy.VerificationFlags |= X509VerificationFlags.IgnoreNotTimeValid;
+
+                return chain.Build(cert);
+            }
+
+            return false;
         }
 
         private Task<int> RunInstaller(ProcessStartInfo info)
