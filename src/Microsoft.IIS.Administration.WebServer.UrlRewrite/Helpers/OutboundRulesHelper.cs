@@ -162,10 +162,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
-            // outbound_rules
-            if (fields.Exists("outbound_rules"))
-            {
-                obj.outbound_rules = SectionToJsonModelRef(site, path);
+            // url_rewrite
+            if (fields.Exists("url_rewrite")) {
+                obj.url_rewrite = RewriteHelper.ToJsonModelRef(site, path, fields.Filter("url_rewrite"));
             }
 
             return Core.Environment.Hal.Apply(Defines.CustomTagsResource.Guid, obj, full);
@@ -229,9 +228,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
-            // outbound_rules
-            if (fields.Exists("outbound_rules")) {
-                obj.outbound_rules = SectionToJsonModelRef(site, path);
+            // url_rewrite
+            if (fields.Exists("url_rewrite")) {
+                obj.url_rewrite = RewriteHelper.ToJsonModelRef(site, path, fields.Filter("url_rewrite"));
             }
 
             return Core.Environment.Hal.Apply(Defines.PreConditionsResource.Guid, obj, full);
@@ -283,7 +282,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             // match_type
             if (fields.Exists("match_type")) {
-                obj.match_type = Enum.GetName(typeof(OutboundRuleMatchType), matchType).ToLower();
+                obj.match_type = OutboundMatchTypeHelper.ToJsonModel(matchType);
             }
 
             // server_variable
@@ -291,16 +290,17 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 obj.server_variable = string.IsNullOrEmpty(rule.Match.ServerVariable) ? null : rule.Match.ServerVariable;
             }
 
-            // html_tags
-            if (fields.Exists("html_tags") && matchType == OutboundRuleMatchType.HtmlTags) {
-                obj.html_tags = new ExpandoObject();
-                obj.html_tags.standard = TagsToDict(rule.Match.FilterByTags);
+            // tags
+            if (fields.Exists("tags") && matchType == OutboundRuleMatchType.Tags) {
+                //
+                // dynamic ExpandoObject
+                obj.tags = CreateTagsModel(rule.Match.FilterByTags);
 
                 TagsElement customTags = rule.Match.FilterByTags.HasFlag(FilterByTags.CustomTags) ?
                                             section.Tags.FirstOrDefault(t => t.Name.Equals(rule.Match.CustomTags, StringComparison.OrdinalIgnoreCase)) :
                                             null;
 
-                obj.html_tags.custom = customTags == null ? null : TagsToJsonModelRef(customTags, site, path, fields.Filter("html_tags.custom"));
+                obj.tags.custom = customTags == null ? null : TagsToJsonModelRef(customTags, site, path, fields.Filter("tags.custom"));
             }
 
             //
@@ -358,9 +358,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
-            // outbound_rules
-            if (fields.Exists("outbound_rules")) {
-                obj.outbound_rules = SectionToJsonModelRef(site, path);
+            // url_rewrite
+            if (fields.Exists("url_rewrite")) {
+                obj.url_rewrite = RewriteHelper.ToJsonModelRef(site, path, fields.Filter("url_rewrite"));
             }
 
             return Core.Environment.Hal.Apply(Defines.OutboundRulesResource.Guid, obj, full);
@@ -414,7 +414,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("pattern_syntax");
             }
 
-            if (DynamicHelper.To<OutboundRuleMatchType>(model.match_type) == null) {
+            if (string.IsNullOrEmpty(DynamicHelper.Value(model.match_type))) {
                 throw new ApiArgumentException("match_type");
             }
 
@@ -620,46 +620,28 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
-        public static RewriteId GetSectionIdFromBody(dynamic model)
+        private static dynamic CreateTagsModel(FilterByTags tags)
         {
-            if (model.outbound_rules == null) {
-                throw new ApiArgumentException("outbound_rules");
-            }
+            dynamic tagObj = new ExpandoObject();
 
-            if (!(model.outbound_rules is JObject)) {
-                throw new ApiArgumentException("outbound_rules", ApiArgumentException.EXPECTED_OBJECT);
-            }
+            tagObj.a = tags.HasFlag(FilterByTags.A);
+            tagObj.area = tags.HasFlag(FilterByTags.Area);
+            tagObj.@base = tags.HasFlag(FilterByTags.Base);
+            tagObj.form = tags.HasFlag(FilterByTags.Form);
+            tagObj.frame = tags.HasFlag(FilterByTags.Frame);
+            tagObj.head = tags.HasFlag(FilterByTags.Head);
+            tagObj.iframe = tags.HasFlag(FilterByTags.IFrame);
+            tagObj.img = tags.HasFlag(FilterByTags.Img);
+            tagObj.input = tags.HasFlag(FilterByTags.Input);
+            tagObj.link = tags.HasFlag(FilterByTags.Link);
+            tagObj.script = tags.HasFlag(FilterByTags.Script);
 
-            string rewriteId = DynamicHelper.Value(model.outbound_rules.id);
-
-            if (rewriteId == null) {
-                throw new ApiArgumentException("outbound_rules.id");
-            }
-
-            return new RewriteId(rewriteId);
-        }
-
-        private static Dictionary<string, bool> TagsToDict(FilterByTags tags)
-        {
-            Dictionary<string, bool> dict = new Dictionary<string, bool>();
-            dict.Add("a", tags.HasFlag(FilterByTags.A));
-            dict.Add("area", tags.HasFlag(FilterByTags.Area));
-            dict.Add("base", tags.HasFlag(FilterByTags.Base));
-            dict.Add("form", tags.HasFlag(FilterByTags.Form));
-            dict.Add("frame", tags.HasFlag(FilterByTags.Frame));
-            dict.Add("head", tags.HasFlag(FilterByTags.Head));
-            dict.Add("iframe", tags.HasFlag(FilterByTags.IFrame));
-            dict.Add("img", tags.HasFlag(FilterByTags.Img));
-            dict.Add("input", tags.HasFlag(FilterByTags.Input));
-            dict.Add("link", tags.HasFlag(FilterByTags.Link));
-            dict.Add("script", tags.HasFlag(FilterByTags.Script));
-
-            return dict;
+            return tagObj;
         }
 
         private static OutboundRuleMatchType GetMatchType(OutboundRule rule)
         {
-            return string.IsNullOrEmpty(rule.Match.ServerVariable) ? OutboundRuleMatchType.HtmlTags : OutboundRuleMatchType.ServerVariable;
+            return string.IsNullOrEmpty(rule.Match.ServerVariable) ? OutboundRuleMatchType.Tags : OutboundRuleMatchType.ServerVariable;
         }
 
         private static void SetRule(dynamic model, OutboundRule rule, OutboundRulesSection section)
@@ -707,66 +689,58 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             //
             // Html Tags
-            dynamic htmlTags = null;
-            dynamic standardTags = null;
+            dynamic tags = null;
             dynamic customTags = null;
 
-            if (model.html_tags != null) {
-                if (!(model.html_tags is JObject)) {
-                    throw new ApiArgumentException("html_tags", ApiArgumentException.EXPECTED_OBJECT);
+            if (model.tags != null) {
+                tags = model.tags;
+
+                if (!(tags is JObject)) {
+                    throw new ApiArgumentException("tags", ApiArgumentException.EXPECTED_OBJECT);
                 }
-                htmlTags = model.html_tags;
+
+                customTags = tags.custom;
 
                 // Clear custom tags
                 rule.Match.CustomTags = null;
                 rule.Match.FilterByTags &= ~FilterByTags.CustomTags;
             }
 
-            if (htmlTags != null) {
-                standardTags = htmlTags.standard;
-
-                if (standardTags != null && !(standardTags is JObject)) {
-                    throw new ApiArgumentException("html_tags.standard", ApiArgumentException.EXPECTED_OBJECT);
-                }
-
-                customTags = htmlTags.custom;
-
-                if (customTags != null && !(customTags is JObject)) {
-                    throw new ApiArgumentException("html_tags.custom", ApiArgumentException.EXPECTED_OBJECT);
-                }
-            }
-
             // Set standard tags
-            if (standardTags != null) {
+            if (tags != null) {
                 FilterByTags ruleTags = rule.Match.FilterByTags;
 
-                DynamicHelper.If<bool>((object)standardTags.a, v => SetTagFlag(ref ruleTags, FilterByTags.A, v));
-                DynamicHelper.If<bool>((object)standardTags.area, v => SetTagFlag(ref ruleTags, FilterByTags.Area, v));
-                DynamicHelper.If<bool>((object)standardTags.@base, v => SetTagFlag(ref ruleTags, FilterByTags.Base, v));
-                DynamicHelper.If<bool>((object)standardTags.form, v => SetTagFlag(ref ruleTags, FilterByTags.Form, v));
-                DynamicHelper.If<bool>((object)standardTags.frame, v => SetTagFlag(ref ruleTags, FilterByTags.Frame, v));
-                DynamicHelper.If<bool>((object)standardTags.head, v => SetTagFlag(ref ruleTags, FilterByTags.Head, v));
-                DynamicHelper.If<bool>((object)standardTags.iframe, v => SetTagFlag(ref ruleTags, FilterByTags.IFrame, v));
-                DynamicHelper.If<bool>((object)standardTags.img, v => SetTagFlag(ref ruleTags, FilterByTags.Img, v));
-                DynamicHelper.If<bool>((object)standardTags.input, v => SetTagFlag(ref ruleTags, FilterByTags.Input, v));
-                DynamicHelper.If<bool>((object)standardTags.link, v => SetTagFlag(ref ruleTags, FilterByTags.Link, v));
-                DynamicHelper.If<bool>((object)standardTags.script, v => SetTagFlag(ref ruleTags, FilterByTags.Script, v));
+                DynamicHelper.If<bool>((object)tags.a, v => SetTagFlag(ref ruleTags, FilterByTags.A, v));
+                DynamicHelper.If<bool>((object)tags.area, v => SetTagFlag(ref ruleTags, FilterByTags.Area, v));
+                DynamicHelper.If<bool>((object)tags.@base, v => SetTagFlag(ref ruleTags, FilterByTags.Base, v));
+                DynamicHelper.If<bool>((object)tags.form, v => SetTagFlag(ref ruleTags, FilterByTags.Form, v));
+                DynamicHelper.If<bool>((object)tags.frame, v => SetTagFlag(ref ruleTags, FilterByTags.Frame, v));
+                DynamicHelper.If<bool>((object)tags.head, v => SetTagFlag(ref ruleTags, FilterByTags.Head, v));
+                DynamicHelper.If<bool>((object)tags.iframe, v => SetTagFlag(ref ruleTags, FilterByTags.IFrame, v));
+                DynamicHelper.If<bool>((object)tags.img, v => SetTagFlag(ref ruleTags, FilterByTags.Img, v));
+                DynamicHelper.If<bool>((object)tags.input, v => SetTagFlag(ref ruleTags, FilterByTags.Input, v));
+                DynamicHelper.If<bool>((object)tags.link, v => SetTagFlag(ref ruleTags, FilterByTags.Link, v));
+                DynamicHelper.If<bool>((object)tags.script, v => SetTagFlag(ref ruleTags, FilterByTags.Script, v));
 
                 rule.Match.FilterByTags = ruleTags;
             }
 
             // Set custom tags
             if (customTags != null) {
+                if (!(customTags is JObject)) {
+                    throw new ApiArgumentException("tags.custom", ApiArgumentException.EXPECTED_OBJECT);
+                }
+
                 string ctId = DynamicHelper.Value(customTags.id);
 
                 if (string.IsNullOrEmpty(ctId)) {
-                    throw new ArgumentException("html_tags.custom.id", "required");
+                    throw new ArgumentException("tags.custom.id", "required");
                 }
 
                 TagsElement targetCustomTags = section.Tags.FirstOrDefault(t => t.Name.Equals(new CustomTagsId(ctId).Name, StringComparison.OrdinalIgnoreCase));
 
                 if (targetCustomTags == null) {
-                    throw new NotFoundException("html_tags.custom");
+                    throw new NotFoundException("tags.custom");
                 }
 
                 rule.Match.FilterByTags |= FilterByTags.CustomTags;
@@ -835,9 +809,10 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             //
             // Set match type
-            OutboundRuleMatchType matchType = DynamicHelper.To<OutboundRuleMatchType>(model.match_type) ?? GetMatchType(rule);
+            string type = DynamicHelper.Value(model.match_type);
+            OutboundRuleMatchType matchType = string.IsNullOrEmpty(type) ? GetMatchType(rule) : OutboundMatchTypeHelper.FromJsonModel(type);
 
-            if (matchType == OutboundRuleMatchType.HtmlTags) {
+            if (matchType == OutboundRuleMatchType.Tags) {
                 rule.Match.ServerVariable = null;
             }
             else {

@@ -20,11 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [ResourceInfo(Name = Defines.RewriteMapsName)]
         public object Get()
         {
-            string rewriteMapsId = Context.Request.Query[Defines.REWRITE_MAPS_SECTION_IDENTIFIER];
-
-            if (string.IsNullOrEmpty(rewriteMapsId)) {
-                rewriteMapsId = Context.Request.Query[Defines.IDENTIFIER];
-            }
+            string rewriteMapsId = Context.Request.Query[Defines.IDENTIFIER];
 
             if (string.IsNullOrEmpty(rewriteMapsId)) {
                 return NotFound();
@@ -39,7 +35,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             this.Context.Response.SetItemsCount(maps.Count());
 
             return new {
-                maps = maps.Select(map => RewriteMapsHelper.MapToJsonModelRef(map, site, sectionId.Path, Context.Request.GetFields()))
+                entries = maps.Select(map => RewriteMapsHelper.MapToJsonModelRef(map, site, sectionId.Path, Context.Request.GetFields()))
             };
         }
 
@@ -106,7 +102,11 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("model");
             }
 
-            RewriteId parentId = RewriteHelper.GetRewriteIdFromBody(model) ?? RewriteMapsHelper.GetSectionIdFromBody(model);
+            RewriteId parentId = RewriteHelper.GetRewriteIdFromBody(model);
+
+            if (parentId == null) {
+                throw new ApiArgumentException("url_rewrite");
+            }
 
             Site site = parentId.SiteId == null ? null : SiteHelper.GetSite(parentId.SiteId.Value);
 

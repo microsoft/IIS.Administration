@@ -45,25 +45,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                                                  Globals.RewriteMapSectionName);
         }
 
-        public static RewriteId GetSectionIdFromBody(dynamic model)
-        {
-            if (model.rewrite_maps == null) {
-                throw new ApiArgumentException("rewrite_maps");
-            }
-
-            if (!(model.rewrite_maps is JObject)) {
-                throw new ApiArgumentException("rewrite_maps", ApiArgumentException.EXPECTED_OBJECT);
-            }
-
-            string rewriteId = DynamicHelper.Value(model.rewrite_maps.id);
-
-            if (rewriteId == null) {
-                throw new ApiArgumentException("rewrite_maps.id");
-            }
-
-            return new RewriteId(rewriteId);
-        }
-
         public static object SectionToJsonModelRef(Site site, string path, Fields fields = null)
         {
             if (fields == null || !fields.HasFields) {
@@ -162,18 +143,18 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
-            // entries
-            if (fields.Exists("entries")) {
-                obj.entries = map.KeyValuePairCollection.Select(kvp => new {
-                    key = kvp.Key,
+            // mappings
+            if (fields.Exists("mappings")) {
+                obj.mappings = map.KeyValuePairCollection.Select(kvp => new {
+                    name = kvp.Key,
                     value = kvp.Value
                 });
             }
 
             //
-            // rewrite_maps
-            if (fields.Exists("rewrite_maps")) {
-                obj.rewrite_maps = SectionToJsonModelRef(site, path);
+            // url_rewrite
+            if (fields.Exists("url_rewrite")) {
+                obj.url_rewrite = RewriteHelper.ToJsonModelRef(site, path, fields.Filter("url_rewrite"));
             }
 
             return Core.Environment.Hal.Apply(Defines.RewriteMapsResource.Guid, obj, full);
@@ -293,35 +274,35 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 DynamicHelper.If<bool>((object)model.ignore_case, v => map.IgnoreCase = v);
 
                 //
-                // entries
-                if (model.entries != null) {
+                // mappings
+                if (model.mappings != null) {
 
-                    IEnumerable<dynamic> entries = model.entries as IEnumerable<dynamic>;
+                    IEnumerable<dynamic> mappings = model.mappings as IEnumerable<dynamic>;
 
-                    if (entries == null) {
-                        throw new ApiArgumentException("entries", ApiArgumentException.EXPECTED_ARRAY);
+                    if (mappings == null) {
+                        throw new ApiArgumentException("mappings", ApiArgumentException.EXPECTED_ARRAY);
                     }
 
                     map.KeyValuePairCollection.Clear();
 
-                    foreach (dynamic entry in entries) {
-                        if (!(entry is JObject)) {
-                            throw new ApiArgumentException("entries.item");
+                    foreach (dynamic item in mappings) {
+                        if (!(item is JObject)) {
+                            throw new ApiArgumentException("mappings.item");
                         }
 
-                        string key = DynamicHelper.Value(entry.key);
-                        string value = DynamicHelper.Value(entry.value);
+                        string itemName = DynamicHelper.Value(item.name);
+                        string value = DynamicHelper.Value(item.value);
 
-                        if (string.IsNullOrEmpty(key)) {
-                            throw new ApiArgumentException("entries.item.name", "Required");
+                        if (string.IsNullOrEmpty(itemName)) {
+                            throw new ApiArgumentException("mappings.item.name", "Required");
                         }
 
                         if (string.IsNullOrEmpty(value)) {
-                            throw new ApiArgumentException("entries.item.value", "Required");
+                            throw new ApiArgumentException("mappings.item.value", "Required");
                         }
 
                         KeyValueElement kvp = map.KeyValuePairCollection.CreateElement();
-                        kvp.Key = key;
+                        kvp.Key = itemName;
                         kvp.Value = value;
 
                         map.KeyValuePairCollection.Add(kvp);

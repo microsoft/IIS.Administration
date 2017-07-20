@@ -20,11 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [ResourceInfo(Name = Defines.ProvidersName)]
         public object Get()
         {
-            string providersId = Context.Request.Query[Defines.PROVIDERS_SECTION_IDENTIFIER];
-
-            if (string.IsNullOrEmpty(providersId)) {
-                providersId = Context.Request.Query[Defines.IDENTIFIER];
-            }
+            string providersId = Context.Request.Query[Defines.IDENTIFIER];
 
             if (string.IsNullOrEmpty(providersId)) {
                 return NotFound();
@@ -107,7 +103,11 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("model");
             }
 
-            RewriteId parentId = RewriteHelper.GetRewriteIdFromBody(model) ?? ProvidersHelper.GetSectionIdFromBody(model);
+            RewriteId parentId = RewriteHelper.GetRewriteIdFromBody(model);
+
+            if (parentId == null) {
+                throw new ApiArgumentException("url_rewrite");
+            }
 
             Site site = parentId.SiteId == null ? null : SiteHelper.GetSite(parentId.SiteId.Value);
 

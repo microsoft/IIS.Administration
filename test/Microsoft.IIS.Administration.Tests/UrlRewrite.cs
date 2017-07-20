@@ -36,7 +36,7 @@ namespace Microsoft.IIS.Administration.Tests
                     const string updatedTestRuleName = testRuleName + "2";
                     const string testServerVariable1 = "abc", testServerVariable2 = "def";
 
-                    JObject inboundRulesSection = Utils.FollowLink(client, siteFeature, "inbound_rules");
+                    JObject inboundRulesSection = Utils.FollowLink(client, siteFeature, "inbound");
                     string inboundRulesLink = Utils.GetLink(inboundRulesSection, "rules");
 
                     IEnumerable<JObject> rules = client.Get(inboundRulesLink)["rules"].ToObject<IEnumerable<JObject>>();
@@ -82,7 +82,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 match_type = "isfile"
                             }
                         },
-                        inbound_rules = inboundRulesSection
+                        url_rewrite = siteFeature
                     });
 
                     JObject result = client.Post(inboundRulesLink, rule);
@@ -188,7 +188,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 match_type = "pattern"
                             }
                         },
-                    global_rules = globalRulesSection
+                    url_rewrite = webserverFeature
                 });
 
                 JObject result = client.Post(globalRulesLink, rule);
@@ -285,9 +285,9 @@ namespace Microsoft.IIS.Administration.Tests
                 Assert.NotNull(webserverFeature);
 
                 JObject rewriteMaps = Utils.FollowLink(client, webserverFeature, "rewrite_maps");
-                string mapsLink = Utils.GetLink(rewriteMaps, "maps");
+                string mapsLink = Utils.GetLink(rewriteMaps, "entries");
 
-                foreach (var m in client.Get(mapsLink)["maps"].ToObject<IEnumerable<JObject>>()) {
+                foreach (var m in client.Get(mapsLink)["entries"].ToObject<IEnumerable<JObject>>()) {
                     if (m.Value<string>("name").Equals(testMapName, StringComparison.OrdinalIgnoreCase)
                             || m.Value<string>("name").Equals(updatedTestMapName, StringComparison.OrdinalIgnoreCase)) {
                         Assert.True(client.Delete(Utils.Self(m)));
@@ -298,17 +298,17 @@ namespace Microsoft.IIS.Administration.Tests
                     name = testMapName,
                     default_value = "def1",
                     ignore_case = false,
-                    entries = new object[] {
+                    mappings = new object[] {
                             new {
-                                key = "abc",
+                                name = "abc",
                                 value = "def"
                             },
                             new {
-                                key = "zyx",
+                                name = "zyx",
                                 value = "wvu"
                             }
                         },
-                    rewrite_maps = rewriteMaps
+                    url_rewrite = webserverFeature
                 });
 
                 JObject result = client.Post(mapsLink, map);
@@ -321,21 +321,20 @@ namespace Microsoft.IIS.Administration.Tests
                     name = updatedTestMapName,
                     default_value = "def2",
                     ignore_case = true,
-                    entries = new object[] {
+                    mappings = new object[] {
                             new {
-                                key = "igloo",
+                                name = "igloo",
                                 value = "anonymous"
                             },
                             new {
-                                key = "tea",
+                                name = "tea",
                                 value = "coffee"
                             },
                             new {
-                                key = "record",
+                                name = "record",
                                 value = "paper"
                             }
-                        },
-                    rewrite_maps = rewriteMaps
+                        }
                 });
 
                 result = client.Patch(Utils.Self(result), updateMap);
@@ -361,7 +360,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject webserverFeature = Utils.GetFeature(client, REWRITE_URL, "", null);
                 Assert.NotNull(webserverFeature);
 
-                JObject outboundRules = Utils.FollowLink(client, webserverFeature, "outbound_rules");
+                JObject outboundRules = Utils.FollowLink(client, webserverFeature, "outbound");
                 string preConditionsLink = Utils.GetLink(outboundRules, "preconditions");
 
                 foreach (var p in client.Get(preConditionsLink)["preconditions"].ToObject<IEnumerable<JObject>>()) {
@@ -389,7 +388,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 ignore_case = false
                             }
                         },
-                    outbound_rules = outboundRules
+                    url_rewrite = webserverFeature
                 });
 
                 JObject result = client.Post(preConditionsLink, precondition);
@@ -415,7 +414,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 negate = true,
                                 ignore_case = true
                             }
-                        },
+                        }
                 });
 
                 result = client.Patch(Utils.Self(result), updatePrecondition);
@@ -441,7 +440,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject webserverFeature = Utils.GetFeature(client, REWRITE_URL, "", null);
                 Assert.NotNull(webserverFeature);
 
-                JObject outboundRules = Utils.FollowLink(client, webserverFeature, "outbound_rules");
+                JObject outboundRules = Utils.FollowLink(client, webserverFeature, "outbound");
                 string customTagsLink = Utils.GetLink(outboundRules, "custom_tags");
 
                 foreach (var p in client.Get(customTagsLink)["custom_tags"].ToObject<IEnumerable<JObject>>()) {
@@ -463,7 +462,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 attribute = "anotherHtmlAttribute"
                             }
                         },
-                    outbound_rules = outboundRules
+                        url_rewrite = webserverFeature
                 });
 
                 JObject result = client.Post(customTagsLink, customTags);
@@ -483,8 +482,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 name = "TestTag",
                                 attribute = "TestAttribute"
                             }
-                        },
-                    outbound_rules = outboundRules
+                        }
                 });
 
                 result = client.Patch(Utils.Self(result), updateCustomTags);
@@ -510,7 +508,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject webserverFeature = Utils.GetFeature(client, REWRITE_URL, "", null);
                 Assert.NotNull(webserverFeature);
 
-                JObject outboundRules = Utils.FollowLink(client, webserverFeature, "outbound_rules");
+                JObject outboundRules = Utils.FollowLink(client, webserverFeature, "outbound");
                 string customTagsLink = Utils.GetLink(outboundRules, "rules");
 
                 foreach (var p in client.Get(customTagsLink)["rules"].ToObject<IEnumerable<JObject>>()) {
@@ -525,21 +523,19 @@ namespace Microsoft.IIS.Administration.Tests
 
                 JObject outboundRule = JObject.FromObject(new {
                     name = testName,
-                    match_type = "htmltags",
-                    html_tags = new {
-                        standard = new {
-                            a = true,
-                            area = true,
-                            @base = true,
-                            form = true,
-                            frame = true,
-                            head = true,
-                            iframe = true,
-                            img = true,
-                            input = true,
-                            link = true,
-                            script = true
-                        },
+                    match_type = "tags",
+                    tags = new {
+                        a = true,
+                        area = true,
+                        @base = true,
+                        form = true,
+                        frame = true,
+                        head = true,
+                        iframe = true,
+                        img = true,
+                        input = true,
+                        link = true,
+                        script = true,
                         custom = customTags
                     },
                     pattern = "abc.aspx?a=b&c=d",
@@ -558,7 +554,7 @@ namespace Microsoft.IIS.Administration.Tests
                             },
                         },
                     precondition = precondition,
-                    outbound_rules = outboundRules
+                    url_rewrite = webserverFeature
                 });
 
                 JObject result = client.Post(customTagsLink, outboundRule);
@@ -571,7 +567,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 JObject updateOutboundRule = JObject.FromObject(new {
                     name = updatedName,
-                    match_type = "servervariable",
+                    match_type = "server_variable",
                     server_variable = "abcdefg",
                     pattern = "abc.aspx",
                     pattern_syntax = "wildcard",
@@ -588,8 +584,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 match_type = "pattern"
                             },
                         },
-                    precondition = updatedPrecondition,
-                    outbound_rules = outboundRules
+                    precondition = updatedPrecondition
                 });
 
                 result = client.Patch(Utils.Self(result), updateOutboundRule);
@@ -638,7 +633,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 value = "wvu"
                             }
                         },
-                    providers = providers
+                    url_rewrite = webserverFeature
                 });
 
                 JObject result = client.Post(providersLink, provider);
@@ -663,8 +658,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 key = "record",
                                 value = "paper"
                             }
-                        },
-                    providers = providers
+                        }
                 });
 
                 result = client.Patch(Utils.Self(result), updateProvider);
@@ -683,8 +677,8 @@ namespace Microsoft.IIS.Administration.Tests
             string[] sections = {
                 "allowed-server-variables",
                 "global-rules",
-                "inbound-rules",
-                "outbound-rules",
+                "inbound",
+                "outbound",
                 "providers",
                 "rewrite-maps"
             };
@@ -781,15 +775,15 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.Equal(a.Value<string>("default_value"), b.Value<string>("default_value"));
             Assert.Equal(a.Value<bool>("ignore_case"), b.Value<bool>("ignore_case"));
 
-            JObject[] aMaps = a["entries"].ToObject<JObject[]>();
-            JObject[] bMaps = b["entries"].ToObject<JObject[]>();
+            JObject[] aMaps = a["mappings"].ToObject<JObject[]>();
+            JObject[] bMaps = b["mappings"].ToObject<JObject[]>();
 
             Assert.True(aMaps.Length == bMaps.Length);
             for (int i = 0; i < aMaps.Length; i++) {
                 JObject m = aMaps[i];
                 JObject rm = bMaps[i];
 
-                Assert.Equal(m.Value<string>("key"), rm.Value<string>("key"));
+                Assert.Equal(m.Value<string>("name"), rm.Value<string>("name"));
                 Assert.Equal(m.Value<string>("value"), rm.Value<string>("value"));
             }
         }
@@ -883,24 +877,24 @@ namespace Microsoft.IIS.Administration.Tests
 
             //
             // Html Tags
-            if (a["html_tags"] != null || b["html_tags"] != null) {
-                JObject aStandard = a["html_tags"].Value<JObject>("standard");
-                JObject bStandard = b["html_tags"].Value<JObject>("standard");
+            if (a["tags"] != null || b["tags"] != null) {
+                JObject aTags = a.Value<JObject>("tags");
+                JObject bTags = b.Value<JObject>("tags");
 
-                Assert.Equal(aStandard.Value<bool>("a"), bStandard.Value<bool>("a"));
-                Assert.Equal(aStandard.Value<bool>("area"), bStandard.Value<bool>("area"));
-                Assert.Equal(aStandard.Value<bool>("base"), bStandard.Value<bool>("base"));
-                Assert.Equal(aStandard.Value<bool>("form"), bStandard.Value<bool>("form"));
-                Assert.Equal(aStandard.Value<bool>("frame"), bStandard.Value<bool>("frame"));
-                Assert.Equal(aStandard.Value<bool>("head"), bStandard.Value<bool>("head"));
-                Assert.Equal(aStandard.Value<bool>("iframe"), bStandard.Value<bool>("iframe"));
-                Assert.Equal(aStandard.Value<bool>("img"), bStandard.Value<bool>("img"));
-                Assert.Equal(aStandard.Value<bool>("input"), bStandard.Value<bool>("input"));
-                Assert.Equal(aStandard.Value<bool>("link"), bStandard.Value<bool>("link"));
-                Assert.Equal(aStandard.Value<bool>("script"), bStandard.Value<bool>("script"));
+                Assert.Equal(aTags.Value<bool>("a"), bTags.Value<bool>("a"));
+                Assert.Equal(aTags.Value<bool>("area"), bTags.Value<bool>("area"));
+                Assert.Equal(aTags.Value<bool>("base"), bTags.Value<bool>("base"));
+                Assert.Equal(aTags.Value<bool>("form"), bTags.Value<bool>("form"));
+                Assert.Equal(aTags.Value<bool>("frame"), bTags.Value<bool>("frame"));
+                Assert.Equal(aTags.Value<bool>("head"), bTags.Value<bool>("head"));
+                Assert.Equal(aTags.Value<bool>("iframe"), bTags.Value<bool>("iframe"));
+                Assert.Equal(aTags.Value<bool>("img"), bTags.Value<bool>("img"));
+                Assert.Equal(aTags.Value<bool>("input"), bTags.Value<bool>("input"));
+                Assert.Equal(aTags.Value<bool>("link"), bTags.Value<bool>("link"));
+                Assert.Equal(aTags.Value<bool>("script"), bTags.Value<bool>("script"));
 
-                if (a["html_tags"]["custom"] != null || b["html_tags"]["custom"] != null) {
-                    Assert.Equal(a["html_tags"]["custom"].Value<string>("id"), b["html_tags"]["custom"].Value<string>("id"));
+                if (a["tags"]["custom"] != null || b["tags"]["custom"] != null) {
+                    Assert.Equal(a["tags"]["custom"].Value<string>("id"), b["tags"]["custom"].Value<string>("id"));
                 }
             }
 
@@ -913,7 +907,7 @@ namespace Microsoft.IIS.Administration.Tests
 
         private JObject CreateCustomTags(HttpClient client, JObject feature, string name)
         {
-            JObject outboundRules = Utils.FollowLink(client, feature, "outbound_rules");
+            JObject outboundRules = Utils.FollowLink(client, feature, "outbound");
             string customTagsLink = Utils.GetLink(outboundRules, "custom_tags");
 
             foreach (var p in client.Get(customTagsLink)["custom_tags"].ToObject<IEnumerable<JObject>>()) {
@@ -938,7 +932,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 attribute = $"{{{name}}}"
                             }
                         },
-                outbound_rules = outboundRules
+                url_rewrite = feature
             });
 
             return client.Post(customTagsLink, customTags);
@@ -946,7 +940,7 @@ namespace Microsoft.IIS.Administration.Tests
 
         private JObject CreatePrecondition(HttpClient client, JObject feature, string name)
         {
-            JObject outboundRules = Utils.FollowLink(client, feature, "outbound_rules");
+            JObject outboundRules = Utils.FollowLink(client, feature, "outbound");
             string preConditionsLink = Utils.GetLink(outboundRules, "preconditions");
 
             foreach (var p in client.Get(preConditionsLink)["preconditions"].ToObject<IEnumerable<JObject>>()) {
@@ -979,7 +973,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 ignore_case = false
                             }
                         },
-                outbound_rules = outboundRules
+                url_rewrite = feature
             });
 
             return client.Post(preConditionsLink, precondition);

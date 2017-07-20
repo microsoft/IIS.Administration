@@ -20,11 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [ResourceInfo(Name = Defines.InboundRulesName)]
         public object Get()
         {
-            string inboundRulesId = Context.Request.Query[Defines.INBOUND_RULES_SECTION_IDENTIFIER];
-
-            if (string.IsNullOrEmpty(inboundRulesId)) {
-                inboundRulesId = Context.Request.Query[Defines.IDENTIFIER];
-            }
+            string inboundRulesId = Context.Request.Query[Defines.IDENTIFIER];
 
             if (string.IsNullOrEmpty(inboundRulesId)) {
                 return NotFound();
@@ -108,7 +104,11 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("model");
             }
 
-            RewriteId parentId = RewriteHelper.GetRewriteIdFromBody(model) ?? InboundRulesHelper.GetSectionIdFromBody(model);
+            RewriteId parentId = RewriteHelper.GetRewriteIdFromBody(model);
+
+            if (parentId == null) {
+                throw new ApiArgumentException("url_rewrite");
+            }
 
             // Get site the rule is for if applicable
             Site site = parentId.SiteId == null ? null : SiteHelper.GetSite(parentId.SiteId.Value);

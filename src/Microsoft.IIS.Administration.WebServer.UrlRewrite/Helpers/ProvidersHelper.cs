@@ -147,9 +147,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
-            // providers
-            if (fields.Exists("providers")) {
-                obj.providers = SectionToJsonModelRef(site, path);
+            // url_rewrite
+            if (fields.Exists("url_rewrite")) {
+                obj.url_rewrite = RewriteHelper.ToJsonModelRef(site, path, fields.Filter("url_rewrite"));
             }
 
             return Core.Environment.Hal.Apply(Defines.ProvidersResource.Guid, obj);
@@ -253,25 +253,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     throw new ConfigScopeNotFoundException(e);
                 }
             }
-        }
-
-        public static RewriteId GetSectionIdFromBody(dynamic model)
-        {
-            if (model.providers == null) {
-                throw new ApiArgumentException("providers");
-            }
-
-            if (!(model.providers is JObject)) {
-                throw new ApiArgumentException("providers", ApiArgumentException.EXPECTED_OBJECT);
-            }
-
-            string rewriteId = DynamicHelper.Value(model.providers.id);
-
-            if (rewriteId == null) {
-                throw new ApiArgumentException("providers.id");
-            }
-
-            return new RewriteId(rewriteId);
         }
 
 

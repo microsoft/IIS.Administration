@@ -20,11 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [ResourceInfo(Name = Defines.GlobalRulesName)]
         public object Get()
         {
-            string globalRulesId = Context.Request.Query[Defines.GLOBAL_RULES_SECTION_IDENTIFIER];
-
-            if (string.IsNullOrEmpty(globalRulesId)) {
-                globalRulesId = Context.Request.Query[Defines.IDENTIFIER];
-            }
+            string globalRulesId = Context.Request.Query[Defines.IDENTIFIER];
 
             if (string.IsNullOrEmpty(globalRulesId)) {
                 return NotFound();
@@ -106,7 +102,11 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("model");
             }
 
-            RewriteId parentId = RewriteHelper.GetRewriteIdFromBody(model) ?? GlobalRulesHelper.GetSectionIdFromBody(model);
+            RewriteId parentId = RewriteHelper.GetRewriteIdFromBody(model);
+
+            if (parentId == null) {
+                throw new ApiArgumentException("url_rewrite");
+            }
 
             Site site = parentId.SiteId == null ? null : SiteHelper.GetSite(parentId.SiteId.Value);
 

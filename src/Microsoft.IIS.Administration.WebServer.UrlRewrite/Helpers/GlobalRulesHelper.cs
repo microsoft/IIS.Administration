@@ -29,25 +29,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return $"/{Defines.GLOBAL_RULES_PATH}/{id}";
         }
 
-        public static RewriteId GetSectionIdFromBody(dynamic model)
-        {
-            if (model.global_rules == null) {
-                throw new ApiArgumentException("global_rules");
-            }
-
-            if (!(model.global_rules is JObject)) {
-                throw new ApiArgumentException("global_rules", ApiArgumentException.EXPECTED_OBJECT);
-            }
-
-            string rewriteId = DynamicHelper.Value(model.global_rules.id);
-
-            if (rewriteId == null) {
-                throw new ApiArgumentException("global_rules.id");
-            }
-
-            return new RewriteId(rewriteId);
-        }
-
         public static InboundRulesSection GetSection(Site site, string path, string configPath = null)
         {
             return (InboundRulesSection)ManagementUnit.GetConfigSection(site?.Id,
@@ -227,9 +208,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
-            // global_rules
-            if (fields.Exists("global_rules")) {
-                obj.global_rules = SectionToJsonModelRef(site, path);
+            // url_rewrite
+            if (fields.Exists("url_rewrite")) {
+                obj.url_rewrite = RewriteHelper.ToJsonModelRef(site, path, fields.Filter("url_rewrite"));
             }
 
             return Core.Environment.Hal.Apply(Defines.GlobalRulesResource.Guid, obj);

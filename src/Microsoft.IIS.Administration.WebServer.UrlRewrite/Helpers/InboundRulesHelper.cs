@@ -192,9 +192,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
-            // inbound_rules
-            if (fields.Exists("inbound_rules")) {
-                obj.inbound_rules = SectionToJsonModelRef(site, path);
+            // url_rewrite
+            if (fields.Exists("url_rewrite")) {
+                obj.url_rewrite = RewriteHelper.ToJsonModelRef(site, path, fields.Filter("url_rewrite"));
             }
 
             return Core.Environment.Hal.Apply(Defines.InboundRulesResource.Guid, obj);
@@ -302,25 +302,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     throw new ConfigScopeNotFoundException(e);
                 }
             }
-        }
-
-        public static RewriteId GetSectionIdFromBody(dynamic model)
-        {
-            if (model.inbound_rules == null) {
-                throw new ApiArgumentException("inbound_rules");
-            }
-
-            if (!(model.inbound_rules is JObject)) {
-                throw new ApiArgumentException("inbound_rules", ApiArgumentException.EXPECTED_OBJECT);
-            }
-
-            string rewriteId = DynamicHelper.Value(model.inbound_rules.id);
-
-            if (rewriteId == null) {
-                throw new ApiArgumentException("inbound_rules.id");
-            }
-
-            return new RewriteId(rewriteId);
         }
 
         public static InboundRulesSection GetSection(Site site, string path, string configPath = null)
