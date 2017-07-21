@@ -167,15 +167,15 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             //
             // response_cache_directive
-            if (fields.Exists("cache_response_directive") && rule.Schema.HasAttribute(InboundRule.ResponseCacheDirectiveAttribute)) {
-                obj.cache_response_directive = rule.ResponseCacheDirective;
+            if (fields.Exists("response_cache_directive") && rule.Schema.HasAttribute(InboundRule.ResponseCacheDirectiveAttribute)) {
+                obj.response_cache_directive = ResponseCacheDirectiveHelper.ToJsonModel(rule.ResponseCacheDirective);
             }
 
             //
             // action
             if (fields.Exists("action")) {
                 obj.action = new {
-                    type = Enum.GetName(typeof(ActionType), rule.Action.Type).ToLowerInvariant(),
+                    type = ActionTypeHelper.ToJsonModel(rule.Action.Type),
                     url = rule.Action.Url,
                     append_query_string = rule.Action.AppendQueryString,
                     status_code = rule.Action.StatusCode,
@@ -203,7 +203,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     pattern = c.Pattern,
                     negate = c.Negate,
                     ignore_case = c.IgnoreCase,
-                    match_type = Enum.GetName(typeof(MatchType), c.MatchType).ToLower()
+                    match_type = MatchTypeHelper.ToJsonModel(c.MatchType)
                 });
             }
 
@@ -275,7 +275,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("action", ApiArgumentException.EXPECTED_OBJECT);
             }
 
-            if (DynamicHelper.To<ActionType>(model.action.type) == null) {
+            if (string.IsNullOrEmpty(DynamicHelper.Value(model.action.type))) {
                 throw new ApiArgumentException("action.type");
             }
 
@@ -374,7 +374,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     throw new ApiArgumentException("action", ApiArgumentException.EXPECTED_OBJECT);
                 }
 
-                DynamicHelper.If<ActionType>((object)action.type, v => rule.Action.Type = v);
+                DynamicHelper.If((object)action.type, v => rule.Action.Type = ActionTypeHelper.FromJsonModel(v));
                 DynamicHelper.If((object)action.url, v => rule.Action.Url = v);
                 DynamicHelper.If<bool>((object)action.append_query_string, v => rule.Action.AppendQueryString = v);
                 DynamicHelper.If<long>((object)action.status_code, v => rule.Action.StatusCode = v);
@@ -458,7 +458,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             if (rule.Schema.HasAttribute(InboundRule.ResponseCacheDirectiveAttribute)) {
-                DynamicHelper.If<ResponseCacheDirective>((object)model.response_cache_directive, v => rule.ResponseCacheDirective = v);
+                DynamicHelper.If((object)model.response_cache_directive, v => rule.ResponseCacheDirective = ResponseCacheDirectiveHelper.FromJsonModel(v));
             }
         }
     }

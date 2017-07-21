@@ -79,7 +79,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 pattern = "",
                                 negate = true,
                                 ignore_case = true,
-                                match_type = "isfile"
+                                match_type = "is_file"
                             }
                         },
                         url_rewrite = siteFeature
@@ -118,7 +118,7 @@ namespace Microsoft.IIS.Administration.Tests
                                 pattern = "abc",
                                 negate = false,
                                 ignore_case = false,
-                                match_type = "isdirectory"
+                                match_type = "is_directory"
                             }
                         }
                     });

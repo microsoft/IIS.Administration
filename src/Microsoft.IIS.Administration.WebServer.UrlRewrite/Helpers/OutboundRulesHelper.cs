@@ -353,7 +353,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     pattern = c.Pattern,
                     negate = c.Negate,
                     ignore_case = c.IgnoreCase,
-                    match_type = Enum.GetName(typeof(MatchType), c.MatchType).ToLower()
+                    match_type = MatchTypeHelper.ToJsonModel(c.MatchType)
                 });
             }
 
