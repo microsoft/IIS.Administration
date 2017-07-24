@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
     sealed class InboundRule : RuleElement {
 
+        public const string RedirectTypeAttribute = "redirectType";
         public const string ResponseCacheDirectiveAttribute = "responseCacheDirective";
 
         private InboundActionElement _action;

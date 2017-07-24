@@ -63,8 +63,7 @@ namespace Microsoft.IIS.Administration.Tests
                             type = "rewrite",
                             url = "def.aspx?a={R:1}&c={R:2}",
                             append_query_string = true,
-                            description = "A test rule",
-                            reason = "Replace url"
+                            log_rewritten_url = true
                         },
                         server_variables = new object[] {
                             new {
@@ -73,6 +72,8 @@ namespace Microsoft.IIS.Administration.Tests
                                 replace = true
                             }
                         },
+                        condition_match_constraints = "match_any",
+                        track_all_captures = false,
                         conditions = new object[] {
                             new {
                                 input = "{REQUEST_FILENAME}",
@@ -102,8 +103,8 @@ namespace Microsoft.IIS.Administration.Tests
                             type = "redirect",
                             url = "def.aspx",
                             append_query_string = false,
-                            description = "A test rule2",
-                            reason = "Replace url2"
+                            log_rewritten_url = false,
+                            redirect_type = "found"
                         },
                         server_variables = new object[] {
                             new {
@@ -112,6 +113,8 @@ namespace Microsoft.IIS.Administration.Tests
                                 replace = false
                             }
                         },
+                        condition_match_constraints = "match_all",
+                        track_all_captures = true,
                         conditions = new object[] {
                             new {
                                 input = "{REQUEST_FILENAME}2",
@@ -168,9 +171,8 @@ namespace Microsoft.IIS.Administration.Tests
                     action = new {
                         type = "rewrite",
                         url = "def.aspx?a={R:1}&c={R:2}",
-                        append_query_string = true,
-                        description = "A test rule",
-                        reason = "Replace url"
+                        append_query_string = true
+                        // log_rewritten_url not present in schema for global rule
                     },
                     server_variables = new object[] {
                             new {
@@ -179,6 +181,8 @@ namespace Microsoft.IIS.Administration.Tests
                                 replace = true
                             }
                         },
+                    condition_match_constraints = "match_any",
+                    track_all_captures = true,
                     conditions = new object[] {
                             new {
                                 input = "{REQUEST_FILENAME}",
@@ -208,8 +212,8 @@ namespace Microsoft.IIS.Administration.Tests
                         type = "redirect",
                         url = "def.aspx",
                         append_query_string = false,
-                        description = "A test rule2",
-                        reason = "Replace url2"
+                        redirect_type = "found"
+                        // log_rewritten_url not present in schema for global rule
                     },
                     server_variables = new object[] {
                             new {
@@ -218,6 +222,8 @@ namespace Microsoft.IIS.Administration.Tests
                                 replace = false
                             }
                         },
+                    condition_match_constraints = "match_all",
+                    track_all_captures = false,
                     conditions = new object[] {
                             new {
                                 input = "{REQUEST_FILENAME}2",
@@ -544,6 +550,8 @@ namespace Microsoft.IIS.Administration.Tests
                     negate = true,
                     stop_processing = false,
                     rewrite_value = "test rewrite value",
+                    condition_match_constraints = "match_any",
+                    track_all_captures = true,
                     conditions = new object[] {
                             new {
                                 input = "{URL}",
@@ -575,6 +583,8 @@ namespace Microsoft.IIS.Administration.Tests
                     negate = false,
                     stop_processing = true,
                     rewrite_value = "test rewrite update",
+                    condition_match_constraints = "match_all",
+                    track_all_captures = false,
                     conditions = new object[] {
                             new {
                                 input = "{CONTENT_TYPE}",
@@ -728,6 +738,8 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.Equal(a.Value<bool>("ignore_case"), b.Value<bool>("ignore_case"));
             Assert.Equal(a.Value<bool>("negate"), b.Value<bool>("negate"));
             Assert.Equal(a.Value<bool>("stop_processing"), b.Value<bool>("stop_processing"));
+            Assert.Equal(a.Value<string>("condition_match_constraints"), b.Value<string>("condition_match_constraints"));
+            Assert.Equal(a.Value<bool>("track_all_captures"), b.Value<bool>("track_all_captures"));
 
             JObject action = a.Value<JObject>("action");
             JObject resultAction = b.Value<JObject>("action");
@@ -735,8 +747,22 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.Equal(action.Value<string>("type"), resultAction.Value<string>("type"));
             Assert.Equal(action.Value<bool>("append_query_string"), resultAction.Value<bool>("append_query_string"));
             Assert.Equal(action.Value<string>("url"), resultAction.Value<string>("url"));
-            Assert.Equal(action.Value<string>("description"), resultAction.Value<string>("description"));
-            Assert.Equal(action.Value<string>("reason"), resultAction.Value<string>("reason"));
+            Assert.Equal(action.Value<bool>("log_rewritten_url"), resultAction.Value<bool>("log_rewritten_url"));
+
+            //
+            // redirect rule
+            if (action.Value<string>("type").Equals("redirect", StringComparison.OrdinalIgnoreCase)) {
+                Assert.Equal(action.Value<string>("redirect_type"), resultAction.Value<string>("redirect_type"));
+            }
+
+            //
+            // custom response rule
+            if (action.Value<string>("type").Equals("custom_response", StringComparison.OrdinalIgnoreCase)) {
+                Assert.Equal(action.Value<string>("description"), resultAction.Value<string>("description"));
+                Assert.Equal(action.Value<string>("reason"), resultAction.Value<string>("reason"));
+                Assert.Equal(action.Value<long>("status_code"), resultAction.Value<long>("status_code"));
+                Assert.Equal(action.Value<long>("sub_status_code"), resultAction.Value<long>("sub_status_code"));
+            }
 
             JObject[] aServerVariables = a["server_variables"].ToObject<JObject[]>();
             JObject[] bServerVariables = b["server_variables"].ToObject<JObject[]>();
@@ -856,6 +882,8 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.Equal(a.Value<bool>("negate"), b.Value<bool>("negate"));
             Assert.Equal(a.Value<bool>("stop_processing"), b.Value<bool>("stop_processing"));
             Assert.Equal(a.Value<string>("rewrite_value"), b.Value<string>("rewrite_value"));
+            Assert.Equal(a.Value<string>("condition_match_constraints"), b.Value<string>("condition_match_constraints"));
+            Assert.Equal(a.Value<bool>("track_all_captures"), b.Value<bool>("track_all_captures"));
 
             //
             // Conditions

@@ -346,6 +346,18 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
+            // condition_match_constraints
+            if (fields.Exists("condition_match_constraints")) {
+                obj.condition_match_constraints = LogicalGroupingHelper.ToJsonModel(rule.Conditions.LogicalGrouping);
+            }
+
+            //
+            // track_all_captures
+            if (fields.Exists("track_all_captures")) {
+                obj.track_all_captures = rule.Conditions.TrackAllCaptures;
+            }
+
+            //
             // conditions
             if (fields.Exists("conditions")) {
                 obj.conditions = rule.Conditions.Select(c => new {
@@ -770,6 +782,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
                 rule.PreCondition = pc.Name;
             }
+
+            DynamicHelper.If((object)model.condition_match_constraints, v => rule.Conditions.LogicalGrouping = LogicalGroupingHelper.FromJsonModel(v));
+            DynamicHelper.If<bool>((object)model.track_all_captures, v => rule.Conditions.TrackAllCaptures = v);
 
             //
             // Conditions

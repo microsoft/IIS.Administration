@@ -174,15 +174,23 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             //
             // action
             if (fields.Exists("action")) {
-                obj.action = new {
-                    type = ActionTypeHelper.ToJsonModel(rule.Action.Type),
-                    url = rule.Action.Url,
-                    append_query_string = rule.Action.AppendQueryString,
-                    status_code = rule.Action.StatusCode,
-                    sub_status_code = rule.Action.SubStatusCode,
-                    description = rule.Action.StatusDescription,
-                    reason = rule.Action.StatusReason
-                };
+                obj.action = new ExpandoObject();
+                dynamic action = obj.action;
+
+                action.type = ActionTypeHelper.ToJsonModel(rule.Action.Type);
+                action.url = rule.Action.Url;
+                action.append_query_string = rule.Action.AppendQueryString;
+
+                if (rule.Action.Type == ActionType.Redirect) {
+                    action.redirect_type = Enum.GetName(typeof(RedirectType), rule.Action.RedirectType).ToLowerInvariant();
+                }
+
+                if (rule.Action.Type == ActionType.CustomResponse) {
+                    action.status_code = rule.Action.StatusCode;
+                    action.sub_status_code = rule.Action.SubStatusCode;
+                    action.description = rule.Action.StatusDescription;
+                    action.reason = rule.Action.StatusReason;
+                }
             }
 
             //
@@ -193,6 +201,18 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     value = s.Value,
                     replace = s.Replace
                 });
+            }
+
+            //
+            // condition_match_constraints
+            if (fields.Exists("condition_match_constraints")) {
+                obj.condition_match_constraints = LogicalGroupingHelper.ToJsonModel(rule.Conditions.LogicalGrouping);
+            }
+
+            //
+            // track_all_captures
+            if (fields.Exists("track_all_captures")) {
+                obj.track_all_captures = rule.Conditions.TrackAllCaptures;
             }
 
             //
@@ -381,6 +401,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 DynamicHelper.If<long>((object)action.sub_status_code, v => rule.Action.SubStatusCode = v);
                 DynamicHelper.If((object)action.description, v => rule.Action.StatusDescription = v);
                 DynamicHelper.If((object)action.reason, v => rule.Action.StatusReason = v);
+                DynamicHelper.If<RedirectType>((object)action.redirect_type, v => rule.Action.RedirectType = v);
             }
 
             //
@@ -420,6 +441,9 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     rule.ServerVariableAssignments.Add(svAssignment);
                 }
             }
+
+            DynamicHelper.If((object)model.condition_match_constraints, v => rule.Conditions.LogicalGrouping = LogicalGroupingHelper.FromJsonModel(v));
+            DynamicHelper.If<bool>((object)model.track_all_captures, v => rule.Conditions.TrackAllCaptures = v);
 
             //
             // Conditions
