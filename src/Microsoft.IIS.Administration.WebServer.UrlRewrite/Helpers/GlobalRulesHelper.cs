@@ -172,6 +172,18 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
+            // condition_match_constraints
+            if (fields.Exists("condition_match_constraints")) {
+                obj.condition_match_constraints = LogicalGroupingHelper.ToJsonModel(rule.Conditions.LogicalGrouping);
+            }
+
+            //
+            // track_all_captures
+            if (fields.Exists("track_all_captures")) {
+                obj.track_all_captures = rule.Conditions.TrackAllCaptures;
+            }
+
+            //
             // action
             if (fields.Exists("action")) {
                 obj.action = new ExpandoObject();
@@ -201,18 +213,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                     value = s.Value,
                     replace = s.Replace
                 });
-            }
-
-            //
-            // condition_match_constraints
-            if (fields.Exists("condition_match_constraints")) {
-                obj.condition_match_constraints = LogicalGroupingHelper.ToJsonModel(rule.Conditions.LogicalGrouping);
-            }
-
-            //
-            // track_all_captures
-            if (fields.Exists("track_all_captures")) {
-                obj.track_all_captures = rule.Conditions.TrackAllCaptures;
             }
 
             //

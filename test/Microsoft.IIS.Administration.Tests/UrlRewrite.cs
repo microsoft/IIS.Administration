@@ -635,11 +635,11 @@ namespace Microsoft.IIS.Administration.Tests
                     type = "testType",
                     settings = new object[] {
                             new {
-                                key = "abc",
+                                name = "abc",
                                 value = "def"
                             },
                             new {
-                                key = "zyx",
+                                name = "zyx",
                                 value = "wvu"
                             }
                         },
@@ -657,15 +657,15 @@ namespace Microsoft.IIS.Administration.Tests
                     type = "testType22",
                     settings = new object[] {
                             new {
-                                key = "igloo",
+                                name = "igloo",
                                 value = "anonymous"
                             },
                             new {
-                                key = "tea",
+                                name = "tea",
                                 value = "coffee"
                             },
                             new {
-                                key = "record",
+                                name = "record",
                                 value = "paper"
                             }
                         }
@@ -827,7 +827,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject m = aSettings[i];
                 JObject rm = bSettings[i];
 
-                Assert.Equal(m.Value<string>("key"), rm.Value<string>("key"));
+                Assert.Equal(m.Value<string>("name"), rm.Value<string>("name"));
                 Assert.Equal(m.Value<string>("value"), rm.Value<string>("value"));
             }
         }

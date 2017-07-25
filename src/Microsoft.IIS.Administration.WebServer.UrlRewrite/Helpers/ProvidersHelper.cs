@@ -140,7 +140,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             if (fields.Exists("settings")) {
                 obj.settings = provider.Settings.Select(s => {
                     return new {
-                        key = s.Key,
+                        name = s.Key,
                         value = s.Value
                     };
                 });
@@ -295,11 +295,11 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                             throw new ApiArgumentException("settings.item");
                         }
 
-                        string key = DynamicHelper.Value(setting.key);
+                        string settingName = DynamicHelper.Value(setting.name);
                         string value = DynamicHelper.Value(setting.value);
 
-                        if (string.IsNullOrEmpty(key)) {
-                            throw new ApiArgumentException("settings.item.key", "Required");
+                        if (string.IsNullOrEmpty(settingName)) {
+                            throw new ApiArgumentException("settings.item.name", "Required");
                         }
 
                         if (string.IsNullOrEmpty(value)) {
@@ -307,7 +307,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                         }
 
                         var set = provider.Settings.CreateElement();
-                        set.Key = key;
+                        set.Key = settingName;
                         set.Value = value;
 
                         provider.Settings.Add(set);

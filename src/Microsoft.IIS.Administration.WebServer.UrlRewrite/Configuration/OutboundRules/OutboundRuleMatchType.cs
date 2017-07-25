@@ -2,11 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-using Microsoft.IIS.Administration.Core;
-using System;
-
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
+    using Microsoft.IIS.Administration.Core;
+    using System;
+
     // Keep public for resolution of enums from 'dynamic' types in helper classes i.e. DynamicHelper
     public enum OutboundRuleMatchType {
         ServerVariable,
