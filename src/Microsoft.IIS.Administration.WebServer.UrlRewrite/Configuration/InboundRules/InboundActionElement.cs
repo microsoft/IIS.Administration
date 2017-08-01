@@ -74,7 +74,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 return ((string)(base["url"]));
             }
             set {
-                base["url"] = value;
+                if (string.IsNullOrEmpty(value)) {
+                    base.GetAttribute("url").Delete();
+                }
+                else {
+                    base["url"] = value;
+                }
             }
         }
 

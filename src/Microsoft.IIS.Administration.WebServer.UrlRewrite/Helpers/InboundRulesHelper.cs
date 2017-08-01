@@ -513,6 +513,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             if (rule.Schema.HasAttribute(InboundRule.ResponseCacheDirectiveAttribute)) {
                 DynamicHelper.If((object)model.response_cache_directive, v => rule.ResponseCacheDirective = ResponseCacheDirectiveHelper.FromJsonModel(v));
             }
+
+            //
+            // Check set to valid state
+            if ((rule.Action.Type == ActionType.Redirect || rule.Action.Type == ActionType.Rewrite) && string.IsNullOrEmpty(rule.Action.Url)) {
+                throw new ApiArgumentException("action.url");
+            }
         }
 
         private static void AddAllowedServerVariable(AllowedServerVariablesSection serverVariablesSection, string name)

@@ -334,6 +334,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
+            // rewrite
+            if (fields.Exists("rewrite")) {
+                obj.rewrite = rule.Action.Type == OutboundActionType.Rewrite ? true : false;
+            }
+
+            //
             // rewrite_value
             if (fields.Exists("rewrite_value")) {
                 obj.rewrite_value = rule.Action.RewriteValue;
@@ -431,6 +437,10 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             var rule = (OutboundRule)section.Rules.CreateElement();
+
+            //
+            // Default to rewrite rule
+            rule.Action.Type = OutboundActionType.Rewrite;
 
             SetRule(model, rule, section);
 
@@ -688,6 +698,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             DynamicHelper.If((object)model.pattern, v => rule.Match.Pattern = v);
+            DynamicHelper.If<bool>((object)model.rewrite, v => rule.Action.Type = v ? OutboundActionType.Rewrite : OutboundActionType.None);
             DynamicHelper.If((object)model.rewrite_value, v => rule.Action.RewriteValue = v);
             DynamicHelper.If<bool>((object)model.ignore_case, v => rule.Match.IgnoreCase = v);
             DynamicHelper.If<bool>((object)model.negate, v => rule.Match.Negate = v);

@@ -23,6 +23,15 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 base["replace"] = value;
             }
         }
+
+        public new OutboundActionType Type {
+            get {
+                return ((OutboundActionType)(base["type"]));
+            }
+            set {
+                base["type"] = ((int)(value));
+            }
+        }
     }
 }
 
