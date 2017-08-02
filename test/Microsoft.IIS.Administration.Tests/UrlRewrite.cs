@@ -549,7 +549,7 @@ namespace Microsoft.IIS.Administration.Tests
                     ignore_case = false,
                     negate = true,
                     stop_processing = false,
-                    rewrite = false,
+                    enabled = false,
                     rewrite_value = "test rewrite value",
                     condition_match_constraints = "match_any",
                     track_all_captures = true,
@@ -583,7 +583,7 @@ namespace Microsoft.IIS.Administration.Tests
                     ignore_case = true,
                     negate = false,
                     stop_processing = true,
-                    rewrite = true,
+                    enabled = true,
                     rewrite_value = "test rewrite update",
                     condition_match_constraints = "match_all",
                     track_all_captures = false,
@@ -1082,7 +1082,7 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.Equal(a.Value<bool>("ignore_case"), b.Value<bool>("ignore_case"));
             Assert.Equal(a.Value<bool>("negate"), b.Value<bool>("negate"));
             Assert.Equal(a.Value<bool>("stop_processing"), b.Value<bool>("stop_processing"));
-            Assert.Equal(a.Value<bool>("rewrite"), b.Value<bool>("rewrite"));
+            Assert.Equal(a.Value<bool>("enabled"), b.Value<bool>("enabled"));
             Assert.Equal(a.Value<string>("rewrite_value"), b.Value<string>("rewrite_value"));
             Assert.Equal(a.Value<string>("condition_match_constraints"), b.Value<string>("condition_match_constraints"));
             Assert.Equal(a.Value<bool>("track_all_captures"), b.Value<bool>("track_all_captures"));
