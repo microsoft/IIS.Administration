@@ -118,7 +118,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             OutboundRule rule = OutboundRulesHelper.CreateRule(model, section);
 
-            OutboundRulesHelper.AddRule(rule, section);
+            OutboundRulesHelper.AddRule(rule, section, model);
 
             ManagementUnit.Current.Commit();
 

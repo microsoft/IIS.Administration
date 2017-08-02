@@ -274,6 +274,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 obj.id = outboundRuleId.Uuid;
             }
 
+            //
+            // priority
+            if (fields.Exists("priority")) {
+                obj.priority = GetSection(site, path).Rules.IndexOf(rule);
+            }
+
             // precondition
             if (fields.Exists("precondition")) {
                 var precondition = section.PreConditions.FirstOrDefault(pc => pc.Name.Equals(rule.PreCondition, StringComparison.OrdinalIgnoreCase));
@@ -428,10 +434,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("pattern");
             }
 
-            if (string.IsNullOrEmpty(DynamicHelper.Value(model.pattern_syntax))) {
-                throw new ApiArgumentException("pattern_syntax");
-            }
-
             if (string.IsNullOrEmpty(DynamicHelper.Value(model.match_type))) {
                 throw new ApiArgumentException("match_type");
             }
@@ -441,13 +443,14 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             //
             // Default to rewrite rule
             rule.Action.Type = OutboundActionType.Rewrite;
+            rule.PatternSyntax = PatternSyntax.ECMAScript;
 
             SetRule(model, rule, section);
 
             return rule;
         }
 
-        public static void AddRule(OutboundRule rule, OutboundRulesSection section)
+        public static void AddRule(OutboundRule rule, OutboundRulesSection section, dynamic model)
         {
             if (rule == null) {
                 throw new ArgumentNullException(nameof(rule));
@@ -463,6 +466,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             try {
                 section.Rules.Add(rule);
+
+                UpdatePriority(model, rule, section);
             }
             catch (FileLoadException e) {
                 throw new LockedException(section.SectionPath, e);
@@ -844,6 +849,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             else {
                 rule.Match.FilterByTags = FilterByTags.None;
             }
+
+            UpdatePriority(model, rule, section);
         }
 
         private static void SetPreCondition(dynamic model, PreCondition precondition, OutboundRulesSection section)
@@ -995,6 +1002,20 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             else {
                 target &= ~flag;
             }
+        }
+
+        private static void UpdatePriority(dynamic model, OutboundRule rule, OutboundRulesSection section)
+        {
+            if (model == null) {
+                throw new ApiArgumentException("model");
+            }
+
+            DynamicHelper.If((object)model.priority, 0, int.MaxValue, v => {
+                v = v >= section.Rules.Count ? section.Rules.Count - 1 : v;
+                if (section.Rules.IndexOf(rule) != -1) {
+                    section.Rules.Move(rule, (int) v);
+                }
+            });
         }
     }
 }

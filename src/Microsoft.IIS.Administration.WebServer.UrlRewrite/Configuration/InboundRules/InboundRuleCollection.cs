@@ -4,6 +4,8 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
+    using System;
+
     sealed class InboundRuleCollection : RuleCollectionBase {
 
         protected override void CopyInfo(RuleElement source, RuleElement destination) {

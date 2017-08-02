@@ -120,6 +120,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
+            // priority
+            if (fields.Exists("priority")) {
+                obj.priority = GetSection(site, path).InboundRules.IndexOf(rule);
+            }
+
+            //
             // pattern
             if (fields.Exists("pattern")) {
                 obj.pattern = rule.Match.Pattern;
@@ -243,20 +249,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 throw new ApiArgumentException("pattern");
             }
 
-            if (string.IsNullOrEmpty(DynamicHelper.Value(model.pattern_syntax))) {
-                throw new ApiArgumentException("pattern_syntax");
-            }
-
             if (model.action == null) {
                 throw new ApiArgumentException("action");
             }
 
             if (!(model.action is JObject)) {
                 throw new ApiArgumentException("action", ApiArgumentException.EXPECTED_OBJECT);
-            }
-
-            if (string.IsNullOrEmpty(DynamicHelper.Value(model.action.type))) {
-                throw new ApiArgumentException("action.type");
             }
 
             if (string.IsNullOrEmpty(DynamicHelper.Value(model.action.url))) {
@@ -266,15 +264,19 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             InboundRulesSection section = GetSection(site, path, configPath);
             AllowedServerVariablesSection serverVariablesSection = ServerVariablesHelper.GetSection(site, path, configPath);
 
-
             var rule = (InboundRule)section.InboundRules.CreateElement();
+
+            //
+            // Defaults
+            rule.PatternSyntax = PatternSyntax.ECMAScript;
+            rule.Action.Type = ActionType.Rewrite;
 
             SetRule(model, rule, section, serverVariablesSection);
 
             return rule;
         }
 
-        public static void AddRule(InboundRule rule, InboundRulesSection section)
+        public static void AddRule(InboundRule rule, InboundRulesSection section, dynamic model)
         {
             if (rule == null) {
                 throw new ArgumentNullException(nameof(rule));
@@ -292,6 +294,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             try {
                 collection.Add(rule);
+
+                UpdatePriority(model, rule, section);
             }
             catch (FileLoadException e) {
                 throw new LockedException(section.SectionPath, e);
@@ -519,6 +523,22 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             if ((rule.Action.Type == ActionType.Redirect || rule.Action.Type == ActionType.Rewrite) && string.IsNullOrEmpty(rule.Action.Url)) {
                 throw new ApiArgumentException("action.url");
             }
+
+            UpdatePriority(model, rule, section);
+        }
+
+        private static void UpdatePriority(dynamic model, InboundRule rule, InboundRulesSection section)
+        {
+            if (model == null) {
+                throw new ApiArgumentException("model");
+            }
+
+            DynamicHelper.If((object)model.priority, 0, int.MaxValue, v => {
+                v = v >= section.InboundRules.Count ? section.InboundRules.Count - 1 : v;
+                if (section.InboundRules.IndexOf(rule) != -1) {
+                    section.InboundRules.Move(rule, (int) v);
+                }
+            });
         }
 
         private static void AddAllowedServerVariable(AllowedServerVariablesSection serverVariablesSection, string name)

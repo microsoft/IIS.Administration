@@ -4,6 +4,8 @@
 
 namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 {
+    using System;
+
     sealed class OutboundRulesCollection : RuleCollectionBase {
 
         protected override RuleElement CreateNewElement(string elementTagName) {

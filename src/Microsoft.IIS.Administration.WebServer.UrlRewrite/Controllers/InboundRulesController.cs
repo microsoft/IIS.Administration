@@ -120,7 +120,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             InboundRule rule = InboundRulesHelper.CreateRule(model, site, parentId.Path, ManagementUnit.ResolveConfigScope(model));
 
             // Add it
-            InboundRulesHelper.AddRule(rule, section);
+            InboundRulesHelper.AddRule(rule, section, model);
 
             // Save
             ManagementUnit.Current.Commit();

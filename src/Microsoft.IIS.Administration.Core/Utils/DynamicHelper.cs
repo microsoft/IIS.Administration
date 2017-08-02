@@ -151,6 +151,9 @@ namespace Microsoft.IIS.Administration.Core.Utils {
                 catch (FileLoadException e) {
                     throw new LockedException(model.Path, e);
                 }
+                catch (ApiArgumentException) {
+                    throw;
+                }
                 catch (Exception e) {
                     if (model is JValue) {
                         throw new ApiArgumentException(model.Path, e);
@@ -173,6 +176,9 @@ namespace Microsoft.IIS.Administration.Core.Utils {
                 catch (FileLoadException e) {
                     throw new LockedException(model.Path, e);
                 }
+                catch (ApiArgumentException) {
+                    throw;
+                }
                 catch (Exception e) {
                     if (model is JValue) {
                         throw new ApiArgumentException(model.Path, e);
@@ -194,6 +200,9 @@ namespace Microsoft.IIS.Administration.Core.Utils {
                 }
                 catch (FileLoadException e) {
                     throw new LockedException(model.Path, e);
+                }
+                catch (ApiArgumentException) {
+                    throw;
                 }
                 catch (Exception e) {
                     if (model is JValue) {

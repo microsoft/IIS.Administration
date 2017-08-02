@@ -150,7 +150,7 @@ namespace Microsoft.IIS.Administration.Tests
                 const string testRuleName = "GlobalTestRule";
                 string updatedTestRuleName = testRuleName + "2";
 
-                JObject globalRulesSection = Utils.FollowLink(client, webserverFeature, "global_rules");
+                JObject globalRulesSection = Utils.FollowLink(client, webserverFeature, "global");
                 string globalRulesLink = Utils.GetLink(globalRulesSection, "rules");
 
                 IEnumerable<JObject> rules = client.Get(globalRulesLink)["rules"].ToObject<IEnumerable<JObject>>();
@@ -688,7 +688,7 @@ namespace Microsoft.IIS.Administration.Tests
         {
             string[] sections = {
                 "allowed-server-variables",
-                "global-rules",
+                "global",
                 "inbound",
                 "outbound",
                 "providers",
@@ -726,6 +726,205 @@ namespace Microsoft.IIS.Administration.Tests
                     result = client.Patch(Utils.Self(result), update);
 
                     Assert.True(result["metadata"].Value<string>("override_mode") == "inherit");
+                }
+            }
+        }
+
+        [Fact]
+        public async Task InboundRulePriority()
+        {
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                await EnsureEnabled(client);
+
+                Sites.EnsureNoSite(client, TEST_SITE_NAME);
+                var site = Sites.CreateSite(client, TEST_SITE_NAME, Utils.GetAvailablePort(), Sites.TEST_SITE_PATH);
+                Assert.NotNull(site);
+
+                try {
+                    JObject siteFeature = Utils.GetFeature(client, REWRITE_URL, site.Value<string>("name"), "/");
+                    Assert.NotNull(siteFeature);
+
+                    const string name1 = "InboundPriorityTestRule";
+                    const string name2 = name1 + "2";
+
+                    JObject inboundRulesSection = Utils.FollowLink(client, siteFeature, "inbound");
+                    string inboundRulesLink = Utils.GetLink(inboundRulesSection, "rules");
+
+                    IEnumerable<JObject> rules = client.Get(inboundRulesLink)["rules"].ToObject<IEnumerable<JObject>>();
+                    foreach (var r in rules) {
+                        if (r.Value<string>("name").Equals(name1, StringComparison.OrdinalIgnoreCase) ||
+                            r.Value<string>("name").Equals(name2, StringComparison.OrdinalIgnoreCase)) {
+                            Assert.True(client.Delete(Utils.Self(r)));
+                        }
+                    }
+
+                    JObject rule = JObject.FromObject(new {
+                        name = name1,
+                        pattern = "^([^/]+)/([^/]+)/?$",
+                        action = new {
+                            type = "rewrite",
+                            url = "def.aspx?a={R:1}&c={R:2}",
+                        },
+                        url_rewrite = siteFeature
+                    });
+
+                    JObject rule2 = (JObject)rule.DeepClone();
+                    rule2["name"] = name2;
+
+                    JObject result = client.Post(inboundRulesLink, rule);
+                    Assert.NotNull(result);
+
+                    JObject result2 = client.Post(inboundRulesLink, rule2);
+                    Assert.NotNull(result2);
+                    // result 0, result2 1
+
+                    Assert.Equal(result.Value<int>("priority") + 1, result2.Value<int>("priority"));
+
+                    result2["priority"] = result.Value<int>("priority");
+                    JObject updatedResult2 = client.Patch(Utils.Self(result2), result2);
+                    // result 0, result2 0, updatedresult2 0
+
+                    result = Utils.FollowLink(client, result, "self");
+                    // result 1, result2 0, updatedresult2 0
+
+                    Assert.Equal(result2.Value<int>("priority"), updatedResult2.Value<int>("priority"));
+                    Assert.Equal(result.Value<int>("priority"), updatedResult2.Value<int>("priority") + 1);
+
+                    Assert.True(client.Delete(Utils.Self(updatedResult2)));
+                    Assert.True(client.Delete(Utils.Self(result)));
+                }
+                finally {
+                    Sites.EnsureNoSite(client, site.Value<string>("name"));
+                }
+            }
+        }
+
+        [Fact]
+        public async Task GlobalRulePriority()
+        {
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                await EnsureEnabled(client);
+
+                JObject feature = Utils.GetFeature(client, REWRITE_URL, null, null);
+                Assert.NotNull(feature);
+
+                const string name1 = "GlobalPriorityTestRule";
+                const string name2 = name1 + "2";
+
+                JObject globalRulesSection = Utils.FollowLink(client, feature, "global");
+                string rulesLink = Utils.GetLink(globalRulesSection, "rules");
+
+                IEnumerable<JObject> rules = client.Get(rulesLink)["rules"].ToObject<IEnumerable<JObject>>();
+                foreach (var r in rules) {
+                    if (r.Value<string>("name").Equals(name1, StringComparison.OrdinalIgnoreCase) ||
+                        r.Value<string>("name").Equals(name2, StringComparison.OrdinalIgnoreCase)) {
+                        Assert.True(client.Delete(Utils.Self(r)));
+                    }
+                }
+
+                JObject rule = JObject.FromObject(new {
+                    name = name1,
+                    pattern = "^([^/]+)/([^/]+)/?$",
+                    action = new {
+                        type = "rewrite",
+                        url = "def.aspx?a={R:1}&c={R:2}",
+                    },
+                    url_rewrite = feature
+                });
+
+                JObject rule2 = (JObject)rule.DeepClone();
+                rule2["name"] = name2;
+
+                JObject result = client.Post(rulesLink, rule);
+                Assert.NotNull(result);
+
+                JObject result2 = client.Post(rulesLink, rule2);
+                Assert.NotNull(result2);
+                // result 0, result2 1
+
+                Assert.Equal(result.Value<int>("priority") + 1, result2.Value<int>("priority"));
+
+                result2["priority"] = result.Value<int>("priority");
+                JObject updatedResult2 = client.Patch(Utils.Self(result2), result2);
+                // result 0, result2 0, updatedresult2 0
+
+                result = Utils.FollowLink(client, result, "self");
+                // result 1, result2 0, updatedresult2 0
+
+                Assert.Equal(result2.Value<int>("priority"), updatedResult2.Value<int>("priority"));
+                Assert.Equal(result.Value<int>("priority"), updatedResult2.Value<int>("priority") + 1);
+
+                Assert.True(client.Delete(Utils.Self(updatedResult2)));
+                Assert.True(client.Delete(Utils.Self(result)));
+            }
+        }
+
+        [Fact]
+        public async Task OutboundRulePriority()
+        {
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                await EnsureEnabled(client);
+
+                Sites.EnsureNoSite(client, TEST_SITE_NAME);
+                var site = Sites.CreateSite(client, TEST_SITE_NAME, Utils.GetAvailablePort(), Sites.TEST_SITE_PATH);
+                Assert.NotNull(site);
+
+                try {
+                    JObject siteFeature = Utils.GetFeature(client, REWRITE_URL, site.Value<string>("name"), "/");
+                    Assert.NotNull(siteFeature);
+
+                    const string name1 = "OutboundPriorityTestRule";
+                    const string name2 = name1 + "2";
+
+                    JObject section = Utils.FollowLink(client, siteFeature, "outbound");
+                    string rulesLink = Utils.GetLink(section, "rules");
+
+                    IEnumerable<JObject> rules = client.Get(rulesLink)["rules"].ToObject<IEnumerable<JObject>>();
+                    foreach (var r in rules) {
+                        if (r.Value<string>("name").Equals(name1, StringComparison.OrdinalIgnoreCase) ||
+                            r.Value<string>("name").Equals(name2, StringComparison.OrdinalIgnoreCase)) {
+                            Assert.True(client.Delete(Utils.Self(r)));
+                        }
+                    }
+
+                    JObject rule = JObject.FromObject(new {
+                        name = name1,
+                        pattern = "^([^/]+)/([^/]+)/?$",
+                        match_type = "server_variable",
+                        server_variable = "abcdefg",
+                        url_rewrite = siteFeature
+                    });
+
+                    JObject rule2 = (JObject)rule.DeepClone();
+                    rule2["name"] = name2;
+
+                    JObject result = client.Post(rulesLink, rule);
+                    Assert.NotNull(result);
+
+                    JObject result2 = client.Post(rulesLink, rule2);
+                    Assert.NotNull(result2);
+                    // result 0, result2 1
+
+                    Assert.Equal(result.Value<int>("priority") + 1, result2.Value<int>("priority"));
+
+                    result2["priority"] = result.Value<int>("priority");
+                    JObject updatedResult2 = client.Patch(Utils.Self(result2), result2);
+                    // result 0, result2 0, updatedresult2 0
+
+                    result = Utils.FollowLink(client, result, "self");
+                    // result 1, result2 0, updatedresult2 0
+
+                    Assert.Equal(result2.Value<int>("priority"), updatedResult2.Value<int>("priority"));
+                    Assert.Equal(result.Value<int>("priority"), updatedResult2.Value<int>("priority") + 1);
+
+                    Assert.True(client.Delete(Utils.Self(updatedResult2)));
+                    Assert.True(client.Delete(Utils.Self(result)));
+                }
+                finally {
+                    Sites.EnsureNoSite(client, site.Value<string>("name"));
                 }
             }
         }

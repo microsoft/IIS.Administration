@@ -27,20 +27,37 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
-        public RuleElement AddCopy(RuleElement rule) {
-            RuleElement element = CreateElement();
+        public new int IndexOf(RuleElement rule)
+        {
+            int index = -1;
 
-            CopyInfo(rule, element);
+            for (int i = 0; i < Count; i++) {
+                if (this[i].Name.Equals(rule.Name, StringComparison.OrdinalIgnoreCase)) {
+                    index = i;
+                    break;
+                }
+            }
 
-            return Add(element);
+            return index;
         }
 
-        public RuleElement AddCopyAt(int index, RuleElement rule) {
-            RuleElement element = CreateElement();
+        public virtual void Move(RuleElement rule, int index)
+        {
+            if (index < 0 || index >= this.Count) {
+                throw new IndexOutOfRangeException();
+            }
 
-            CopyInfo(rule, element);
+            int currentIndex = IndexOf(rule);
 
-            return AddAt(index, element);
+            if (currentIndex == -1) {
+                throw new ArgumentException(nameof(rule));
+            }
+
+            //
+            // Make sure rule comes from this collection instance
+            RuleElement r = this[currentIndex];
+            this.RemoveAt(currentIndex);
+            this.AddCopyAt(index, r);
         }
 
         protected virtual void CopyInfo(RuleElement source, RuleElement destination) {
@@ -54,11 +71,20 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             ConfigurationHelper.CopyMetadata(source, destination);
         }
+
+        private RuleElement AddCopyAt(int index, RuleElement rule)
+        {
+            RuleElement element = CreateElement();
+
+            CopyInfo(rule, element);
+
+            return AddAt(index, element);
+        }
     }
 
     static class ConfigurationHelper {
 
-        internal static void CopyAttributes(ConfigurationElement source, ConfigurationElement destination) {
+        public static void CopyAttributes(ConfigurationElement source, ConfigurationElement destination) {
             foreach (ConfigurationAttribute attribute in source.Attributes) {
                 if (!attribute.IsInheritedFromDefaultValue) {
                     destination[attribute.Name] = attribute.Value;
@@ -66,7 +92,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
-        internal static void CopyMetadata(ConfigurationElement source, ConfigurationElement destination) {
+        public static void CopyMetadata(ConfigurationElement source, ConfigurationElement destination) {
             object o = source.GetMetadata("lockItem");
             if (o != null) {
                 destination.SetMetadata("lockItem", o);

@@ -115,7 +115,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             InboundRule rule = GlobalRulesHelper.CreateRule(model, section);
 
-            GlobalRulesHelper.AddRule(rule, section);
+            GlobalRulesHelper.AddRule(rule, section, model);
 
             ManagementUnit.Current.Commit();
 

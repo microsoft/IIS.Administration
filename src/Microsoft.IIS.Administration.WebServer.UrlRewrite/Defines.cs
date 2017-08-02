@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         private const string PROVIDERS_ENDPOINT = "entries";
         private const string REWRITE_MAPS_SECTION_ENDPOINT = "rewrite-maps";
         private const string REWRITE_MAPS_ENDPOINT = "entries";
-        private const string GLOBAL_RULES_SECTION_ENDPOINT = "global-rules";
+        private const string GLOBAL_RULES_SECTION_ENDPOINT = "global";
         private const string GLOBAL_RULES_ENDPOINT = "rules";
         private const string INBOUND_RULES_SECTION_ENDPOINT = "inbound";
         private const string INBOUND_RULES_ENDPOINT = "rules";
@@ -62,7 +62,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
         // Global Rules Section
         public const string GlobalRulesSectionName = "Microsoft.WebServer.UrlRewrite.GlobalRules";
-        public static ResDef GlobalRulesSectionResource = new ResDef("global_rules", new Guid("59F0C4C2-B7E9-456C-92DE-CFDB4D313991"), GLOBAL_RULES_SECTION_ENDPOINT);
+        public static ResDef GlobalRulesSectionResource = new ResDef("global", new Guid("59F0C4C2-B7E9-456C-92DE-CFDB4D313991"), GLOBAL_RULES_SECTION_ENDPOINT);
         public static readonly string GLOBAL_RULES_SECTION_PATH = $"{PATH}/{GLOBAL_RULES_SECTION_ENDPOINT}";
 
         // Global Rules
