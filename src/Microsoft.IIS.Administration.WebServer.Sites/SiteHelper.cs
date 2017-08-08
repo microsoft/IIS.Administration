@@ -55,11 +55,11 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             // Initialize new site settings
             SetToDefaults(site, sm.SiteDefaults);
 
-            // Set site settings to those provided
-            SetSite(site, model, fileProvider);
-
             // Initialize site Id by obtaining the first available
             site.Id = FirstAvailableId();
+
+            // Set site settings to those provided
+            SetSite(site, model, fileProvider);
 
             return site;
         }

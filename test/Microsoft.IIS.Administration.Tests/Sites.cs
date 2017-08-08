@@ -383,6 +383,36 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
+        [Theory]
+        [InlineData(99722)]
+        public void CreateWithKey(int key)
+        {
+            using (HttpClient client = ApiHttpClient.Create()) {
+
+                EnsureNoSite(client, TEST_SITE_NAME);
+
+                var siteData = new {
+                    name = TEST_SITE_NAME,
+                    physical_path = TEST_SITE_PATH,
+                    key = key,
+                    bindings = new object[] {
+                        new {
+                            ip_address = "*",
+                            port = TEST_PORT,
+                            protocol = "http"
+                        }
+                    }
+                };
+
+                JObject site = client.Post(SITE_URL, siteData);
+                Assert.NotNull(site);
+
+                Assert.Equal(key, site.Value<int>("key"));
+
+                Assert.True(client.Delete(Utils.Self(site)));
+            }
+        }
+
         private bool HasExactProperties(JObject obj, IEnumerable<string> names) {
             if (obj.Properties().Count() != names.Count()) {
                 return false;
