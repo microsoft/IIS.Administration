@@ -9,7 +9,8 @@ Param(
                  "HasSslBinding",
                  "GetSslBindingInfo",
                  "BindCert",
-                 "DeleteSslBinding")]
+                 "DeleteSslBinding",
+                 "CopySslBindingInfo")]
     [string]
     $Command,
     
@@ -23,7 +24,15 @@ Param(
     
     [parameter()]
     [string]
-    $AppId
+    $AppId,
+    
+    [parameter()]
+    [int]
+    $SourcePort,
+    
+    [parameter()]
+    [int]
+    $DestinationPort
 )
 
 $MAX_PORT = 65535
@@ -118,6 +127,33 @@ function DeleteHttpsBinding($portNo)
     }
 }
 
+# Migrates the settings for an HTTP.Sys binding from one port to another
+# SourcePort: The port which contains the HTTP.Sys binding
+# DestinationPort: The port to migrate the binding settings to
+function Copy-SslBindingInfo($sourcePort, $destPort) {
+    ValidatePort($sourcePort)
+    ValidatePort($destPort)
+
+    if ($sourcePort -eq $destPort) {
+        return
+    }
+
+    $sourceInfo = GetBoundCertificateInfo $sourcePort
+
+    if ($sourceInfo -eq $null -or $sourceInfo.CertificateHash -eq $null) {
+        throw "Source binding info not found"
+    }
+
+    $sourceCert = Get-Item "Cert:\LocalMachine\my\$($sourceInfo.CertificateHash)"
+
+    if ($sourceCert -eq $null) {
+        "Source binding certificate not found"
+    }
+
+    DeleteHttpsBinding $destPort
+    BindCertificate -_hash $sourceCert.ThumbPrint -portNo $destPort -_appId $sourceInfo.AppId
+}
+
 switch($Command)
 {
     "IsAvailable"
@@ -135,6 +171,10 @@ switch($Command)
     "GetSslBindingInfo"
     {
         return GetBoundCertificateInfo $Port
+    }
+    "CopySslBindingInfo"
+    {
+        return Copy-SslBindingInfo $SourcePort $DestinationPort
     }
     "BindCert"
     {

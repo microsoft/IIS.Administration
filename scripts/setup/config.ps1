@@ -189,7 +189,7 @@ function Write-Config($obj, $_path) {
 }
 
 # Gets the port that the IIS Administration API is configured to listen on
-# Source: The installation path, Ex: C:\Program Files\IIS Administration\2.0.0
+# Path: The installation path, Ex: C:\Program Files\IIS Administration\2.0.0
  function Get-ConfigPort($_path) {
     if ([string]::IsNullOrEmpty($_path)) {
         throw "Path required."
@@ -221,13 +221,19 @@ function Write-Config($obj, $_path) {
         $sPort = $urls.Substring($start, $urls.Length - $start)
     }
 
-    if ($sPort -ne $null -and -not([int]::TryParse($sPort, [ref]$port))) {
+    if ($sPort -ne $null) {
+        try {
+            $port = [int]::parse($sPort)
+        }
+        catch {
             throw "Misconfigured 'urls' in appsettings: $($appsettings.urls)."
+        }
     }
 
     $port
  }
 
+# Legacy (Pre 2.0.0)
 # Gets the port that the IIS Administration site is configured to listen on in the applicationHost.config file.
 # AppHostPath: The location of the applicationHost.config file.
 function Get-AppHostPort($_appHostPath) {

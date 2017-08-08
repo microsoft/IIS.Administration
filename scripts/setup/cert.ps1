@@ -8,7 +8,8 @@ Param (
                  "Delete",
                  "New",
                  "AddToTrusted",
-                 "Create")]
+                 "Create",
+                 "Get-LatestIISAdminCertificate")]
     [string]
     $Command,
     
@@ -241,7 +242,34 @@ function Create-SelfSignedCertificate($_subject, $_friendlyName, $_alternativeNa
         $CACertificate = (Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.FriendlyName -eq $locator })
     } while ($CACertificate -eq $null -and $(Get-Date) -lt $end)
 
+    if ($CACertificate.Length -ne $null) {
+        $dates = $CACertificate | %{[System.DateTime]::Parse($_.GetEffectiveDateString())} | Sort-Object
+        $CACertificate = $CACertificate | where {[System.DateTime]::Parse($_.GetEffectiveDateString()) -eq $dates[$dates.length - 1]}
+    }
+
     return $CACertificate 
+}
+
+# Retrieves the latest IIS Administration Certificate based on year
+function Get-LatestIISAdminCert {
+    $cert = $null
+    $releaseYear = 2015
+    $currentYear = [System.DateTime]::Now.Year
+
+    for ($i = $currentYear; $i -ge $releaseYear; $i--) {
+        $name = $(.\globals.ps1 CERT_NAME) + " " + $i
+        $cert = .\cert.ps1 Get -Name $name
+
+        if ($cert -ne $null) {
+            break
+        }
+    }
+
+    if ($cert -eq $null) {
+        $cert = .\cert.ps1 Get -Name $(.\globals.ps1 CERT_NAME)
+    }
+
+    $cert
 }
 
 switch ($Command)
@@ -249,6 +277,10 @@ switch ($Command)
     "Get"
     {
         return GetCert $Name $Thumbprint
+    }
+    "Get-LatestIISAdminCertificate"
+    {
+        return Get-LatestIISAdminCert
     }
     "Delete"
     {

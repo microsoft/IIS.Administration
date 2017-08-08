@@ -125,6 +125,13 @@ function Migrate {
 
     $userFiles = .\config.ps1 Get-UserFileMap
     
+    # Copy over Ssl bindings, in this case the source and destination are reversed
+    $sourcePort = .\config.ps1 Get-ConfigPort -Path $Destination
+    $destinationPort = .\config.ps1 Get-ConfigPort -Path $Source
+    if ($sourcePort -ne $destinationPort) {
+        .\net.ps1 CopySslBindingInfo -SourcePort $sourcePort -DestinationPort $destinationPort
+    }
+
     .\modules.ps1 Migrate-Modules -Source $Source -Destination $Destination
     .\config.ps1 Migrate-AppSettings -Source $Source -Destination $Destination
     .\files.ps1 Copy-FileForced -Source $(Join-Path $Source $userFiles["api-keys.json"]) -Destination $(Join-Path $Destination $userFiles["api-keys.json"]) -ErrorAction SilentlyContinue

@@ -367,19 +367,34 @@ function Install
         Write-Verbose "Using certificate with thumbprint $CertHash"
     }
     else {
+        # Check for existing IIS Administration Certificate
+        $cert = .\cert.ps1 Get-LatestIISAdminCertificate
+        $certCreationName = $(.\globals.ps1 CERT_NAME)
 
-        $cert = .\cert.ps1 Get -Name $(.\globals.ps1 CERT_NAME)
+        if ($cert -ne $null) {
+            #
+            # Check if existing cert has sufficient lifespan left (3+ months)
+            $expirationDate = [System.DateTime]::Parse($cert.GetExpirationDateString())
+            $remainingLifetime = $expirationDate - [System.DateTime]::Now
+
+            if ($remainingLifetime.TotalDays -lt 90) {
+                Write-Verbose "The IIS Administration Certificate will expire in less than 90 days"
+                $certCreationName = $(.\globals.ps1 CERT_NAME) + " " + [System.DateTime]::Now.Year.ToString()
+                $cert = $null
+            }
+        }
+
         if ($cert -eq $null) {
             # No valid cert exists, we must create one to enable HTTPS
 
             Write-Verbose "Creating new IIS Administration Certificate"
-            $cert = .\cert.ps1 New -Name $(.\globals.ps1 CERT_NAME)
+            $cert = .\cert.ps1 New -Name $certCreationName
             $rollbackStore.createdCertThumbprint = $cert.Thumbprint;
 
             Write-Verbose "Adding the certificate to trusted store"
             .\cert.ps1 AddToTrusted -Certificate $cert
         }
-        else {            
+        else {
             # There is already a Microsoft IIS Administration Certificate on the computer that we can use for the API
             Write-Verbose "Using pre-existing IIS Administration Certificate"
         }
