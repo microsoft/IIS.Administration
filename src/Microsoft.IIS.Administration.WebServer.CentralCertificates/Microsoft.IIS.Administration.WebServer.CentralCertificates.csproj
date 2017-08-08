@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\build\sign.props" />
+  <Import Project="..\..\build\version.props" />
 
   <PropertyGroup>
     <Description>Microsoft.IIS.Administration.WebServer.CentralCertificates Class Library</Description>
-    <VersionPrefix>2.0.0</VersionPrefix>
+    <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
     <TargetFramework>netstandard1.6</TargetFramework>
     <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
