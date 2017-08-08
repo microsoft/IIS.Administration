@@ -25,7 +25,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
     public static class SiteHelper
     {
         private const string SCOPE_KEY = "scope";
-        private static readonly Fields RefFields =  new Fields("name", "id", "key", "status");
+        private static readonly Fields RefFields =  new Fields("name", "id", "status");
         private const string sslFlagsAttribute = "sslFlags";
         private const string MaxUrlSegmentsAttribute = "maxUrlSegments";
 
