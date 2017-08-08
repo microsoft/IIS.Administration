@@ -296,17 +296,16 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 obj.server_variable = string.IsNullOrEmpty(rule.Match.ServerVariable) ? null : rule.Match.ServerVariable;
             }
 
-            // tags
-            if (fields.Exists("tags") && matchType == OutboundRuleMatchType.Tags) {
-                //
-                // dynamic ExpandoObject
-                obj.tags = CreateTagsModel(rule.Match.FilterByTags);
+            // tag_filters
+            if (fields.Exists("tag_filters") && matchType == OutboundRuleMatchType.Response) {
+
+                obj.tag_filters = CreateTagsModel(rule.Match.FilterByTags);
 
                 TagsElement customTags = rule.Match.FilterByTags.HasFlag(FilterByTags.CustomTags) ?
                                             section.Tags.FirstOrDefault(t => t.Name.Equals(rule.Match.CustomTags, StringComparison.OrdinalIgnoreCase)) :
                                             null;
 
-                obj.tags.custom = customTags == null ? null : TagsToJsonModelRef(customTags, site, path, fields.Filter("tags.custom"));
+                obj.tag_filters.custom = customTags == null ? null : TagsToJsonModelRef(customTags, site, path, fields.Filter("tag_filters.custom"));
             }
 
             //
@@ -668,7 +667,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
         private static OutboundRuleMatchType GetMatchType(OutboundRule rule)
         {
-            return string.IsNullOrEmpty(rule.Match.ServerVariable) ? OutboundRuleMatchType.Tags : OutboundRuleMatchType.ServerVariable;
+            return string.IsNullOrEmpty(rule.Match.ServerVariable) ? OutboundRuleMatchType.Response : OutboundRuleMatchType.ServerVariable;
         }
 
         private static void SetRule(dynamic model, OutboundRule rule, OutboundRulesSection section)
@@ -717,17 +716,17 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
             //
             // Html Tags
-            dynamic tags = null;
+            dynamic tagFilters = null;
             dynamic customTags = null;
 
-            if (model.tags != null) {
-                tags = model.tags;
+            if (model.tag_filters != null) {
+                tagFilters = model.tag_filters;
 
-                if (!(tags is JObject)) {
-                    throw new ApiArgumentException("tags", ApiArgumentException.EXPECTED_OBJECT);
+                if (!(tagFilters is JObject)) {
+                    throw new ApiArgumentException("tag_filters", ApiArgumentException.EXPECTED_OBJECT);
                 }
 
-                customTags = tags.custom;
+                customTags = tagFilters.custom;
 
                 // Clear custom tags
                 rule.Match.CustomTags = null;
@@ -735,20 +734,20 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             // Set standard tags
-            if (tags != null) {
+            if (tagFilters != null) {
                 FilterByTags ruleTags = rule.Match.FilterByTags;
 
-                DynamicHelper.If<bool>((object)tags.a, v => SetTagFlag(ref ruleTags, FilterByTags.A, v));
-                DynamicHelper.If<bool>((object)tags.area, v => SetTagFlag(ref ruleTags, FilterByTags.Area, v));
-                DynamicHelper.If<bool>((object)tags.@base, v => SetTagFlag(ref ruleTags, FilterByTags.Base, v));
-                DynamicHelper.If<bool>((object)tags.form, v => SetTagFlag(ref ruleTags, FilterByTags.Form, v));
-                DynamicHelper.If<bool>((object)tags.frame, v => SetTagFlag(ref ruleTags, FilterByTags.Frame, v));
-                DynamicHelper.If<bool>((object)tags.head, v => SetTagFlag(ref ruleTags, FilterByTags.Head, v));
-                DynamicHelper.If<bool>((object)tags.iframe, v => SetTagFlag(ref ruleTags, FilterByTags.IFrame, v));
-                DynamicHelper.If<bool>((object)tags.img, v => SetTagFlag(ref ruleTags, FilterByTags.Img, v));
-                DynamicHelper.If<bool>((object)tags.input, v => SetTagFlag(ref ruleTags, FilterByTags.Input, v));
-                DynamicHelper.If<bool>((object)tags.link, v => SetTagFlag(ref ruleTags, FilterByTags.Link, v));
-                DynamicHelper.If<bool>((object)tags.script, v => SetTagFlag(ref ruleTags, FilterByTags.Script, v));
+                DynamicHelper.If<bool>((object)tagFilters.a, v => SetTagFlag(ref ruleTags, FilterByTags.A, v));
+                DynamicHelper.If<bool>((object)tagFilters.area, v => SetTagFlag(ref ruleTags, FilterByTags.Area, v));
+                DynamicHelper.If<bool>((object)tagFilters.@base, v => SetTagFlag(ref ruleTags, FilterByTags.Base, v));
+                DynamicHelper.If<bool>((object)tagFilters.form, v => SetTagFlag(ref ruleTags, FilterByTags.Form, v));
+                DynamicHelper.If<bool>((object)tagFilters.frame, v => SetTagFlag(ref ruleTags, FilterByTags.Frame, v));
+                DynamicHelper.If<bool>((object)tagFilters.head, v => SetTagFlag(ref ruleTags, FilterByTags.Head, v));
+                DynamicHelper.If<bool>((object)tagFilters.iframe, v => SetTagFlag(ref ruleTags, FilterByTags.IFrame, v));
+                DynamicHelper.If<bool>((object)tagFilters.img, v => SetTagFlag(ref ruleTags, FilterByTags.Img, v));
+                DynamicHelper.If<bool>((object)tagFilters.input, v => SetTagFlag(ref ruleTags, FilterByTags.Input, v));
+                DynamicHelper.If<bool>((object)tagFilters.link, v => SetTagFlag(ref ruleTags, FilterByTags.Link, v));
+                DynamicHelper.If<bool>((object)tagFilters.script, v => SetTagFlag(ref ruleTags, FilterByTags.Script, v));
 
                 rule.Match.FilterByTags = ruleTags;
             }
@@ -843,7 +842,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             string type = DynamicHelper.Value(model.match_type);
             OutboundRuleMatchType matchType = string.IsNullOrEmpty(type) ? GetMatchType(rule) : OutboundMatchTypeHelper.FromJsonModel(type);
 
-            if (matchType == OutboundRuleMatchType.Tags) {
+            if (matchType == OutboundRuleMatchType.Response) {
                 rule.Match.ServerVariable = null;
             }
             else {

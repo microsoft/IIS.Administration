@@ -529,8 +529,8 @@ namespace Microsoft.IIS.Administration.Tests
 
                 JObject outboundRule = JObject.FromObject(new {
                     name = testName,
-                    match_type = "tags",
-                    tags = new {
+                    match_type = "response",
+                    tag_filters = new {
                         a = true,
                         area = true,
                         @base = true,
@@ -1106,10 +1106,10 @@ namespace Microsoft.IIS.Administration.Tests
             }
 
             //
-            // Html Tags
-            if (a["tags"] != null || b["tags"] != null) {
-                JObject aTags = a.Value<JObject>("tags");
-                JObject bTags = b.Value<JObject>("tags");
+            // Tag Filters
+            if (a["tag_filters"] != null || b["tag_filters"] != null) {
+                JObject aTags = a.Value<JObject>("tag_filters");
+                JObject bTags = b.Value<JObject>("tag_filters");
 
                 Assert.Equal(aTags.Value<bool>("a"), bTags.Value<bool>("a"));
                 Assert.Equal(aTags.Value<bool>("area"), bTags.Value<bool>("area"));
@@ -1123,8 +1123,8 @@ namespace Microsoft.IIS.Administration.Tests
                 Assert.Equal(aTags.Value<bool>("link"), bTags.Value<bool>("link"));
                 Assert.Equal(aTags.Value<bool>("script"), bTags.Value<bool>("script"));
 
-                if (a["tags"]["custom"] != null || b["tags"]["custom"] != null) {
-                    Assert.Equal(a["tags"]["custom"].Value<string>("id"), b["tags"]["custom"].Value<string>("id"));
+                if (aTags["custom"] != null || bTags["custom"] != null) {
+                    Assert.Equal(aTags["custom"].Value<string>("id"), bTags["custom"].Value<string>("id"));
                 }
             }
 

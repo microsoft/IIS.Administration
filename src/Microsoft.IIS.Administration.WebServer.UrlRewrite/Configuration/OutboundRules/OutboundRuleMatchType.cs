@@ -10,7 +10,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     // Keep public for resolution of enums from 'dynamic' types in helper classes i.e. DynamicHelper
     public enum OutboundRuleMatchType {
         ServerVariable,
-        Tags
+        Response
     }
 
     static class OutboundMatchTypeHelper
@@ -20,8 +20,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             switch (matchType) {
                 case OutboundRuleMatchType.ServerVariable:
                     return "server_variable";
-                case OutboundRuleMatchType.Tags:
-                    return "tags";
+                case OutboundRuleMatchType.Response:
+                    return "response";
                 default:
                     throw new ArgumentException(nameof(matchType));
             }
@@ -32,8 +32,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             switch (model.ToLowerInvariant()) {
                 case "server_variable":
                     return OutboundRuleMatchType.ServerVariable;
-                case "tags":
-                    return OutboundRuleMatchType.Tags;
+                case "response":
+                    return OutboundRuleMatchType.Response;
                 default:
                     throw new ApiArgumentException("match_type");
             }
