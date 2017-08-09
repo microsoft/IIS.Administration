@@ -26,11 +26,12 @@
     },
     "Microsoft.IIS.Administration": {
       "commandName": "Project",
-      "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      },
       "launchBrowser": true,
       "launchUrl": "https://localhost:44326",
+      "environmentVariables": {
+        "USE_CURRENT_DIRECTORY_AS_ROOT": "TRUE",
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
       "applicationUrl": "https://localhost:44326"
     }
   }

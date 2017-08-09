@@ -18,7 +18,7 @@ namespace Microsoft.IIS.Administration {
         public ConfigurationHelper(string[] args) {
             _args = args;
 
-            RootPath = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != null ?
+            RootPath = string.Equals(Environment.GetEnvironmentVariable("USE_CURRENT_DIRECTORY_AS_ROOT"), "true", StringComparison.OrdinalIgnoreCase) ?
                        Directory.GetCurrentDirectory() : Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
 
             _basePath = Path.Combine(RootPath, "config");
