@@ -128,9 +128,7 @@ function Migrate {
     # Copy over Ssl bindings, in this case the source and destination are reversed
     $sourcePort = .\config.ps1 Get-ConfigPort -Path $Destination
     $destinationPort = .\config.ps1 Get-ConfigPort -Path $Source
-    if ($sourcePort -ne $destinationPort) {
-        .\net.ps1 CopySslBindingInfo -SourcePort $sourcePort -DestinationPort $destinationPort
-    }
+    $sslBindingInfo = .\net.ps1 CopySslBindingInfo -SourcePort $sourcePort -DestinationPort $destinationPort
 
     .\modules.ps1 Migrate-Modules -Source $Source -Destination $Destination
     .\config.ps1 Migrate-AppSettings -Source $Source -Destination $Destination
@@ -181,7 +179,7 @@ function Migrate {
 
     $installObject = @{
         InstallPath = $Destination
-        Port = $Port
+        Port = $destinationPort
         ServiceName = $sourceSvc.Name
         Version = $destinationSettings.Version
         Installer = $([System.Environment]::UserDomainName + '/' + [System.Environment]::UserName)
@@ -193,7 +191,16 @@ function Migrate {
 
     .\security.ps1 Set-Acls -Path $Destination
 
-    Write-Host "Migration complete, URI: https://localhost:$Port"
+    # Remove unused IIS Administration certificates expiring in less than 3 months
+    $certs = .\cert.ps1 Get-IISAdminCertificates
+    foreach ($cert in $certs) {
+        if ((([System.DateTime]::Parse($cert.GetExpirationDateString()) - [System.DateTime]::Now).TotalDays -lt $(.\globals.ps1 CERT_EXPIRATION_WINDOW)) -and $cert.Thumbprint.ToLower() -ne $sslBindingInfo.CertificateHash.ToLower()) {
+            Write-Verbose "Removing old IIS Administration Certificate"
+            .\cert.ps1 Delete -Thumbprint $cert.Thumbprint
+        }
+    }
+
+    Write-Host "Migration complete, URI: https://localhost:$destinationPort"
 }
 
 try {

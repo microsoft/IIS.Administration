@@ -13,6 +13,7 @@ Param (
                  "INSTALL_METHOD_VALUE",
                  "DEFAULT_SERVICE_NAME",
                  "SERVICE_DESCRIPTION",
+                 "CERT_EXPIRATION_WINDOW",
                  "CERT_NAME")]
     [string]
     $Command
@@ -66,6 +67,11 @@ switch ($Command)
     "SERVICE_DESCRIPTION"
     {
         return "Management service for IIS."
+    }
+    # Window of days to replace cert
+    "CERT_EXPIRATION_WINDOW"
+    {
+        return 90
     }
     "CERT_NAME"
     {

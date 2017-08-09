@@ -134,24 +134,24 @@ function Copy-SslBindingInfo($sourcePort, $destPort) {
     ValidatePort($sourcePort)
     ValidatePort($destPort)
 
-    if ($sourcePort -eq $destPort) {
-        return
+    if ($sourcePort -ne $destPort) {
+        $sourceInfo = GetBoundCertificateInfo $sourcePort
+
+        if ($sourceInfo -eq $null -or $sourceInfo.CertificateHash -eq $null) {
+            throw "Source binding info not found"
+        }
+
+        $sourceCert = Get-Item "Cert:\LocalMachine\my\$($sourceInfo.CertificateHash)"
+
+        if ($sourceCert -eq $null) {
+            "Source binding certificate not found"
+        }
+
+        DeleteHttpsBinding $destPort
+        BindCertificate -_hash $sourceCert.ThumbPrint -portNo $destPort -_appId $sourceInfo.AppId
     }
 
-    $sourceInfo = GetBoundCertificateInfo $sourcePort
-
-    if ($sourceInfo -eq $null -or $sourceInfo.CertificateHash -eq $null) {
-        throw "Source binding info not found"
-    }
-
-    $sourceCert = Get-Item "Cert:\LocalMachine\my\$($sourceInfo.CertificateHash)"
-
-    if ($sourceCert -eq $null) {
-        "Source binding certificate not found"
-    }
-
-    DeleteHttpsBinding $destPort
-    BindCertificate -_hash $sourceCert.ThumbPrint -portNo $destPort -_appId $sourceInfo.AppId
+    GetBoundCertificateInfo $destPort
 }
 
 switch($Command)

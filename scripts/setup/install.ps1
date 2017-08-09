@@ -377,8 +377,8 @@ function Install
             $expirationDate = [System.DateTime]::Parse($cert.GetExpirationDateString())
             $remainingLifetime = $expirationDate - [System.DateTime]::Now
 
-            if ($remainingLifetime.TotalDays -lt 90) {
-                Write-Verbose "The IIS Administration Certificate will expire in less than 90 days"
+            if ($remainingLifetime.TotalDays -lt $(.\globals.ps1 CERT_EXPIRATION_WINDOW)) {
+                Write-Verbose "The IIS Administration Certificate will expire in less than $(.\globals.ps1 CERT_EXPIRATION_WINDOW) days"
                 $certCreationName = $(.\globals.ps1 CERT_NAME) + " " + [System.DateTime]::Now.Year.ToString()
                 $cert = $null
             }

@@ -9,6 +9,7 @@ Param (
                  "New",
                  "AddToTrusted",
                  "Create",
+                 "Get-IISAdminCertificates",
                  "Get-LatestIISAdminCertificate")]
     [string]
     $Command,
@@ -250,23 +251,57 @@ function Create-SelfSignedCertificate($_subject, $_friendlyName, $_alternativeNa
     return $CACertificate 
 }
 
-# Retrieves the latest IIS Administration Certificate based on year
-function Get-LatestIISAdminCert {
-    $cert = $null
-    $releaseYear = 2015
-    $currentYear = [System.DateTime]::Now.Year
+function Get-IISAdminCerts {
+    $certName = .\globals.ps1 CERT_NAME
+    $adminCerts = @()
 
-    for ($i = $currentYear; $i -ge $releaseYear; $i--) {
-        $name = $(.\globals.ps1 CERT_NAME) + " " + $i
-        $cert = .\cert.ps1 Get -Name $name
+    $allCerts = Get-ChildItem Cert:\LocalMachine\My
 
-        if ($cert -ne $null) {
-            break
+    foreach ($cert in $allCerts) {
+        # Handle ps 2.0 empty enumerable behavior
+        if ($cert -eq $null) {
+            continue
+        }
+
+        if ($cert.DnsNameList -ne $null) {
+            $entryLength = $adminCerts.Length
+            foreach ($dnsName in $cert.DnsNameList) {
+                if ($dnsName.ToString().ToLower().StartsWith($certName.ToLower())) {
+                    $adminCerts += $cert
+                    break
+                }
+            }
+
+            if ($adminCerts.Length -eq ($entryLength + 1)) {
+                continue
+            }
+        }
+
+        if ($cert.FriendlyName -ne $null -and $cert.FriendlyName.ToLower().StartsWith($certName.ToLower())) {
+            $adminCerts += $cert
+            continue
+        }
+
+        $dnsName = $cert.GetNameInfo([System.Security.Cryptography.X509Certificates.X509NameType]::DnsFromAlternativeName, $false)
+        if ($dnsName -ne $null  -and $dnsName.ToString().ToLower().StartsWith($certName.ToLower())) {
+            $adminCerts += $cert
+            continue
         }
     }
+    
+    $adminCerts
+}
 
-    if ($cert -eq $null) {
-        $cert = .\cert.ps1 Get -Name $(.\globals.ps1 CERT_NAME)
+function Get-LatestIISAdminCert {
+    $cert = $null
+    $certs = Get-IISAdminCerts
+
+    if ($certs -ne $null -and $certs.length -ne $null) {
+        $expirationDates = $certs | %{[System.DateTime]::Parse($_.GetExpirationDateString())} | Sort-Object
+        $cert = $certs | where {[System.DateTime]::Parse($_.GetExpirationDateString()) -eq $expirationDates[$expirationDates.length - 1]}
+    }
+    else {
+        $cert = $certs
     }
 
     $cert
@@ -277,6 +312,10 @@ switch ($Command)
     "Get"
     {
         return GetCert $Name $Thumbprint
+    }
+    "Get-IISAdminCertificates"
+    {
+        return Get-IISAdminCerts
     }
     "Get-LatestIISAdminCertificate"
     {
