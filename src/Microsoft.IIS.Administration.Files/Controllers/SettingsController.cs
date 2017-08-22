@@ -7,10 +7,10 @@ namespace Microsoft.IIS.Administration.Files
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
-    using Microsoft.Extensions.Primitives;
-    using System;
+    using Microsoft.AspNetCore.Authorization;
     using System.Threading.Tasks;
 
+    [Authorize(Policy = "System")]
     public class SettingsController : ApiBaseController
     {
         IConfigurationWriter _configWriter;
