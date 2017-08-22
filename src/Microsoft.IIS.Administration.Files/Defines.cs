@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.Files
         private const string DOWNLOADS_ENDPOINT = "downloads";
         private const string COPY_ENDPOINT = "copy";
         private const string MOVE_ENDPOINT = "move";
+        private const string SETTINGS_ENDPOINT = "settings";
 
         public const string FilesName = "Microsoft.IIS.Administration.Files";
         public const string FileName = "Microsoft.IIS.Administration.File";
@@ -37,5 +38,8 @@ namespace Microsoft.IIS.Administration.Files
 
         public static readonly string DOWNLOAD_PATH = $"{DOWNLOADS_ENDPOINT}";
         public static readonly ResDef DownloadResource = new ResDef("downloads", new Guid("9DAF09F0-197B-4164-81D5-B6A25154883A"), DOWNLOADS_ENDPOINT);
+
+        public static readonly string SETTINGS_PATH = $"{FILES_PATH}/{SETTINGS_ENDPOINT}";
+        public static readonly ResDef SettingsResource = new ResDef("settings", new Guid("5A3F8A3F-CF8F-4371-B640-92370A37E1EE"), SETTINGS_ENDPOINT);
     }
 }
