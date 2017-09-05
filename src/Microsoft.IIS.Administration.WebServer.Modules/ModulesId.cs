@@ -60,7 +60,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
 
             this.Path = path;
             this.SiteId = siteId;
-            this.IsLocal = IsLocal;
+            this.IsLocal = isLocal;
 
             string encodableSiteId = this.SiteId == null ? "" : this.SiteId.Value.ToString();
             string encodableIsLocal = (this.IsLocal ? 1 : 0).ToString();

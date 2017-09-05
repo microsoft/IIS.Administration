@@ -55,12 +55,12 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
         {
 
             if (!string.IsNullOrEmpty(path) && siteId == null) {
-                throw new ArgumentNullException("siteId");
+                throw new ArgumentNullException(nameof(siteId));
             }
 
             this.Path = path;
             this.SiteId = siteId;
-            this.IsLocal = IsLocal;
+            this.IsLocal = isLocal;
 
             string encodableSiteId = this.SiteId == null ? "" : this.SiteId.Value.ToString();
             string encodableIsLocal = (this.IsLocal ? 1 : 0).ToString();

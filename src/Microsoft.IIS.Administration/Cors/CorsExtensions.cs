@@ -22,7 +22,7 @@ namespace Microsoft.IIS.Administration.Cors
         {
             //
             // Allow CORs for rootPath only
-            if (!string.IsNullOrEmpty(rootPath) || rootPath != "/") {
+            if (!string.IsNullOrEmpty(rootPath) && rootPath != "/") {
                 builder.Use(async (context, next) => {
 
                     bool isCorsPreflight = context.Request.Method.Equals("OPTIONS", StringComparison.OrdinalIgnoreCase) &&

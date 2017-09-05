@@ -45,7 +45,7 @@ namespace Microsoft.IIS.Administration.Utils {
 
             // Seconds
             if (Math.Abs(ts.TotalMinutes) < 1) {
-                sb.AppendFormat("a few moments ", minutes, minutes > 1 ? "s" : "");
+                sb.AppendFormat("a few moments ");
             }
 
 
