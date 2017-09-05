@@ -9,6 +9,7 @@
     <Exec Command="dotnet restore $(ProjectDir)../Bundle" />
   </Target>
   <Target Name="PostPostBuild" AfterTargets="PostBuild">
-    <Exec Command="dotnet msbuild $(ProjectDir)../Bundle/Bundle.csproj /t:publish /p:PublishDir=$(ProjectDir)../../Microsoft.IIS.Administration/plugins /p:Configuration=$(Configuration) /p:SignType=$(SignType) /p:SigningIdentity=$(SigningIdentity)" />
+    <Exec Condition="'$(MSBuildRuntimeType)' == 'Core'" Command="dotnet msbuild $(ProjectDir)../Bundle/Bundle.csproj /t:publish /p:PublishDir=$(ProjectDir)../../Microsoft.IIS.Administration/plugins /p:Configuration=$(Configuration)" />
+    <Exec Condition="'$(MSBuildRuntimeType)' != 'Core'" Command="&quot;$(MsBuildToolsPath)\msbuild.exe&quot; $(ProjectDir)..\Bundle\Bundle.csproj /t:publish /p:PublishDir=$(ProjectDir)..\..\Microsoft.IIS.Administration\plugins /p:Configuration=$(Configuration) /p:SignType=$(SignType) /p:SigningIdentity=$(SigningIdentity)" />
   </Target>
 </Project>
