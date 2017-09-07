@@ -4,7 +4,7 @@
 
 namespace Microsoft.IIS.Administration.WebServer.Monitoring
 {
-    public interface IWebServerMonitorSnapshot
+    public interface IWebServerSnapshot
     {
         long BytesSentSec { get; }
 
@@ -65,5 +65,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         long CurrentUrisCached { get; set; }
 
         long CurrentFilesCached { get; set; }
+
+        long PageFaultsSec { get; set; }
     }
 }

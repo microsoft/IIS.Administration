@@ -13,11 +13,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
     class WebServerMonitor : IWebServerMonitor, IDisposable
     {
+        public const string WorkerProcessCategory = "W3SVC_W3WP";
+        public const string WebSiteCategory = "Web Service";
         private const string CacheCategory = "Web Service Cache";
         private const string MemoryCategory = "Memory";
-        private const string ProcessCategory = "Process";
-        private const string WebSiteCategory = "Web Service";
-        private const string WorkerProcessCategory = "W3SVC_W3WP";
 
         private IEnumerable<int> _allProcesses;
         private IEnumerable<int> _webserverProcesses;
@@ -25,7 +24,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         private readonly TimeSpan RefreshRate = TimeSpan.FromSeconds(1);
         private DateTime _lastCalculation;
         private CounterMonitor _counterMonitor;
-        private WebServerMonitorSnapshot _snapshot = new WebServerMonitorSnapshot();
+        private WebServerSnapshot _snapshot = new WebServerSnapshot();
         private CounterProvider _provider = new CounterProvider();
 
         public void Dispose()
@@ -36,18 +35,21 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             }
         }
 
-        public async Task<IWebServerMonitorSnapshot> GetSnapshot()
+        public async Task<IWebServerSnapshot> GetSnapshot()
         {
             await CalculateData();
+            Dispose();
             return _snapshot;
         }
 
         private async Task Initialize()
         {
+            IEnumerable<int> webserverProcessIds = ProcessUtil.GetWebserverProcessIds();
+
             //
             // Set up tracking for change detection
             _allProcesses = Process.GetProcesses().Select(p => p.Id);
-            _webserverProcesses = ProcessUtil.GetWebserverProcessIds().OrderBy(id => id);
+            _webserverProcesses = webserverProcessIds.OrderBy(id => id);
             _webserverCounters = GetWebserverCounters();
 
             //
@@ -55,7 +57,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             var counters = new List<IPerfCounter>();
             counters.AddRange(GetMemoryCounters());
             counters.AddRange(GetCacheCounters());
-            counters.AddRange(await GetProcessCounters());
+            counters.AddRange(await ProcessUtil.GetProcessCounters(webserverProcessIds));
             counters.AddRange(_webserverCounters);
 
             //
@@ -85,6 +87,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             long requestsSec = 0;
             long totalRequests = 0;
             long percentCpuTime = 0;
+            long pageFaultsSec = 0;
             long handleCount = 0;
             long privateBytes = 0;
             long threadCount = 0;
@@ -123,6 +126,18 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                         case "Total Connection Attempts (all instances)":
                             totalConnectionAttempts += counter.Value;
                             break;
+                        case "Total Method Requests/sec":
+                            requestsSec += counter.Value;
+                            break;
+                        case "Other Request Methods/sec":
+                            requestsSec += counter.Value;
+                            break;
+                        case "Total Method Requests":
+                            totalRequests += counter.Value;
+                            break;
+                        case "Total Other Request Methods":
+                            totalRequests += counter.Value;
+                            break;
                         default:
                             break;
                     }
@@ -133,12 +148,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                         case "Active Requests":
                             activeRequests += counter.Value;
                             break;
-                        case "Requests / Sec":
-                            requestsSec += counter.Value;
-                            break;
-                        case "Total HTTP Requests Served":
-                            totalRequests += counter.Value;
-                            break;
                         case "% 500 HTTP Response Sent":
                             percent500 += counter.Value;
                             break;
@@ -147,7 +156,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(ProcessCategory)) {
+                if (counter.CategoryName.Equals(ProcessUtil.ProcessCategory)) {
                     switch (counter.Name) {
                         case ProcessUtil.CounterPercentCpu:
                             percentCpuTime += counter.Value;
@@ -172,6 +181,9 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                             break;
                         case ProcessUtil.CounterIOWriteSec:
                             IOWriteSec += counter.Value;
+                            break;
+                        case ProcessUtil.CounterPageFaultsSec:
+                            pageFaultsSec += counter.Value;
                             break;
                         default:
                             break;
@@ -252,9 +264,9 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             _snapshot.IOWriteSec = IOWriteSec;
             _snapshot.FileCacheHits = fileCacheHits;
             _snapshot.FileCacheMisses = fileCacheMisses;
+            _snapshot.PageFaultsSec = pageFaultsSec;
             _snapshot.Percent500 = percent500;
             _snapshot.AvailableBytes = availableBytes;
-
             _snapshot.FileCacheMemoryUsage = fileCacheMemoryUsage;
             _snapshot.CurrentFilesCached = currentFilesCached;
             _snapshot.CurrentUrisCached = currentUrisCached;
@@ -325,35 +337,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             }
 
             return counters;
-        }
-
-        private async Task<IEnumerable<IPerfCounter>> GetProcessCounters()
-        {
-            const string ProcessIdentifier = "ID Process";
-            var provider = new CounterProvider();
-            var webserverProcessIds = ProcessUtil.GetWebserverProcessIds();
-            var processCounters = provider.GetCountersByName(ProcessCategory, ProcessIdentifier);
-
-            var webserverProcessCounters = new List<IPerfCounter>();
-
-            using (var monitor = new CounterMonitor(processCounters)) {
-                try {
-                    await monitor.Refresh();
-
-                    foreach (var counter in monitor.Counters) {
-                        if (counter.Name.Equals(ProcessIdentifier) && webserverProcessIds.Contains((int)counter.Value)) {
-                            foreach (string counterName in ProcessUtil.CounterNames) {
-                                webserverProcessCounters.Add(new PerfCounter(counterName, counter.InstanceName, counter.CategoryName));
-                            }
-                        }
-                    }
-                }
-                catch (CounterNotFoundException) {
-                    return Enumerable.Empty<IPerfCounter>();
-                }
-            }
-
-            return webserverProcessCounters;
         }
 
         private IEnumerable<IPerfCounter> GetMemoryCounters()

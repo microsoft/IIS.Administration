@@ -4,13 +4,30 @@
 
 namespace Microsoft.IIS.Administration.Monitoring
 {
+    using Microsoft.Extensions.Caching.Memory;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
     public class CounterProvider
     {
+        //private static readonly TimeSpan CacheExpiration = TimeSpan.FromSeconds(30);
+        //private MemoryCache _cache;
+
+        //public CounterProvider()
+        //{
+        //    _cache = new MemoryCache(new MemoryCacheOptions() {
+        //        ExpirationScanFrequency = CacheExpiration
+        //    });
+        //}
+
+
         public IEnumerable<IPerfCounter> GetCounters(string category)
         {
+            //
+            // Syntax of a counter path:
+            // \\Computer\PerfObject(ParentInstance/ObjectInstance#InstanceIndex)\Counter
+
             List<IPerfCounter> counters = new List<IPerfCounter>();
             List<string> counterPaths = Utils.ExpandCounterPath(@"\" + category + @"(*)\*", PdhExpansionFlags.NONE);
 

@@ -4,14 +4,18 @@
 
 namespace Microsoft.IIS.Administration.WebServer.Monitoring
 {
+    using Microsoft.IIS.Administration.Monitoring;
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Diagnostics;
+    using System.Linq;
     using System.Runtime.InteropServices;
+    using System.Threading.Tasks;
 
     class ProcessUtil
     {
+        public const string ProcessCategory = "Process";
         public const string CounterPercentCpu = "% Processor Time";
         public const string CounterPrivateWorkingSet = "Working Set - Private";
         public const string CounterWorkingSet = "Working Set";
@@ -22,6 +26,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         public const string CounterIOWriteSec = "IO Write Operations/sec";
         public const string CounterProcessId = "Id Process";
         public const string CounterHandleCount = "Handle Count";
+        public const string CounterPageFaultsSec = "Page Faults/sec";
 
         public static readonly string[] CounterNames = new string[] {
             CounterPercentCpu,
@@ -33,10 +38,59 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             CounterIOReadSec,
             CounterIOWriteSec,
             CounterProcessId,
-            CounterHandleCount
+            CounterHandleCount,
+            CounterPageFaultsSec
         };
 
         public static IEnumerable<int> GetWebserverProcessIds()
+        {
+            List<int> ids = new List<int>();
+            Dictionary<int, int> map = GetProcessMap();
+
+            foreach (var workerProcess in Process.GetProcessesByName("W3WP")) {
+
+                ids.Add(workerProcess.Id);
+
+                foreach (var kvp in map) {
+
+                    if (kvp.Value == workerProcess.Id) {
+                        ids.Add(kvp.Key);
+                    }
+                }
+            }
+
+            return ids;
+        }
+
+        public static async Task<IEnumerable<ProcessPerfCounter>> GetProcessCounters(IEnumerable<int> processIds)
+        {
+            const string ProcessIdentifier = "ID Process";
+            var provider = new CounterProvider();
+            var allProcessCounters = provider.GetCountersByName(ProcessCategory, ProcessIdentifier);
+
+            var targetProcessCounters = new List<ProcessPerfCounter>();
+
+            using (var monitor = new CounterMonitor(allProcessCounters)) {
+                try {
+                    await monitor.Refresh();
+
+                    foreach (var counter in monitor.Counters) {
+                        if (counter.Name.Equals(ProcessIdentifier) && processIds.Contains((int)counter.Value)) {
+                            foreach (string counterName in ProcessUtil.CounterNames) {
+                                targetProcessCounters.Add(new ProcessPerfCounter(counterName, counter.InstanceName, counter.CategoryName, (int)counter.Value));
+                            }
+                        }
+                    }
+                }
+                catch (CounterNotFoundException) {
+                    return Enumerable.Empty<ProcessPerfCounter>();
+                }
+            }
+
+            return targetProcessCounters;
+        }
+
+        private static IEnumerable<int> GetAppPoolProcessIds()
         {
             List<int> ids = new List<int>();
             Dictionary<int, int> map = GetProcessMap();

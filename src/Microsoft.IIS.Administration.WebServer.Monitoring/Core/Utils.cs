@@ -61,10 +61,6 @@ namespace Microsoft.IIS.Administration.Monitoring
                 Marshal.FreeHGlobal(mszExpandedPathList);
             }
 
-            //
-            // Syntax of a counter path:
-            // \\Computer\PerfObject(ParentInstance/ObjectInstance#InstanceIndex)\Counter
-
             return strings;
         }
     }

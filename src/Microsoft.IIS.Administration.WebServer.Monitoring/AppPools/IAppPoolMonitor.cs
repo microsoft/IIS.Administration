@@ -4,10 +4,12 @@
 
 namespace Microsoft.IIS.Administration.WebServer.Monitoring
 {
+    using Microsoft.Web.Administration;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    public interface IWebServerMonitor
+    public interface IAppPoolMonitor
     {
-        Task<IWebServerMonitorSnapshot> GetSnapshot();
+        Task<IEnumerable<IAppPoolSnapshot>> GetSnapshots(IEnumerable<ApplicationPool> pools);
     }
 }

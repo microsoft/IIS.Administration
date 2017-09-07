@@ -14,6 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.IIS.Administration.WebServer.Sites\Microsoft.IIS.Administration.WebServer.Sites.csproj" />
     <ProjectReference Include="..\Microsoft.IIS.Administration.WebServer\Microsoft.IIS.Administration.WebServer.csproj" />
     <ProjectReference Include="..\Microsoft.IIS.Administration.Core\Microsoft.IIS.Administration.Core.csproj" />
   </ItemGroup>
