@@ -38,7 +38,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         public async Task<IWebServerSnapshot> GetSnapshot()
         {
             await CalculateData();
-            Dispose();
             return _snapshot;
         }
 
