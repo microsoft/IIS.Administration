@@ -13,11 +13,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
     class WebServerMonitor : IWebServerMonitor, IDisposable
     {
-        public const string WorkerProcessCategory = "W3SVC_W3WP";
-        public const string WebSiteCategory = "Web Service";
-        private const string CacheCategory = "Web Service Cache";
-        private const string MemoryCategory = "Memory";
-
         private IEnumerable<int> _allProcesses;
         private IEnumerable<int> _webserverProcesses;
         private IEnumerable<IPerfCounter> _webserverCounters;
@@ -111,30 +106,30 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             long uriCacheMisses = 0;
 
             foreach (IPerfCounter counter in _counterMonitor.Counters) {
-                if (counter.CategoryName.Equals(WebSiteCategory)) {
+                if (counter.CategoryName.Equals(WebSiteCounterNames.Category)) {
                     switch (counter.Name) {
-                        case "Bytes Received/sec":
+                        case WebSiteCounterNames.BytesRecvSec:
                             bytesRecvSec += counter.Value;
                             break;
-                        case "Bytes Sent/sec":
+                        case WebSiteCounterNames.BytesSentSec:
                             bytesSentSec += counter.Value;
                             break;
-                        case "Connection Attempts/sec":
+                        case WebSiteCounterNames.ConnectionAttemptsSec:
                             connectionAttemptsSec += counter.Value;
                             break;
-                        case "Total Connection Attempts (all instances)":
+                        case WebSiteCounterNames.TotalConnectionAttempts:
                             totalConnectionAttempts += counter.Value;
                             break;
-                        case "Total Method Requests/sec":
+                        case WebSiteCounterNames.TotalMethodRequestsSec:
                             requestsSec += counter.Value;
                             break;
-                        case "Other Request Methods/sec":
+                        case WebSiteCounterNames.TotalOtherMethodRequestsSec:
                             requestsSec += counter.Value;
                             break;
-                        case "Total Method Requests":
+                        case WebSiteCounterNames.TotalMethodRequests:
                             totalRequests += counter.Value;
                             break;
-                        case "Total Other Request Methods":
+                        case WebSiteCounterNames.TotalOtherMethodRequests:
                             totalRequests += counter.Value;
                             break;
                         default:
@@ -142,12 +137,12 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(WorkerProcessCategory)) {
+                if (counter.CategoryName.Equals(WorkerProcessCounterNames.Category)) {
                     switch (counter.Name) {
-                        case "Active Requests":
+                        case WorkerProcessCounterNames.ActiveRequests:
                             activeRequests += counter.Value;
                             break;
-                        case "% 500 HTTP Response Sent":
+                        case WorkerProcessCounterNames.Percent500:
                             percent500 += counter.Value;
                             break;
                         default:
@@ -155,33 +150,33 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(ProcessUtil.ProcessCategory)) {
+                if (counter.CategoryName.Equals(ProcessCounterNames.Category)) {
                     switch (counter.Name) {
-                        case ProcessUtil.CounterPercentCpu:
+                        case ProcessCounterNames.PercentCpu:
                             percentCpuTime += counter.Value;
                             break;
-                        case ProcessUtil.CounterHandleCount:
+                        case ProcessCounterNames.HandleCount:
                             handleCount += counter.Value;
                             break;
-                        case ProcessUtil.CounterPrivateBytes:
+                        case ProcessCounterNames.PrivateBytes:
                             privateBytes += counter.Value;
                             break;
-                        case ProcessUtil.CounterThreadCount:
+                        case ProcessCounterNames.ThreadCount:
                             threadCount += counter.Value;
                             break;
-                        case ProcessUtil.CounterPrivateWorkingSet:
+                        case ProcessCounterNames.PrivateWorkingSet:
                             privateWorkingSet += counter.Value;
                             break;
-                        case ProcessUtil.CounterWorkingSet:
+                        case ProcessCounterNames.WorkingSet:
                             workingSet += counter.Value;
                             break;
-                        case ProcessUtil.CounterIOReadSec:
+                        case ProcessCounterNames.IOReadSec:
                             IOReadSec += counter.Value;
                             break;
-                        case ProcessUtil.CounterIOWriteSec:
+                        case ProcessCounterNames.IOWriteSec:
                             IOWriteSec += counter.Value;
                             break;
-                        case ProcessUtil.CounterPageFaultsSec:
+                        case ProcessCounterNames.PageFaultsSec:
                             pageFaultsSec += counter.Value;
                             break;
                         default:
@@ -189,9 +184,9 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(MemoryCategory)) {
+                if (counter.CategoryName.Equals(MemoryCounterNames.Category)) {
                     switch (counter.Name) {
-                        case "Available Bytes":
+                        case MemoryCounterNames.AvailableBytes:
                             availableBytes += counter.Value;
                             break;
                         default:
@@ -199,45 +194,45 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(CacheCategory)) {
+                if (counter.CategoryName.Equals(CacheCounterNames.Category)) {
                     switch (counter.Name) {
-                        case "Current File Cache Memory Usage":
+                        case CacheCounterNames.CurrentFileCacheMemoryUsage:
                             fileCacheMemoryUsage += counter.Value;
                             break;
-                        case "Current Files Cached":
+                        case CacheCounterNames.CurrentFilesCached:
                             currentFilesCached += counter.Value;
                             break;
-                        case "Current URIs Cached":
+                        case CacheCounterNames.CurrentUrisCached:
                             currentUrisCached += counter.Value;
                             break;
-                        case "File Cache Hits":
+                        case CacheCounterNames.FileCacheHits:
                             fileCacheHits += counter.Value;
                             break;
-                        case "File Cache Misses":
+                        case CacheCounterNames.FileCacheMisses:
                             fileCacheMisses += counter.Value;
                             break;
-                        case "Output Cache Current Items":
+                        case CacheCounterNames.OutputCacheCurrentItems:
                             outputCacheCurrentItems += counter.Value;
                             break;
-                        case "Output Cache Current Memory Usage":
+                        case CacheCounterNames.OutputCacheCurrentMemoryUsage:
                             outputCacheCurrentMemoryUsage += counter.Value;
                             break;
-                        case "Output Cache Total Hits":
+                        case CacheCounterNames.OutputCacheTotalHits:
                             outputCacheTotalHits += counter.Value;
                             break;
-                        case "Output Cache Total Misses":
+                        case CacheCounterNames.OutputCacheTotalMisses:
                             outputCacheTotalMisses += counter.Value;
                             break;
-                        case "Total Files Cached":
+                        case CacheCounterNames.TotalFilesCached:
                             totalFilesCached += counter.Value;
                             break;
-                        case "Total URIs Cached":
+                        case CacheCounterNames.TotalUrisCached:
                             totalUrisCached += counter.Value;
                             break;
-                        case "URI Cache Hits":
+                        case CacheCounterNames.UriCacheHits:
                             uriCacheHits += counter.Value;
                             break;
-                        case "URI Cache Misses":
+                        case CacheCounterNames.UriCacheMisses:
                             uriCacheMisses += counter.Value;
                             break;
                         default:
@@ -327,12 +322,12 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             const string TotalInstance = "_Total";
 
             // Only use _total counter if instances are available
-            if (_provider.GetInstances(WebSiteCategory).Where(i => i != TotalInstance).Count() > 0) {
-                counters.AddRange(_provider.GetCounters(WebSiteCategory, TotalInstance));
+            if (_provider.GetInstances(WebSiteCounterNames.Category).Where(i => i != TotalInstance).Count() > 0) {
+                counters.AddRange(_provider.GetCounters(WebSiteCounterNames.Category, TotalInstance));
             }
 
-            if (_provider.GetInstances(WorkerProcessCategory).Where(i => i != TotalInstance).Count() > 0) {
-                counters.AddRange(_provider.GetCounters(WorkerProcessCategory, TotalInstance));
+            if (_provider.GetInstances(WorkerProcessCounterNames.Category).Where(i => i != TotalInstance).Count() > 0) {
+                counters.AddRange(_provider.GetCounters(WorkerProcessCounterNames.Category, TotalInstance));
             }
 
             return counters;
@@ -340,12 +335,12 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         private IEnumerable<IPerfCounter> GetMemoryCounters()
         {
-            return _provider.GetSingletonCounters(MemoryCategory);
+            return _provider.GetSingletonCounters(MemoryCounterNames.Category);
         }
 
         private IEnumerable<IPerfCounter> GetCacheCounters()
         {
-            return _provider.GetSingletonCounters(CacheCategory);
+            return _provider.GetSingletonCounters(CacheCounterNames.Category);
         }
     }
 }

@@ -50,7 +50,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         private void Initialize()
         {
-            _monitor = new CounterMonitor(_provider.GetCounters("Web Service"));
+            _monitor = new CounterMonitor(_provider.GetCounters(WebSiteCounterNames.Category));
 
             _calculationCache = new Dictionary<string, List<IPerfCounter>>();
 
@@ -78,40 +78,34 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             if (_calculationCache.TryGetValue(site.Name, out List<IPerfCounter> counters)) {
                 foreach (var counter in counters) {
                     switch (counter.Name) {
-                        case "Service Uptime":
+                        case WebSiteCounterNames.ServiceUptime:
                             snapshot.Uptime = counter.Value;
                             break;
-                        case "Bytes Received/sec":
+                        case WebSiteCounterNames.BytesRecvSec:
                             snapshot.BytesRecvSec += counter.Value;
                             break;
-                        case "Bytes Sent/sec":
+                        case WebSiteCounterNames.BytesSentSec:
                             snapshot.BytesSentSec += counter.Value;
                             break;
-                        case "Connection Attempts/sec":
+                        case WebSiteCounterNames.ConnectionAttemptsSec:
                             snapshot.ConnectionAttemptsSec += counter.Value;
                             break;
-                        case "Current Connections":
+                        case WebSiteCounterNames.CurrentConnections:
                             snapshot.CurrentConnections += counter.Value;
                             break;
-                        case "Total Connection Attempts (all instances)":
+                        case WebSiteCounterNames.TotalConnectionAttempts:
                             snapshot.TotalConnectionAttempts += counter.Value;
                             break;
-
-                        //
-                        // Requests / sec, no fall through
-                        case "Total Method Requests/sec":
+                        case WebSiteCounterNames.TotalMethodRequestsSec:
                             snapshot.TotalRequestsSec += counter.Value;
                             break;
-                        case "Other Request Methods/sec":
+                        case WebSiteCounterNames.TotalOtherMethodRequestsSec:
                             snapshot.TotalRequestsSec += counter.Value;
                             break;
-
-                        //
-                        // Total requests, no fall through case
-                        case "Total Method Requests":
+                        case WebSiteCounterNames.TotalMethodRequests:
                             snapshot.TotalRequests += counter.Value;
                             break;
-                        case "Total Other Request Methods":
+                        case WebSiteCounterNames.TotalOtherMethodRequests:
                             snapshot.TotalRequests += counter.Value;
                             break;
                         default:

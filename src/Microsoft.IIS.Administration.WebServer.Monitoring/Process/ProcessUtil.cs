@@ -15,31 +15,18 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
     class ProcessUtil
     {
-        public const string ProcessCategory = "Process";
-        public const string CounterPercentCpu = "% Processor Time";
-        public const string CounterPrivateWorkingSet = "Working Set - Private";
-        public const string CounterWorkingSet = "Working Set";
-        public const string CounterVirtualBytes = "Virtual Bytes";
-        public const string CounterPrivateBytes = "Private Bytes";
-        public const string CounterThreadCount = "Thread Count";
-        public const string CounterIOReadSec = "IO Read Operations/sec";
-        public const string CounterIOWriteSec = "IO Write Operations/sec";
-        public const string CounterProcessId = "Id Process";
-        public const string CounterHandleCount = "Handle Count";
-        public const string CounterPageFaultsSec = "Page Faults/sec";
-
         public static readonly string[] CounterNames = new string[] {
-            CounterPercentCpu,
-            CounterPrivateWorkingSet,
-            CounterWorkingSet,
-            CounterVirtualBytes,
-            CounterPrivateBytes,
-            CounterThreadCount,
-            CounterIOReadSec,
-            CounterIOWriteSec,
-            CounterProcessId,
-            CounterHandleCount,
-            CounterPageFaultsSec
+            ProcessCounterNames.PercentCpu,
+            ProcessCounterNames.PrivateWorkingSet,
+            ProcessCounterNames.WorkingSet,
+            ProcessCounterNames.VirtualBytes,
+            ProcessCounterNames.PrivateBytes,
+            ProcessCounterNames.ThreadCount,
+            ProcessCounterNames.IOReadSec,
+            ProcessCounterNames.IOWriteSec,
+            ProcessCounterNames.ProcessId,
+            ProcessCounterNames.HandleCount,
+            ProcessCounterNames.PageFaultsSec
         };
 
         public static IEnumerable<int> GetWebserverProcessIds()
@@ -66,7 +53,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         {
             const string ProcessIdentifier = "ID Process";
             var provider = new CounterProvider();
-            var allProcessCounters = provider.GetCountersByName(ProcessCategory, ProcessIdentifier);
+            var allProcessCounters = provider.GetCountersByName(ProcessCounterNames.Category, ProcessIdentifier);
 
             var targetProcessCounters = new List<ProcessPerfCounter>();
 

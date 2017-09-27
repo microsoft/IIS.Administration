@@ -22,16 +22,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         CounterMonitor _monitor;
         Dictionary<string, List<IPerfCounter>> _calculationCache;
 
-        private Task Invalidator = null;
-
-        bool _initializing = false;
-
         public async Task<IEnumerable<IAppPoolSnapshot>> GetSnapshots(IEnumerable<ApplicationPool> pools)
         {
             if (_monitor == null) {
-                _initializing = true;
                 await Initialize();
-                _initializing = false;
             }
 
             if ((DateTime.UtcNow - _lastChangeDetect > RefreshRate) && HasChanged()) {
@@ -74,7 +68,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             Dictionary<string, List<IPerfCounter>> processCounterMap = new Dictionary<string, List<IPerfCounter>>();
             Dictionary<string, List<IPerfCounter>> wpCounterMap = new Dictionary<string, List<IPerfCounter>>();
 
-            IEnumerable<IPerfCounter> wpCounters = _provider.GetCounters(WebServerMonitor.WorkerProcessCategory);
+            IEnumerable<IPerfCounter> wpCounters = _provider.GetCounters(WorkerProcessCounterNames.Category);
             IEnumerable<ProcessPerfCounter> processCounters = await ProcessUtil.GetProcessCounters(_workerProcesses);
 
             //
@@ -144,57 +138,57 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
                 foreach (var counter in counters) {
 
-                    if (counter.CategoryName.Equals(WebServerMonitor.WorkerProcessCategory)) {
+                    if (counter.CategoryName.Equals(WorkerProcessCounterNames.Category)) {
                         switch (counter.Name) {
-                            case "Active Requests":
+                            case WorkerProcessCounterNames.ActiveRequests:
                                 snapshot.ActiveRequests += counter.Value;
                                 break;
-                            case "% 500 HTTP Response Sent":
+                            case WorkerProcessCounterNames.Percent500:
                                 snapshot.Percent500 += counter.Value;
                                 break;
-                            case "Requests / Sec":
+                            case WorkerProcessCounterNames.RequestsSec:
                                 snapshot.RequestsSec += counter.Value;
                                 break;
-                            case "Total HTTP Requests Served":
+                            case WorkerProcessCounterNames.TotalRequests:
                                 snapshot.TotalRequests += counter.Value;
                                 break;
-                            case "Current File Cache Memory Usage":
+                            case WorkerProcessCounterNames.CurrentFileCacheMemoryUsage:
                                 snapshot.FileCacheMemoryUsage += counter.Value;
                                 break;
-                            case "Current Files Cached":
+                            case WorkerProcessCounterNames.CurrentFilesCached:
                                 snapshot.CurrentFilesCached += counter.Value;
                                 break;
-                            case "Current URIs Cached":
+                            case WorkerProcessCounterNames.CurrentUrisCached:
                                 snapshot.CurrentUrisCached += counter.Value;
                                 break;
-                            case "File Cache Hits":
+                            case WorkerProcessCounterNames.FileCacheHits:
                                 snapshot.FileCacheHits += counter.Value;
                                 break;
-                            case "File Cache Misses":
+                            case WorkerProcessCounterNames.FileCacheMisses:
                                 snapshot.FileCacheMisses += counter.Value;
                                 break;
-                            case "Output Cache Current Items":
+                            case WorkerProcessCounterNames.OutputCacheCurrentItems:
                                 snapshot.OutputCacheCurrentItems += counter.Value;
                                 break;
-                            case "Output Cache Current Memory Usage":
+                            case WorkerProcessCounterNames.OutputCacheCurrentMemoryUsage:
                                 snapshot.OutputCacheCurrentMemoryUsage += counter.Value;
                                 break;
-                            case "Output Cache Total Hits":
+                            case WorkerProcessCounterNames.OutputCacheTotalHits:
                                 snapshot.OutputCacheTotalHits += counter.Value;
                                 break;
-                            case "Output Cache Total Misses":
+                            case WorkerProcessCounterNames.OutputCacheTotalMisses:
                                 snapshot.OutputCacheTotalMisses += counter.Value;
                                 break;
-                            case "Total Files Cached":
+                            case WorkerProcessCounterNames.TotalFilesCached:
                                 snapshot.TotalFilesCached += counter.Value;
                                 break;
-                            case "Total URIs Cached":
+                            case WorkerProcessCounterNames.TotalUrisCached:
                                 snapshot.TotalUrisCached += counter.Value;
                                 break;
-                            case "URI Cache Hits":
+                            case WorkerProcessCounterNames.UriCacheHits:
                                 snapshot.UriCacheHits += counter.Value;
                                 break;
-                            case "URI Cache Misses":
+                            case WorkerProcessCounterNames.UriCacheMisses:
                                 snapshot.UriCacheMisses += counter.Value;
                                 break;
                             default:
@@ -202,33 +196,33 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                         }
                     }
 
-                    if (counter.CategoryName.Equals(ProcessUtil.ProcessCategory)) {
+                    if (counter.CategoryName.Equals(ProcessCounterNames.Category)) {
                         switch (counter.Name) {
-                            case ProcessUtil.CounterPercentCpu:
+                            case ProcessCounterNames.PercentCpu:
                                 snapshot.PercentCpuTime += counter.Value;
                                 break;
-                            case ProcessUtil.CounterHandleCount:
+                            case ProcessCounterNames.HandleCount:
                                 snapshot.HandleCount += counter.Value;
                                 break;
-                            case ProcessUtil.CounterPrivateBytes:
+                            case ProcessCounterNames.PrivateBytes:
                                 snapshot.PrivateBytes += counter.Value;
                                 break;
-                            case ProcessUtil.CounterThreadCount:
+                            case ProcessCounterNames.ThreadCount:
                                 snapshot.ThreadCount += counter.Value;
                                 break;
-                            case ProcessUtil.CounterPrivateWorkingSet:
+                            case ProcessCounterNames.PrivateWorkingSet:
                                 snapshot.PrivateWorkingSet += counter.Value;
                                 break;
-                            case ProcessUtil.CounterWorkingSet:
+                            case ProcessCounterNames.WorkingSet:
                                 snapshot.WorkingSet += counter.Value;
                                 break;
-                            case ProcessUtil.CounterIOReadSec:
+                            case ProcessCounterNames.IOReadSec:
                                 snapshot.IOReadSec += counter.Value;
                                 break;
-                            case ProcessUtil.CounterIOWriteSec:
+                            case ProcessCounterNames.IOWriteSec:
                                 snapshot.IOWriteSec += counter.Value;
                                 break;
-                            case ProcessUtil.CounterPageFaultsSec:
+                            case ProcessCounterNames.PageFaultsSec:
                                 snapshot.PageFaultsSec += counter.Value;
                                 break;
                             default:
