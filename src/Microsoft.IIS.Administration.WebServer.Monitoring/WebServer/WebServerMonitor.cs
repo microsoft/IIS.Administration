@@ -5,36 +5,23 @@
 namespace Microsoft.IIS.Administration.WebServer.Monitoring
 {
     using Microsoft.IIS.Administration.Monitoring;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
 
     class WebServerMonitor : IWebServerMonitor
     {
-        private IEnumerable<int> _allProcesses;
         private IEnumerable<int> _webserverProcesses;
-        private IEnumerable<IPerfCounter> _webserverCounters;
-        private readonly TimeSpan RefreshRate = TimeSpan.FromSeconds(1);
-        private DateTime _lastCalculation;
-        private WebServerSnapshot _snapshot = new WebServerSnapshot();
-        private CounterProvider _provider = new CounterProvider();
-        private AsyncCounterProvider _asyncProvider = new AsyncCounterProvider();
+        private CounterProvider _provider;
+
+        public WebServerMonitor(CounterProvider provider)
+        {
+            _provider = provider;
+        }
 
         public async Task<IWebServerSnapshot> GetSnapshot()
         {
-            await CalculateData();
-            return _snapshot;
-        }
-
-        private async Task CalculateData()
-        {
-            if (_webserverProcesses == null) {
-                IEnumerable<int> webserverProcessIds = ProcessUtil.GetWebserverProcessIds();
-                _webserverProcesses = webserverProcessIds.OrderBy(id => id);
-            }
-
-
+            var snapshot = new WebServerSnapshot();
             var counters = await Query();
 
             long bytesSentSec = 0;
@@ -205,44 +192,43 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 }
             }
 
-            _snapshot.BytesRecvSec = bytesRecvSec;
-            _snapshot.BytesSentSec = bytesSentSec;
-            _snapshot.ConnectionAttemptsSec = connectionAttemptsSec;
-            _snapshot.TotalConnectionAttempts = totalConnectionAttempts;
-            _snapshot.ActiveRequests = activeRequests;
-            _snapshot.RequestsSec = requestsSec;
-            _snapshot.TotalRequests = totalRequests;
-            _snapshot.PercentCpuTime = percentCpuTime;
-            _snapshot.HandleCount = handleCount;
-            _snapshot.PrivateBytes = privateBytes;
-            _snapshot.ThreadCount = threadCount;
-            _snapshot.PrivateWorkingSet = privateWorkingSet;
-            _snapshot.WorkingSet = workingSet;
-            _snapshot.IOReadSec = IOReadSec;
-            _snapshot.IOWriteSec = IOWriteSec;
-            _snapshot.FileCacheHits = fileCacheHits;
-            _snapshot.FileCacheMisses = fileCacheMisses;
-            _snapshot.PageFaultsSec = pageFaultsSec;
-            _snapshot.Percent500 = percent500;
-            _snapshot.AvailableBytes = availableBytes;
-            _snapshot.FileCacheMemoryUsage = fileCacheMemoryUsage;
-            _snapshot.CurrentFilesCached = currentFilesCached;
-            _snapshot.CurrentUrisCached = currentUrisCached;
-            _snapshot.FileCacheHits = fileCacheHits;
-            _snapshot.FileCacheMisses = fileCacheMisses;
-            _snapshot.OutputCacheCurrentItems = outputCacheCurrentItems;
-            _snapshot.OutputCacheMemoryUsage = outputCacheCurrentMemoryUsage;
-            _snapshot.OutputCacheTotalHits = outputCacheTotalHits;
-            _snapshot.OutputCacheTotalMisses = outputCacheTotalMisses;
-            _snapshot.TotalFilesCached = totalFilesCached;
-            _snapshot.TotalUrisCached = totalUrisCached;
-            _snapshot.UriCacheHits = uriCacheHits;
-            _snapshot.UriCacheMisses = uriCacheMisses;
+            snapshot.BytesRecvSec = bytesRecvSec;
+            snapshot.BytesSentSec = bytesSentSec;
+            snapshot.ConnectionAttemptsSec = connectionAttemptsSec;
+            snapshot.TotalConnectionAttempts = totalConnectionAttempts;
+            snapshot.ActiveRequests = activeRequests;
+            snapshot.RequestsSec = requestsSec;
+            snapshot.TotalRequests = totalRequests;
+            snapshot.PercentCpuTime = percentCpuTime;
+            snapshot.HandleCount = handleCount;
+            snapshot.PrivateBytes = privateBytes;
+            snapshot.ThreadCount = threadCount;
+            snapshot.PrivateWorkingSet = privateWorkingSet;
+            snapshot.WorkingSet = workingSet;
+            snapshot.IOReadSec = IOReadSec;
+            snapshot.IOWriteSec = IOWriteSec;
+            snapshot.FileCacheHits = fileCacheHits;
+            snapshot.FileCacheMisses = fileCacheMisses;
+            snapshot.PageFaultsSec = pageFaultsSec;
+            snapshot.Percent500 = percent500;
+            snapshot.AvailableBytes = availableBytes;
+            snapshot.FileCacheMemoryUsage = fileCacheMemoryUsage;
+            snapshot.CurrentFilesCached = currentFilesCached;
+            snapshot.CurrentUrisCached = currentUrisCached;
+            snapshot.FileCacheHits = fileCacheHits;
+            snapshot.FileCacheMisses = fileCacheMisses;
+            snapshot.OutputCacheCurrentItems = outputCacheCurrentItems;
+            snapshot.OutputCacheMemoryUsage = outputCacheCurrentMemoryUsage;
+            snapshot.OutputCacheTotalHits = outputCacheTotalHits;
+            snapshot.OutputCacheTotalMisses = outputCacheTotalMisses;
+            snapshot.TotalFilesCached = totalFilesCached;
+            snapshot.TotalUrisCached = totalUrisCached;
+            snapshot.UriCacheHits = uriCacheHits;
+            snapshot.UriCacheMisses = uriCacheMisses;
 
+            snapshot.ProcessCount = _webserverProcesses.Count();
 
-            _snapshot.ProcessCount = _webserverProcesses.Count();
-
-            _lastCalculation = DateTime.UtcNow;
+            return snapshot;
         }
 
         private async Task<IEnumerable<IPerfCounter>> Query()
@@ -261,21 +247,27 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         private async Task<IEnumerable<IPerfCounter>> GetCounters()
         {
-            List<IPerfCounter> counters = new List<IPerfCounter>();
             const string TotalInstance = "_Total";
+            var counterFinder = new CounterFinder();
+            List<IPerfCounter> counters = new List<IPerfCounter>();
+            _webserverProcesses = ProcessUtil.GetWebserverProcessIds().OrderBy(id => id);
 
             // Only use _total counter if instances are available
-            if (_provider.GetInstances(WebSiteCounterNames.Category).Where(i => i != TotalInstance).Count() > 0) {
-                counters.AddRange(await _asyncProvider.GetCountersAsync(WebSiteCounterNames.Category, TotalInstance));
+            if (counterFinder.GetInstances(WebSiteCounterNames.Category).Where(i => i != TotalInstance).Count() > 0) {
+                counters.AddRange(await _provider.GetCounters(WebSiteCounterNames.Category, TotalInstance));
             }
 
-            if (_provider.GetInstances(WorkerProcessCounterNames.Category).Where(i => i != TotalInstance).Count() > 0) {
-                counters.AddRange(await _asyncProvider.GetCountersAsync(WorkerProcessCounterNames.Category, TotalInstance));
+            if (counterFinder.GetInstances(WorkerProcessCounterNames.Category).Where(i => i != TotalInstance).Count() > 0) {
+                counters.AddRange(await _provider.GetCounters(WorkerProcessCounterNames.Category, TotalInstance));
             }
+            
+            counters.AddRange(await _provider.GetSingletonCounters(MemoryCounterNames.Category));
 
-            counters.AddRange(await _asyncProvider.GetSingletonCounters(MemoryCounterNames.Category));
-
-            counters.AddRange(await _asyncProvider.GetSingletonCounters(CacheCounterNames.Category));
+            counters.AddRange(await _provider.GetSingletonCounters(CacheCounterNames.Category));
+            
+            foreach (string instance in await ProcessUtil.GetProcessCounterInstances(_webserverProcesses)) {
+                counters.AddRange(await _provider.GetCounters(ProcessCounterNames.Category, instance));
+            }
 
             return counters;
         }

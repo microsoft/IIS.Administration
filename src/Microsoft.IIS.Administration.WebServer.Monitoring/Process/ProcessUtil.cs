@@ -49,32 +49,30 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             return ids;
         }
 
-        public static async Task<IEnumerable<ProcessPerfCounter>> GetProcessCounters(IEnumerable<int> processIds)
+        public static async Task<IEnumerable<string>> GetProcessCounterInstances(IEnumerable<int> processIds)
         {
             const string ProcessIdentifier = "ID Process";
-            var provider = new CounterProvider();
-            var allProcessCounters = provider.GetCountersByName(ProcessCounterNames.Category, ProcessIdentifier);
+            var provider = new CounterFinder();
+            var processIdCounters = provider.GetCountersByName(ProcessCounterNames.Category, ProcessIdentifier);
 
-            var targetProcessCounters = new List<ProcessPerfCounter>();
+            var targetProcessInstances = new List<string>();
 
-            using (var monitor = new CounterMonitor(allProcessCounters)) {
+            using (var monitor = new CounterMonitor(processIdCounters)) {
                 try {
                     await monitor.Refresh();
 
                     foreach (var counter in monitor.Counters) {
                         if (counter.Name.Equals(ProcessIdentifier) && processIds.Contains((int)counter.Value)) {
-                            foreach (string counterName in ProcessUtil.CounterNames) {
-                                targetProcessCounters.Add(new ProcessPerfCounter(counterName, counter.InstanceName, counter.CategoryName, (int)counter.Value));
-                            }
+                            targetProcessInstances.Add(counter.InstanceName);
                         }
                     }
                 }
                 catch (CounterNotFoundException) {
-                    return Enumerable.Empty<ProcessPerfCounter>();
+                    return Enumerable.Empty<string>();
                 }
             }
 
-            return targetProcessCounters;
+            return targetProcessInstances;
         }
 
         private static IEnumerable<int> GetAppPoolProcessIds()

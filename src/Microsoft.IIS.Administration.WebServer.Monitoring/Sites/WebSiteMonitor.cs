@@ -6,17 +6,17 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 {
     using Microsoft.IIS.Administration.Monitoring;
     using Microsoft.Web.Administration;
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading.Tasks;
 
     class WebSiteMonitor : IWebSiteMonitor
     {
-        CounterProvider _provider = new CounterProvider();
-        CounterMonitor _monitor;
-        Dictionary<string, List<IPerfCounter>> _calculationCache;
-        private AsyncCounterProvider _asyncProvider = new AsyncCounterProvider();
+        private CounterProvider _counterProvider;
+
+        public WebSiteMonitor(CounterProvider counterProvider)
+        {
+            _counterProvider = counterProvider;
+        }
 
         public async Task <IEnumerable<IWebSiteSnapshot>> GetSnapshots(IEnumerable<Site> sites)
         {
@@ -34,7 +34,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             var snapshot = new WebSiteSnapshot();
             snapshot.Name = site.Name;
 
-            var counters = await _asyncProvider.GetCountersAsync(WebSiteCounterNames.Category, site.Name);
+            var counters = await _counterProvider.GetCounters(WebSiteCounterNames.Category, site.Name);
 
             foreach (var counter in counters) {
                 switch (counter.Name) {

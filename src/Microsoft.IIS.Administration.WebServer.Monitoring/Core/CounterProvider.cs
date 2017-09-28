@@ -4,129 +4,107 @@
 
 namespace Microsoft.IIS.Administration.Monitoring
 {
+    using Microsoft.Extensions.Caching.Memory;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
+    using System.Threading.Tasks;
 
-    public class CounterProvider
+    public class CounterProvider : ICounterProvider, IDisposable
     {
-        public IEnumerable<IPerfCounter> GetCounters(string category)
+        private static readonly TimeSpan CacheExpiration = TimeSpan.FromSeconds(30);
+        private MemoryCache _cache;
+        private Timer _timer;
+        private CounterFinder _counterFinder = new CounterFinder();
+
+        public CounterProvider()
         {
-            //
-            // Syntax of a counter path:
-            // \\Computer\PerfObject(ParentInstance/ObjectInstance#InstanceIndex)\Counter
+            _cache = new MemoryCache(new MemoryCacheOptions() {
+                ExpirationScanFrequency = CacheExpiration
+            });
 
-            List<IPerfCounter> counters = new List<IPerfCounter>();
-            List<string> counterPaths = Utils.ExpandCounterPath(@"\" + category + @"(*)\*", PdhExpansionFlags.NONE);
-
-            foreach (string counterPath in counterPaths) {
-
-                string s = counterPath;
-                s = s.Substring(s.IndexOf('\\'));
-                s = s.Substring(2);
-                s = s.Substring(s.IndexOf('(') + 1);
-
-                string instance = s.Substring(0, s.IndexOf(')'));
-                string name = s.Substring(s.IndexOf(')') + 2);
-
-                counters.Add(new PerfCounter(name, instance, category));
-            }
-
-            return counters;
+            _timer = new Timer(TimerCallback, null, 120 * 1000, 120 * 1000);
         }
 
-        public IEnumerable<IPerfCounter> GetSingletonCounters(string category)
+        public async Task<IEnumerable<IPerfCounter>> GetCounters(string category, string instance)
         {
-            List<IPerfCounter> counters = new List<IPerfCounter>();
-            List<string> counterPaths = Utils.ExpandCounterPath(@"\" + category + @"\*", PdhExpansionFlags.NONE);
-
-            foreach (string counterPath in counterPaths) {
-
-                string s = counterPath;
-                s = s.Substring(s.IndexOf('\\'));
-                s = s.Substring(2);
-                s = s.Substring(s.IndexOf('\\') + 1);
-                string name = s.Substring(s.IndexOf('\\') + 1);
-
-                counters.Add(new SingletonPerfCounter(name, category));
-            }
-
-            return counters;
-        }
-
-        public IEnumerable<IPerfCounter> GetCounters(string category, string instance)
-        {
-            if (!GetInstances(category).Contains(instance)) {
+            if (!_counterFinder.GetInstances(category).Contains(instance)) {
                 return Enumerable.Empty<IPerfCounter>();
             }
 
-            List<string> strings = Utils.ExpandCounterPath(@"\" + category + @"(" + instance + @")\*", PdhExpansionFlags.NONE);
+            CounterMonitor monitor = _cache.Get<CounterMonitor>(category + instance);
 
-            for (int i = 0; i < strings.Count; i++) {
-                string s = strings[i];
-                s = s.Substring(s.IndexOf('\\'));
-                s = s.Substring(2);
-                s = s.Substring(s.IndexOf('\\') + 1);
-                s = s.Substring(s.IndexOf(')') + 2);
-                strings[i] = s;
+            if (monitor == null) {
+
+                IEnumerable<IPerfCounter> counters = _counterFinder.GetCounters(category, instance);
+
+                monitor = new CounterMonitor(counters);
+
+                AddMonitor(category + instance, monitor);
             }
 
-            return strings.Select(s => new PerfCounter(s, instance, category));
-        }
-
-        public IEnumerable<IPerfCounter> GetCountersByName(string category, string counterName)
-        {
-            List<IPerfCounter> counters = new List<IPerfCounter>();
-            List<string> strings = Utils.ExpandCounterPath(@"\" + category + @"(*)\" + counterName, PdhExpansionFlags.NONE);
-
-            for (int i = 0; i < strings.Count; i++) {
-                string s = strings[i];
-                s = s.Substring(s.IndexOf('\\'));
-                s = s.Substring(2);
-                s = s.Substring(s.IndexOf('(') + 1);
-                string instance = s.Substring(0, s.IndexOf(')'));
-
-                counters.Add(new PerfCounter(counterName, instance, category));
+            try {
+                await monitor.Refresh();
+            }
+            catch (CounterNotFoundException) {
+                _cache.Remove(category + instance);
+                monitor.Dispose();
+                throw;
             }
 
-            return counters;
+            return monitor.Counters;
         }
 
-        public IEnumerable<string> GetInstances(string category)
+        public async Task<IEnumerable<IPerfCounter>> GetSingletonCounters(string category)
         {
-            List<string> strings = Utils.ExpandCounterPath(@"\" + category + @"(*)\*", PdhExpansionFlags.PDH_NOEXPANDCOUNTERS);
+            CounterMonitor monitor = _cache.Get<CounterMonitor>(category);
 
-            for (int i = 0; i < strings.Count; i++) {
-                string s = strings[i];
-                s = s.Substring(s.IndexOf('\\'));
-                s = s.Substring(2);
-                s = s.Substring(s.IndexOf('\\') + 1);
-                s = s.Substring(s.IndexOf('(') + 1);
-                s = s.Substring(0, s.IndexOf(')'));
-                strings[i] = s;
+            if (monitor == null) {
+
+                IEnumerable<IPerfCounter> counters = _counterFinder.GetSingletonCounters(category);
+
+                monitor = new CounterMonitor(counters);
+
+                AddMonitor(category, monitor);
             }
 
-            return strings;
-        }
-
-        public IEnumerable<string> GetCategories()
-        {
-            List<string> strings = Utils.ExpandCounterPath(@"\*(*)\*", PdhExpansionFlags.PDH_NOEXPANDCOUNTERS | PdhExpansionFlags.PDH_NOEXPANDINSTANCES);
-
-            for (int i = 0; i < strings.Count; i++) {
-                string s = strings[i];
-                s = s.Substring(s.IndexOf('\\'));
-                s = s.Substring(2);
-                s = s.Substring(s.IndexOf('\\') + 1);
-                s = s.Substring(0, s.IndexOf('('));
-                strings[i] = s;
+            try {
+                await monitor.Refresh();
+            }
+            catch (CounterNotFoundException) {
+                _cache.Remove(category);
+                monitor.Dispose();
+                throw;
             }
 
-            return strings;
+            return monitor.Counters;
         }
 
-        public bool CounterExists(IPerfCounter counter)
+        private void TimerCallback(object state)
         {
-            return GetCounters(counter.CategoryName, counter.InstanceName).Any(c => c.Name.Equals(counter.Name));
+            _cache.Get(string.Empty);
+        }
+
+        private void AddMonitor(string key, CounterMonitor monitor)
+        {
+            _cache.Set(key, monitor, new MemoryCacheEntryOptions() {
+                SlidingExpiration = CacheExpiration
+            }.RegisterPostEvictionCallback(PostEvictionCallback));
+        }
+
+        private void PostEvictionCallback(object key, object value, EvictionReason reason, object state)
+        {
+            CounterMonitor monitor = value as CounterMonitor;
+
+            if (value != null) {
+                monitor.Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }

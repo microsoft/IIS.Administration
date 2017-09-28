@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.Monitoring
         private readonly TimeSpan RefreshRate = TimeSpan.FromSeconds(1);
         Dictionary<IPerfCounter, PdhCounterHandle> _counters = new Dictionary<IPerfCounter, PdhCounterHandle>();
         private PdhQueryHandle _query;
-        private CounterProvider _provider = new CounterProvider();
+        private CounterFinder _counterFinder = new CounterFinder();
         private DateTime _lastCalculatedTime;
 
         public CounterMonitor(IEnumerable<IPerfCounter> counters)
@@ -93,7 +93,7 @@ namespace Microsoft.IIS.Administration.Monitoring
                 }
                 else if (result != 0) {
 
-                    if (!_provider.CounterExists(counter)) {
+                    if (!_counterFinder.CounterExists(counter)) {
                         throw new CounterNotFoundException(counter);
                     }
 

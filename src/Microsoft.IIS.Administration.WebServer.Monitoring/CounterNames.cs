@@ -40,6 +40,11 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         public const string TotalUrisCached = "Total URIs Cached";
         public const string UriCacheHits = "URI Cache Hits";
         public const string UriCacheMisses = "URI Cache Misses";
+
+        public static string GetInstanceName(int processId, string appPoolName)
+        {
+            return processId + "_" + appPoolName;
+        }
     }
 
     static class WebSiteCounterNames

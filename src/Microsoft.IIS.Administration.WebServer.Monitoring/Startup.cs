@@ -8,24 +8,25 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     using Core;
     using Core.Http;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.IIS.Administration.Monitoring;
 
     public class Startup : BaseModule, IServiceCollectionAccessor
     {
-        private AppPoolMonitor _appPoolMonitor = null;
-        private WebServerMonitor _monitor = null;
-        private WebSiteMonitor _siteMonitor = null;
+        private CounterProvider _provider = null;
 
         public Startup() { }
 
         public void Use(IServiceCollection services)
         {
-            _appPoolMonitor = new AppPoolMonitor();
-            _monitor = new WebServerMonitor();
-            _siteMonitor = new WebSiteMonitor();
+            _provider = new CounterProvider();
+            var appPoolMonitor = new AppPoolMonitor(_provider);
+            var webserverMonitor = new WebServerMonitor(_provider);
+            var siteMonitor = new WebSiteMonitor(_provider);
 
-            services.AddSingleton<IAppPoolMonitor>(_appPoolMonitor);
-            services.AddSingleton<IWebServerMonitor>(_monitor);
-            services.AddSingleton<IWebSiteMonitor>(_siteMonitor);
+            services.AddSingleton<ICounterProvider>(_provider);
+            services.AddSingleton<IAppPoolMonitor>(appPoolMonitor);
+            services.AddSingleton<IWebServerMonitor>(webserverMonitor);
+            services.AddSingleton<IWebSiteMonitor>(siteMonitor);
         }
 
         public override void Start()
@@ -61,9 +62,9 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public override void Stop()
         {
-            if (_appPoolMonitor != null) {
-                _appPoolMonitor.Dispose();
-                _appPoolMonitor = null;
+            if (_provider != null) {
+                _provider.Dispose();
+                _provider = null;
             }
         }
     }
