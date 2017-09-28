@@ -7,28 +7,19 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     using Microsoft.IIS.Administration.Monitoring;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
 
-    class WebServerMonitor : IWebServerMonitor, IDisposable
+    class WebServerMonitor : IWebServerMonitor
     {
         private IEnumerable<int> _allProcesses;
         private IEnumerable<int> _webserverProcesses;
         private IEnumerable<IPerfCounter> _webserverCounters;
         private readonly TimeSpan RefreshRate = TimeSpan.FromSeconds(1);
         private DateTime _lastCalculation;
-        private CounterMonitor _counterMonitor;
         private WebServerSnapshot _snapshot = new WebServerSnapshot();
         private CounterProvider _provider = new CounterProvider();
-
-        public void Dispose()
-        {
-            if (_counterMonitor != null) {
-                _counterMonitor.Dispose();
-                _counterMonitor = null;
-            }
-        }
+        private AsyncCounterProvider _asyncProvider = new AsyncCounterProvider();
 
         public async Task<IWebServerSnapshot> GetSnapshot()
         {
@@ -36,42 +27,15 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             return _snapshot;
         }
 
-        private async Task Initialize()
-        {
-            IEnumerable<int> webserverProcessIds = ProcessUtil.GetWebserverProcessIds();
-
-            //
-            // Set up tracking for change detection
-            _allProcesses = Process.GetProcesses().Select(p => p.Id);
-            _webserverProcesses = webserverProcessIds.OrderBy(id => id);
-            _webserverCounters = GetWebserverCounters();
-
-            //
-            // Set up counters for data calculation
-            var counters = new List<IPerfCounter>();
-            counters.AddRange(GetMemoryCounters());
-            counters.AddRange(GetCacheCounters());
-            counters.AddRange(await ProcessUtil.GetProcessCounters(webserverProcessIds));
-            counters.AddRange(_webserverCounters);
-
-            //
-            // Set up counter monitor for data retrieval
-            _counterMonitor = new CounterMonitor(counters);
-        }
-
         private async Task CalculateData()
         {
-            if (_counterMonitor == null) {
-                await Initialize();
+            if (_webserverProcesses == null) {
+                IEnumerable<int> webserverProcessIds = ProcessUtil.GetWebserverProcessIds();
+                _webserverProcesses = webserverProcessIds.OrderBy(id => id);
             }
 
-            if ((DateTime.UtcNow - _lastCalculation > RefreshRate) && HasChanged()) {
-                await Reset();
-            }
 
-            if (_counterMonitor.Counters.Count() > 0) {
-                await Query();
-            }
+            var counters = await Query();
 
             long bytesSentSec = 0;
             long bytesRecvSec = 0;
@@ -105,7 +69,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             long uriCacheHits = 0;
             long uriCacheMisses = 0;
 
-            foreach (IPerfCounter counter in _counterMonitor.Counters) {
+            foreach (IPerfCounter counter in counters) {
                 if (counter.CategoryName.Equals(WebSiteCounterNames.Category)) {
                     switch (counter.Name) {
                         case WebSiteCounterNames.BytesRecvSec:
@@ -281,66 +245,39 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             _lastCalculation = DateTime.UtcNow;
         }
 
-        private async Task Reset()
-        {
-            Dispose();
-            await Initialize();
-        }
-
-        private async Task Query()
+        private async Task<IEnumerable<IPerfCounter>> Query()
         {
             for (int i = 0; i < 5; i++) {
                 try {
-                    await _counterMonitor.Refresh();
-                    return;
+                    return await GetCounters();
                 }
                 catch (CounterNotFoundException) {
                     await Task.Delay(20);
-                    await Reset();
                 }
             }
 
-            await _counterMonitor.Refresh();
+            return await GetCounters();
         }
 
-        private bool HasChanged()
-        {
-
-            if (!Enumerable.SequenceEqual(_allProcesses, Process.GetProcesses().Select(p => p.Id))) {
-
-                if (!Enumerable.SequenceEqual(_webserverProcesses, ProcessUtil.GetWebserverProcessIds().OrderBy(id => id))) {
-                    return true;
-                }
-            }
-
-            return GetWebserverCounters().Count() != _webserverCounters.Count();
-        }
-
-        private IEnumerable<IPerfCounter> GetWebserverCounters()
+        private async Task<IEnumerable<IPerfCounter>> GetCounters()
         {
             List<IPerfCounter> counters = new List<IPerfCounter>();
             const string TotalInstance = "_Total";
 
             // Only use _total counter if instances are available
             if (_provider.GetInstances(WebSiteCounterNames.Category).Where(i => i != TotalInstance).Count() > 0) {
-                counters.AddRange(_provider.GetCounters(WebSiteCounterNames.Category, TotalInstance));
+                counters.AddRange(await _asyncProvider.GetCountersAsync(WebSiteCounterNames.Category, TotalInstance));
             }
 
             if (_provider.GetInstances(WorkerProcessCounterNames.Category).Where(i => i != TotalInstance).Count() > 0) {
-                counters.AddRange(_provider.GetCounters(WorkerProcessCounterNames.Category, TotalInstance));
+                counters.AddRange(await _asyncProvider.GetCountersAsync(WorkerProcessCounterNames.Category, TotalInstance));
             }
 
+            counters.AddRange(await _asyncProvider.GetSingletonCounters(MemoryCounterNames.Category));
+
+            counters.AddRange(await _asyncProvider.GetSingletonCounters(CacheCounterNames.Category));
+
             return counters;
-        }
-
-        private IEnumerable<IPerfCounter> GetMemoryCounters()
-        {
-            return _provider.GetSingletonCounters(MemoryCounterNames.Category);
-        }
-
-        private IEnumerable<IPerfCounter> GetCacheCounters()
-        {
-            return _provider.GetSingletonCounters(CacheCounterNames.Category);
         }
     }
 }

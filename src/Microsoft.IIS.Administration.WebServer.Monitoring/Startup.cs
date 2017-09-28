@@ -65,16 +65,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 _appPoolMonitor.Dispose();
                 _appPoolMonitor = null;
             }
-
-            if (_monitor != null) {
-                _monitor.Dispose();
-                _monitor = null;
-            }
-
-            if (_siteMonitor != null) {
-                _siteMonitor.Dispose();
-                _siteMonitor = null;
-            }
         }
     }
 }
