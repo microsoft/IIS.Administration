@@ -15,21 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
     class ProcessUtil
     {
-        public static readonly string[] CounterNames = new string[] {
-            ProcessCounterNames.PercentCpu,
-            ProcessCounterNames.PrivateWorkingSet,
-            ProcessCounterNames.WorkingSet,
-            ProcessCounterNames.VirtualBytes,
-            ProcessCounterNames.PrivateBytes,
-            ProcessCounterNames.ThreadCount,
-            ProcessCounterNames.IOReadSec,
-            ProcessCounterNames.IOWriteSec,
-            ProcessCounterNames.ProcessId,
-            ProcessCounterNames.HandleCount,
-            ProcessCounterNames.PageFaultsSec
-        };
-
-        public static IEnumerable<int> GetWebserverProcessIds()
+                public static IEnumerable<int> GetWebserverProcessIds()
         {
             List<int> ids = new List<int>();
             Dictionary<int, int> map = GetProcessMap();
@@ -67,12 +53,48 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                         }
                     }
                 }
-                catch (CounterNotFoundException) {
+                catch (MissingCountersException) {
                     return Enumerable.Empty<string>();
                 }
             }
 
             return targetProcessInstances;
+        }
+
+        //
+        // Process counters instance names are not equivalent to their process IDs therefore a map must be generated to distinguish them
+        // key: process id
+        // value: process counter instance name
+        public static async Task<Dictionary<int, string>> GetProcessCounterMap(ICounterProvider provider, string processName)
+        {
+            var counterFinder = new CounterFinder();
+            var map = new Dictionary<int, string>();
+
+            var instances = counterFinder.GetInstances(ProcessCounterNames.Category).Where(instance => instance.StartsWith(processName, StringComparison.OrdinalIgnoreCase));
+
+            List<IPerfCounter> counters = new List<IPerfCounter>();
+
+
+            try {
+                foreach (string instance in instances) {
+                    counters.AddRange(await provider.GetCounters(ProcessCounterNames.Category, instance, ProcessCounterNames.CounterNames));
+                }
+            }
+            catch (MissingCountersException) {
+                //
+                // map will remain empty
+            }
+
+            foreach (IPerfCounter counter in counters) {
+                if (counter.Name.Equals(ProcessCounterNames.ProcessId)) {
+
+                    //
+                    // process id fits in int
+                    map[(int)counter.Value] = counter.InstanceName;
+                }
+            }
+
+            return map;
         }
 
         private static IEnumerable<int> GetAppPoolProcessIds()

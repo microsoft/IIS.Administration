@@ -118,6 +118,8 @@ namespace Microsoft.IIS.Administration.Monitoring
 
     public class Pdh
     {
+        private const string PerformanceCounterLib = "pdh.dll";
+
         public const UInt32 PDH_FLAGS_CLOSE_QUERY = 1;
         public const UInt32 PDH_MORE_DATA = 0x800007D2;
         public const UInt32 PDH_NO_DATA = 0x800007D5;
@@ -130,57 +132,58 @@ namespace Microsoft.IIS.Administration.Monitoring
         public const UInt32 PDH_INVALID_HANDLE = 0xC0000BBC;
         public const UInt32 PDH_ENTRY_NOT_IN_LOG_FILE = 0xC0000BCD;
         public const UInt32 PDH_CSTATUS_NO_OBJECT = 0xC0000BB8;
+        public const UInt32 PDH_CSTATUS_NO_COUNTER = 0xC0000BB9;
 
-        [DllImport("pdh.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern UInt32 PdhOpenQueryW(
          string szDataSource,
          IntPtr dwUserData,
          out PdhQueryHandle phQuery);
 
-        [DllImport("pdh.dll", SetLastError = true)]
+        [DllImport(PerformanceCounterLib, SetLastError = true)]
         public static extern UInt32 PdhOpenQueryH(
          PdhLogHandle hDataSource,
          IntPtr dwUserData,
          out PdhQueryHandle phQuery);
 
-        [DllImport("pdh.dll", SetLastError = true)]
+        [DllImport(PerformanceCounterLib, SetLastError = true)]
         public static extern UInt32 PdhCloseLog(
             IntPtr hLog,
             long dwFlags);
 
-        [DllImport("pdh.dll", SetLastError = true)]
+        [DllImport(PerformanceCounterLib, SetLastError = true)]
         public static extern UInt32 PdhCloseQuery(
             IntPtr hQuery);
 
-        [DllImport("pdh.dll", SetLastError = true)]
+        [DllImport(PerformanceCounterLib, SetLastError = true)]
         public static extern UInt32 PdhRemoveCounter(
             IntPtr hQuery);
 
-        [DllImport("pdh.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern UInt32 PdhAddCounterW(
             PdhQueryHandle hQuery,
             string szFullCounterPath,
             IntPtr dwUserData,
             out PdhCounterHandle phCounter);
 
-        [DllImport("pdh.dll", SetLastError = true)]
+        [DllImport(PerformanceCounterLib, SetLastError = true)]
         public static extern UInt32 PdhCollectQueryData(
             PdhQueryHandle phQuery);
 
-        [DllImport("pdh.dll", SetLastError = true)]
+        [DllImport(PerformanceCounterLib, SetLastError = true)]
         public static extern UInt32 PdhGetFormattedCounterValue(
             PdhCounterHandle phCounter,
             PdhFormat dwFormat,
             IntPtr lpdwType,
             out PDH_FMT_COUNTERVALUE pValue);
 
-        [DllImport("pdh.dll", SetLastError = true)]
+        [DllImport(PerformanceCounterLib, SetLastError = true)]
         public static extern UInt32 PdhGetRawCounterValue(
             PdhCounterHandle phCounter,
             IntPtr lpdwType,
             out PDH_FMT_COUNTERVALUE pValue);
 
-        [DllImport("pdh.dll", SetLastError = true, CharSet = CharSet.Ansi)]
+        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Ansi)]
         public static extern UInt32 PdhExpandWildCardPathA(
             string szdataSource,
             string szWildCardPath,
@@ -188,7 +191,7 @@ namespace Microsoft.IIS.Administration.Monitoring
             ref long pcchPathListLength,
             PdhExpansionFlags dwFlags);
 
-        [DllImport("pdh.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern UInt32 PdhGetCounterInfo(
             PdhCounterHandle hCounter,
             bool bRetrieveExplainText,

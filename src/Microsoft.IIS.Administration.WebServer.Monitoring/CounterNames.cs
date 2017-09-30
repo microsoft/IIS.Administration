@@ -18,6 +18,20 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         public const string ProcessId = "Id Process";
         public const string HandleCount = "Handle Count";
         public const string PageFaultsSec = "Page Faults/sec";
+
+        public static readonly string[] CounterNames = new string[] {
+            PercentCpu,
+            PrivateWorkingSet,
+            WorkingSet,
+            VirtualBytes,
+            PrivateBytes,
+            ThreadCount,
+            IOReadSec,
+            IOWriteSec,
+            ProcessId,
+            HandleCount,
+            PageFaultsSec
+        };
     }
 
     static class WorkerProcessCounterNames
@@ -41,6 +55,26 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         public const string UriCacheHits = "URI Cache Hits";
         public const string UriCacheMisses = "URI Cache Misses";
 
+        public static readonly string[] CounterNames = new string[] {
+            ActiveRequests,
+            Percent500,
+            RequestsSec,
+            TotalRequests,
+            CurrentFileCacheMemoryUsage,
+            CurrentFilesCached,
+            CurrentUrisCached,
+            FileCacheHits,
+            FileCacheMisses,
+            OutputCacheCurrentItems,
+            OutputCacheCurrentMemoryUsage,
+            OutputCacheTotalHits,
+            OutputCacheTotalMisses,
+            TotalFilesCached,
+            TotalUrisCached,
+            UriCacheHits,
+            UriCacheMisses
+        };
+
         public static string GetInstanceName(int processId, string appPoolName)
         {
             return processId + "_" + appPoolName;
@@ -60,12 +94,31 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         public const string TotalOtherMethodRequestsSec = "Other Request Methods/sec";
         public const string TotalMethodRequests = "Total Method Requests";
         public const string TotalOtherMethodRequests = "Total Other Request Methods";
+
+        public static readonly string[] CounterNames = new string[] {
+            ServiceUptime,
+            BytesRecvSec,
+            BytesSentSec,
+            ConnectionAttemptsSec,
+            CurrentConnections,
+            TotalConnectionAttempts,
+            TotalMethodRequestsSec,
+            TotalOtherMethodRequestsSec,
+            TotalMethodRequests,
+            TotalOtherMethodRequests
+        };
+
     }
 
     static class MemoryCounterNames
     {
         public const string Category = "Memory";
         public const string AvailableBytes = "Available Bytes";
+
+        public static readonly string[] CounterNames = new string[] {
+            AvailableBytes
+        };
+
     }
 
     static class CacheCounterNames
@@ -84,5 +137,22 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         public const string TotalUrisCached = "Total URIs Cached";
         public const string UriCacheHits = "URI Cache Hits";
         public const string UriCacheMisses = "URI Cache Misses";
+
+        public static readonly string[] CounterNames = new string[] {
+            CurrentFileCacheMemoryUsage,
+            CurrentFilesCached,
+            CurrentUrisCached,
+            FileCacheHits,
+            FileCacheMisses,
+            OutputCacheCurrentItems,
+            OutputCacheCurrentMemoryUsage,
+            OutputCacheTotalHits,
+            OutputCacheTotalMisses,
+            TotalFilesCached,
+            TotalUrisCached,
+            UriCacheHits,
+            UriCacheMisses
+        };
+
     }
 }

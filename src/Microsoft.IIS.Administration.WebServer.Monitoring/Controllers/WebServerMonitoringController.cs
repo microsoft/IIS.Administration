@@ -19,7 +19,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public async Task<object> Get()
         {
-            return WebServerHelper.ToJsonModel(await _monitor.GetSnapshot());
+            return WebServerHelper.ToJsonModel(await _monitor.GetSnapshot(), Context.Request.GetFields());
         }
     }
 }

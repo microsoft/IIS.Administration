@@ -237,7 +237,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 try {
                     return await GetCounters();
                 }
-                catch (CounterNotFoundException) {
+                catch (MissingCountersException) {
                     await Task.Delay(20);
                 }
             }
@@ -252,21 +252,21 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             List<IPerfCounter> counters = new List<IPerfCounter>();
             _webserverProcesses = ProcessUtil.GetWebserverProcessIds().OrderBy(id => id);
 
-            // Only use _total counter if instances are available
-            if (counterFinder.GetInstances(WebSiteCounterNames.Category).Where(i => i != TotalInstance).Count() > 0) {
-                counters.AddRange(await _provider.GetCounters(WebSiteCounterNames.Category, TotalInstance));
+            // Only use total counter if instances are available
+            if (counterFinder.GetInstances(WebSiteCounterNames.Category).Any(i => i != TotalInstance)) {
+                counters.AddRange(await _provider.GetCounters(WebSiteCounterNames.Category, TotalInstance, WebSiteCounterNames.CounterNames));
             }
 
-            if (counterFinder.GetInstances(WorkerProcessCounterNames.Category).Where(i => i != TotalInstance).Count() > 0) {
-                counters.AddRange(await _provider.GetCounters(WorkerProcessCounterNames.Category, TotalInstance));
+            if (counterFinder.GetInstances(WorkerProcessCounterNames.Category).Any(i => i != TotalInstance)) {
+                counters.AddRange(await _provider.GetCounters(WorkerProcessCounterNames.Category, TotalInstance, WorkerProcessCounterNames.CounterNames));
             }
             
-            counters.AddRange(await _provider.GetSingletonCounters(MemoryCounterNames.Category));
+            counters.AddRange(await _provider.GetSingletonCounters(MemoryCounterNames.Category, MemoryCounterNames.CounterNames));
 
-            counters.AddRange(await _provider.GetSingletonCounters(CacheCounterNames.Category));
+            counters.AddRange(await _provider.GetSingletonCounters(CacheCounterNames.Category, CacheCounterNames.CounterNames));
             
             foreach (string instance in await ProcessUtil.GetProcessCounterInstances(_webserverProcesses)) {
-                counters.AddRange(await _provider.GetCounters(ProcessCounterNames.Category, instance));
+                counters.AddRange(await _provider.GetCounters(ProcessCounterNames.Category, instance, ProcessCounterNames.CounterNames));
             }
 
             return counters;

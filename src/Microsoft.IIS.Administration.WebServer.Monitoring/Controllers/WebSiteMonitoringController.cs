@@ -31,7 +31,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             IEnumerable<IWebSiteSnapshot> snapshots = await _monitor.GetSnapshots(sites.Values);
 
             return new {
-                app_pools = snapshots.Select(snapshot => SiteHelper.ToJsonModel(snapshot, sites[snapshot.Name]))
+                websites = snapshots.Select(snapshot => SiteHelper.ToJsonModel(snapshot, sites[snapshot.Name], Context.Request.GetFields()))
             };
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 return NotFound();
             }
 
-            return SiteHelper.ToJsonModel(snapshot, site);
+            return SiteHelper.ToJsonModel(snapshot, site, Context.Request.GetFields());
         }
     }
 }

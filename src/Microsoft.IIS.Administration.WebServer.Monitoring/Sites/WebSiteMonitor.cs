@@ -34,7 +34,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             var snapshot = new WebSiteSnapshot();
             snapshot.Name = site.Name;
 
-            var counters = await _counterProvider.GetCounters(WebSiteCounterNames.Category, site.Name);
+            var counters = await _counterProvider.GetCounters(WebSiteCounterNames.Category, site.Name, WebSiteCounterNames.CounterNames);
 
             foreach (var counter in counters) {
                 switch (counter.Name) {

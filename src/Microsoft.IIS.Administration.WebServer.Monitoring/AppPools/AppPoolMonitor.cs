@@ -13,7 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     class AppPoolMonitor : IAppPoolMonitor
     {
         CounterProvider _counterProvider;
-        private Dictionary<int, string> _processCounterInstances = new Dictionary<int, string>();
+        private Dictionary<int, string> _processCounterInstances = null;
 
         public AppPoolMonitor(CounterProvider provider)
         {
@@ -22,6 +22,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public async Task<IEnumerable<IAppPoolSnapshot>> GetSnapshots(IEnumerable<ApplicationPool> pools)
         {
+            if (_processCounterInstances == null) {
+                _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_counterProvider, "W3WP");
+            }
+
             var snapshots = new List<IAppPoolSnapshot>();
 
             foreach (var pool in pools) {
@@ -142,7 +146,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 try {
                     return await GetCounters(pool);
                 }
-                catch (CounterNotFoundException) {
+                catch (MissingCountersException) {
                     await Task.Delay(20);
                 }
             }
@@ -155,33 +159,28 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             var poolCounters = new List<IPerfCounter>();
             var wps = pool.GetWorkerProcesses();
 
-            foreach (string instance in await GetProcessCounterInstances(wps.Select(wp => wp.ProcessId))) {
-                poolCounters.AddRange(await _counterProvider.GetCounters(ProcessCounterNames.Category, instance));
+            foreach (WorkerProcess wp in wps) {
+                if (!_processCounterInstances.ContainsKey(wp.ProcessId)) {
+                    _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_counterProvider, "W3WP");
+
+                    //
+                    // Counter instance doesn't exist
+                    if (!_processCounterInstances.ContainsKey(wp.ProcessId)) {
+                        continue;
+                    }
+                }
+
+                poolCounters.AddRange(await _counterProvider.GetCounters(ProcessCounterNames.Category, _processCounterInstances[wp.ProcessId], ProcessCounterNames.CounterNames));
             }
 
             foreach (WorkerProcess wp in wps) {
-                poolCounters.AddRange(await _counterProvider.GetCounters(WorkerProcessCounterNames.Category, WorkerProcessCounterNames.GetInstanceName(wp.ProcessId, pool.Name)));
+                poolCounters.AddRange(await _counterProvider.GetCounters(
+                    WorkerProcessCounterNames.Category,
+                    WorkerProcessCounterNames.GetInstanceName(wp.ProcessId, pool.Name),
+                    WorkerProcessCounterNames.CounterNames));
             }
 
             return poolCounters;
-        }
-
-        private async Task<IEnumerable<string>> GetProcessCounterInstances(IEnumerable<int> ids)
-        {
-            foreach (int id in ids) {
-                if (!_processCounterInstances.ContainsKey(id)) {
-
-                    _processCounterInstances.Clear();
-
-                    foreach (var instance in await ProcessUtil.GetProcessCounterInstances(ids)) {
-                        _processCounterInstances[id] = instance;
-                    }
-
-                    break;
-                }
-            }
-
-            return ids.Select(processId => _processCounterInstances[processId]);
         }
     }
 

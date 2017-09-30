@@ -4,8 +4,12 @@
 
 namespace Microsoft.IIS.Administration.Monitoring
 {
+    using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Linq;
+    using System.Runtime.InteropServices;
+    using System.Text;
 
     /// <summary>
     /// Used for finding what counters are available on the system.
@@ -14,82 +18,37 @@ namespace Microsoft.IIS.Administration.Monitoring
 
     public class CounterFinder
     {
-        public IEnumerable<IPerfCounter> GetCounters(string category)
-        {
-            //
-            // Syntax of a counter path:
-            // \\Computer\PerfObject(ParentInstance/ObjectInstance#InstanceIndex)\Counter
-
-            List<IPerfCounter> counters = new List<IPerfCounter>();
-            List<string> counterPaths = Utils.ExpandCounterPath(@"\" + category + @"(*)\*", PdhExpansionFlags.NONE);
-
-            foreach (string counterPath in counterPaths) {
-
-                string s = counterPath;
-                s = s.Substring(s.IndexOf('\\'));
-                s = s.Substring(2);
-                s = s.Substring(s.IndexOf('(') + 1);
-
-                string instance = s.Substring(0, s.IndexOf(')'));
-                string name = s.Substring(s.IndexOf(')') + 2);
-
-                counters.Add(new PerfCounter(name, instance, category));
-            }
-
-            return counters;
-        }
-
-        public IEnumerable<IPerfCounter> GetSingletonCounters(string category)
+        public IEnumerable<IPerfCounter> GetSingletonCounters(string category, IEnumerable<string> counterNames)
         {
             List<IPerfCounter> counters = new List<IPerfCounter>();
-            List<string> counterPaths = Utils.ExpandCounterPath(@"\" + category + @"\*", PdhExpansionFlags.NONE);
 
-            foreach (string counterPath in counterPaths) {
-
-                string s = counterPath;
-                s = s.Substring(s.IndexOf('\\'));
-                s = s.Substring(2);
-                s = s.Substring(s.IndexOf('\\') + 1);
-                string name = s.Substring(s.IndexOf('\\') + 1);
-
+            foreach (string name in counterNames) {
                 counters.Add(new SingletonPerfCounter(name, category));
             }
 
             return counters;
         }
 
-        public IEnumerable<IPerfCounter> GetCounters(string category, string instance)
+        public IEnumerable<IPerfCounter> GetCounters(string category, string instance, IEnumerable<string> counterNames)
         {
             if (!GetInstances(category).Contains(instance)) {
                 return Enumerable.Empty<IPerfCounter>();
             }
 
-            List<string> strings = Utils.ExpandCounterPath(@"\" + category + @"(" + instance + @")\*", PdhExpansionFlags.NONE);
+            List<IPerfCounter> counters = new List<IPerfCounter>();
 
-            for (int i = 0; i < strings.Count; i++) {
-                string s = strings[i];
-                s = s.Substring(s.IndexOf('\\'));
-                s = s.Substring(2);
-                s = s.Substring(s.IndexOf('\\') + 1);
-                s = s.Substring(s.IndexOf(')') + 2);
-                strings[i] = s;
+            foreach (string name in counterNames) {
+                counters.Add(new PerfCounter(name, instance, category));
             }
 
-            return strings.Select(s => new PerfCounter(s, instance, category));
+            return counters;
         }
 
         public IEnumerable<IPerfCounter> GetCountersByName(string category, string counterName)
         {
             List<IPerfCounter> counters = new List<IPerfCounter>();
-            List<string> strings = Utils.ExpandCounterPath(@"\" + category + @"(*)\" + counterName, PdhExpansionFlags.NONE);
 
-            for (int i = 0; i < strings.Count; i++) {
-                string s = strings[i];
-                s = s.Substring(s.IndexOf('\\'));
-                s = s.Substring(2);
-                s = s.Substring(s.IndexOf('(') + 1);
-                string instance = s.Substring(0, s.IndexOf(')'));
-
+            foreach (string instance in GetInstances(category)) {
                 counters.Add(new PerfCounter(counterName, instance, category));
             }
 
@@ -98,7 +57,7 @@ namespace Microsoft.IIS.Administration.Monitoring
 
         public IEnumerable<string> GetInstances(string category)
         {
-            List<string> strings = Utils.ExpandCounterPath(@"\" + category + @"(*)\*", PdhExpansionFlags.PDH_NOEXPANDCOUNTERS);
+            List<string> strings = ExpandCounterPath(@"\" + category + @"(*)\*", PdhExpansionFlags.PDH_NOEXPANDCOUNTERS);
 
             for (int i = 0; i < strings.Count; i++) {
                 string s = strings[i];
@@ -113,25 +72,107 @@ namespace Microsoft.IIS.Administration.Monitoring
             return strings;
         }
 
-        public IEnumerable<string> GetCategories()
+        public bool CounterExists(IPerfCounter counter)
         {
-            List<string> strings = Utils.ExpandCounterPath(@"\*(*)\*", PdhExpansionFlags.PDH_NOEXPANDCOUNTERS | PdhExpansionFlags.PDH_NOEXPANDINSTANCES);
+            return GetCounters(counter.CategoryName, counter.InstanceName).Any(c => c.Name.Equals(counter.Name));
+        }
+
+        private IEnumerable<IPerfCounter> GetCounters(string category, string instance)
+        {
+            if (!GetInstances(category).Contains(instance)) {
+                return Enumerable.Empty<IPerfCounter>();
+            }
+
+            List<IPerfCounter> counters = new List<IPerfCounter>();
+            List<string> strings = ExpandCounterPath(@"\" + category + @"(" + instance + @")\*", PdhExpansionFlags.NONE);
 
             for (int i = 0; i < strings.Count; i++) {
                 string s = strings[i];
                 s = s.Substring(s.IndexOf('\\'));
                 s = s.Substring(2);
                 s = s.Substring(s.IndexOf('\\') + 1);
-                s = s.Substring(0, s.IndexOf('('));
+                s = s.Substring(s.IndexOf(')') + 2);
                 strings[i] = s;
+
+                counters.Add(new PerfCounter(s, instance, category));
             }
 
-            return strings;
+            return counters;
         }
 
-        public bool CounterExists(IPerfCounter counter)
+        private List<string> ExpandCounterPath(string searchPattern, PdhExpansionFlags flags)
         {
-            return GetCounters(counter.CategoryName, counter.InstanceName).Any(c => c.Name.Equals(counter.Name));
+            long cchPathListLength = 0;
+            uint result = 0;
+            byte[] buffer = null;
+
+            //
+            // Do - while, the buffer can grow after being told the necessary size
+            do {
+
+                IntPtr mszExpandedPathList = IntPtr.Zero;
+
+                if (cchPathListLength > 0) {
+                    //
+                    // If we received a buffer size allocate one
+                    mszExpandedPathList = Marshal.AllocHGlobal((int)cchPathListLength);
+                }
+
+                try {
+                    result = Pdh.PdhExpandWildCardPathA(null, searchPattern, mszExpandedPathList, ref cchPathListLength, flags);
+
+                    if (result == Pdh.PDH_MORE_DATA) {
+                        continue;
+                    }
+
+                    if (result == Pdh.PDH_CSTATUS_NO_OBJECT || result == Pdh.PDH_CSTATUS_NO_INSTANCE) {
+                        return new List<string>();
+                    }
+
+                    if (result != 0 && result != Pdh.PDH_MORE_DATA) {
+                        throw new Win32Exception((int)result);
+                    }
+
+                    buffer = new byte[cchPathListLength];
+                    Marshal.Copy(mszExpandedPathList, buffer, 0, (int)cchPathListLength);
+
+                }
+                finally {
+
+                    //
+                    // Always clean up allocated buffer
+                    if (mszExpandedPathList != IntPtr.Zero) {
+                        Marshal.FreeHGlobal(mszExpandedPathList);
+                    }
+
+                }
+
+            } while (result == Pdh.PDH_MORE_DATA);
+
+            if (buffer == null) {
+                throw new Win32Exception((int)result);
+            }
+
+            //
+            // Parse paths from filled buffer
+
+            List<string> strings = new List<string>();
+            int start = 0;
+            int end = 0;
+
+            do {
+
+                do {
+                    end++;
+                }
+                while (buffer[end] != 0);
+
+                strings.Add(Encoding.ASCII.GetString(buffer, start, end - start));
+                start = end;
+
+            } while (buffer[end + 1] != 0);
+
+            return strings;
         }
     }
 }

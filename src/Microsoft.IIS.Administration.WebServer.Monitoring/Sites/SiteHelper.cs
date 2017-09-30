@@ -4,30 +4,61 @@
 
 namespace Microsoft.IIS.Administration.WebServer.Monitoring
 {
+    using Microsoft.IIS.Administration.Core.Utils;
     using Microsoft.IIS.Administration.WebServer.Sites;
     using Microsoft.Web.Administration;
+    using System.Dynamic;
 
     class SiteHelper
     {
-        public static object ToJsonModel(IWebSiteSnapshot snapshot, Site site)
+        public static object ToJsonModel(IWebSiteSnapshot snapshot, Site site, Fields fields = null, bool full = true)
         {
-            var obj = new {
-                id = new SiteId(site.Id).Uuid,
-                name = snapshot.Name,
-                uptime = snapshot.Uptime,
-                network = new {
+            if (snapshot == null) {
+                return null;
+            }
+
+            if (fields == null) {
+                fields = Fields.All;
+            }
+
+            dynamic obj = new ExpandoObject();
+
+            //
+            // id
+            obj.id = new SiteId(site.Id).Uuid;
+
+            //
+            // uptime
+            if (fields.Exists("uptime")) {
+                obj.uptime = snapshot.Uptime;
+            }
+
+            //
+            // network
+            if (fields.Exists("network")) {
+                obj.network = new {
                     bytes_sent_sec = snapshot.BytesSentSec,
                     bytes_recv_sec = snapshot.BytesRecvSec,
                     connection_attempts_sec = snapshot.ConnectionAttemptsSec,
                     total_connection_attempts = snapshot.TotalConnectionAttempts,
                     current_connections = snapshot.CurrentConnections,
-                },
-                requests = new {
+                };
+            }
+
+            //
+            // requests
+            if (fields.Exists("requests")) {
+                obj.requests = new {
                     per_sec = snapshot.TotalRequestsSec,
                     total = snapshot.TotalRequests,
-                },
-                website = Sites.SiteHelper.ToJsonModelRef(site)
-            };
+                };
+            }
+
+            //
+            // website
+            if (fields.Exists("website")) {
+                obj.website = Sites.SiteHelper.ToJsonModelRef(site);
+            }
 
             return Core.Environment.Hal.Apply(Defines.WebSiteMonitoringResource.Guid, obj);
         }

@@ -8,63 +8,121 @@ namespace Microsoft.IIS.Administration.Monitoring
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
+
+    /// <summary>
+    /// Concurrent collection of performance counters that can be refreshed to populate performance counter values
+    /// </summary>
 
     public sealed class CounterMonitor : IDisposable
     {
-        private readonly TimeSpan RefreshRate = TimeSpan.FromSeconds(1);
-        Dictionary<IPerfCounter, PdhCounterHandle> _counters = new Dictionary<IPerfCounter, PdhCounterHandle>();
+        private readonly TimeSpan RefreshRate = TimeSpan.FromMilliseconds(1000);
+        private Dictionary<IPerfCounter, PdhCounterHandle> _counters = new Dictionary<IPerfCounter, PdhCounterHandle>();
         private PdhQueryHandle _query;
-        private CounterFinder _counterFinder = new CounterFinder();
         private DateTime _lastCalculatedTime;
+        private CounterFinder _counterFinder = new CounterFinder();
+        private ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
         public CounterMonitor(IEnumerable<IPerfCounter> counters)
         {
-            foreach (var counter in counters) {
-                _counters.Add(counter, null);
-            }
+            AddCounters(counters);
         }
 
         public IEnumerable<IPerfCounter> Counters {
             get {
-                return _counters.Keys;
+                _lock.EnterReadLock();
+
+                try {
+                    return _counters.Keys;
+                }
+                finally {
+                    _lock.ExitReadLock();
+                }
+            }
+        }
+
+        private bool NeedsRefresh {
+            get {
+                return _counters.Count > 0 && DateTime.UtcNow - _lastCalculatedTime >= RefreshRate;
             }
         }
 
         public void Dispose()
         {
-            foreach (var key in _counters.Keys.ToList()) {
-                if (_counters[key] != null) {
-                    _counters[key].Dispose();
-                    _counters[key] = null;
-                }
+            _lock.EnterWriteLock();
+
+            try {
+                DoDispose();
+            }
+            finally {
+                _lock.ExitWriteLock();
             }
 
-            if (_query != null) {
-                _query.Dispose();
-                _query = null;
+            if (_lock != null) {
+                _lock.Dispose();
+                _lock = null;
             }
         }
 
         public async Task Refresh()
         {
-            if (_counters.Count == 0 || DateTime.UtcNow - _lastCalculatedTime < RefreshRate) {
+            if (!NeedsRefresh) {
                 return;
             }
 
-            EnsureInit();
+            _lock.EnterWriteLock();
+
+            try {
+                await DoRefresh();
+            }
+            finally {
+                _lock.ExitWriteLock();
+            }
+        }
+
+        public void AddCounters(IEnumerable<IPerfCounter> counters)
+        {
+            _lock.EnterWriteLock();
+
+            try {
+                DoAddCounters(counters);
+            }
+            finally {
+                _lock.ExitWriteLock();
+            }
+        }
+
+        public void RemoveCounters(IEnumerable<IPerfCounter> counters)
+        {
+            _lock.EnterWriteLock();
+
+            try {
+                DoRemoveCounters(counters);
+            }
+            finally {
+                _lock.ExitWriteLock();
+            }
+        }
+
+        public async Task DoRefresh()
+        {
+            if (!NeedsRefresh) {
+                return;
+            }
 
             PDH_FMT_COUNTERVALUE value = default(PDH_FMT_COUNTERVALUE);
 
             uint result = Pdh.PdhCollectQueryData(_query);
             if (result == Pdh.PDH_NO_DATA) {
-                throw new CounterNotFoundException(_counters.First().Key);
+                throw new MissingCountersException(_counters.Keys);
             }
             if (result != 0) {
                 throw new Win32Exception((int)result);
             }
 
             bool multiSample = false;
+            List<IPerfCounter> missingCounters = new List<IPerfCounter>();
             foreach (KeyValuePair<IPerfCounter, PdhCounterHandle> counterInstance in _counters) {
 
                 IPerfCounter counter = counterInstance.Key;
@@ -87,14 +145,17 @@ namespace Microsoft.IIS.Administration.Monitoring
                 if ((result != 0 && value.CStatus == Pdh.PDH_CSTATUS_NO_INSTANCE) ||
                         result == Pdh.PDH_INVALID_HANDLE ||
                         result == Pdh.PDH_CALC_NEGATIVE_VALUE ||
+                        result == Pdh.PDH_CALC_NEGATIVE_DENOMINATOR ||
                         (result == Pdh.PDH_INVALID_DATA && value.CStatus == Pdh.PDH_INVALID_DATA)) {
 
-                    throw new CounterNotFoundException(counter);
+                    missingCounters.Add(counter);
+                    continue;
                 }
                 else if (result != 0) {
 
                     if (!_counterFinder.CounterExists(counter)) {
-                        throw new CounterNotFoundException(counter);
+                        missingCounters.Add(counter);
+                        continue;
                     }
 
                     throw new Win32Exception((int)result);
@@ -106,43 +167,80 @@ namespace Microsoft.IIS.Administration.Monitoring
                 counter.Value = value.longLongValue;
             }
 
+            if (missingCounters.Count > 0) {
+                throw new MissingCountersException(missingCounters);
+            }
+
+            TimeSpan calculationDelta = DateTime.UtcNow - _lastCalculatedTime;
             _lastCalculatedTime = DateTime.UtcNow;
         }
 
-        private void EnsureInit()
+        private void DoDispose()
         {
-            if (_query != null) {
-                return;
-            }
-
-            PdhQueryHandle query;
-
-            uint result = Pdh.PdhOpenQueryW(null, IntPtr.Zero, out query);
-            if (result != 0) {
-                throw new Win32Exception((int)result);
-            }
-
-            try {
-                foreach (var counter in _counters.Keys.ToList()) {
-                    PdhCounterHandle hCounter;
-
-                    result = Pdh.PdhAddCounterW(query, counter.Path, IntPtr.Zero, out hCounter);
-                    if (result == Pdh.PDH_CSTATUS_NO_OBJECT) {
-                        throw new CounterNotFoundException(counter);
-                    }
-                    if (result != 0) {
-                        throw new Win32Exception((int)result);
-                    }
-
-                    _counters[counter] = hCounter;
+            foreach (var key in _counters.Keys.ToList()) {
+                if (_counters[key] != null) {
+                    _counters[key].Dispose();
+                    _counters.Remove(key);
                 }
             }
-            catch (Win32Exception) {
-                query.Dispose();
-                throw;
+
+            if (_query != null) {
+                _query.Dispose();
+                _query = null;
+            }
+        }
+
+        private void DoAddCounters(IEnumerable<IPerfCounter> counters)
+        {
+            uint result;
+
+            if (_query == null) {
+
+                PdhQueryHandle query;
+
+                result = Pdh.PdhOpenQueryW(null, IntPtr.Zero, out query);
+                if (result != 0) {
+                    throw new Win32Exception((int)result);
+                }
+
+                _query = query;
             }
 
-            _query = query;
+            List<IPerfCounter> missingCounters = new List<IPerfCounter>();
+            foreach (var counter in counters) {
+                PdhCounterHandle hCounter;
+
+                result = Pdh.PdhAddCounterW(_query, counter.Path, IntPtr.Zero, out hCounter);
+                if (result == Pdh.PDH_CSTATUS_NO_OBJECT ||
+                    result == Pdh.PDH_CSTATUS_NO_COUNTER) {
+                    missingCounters.Add(counter);
+                    continue;
+                }
+                if (result != 0) {
+                    throw new Win32Exception((int)result);
+                }
+
+                _counters[counter] = hCounter;
+            }
+
+            if (missingCounters.Count > 0) {
+                throw new MissingCountersException(missingCounters);
+            }
+        }
+
+        private void DoRemoveCounters(IEnumerable<IPerfCounter> counters)
+        {
+            PdhCounterHandle hCounter = null;
+
+            foreach (var counter in counters) {
+
+                if (_counters.TryGetValue(counter, out hCounter)) {
+
+                    hCounter.Dispose();
+
+                    _counters.Remove(counter);
+                }
+            }
         }
     }
 }
