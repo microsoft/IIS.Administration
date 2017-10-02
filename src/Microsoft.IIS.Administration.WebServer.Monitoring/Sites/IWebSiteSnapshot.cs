@@ -23,5 +23,55 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         long TotalRequestsSec { get; set; }
 
         long TotalRequests { get; set; }
+
+        long ActiveRequests { get; set; }
+
+        long Percent500 { get; set; }
+
+        long RequestsSec { get; set; }
+
+        long FileCacheMemoryUsage { get; set; }
+
+        long CurrentFilesCached { get; set; }
+
+        long CurrentUrisCached { get; set; }
+
+        long FileCacheHits { get; set; }
+
+        long FileCacheMisses { get; set; }
+
+        long OutputCacheCurrentItems { get; set; }
+
+        long OutputCacheCurrentMemoryUsage { get; set; }
+
+        long OutputCacheTotalHits { get; set; }
+
+        long OutputCacheTotalMisses { get; set; }
+
+        long TotalFilesCached { get; set; }
+
+        long TotalUrisCached { get; set; }
+
+        long UriCacheHits { get; set; }
+
+        long UriCacheMisses { get; set; }
+
+        long PageFaultsSec { get; set; }
+
+        long IOWriteSec { get; set; }
+
+        long IOReadSec { get; set; }
+
+        long WorkingSet { get; set; }
+
+        long PrivateWorkingSet { get; set; }
+
+        long ThreadCount { get; set; }
+
+        long PrivateBytes { get; set; }
+
+        long HandleCount { get; set; }
+
+        long PercentCpuTime { get; set; }
     }
 }
