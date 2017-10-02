@@ -374,7 +374,7 @@ function Install
         if ($cert -ne $null) {
             #
             # Check if existing cert has sufficient lifespan left (3+ months)
-            $expirationDate = [System.DateTime]::Parse($cert.GetExpirationDateString())
+            $expirationDate = $cert.NotAfter
             $remainingLifetime = $expirationDate - [System.DateTime]::Now
 
             if ($remainingLifetime.TotalDays -lt $(.\globals.ps1 CERT_EXPIRATION_WINDOW)) {

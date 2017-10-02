@@ -194,7 +194,7 @@ function Migrate {
     # Remove expired IIS Administration certificates
     $certs = .\cert.ps1 Get-IISAdminCertificates
     foreach ($cert in $certs) {
-        if ((([System.DateTime]::Parse($cert.GetExpirationDateString()) - [System.DateTime]::Now).TotalDays -lt 0) -and $cert.Thumbprint.ToLower() -ne $sslBindingInfo.CertificateHash.ToLower()) {
+        if ((($cert.NotAfter - [System.DateTime]::Now).TotalDays -lt 0) -and $cert.Thumbprint.ToLower() -ne $sslBindingInfo.CertificateHash.ToLower()) {
             Write-Verbose "Removing old IIS Administration Certificate"
             .\cert.ps1 Delete -Thumbprint $cert.Thumbprint
         }

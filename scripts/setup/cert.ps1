@@ -244,8 +244,8 @@ function Create-SelfSignedCertificate($_subject, $_friendlyName, $_alternativeNa
     } while ($CACertificate -eq $null -and $(Get-Date) -lt $end)
 
     if ($CACertificate.Length -ne $null) {
-        $dates = $CACertificate | %{[System.DateTime]::Parse($_.GetEffectiveDateString())} | Sort-Object
-        $CACertificate = $CACertificate | where {[System.DateTime]::Parse($_.GetEffectiveDateString()) -eq $dates[$dates.length - 1]}
+        $dates = $CACertificate | %{$_.NotBefore} | Sort-Object
+        $CACertificate = $CACertificate | where {$_.NotBefore -eq $dates[$dates.length - 1]}
     }
 
     return $CACertificate 
@@ -297,8 +297,8 @@ function Get-LatestIISAdminCert {
     $certs = Get-IISAdminCerts
 
     if ($certs -ne $null -and $certs.length -ne $null) {
-        $expirationDates = $certs | %{[System.DateTime]::Parse($_.GetExpirationDateString())} | Sort-Object
-        $cert = $certs | where {[System.DateTime]::Parse($_.GetExpirationDateString()) -eq $expirationDates[$expirationDates.length - 1]}
+        $expirationDates = $certs | %{$_.NotAfter} | Sort-Object
+        $cert = $certs | where {$_.NotAfter -eq $expirationDates[$expirationDates.length - 1]}
     }
     else {
         $cert = $certs
