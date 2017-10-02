@@ -32,7 +32,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     bytes_sent_sec = snapshot.BytesSentSec,
                     bytes_recv_sec = snapshot.BytesRecvSec,
                     connection_attempts_sec = snapshot.ConnectionAttemptsSec,
-                    total_connection_attempts = snapshot.TotalConnectionAttempts
+                    total_connection_attempts = snapshot.TotalConnectionAttempts,
+                    current_connections = snapshot.CurrentConnections
                 };
             }
 

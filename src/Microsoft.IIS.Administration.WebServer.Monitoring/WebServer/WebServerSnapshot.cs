@@ -14,6 +14,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public long ConnectionAttemptsSec { get; set; }
 
+        public long CurrentConnections { get; set; }
+
         public long ActiveRequests { get; set; }
 
         public long RequestsSec { get; set; }

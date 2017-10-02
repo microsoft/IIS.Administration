@@ -28,6 +28,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             long bytesRecvSec = 0;
             long connectionAttemptsSec = 0;
             long totalConnectionAttempts = 0;
+            long currentConnections = 0;
             long activeRequests = 0;
             long requestsSec = 0;
             long totalRequests = 0;
@@ -69,6 +70,9 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                             break;
                         case WebSiteCounterNames.TotalConnectionAttempts:
                             totalConnectionAttempts += counter.Value;
+                            break;
+                        case WebSiteCounterNames.CurrentConnections:
+                            currentConnections += counter.Value;
                             break;
                         case WebSiteCounterNames.TotalMethodRequestsSec:
                             requestsSec += counter.Value;
@@ -192,6 +196,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             snapshot.BytesSentSec = bytesSentSec;
             snapshot.ConnectionAttemptsSec = connectionAttemptsSec;
             snapshot.TotalConnectionAttempts = totalConnectionAttempts;
+            snapshot.CurrentConnections = currentConnections;
             snapshot.ActiveRequests = activeRequests;
             snapshot.RequestsSec = requestsSec;
             snapshot.TotalRequests = totalRequests;
