@@ -28,8 +28,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public long IOWriteSec { get; set; }
 
-        public long Percent500 { get; set; }
-
         public long ProcessCount { get; set; }
 
         public long RequestsSec { get; set; }

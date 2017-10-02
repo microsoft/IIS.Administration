@@ -49,9 +49,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                         case WorkerProcessCounterNames.ActiveRequests:
                             snapshot.ActiveRequests += counter.Value;
                             break;
-                        case WorkerProcessCounterNames.Percent500:
-                            snapshot.Percent500 += counter.Value;
-                            break;
                         case WorkerProcessCounterNames.RequestsSec:
                             snapshot.RequestsSec += counter.Value;
                             break;

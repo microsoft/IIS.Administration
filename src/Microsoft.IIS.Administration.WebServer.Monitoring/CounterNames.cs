@@ -38,7 +38,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     {
         public const string Category = "W3SVC_W3WP";
         public const string ActiveRequests = "Active Requests";
-        public const string Percent500 = "% 500 HTTP Response Sent";
         public const string RequestsSec = "Requests / Sec";
         public const string TotalRequests = "Total HTTP Requests Served";
         public const string CurrentFileCacheMemoryUsage = "Current File Cache Memory Usage";
@@ -57,7 +56,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public static readonly string[] CounterNames = new string[] {
             ActiveRequests,
-            Percent500,
             RequestsSec,
             TotalRequests,
             CurrentFileCacheMemoryUsage,

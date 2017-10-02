@@ -40,7 +40,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             long workingSet = 0;
             long IOReadSec = 0;
             long IOWriteSec = 0;
-            long percent500 = 0;
             long availableBytes = 0;
             long fileCacheMemoryUsage = 0;
             long currentFilesCached = 0;
@@ -92,9 +91,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     switch (counter.Name) {
                         case WorkerProcessCounterNames.ActiveRequests:
                             activeRequests += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.Percent500:
-                            percent500 += counter.Value;
                             break;
                         default:
                             break;
@@ -210,7 +206,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             snapshot.FileCacheHits = fileCacheHits;
             snapshot.FileCacheMisses = fileCacheMisses;
             snapshot.PageFaultsSec = pageFaultsSec;
-            snapshot.Percent500 = percent500;
             snapshot.AvailableBytes = availableBytes;
             snapshot.FileCacheMemoryUsage = fileCacheMemoryUsage;
             snapshot.CurrentFilesCached = currentFilesCached;

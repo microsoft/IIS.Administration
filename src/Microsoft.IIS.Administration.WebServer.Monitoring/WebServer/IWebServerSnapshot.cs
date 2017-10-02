@@ -36,8 +36,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         long IOWriteSec { get; set; }
 
-        long Percent500 { get; set; }
-
         long FileCacheHits { get; set; }
 
         long FileCacheMisses { get; set; }

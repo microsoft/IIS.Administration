@@ -42,8 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 obj.requests = new {
                     active = snapshot.ActiveRequests,
                     per_sec = snapshot.RequestsSec,
-                    total = snapshot.TotalRequests,
-                    percent_500_sec = snapshot.Percent500
+                    total = snapshot.TotalRequests
                 };
             }
 

@@ -38,8 +38,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public long IOWriteSec { get; set; }
 
-        public long Percent500 { get; set; }
-
         public long FileCacheHits { get; set; }
 
         public long FileCacheMisses { get; set; }
