@@ -24,6 +24,7 @@ namespace Microsoft.IIS.Administration.Tests
         private const string TEST_FILE_NAME = "TEST_FILE.txt";
         private const string FILE_TEST_SITE_NAME = "File Test Site";
         private const string FILES_PATH = "/api/files";
+        private const string LOCATIONS_PATH = "/api/files/locations";
         private const string WEBSERVER_FILES_PATH = "/api/webserver/files";
 
         [Fact]
@@ -726,9 +727,105 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
+        [Fact]
+        public void CreateEditDeleteLocation()
+        {
+            string physicalPath = GetRandomTestDirPath();
+            string physicalPath2 = GetRandomTestDirPath();
+
+            string expanded = Environment.ExpandEnvironmentVariables(physicalPath);
+            string expanded2 = Environment.ExpandEnvironmentVariables(physicalPath2);
+
+            Assert.True(!expanded.Equals(physicalPath));
+            Assert.True(!expanded2.Equals(physicalPath2));
+
+            JObject location = null;
+            string alias2 = "IisAdminTestAlias2";
+
+            JObject body = JObject.FromObject(new {
+                path = physicalPath,
+                claims = new string[] {
+                    "read",
+                    "write"
+                }
+            });
+
+            using (HttpClient client = ApiHttpClient.Create()) {
+                try {
+
+                    location = client.Post($"{Configuration.TEST_SERVER_URL}{LOCATIONS_PATH}", body);
+
+                    Assert.Equal(location.Value<string>("alias"), string.Empty);
+                    Assert.Equal(location.Value<string>("path"), physicalPath);
+
+                    var claims = location["claims"].ToObject<IEnumerable<string>>();
+                    Assert.True(Enumerable.SequenceEqual<string>(claims, new string[] { "read", "write" }));
+
+                    Assert.True(Directory.Exists(expanded));
+
+                    body = JObject.FromObject(new {
+                        alias = alias2,
+                        path = physicalPath2,
+                        claims = new string[] {
+                            "read"
+                        }
+                    });
+
+                    location = client.Patch(Utils.Self(location), body);
+
+                    Assert.Equal(location.Value<string>("alias"), alias2);
+                    Assert.Equal(location.Value<string>("path"), physicalPath2);
+
+                    claims = location["claims"].ToObject<IEnumerable<string>>();
+                    Assert.True(Enumerable.SequenceEqual<string>(claims, new string[] { "read" }));
+
+                    Assert.True(Directory.Exists(expanded2));
+
+                    client.Delete(Utils.Self(location));
+
+                    var locationsObj = client.Get($"{Configuration.TEST_SERVER_URL}{LOCATIONS_PATH}");
+
+                    IEnumerable<JObject> locations = locationsObj["locations"].ToObject<IEnumerable<JObject>>();
+
+                    Assert.True(!locations.Any(loc => {
+                        return loc.Value<string>("path").Equals(physicalPath, StringComparison.OrdinalIgnoreCase)
+                            || loc.Value<string>("path").Equals(physicalPath2, StringComparison.OrdinalIgnoreCase);
+                    }));
+                }
+                finally {
+
+                    if (Directory.Exists(expanded)) {
+                        Directory.Delete(expanded, false);
+                    }
+
+                    if (Directory.Exists(expanded2)) {
+                        Directory.Delete(expanded2, false);
+                    }
+
+                    if (location != null) {
+                        client.Delete(Utils.Self(location));
+                    }
+                }
+            }
+        }
 
 
 
+
+
+        private string GetRandomTestDirPath()
+        {
+            string physicalPath = null;
+
+            do {
+                //
+                // Test requires environment variable in path
+                physicalPath = Path.Combine("%temp%", Path.GetRandomFileName());
+            }
+            while (Directory.Exists(physicalPath) || File.Exists(physicalPath));
+
+            return physicalPath;
+        }
 
         private JObject RenameSitesFile(HttpClient client, JObject site, JObject file, string newName)
         {

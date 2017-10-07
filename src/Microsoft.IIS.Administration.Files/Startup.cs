@@ -29,7 +29,7 @@ namespace Microsoft.IIS.Administration.Files
             ConfigureContent();
             ConfigureCopy();
             ConfigureMove();
-            ConfigureSettings();
+            ConfigureLocations();
         }
 
 
@@ -111,12 +111,15 @@ namespace Microsoft.IIS.Administration.Files
             hal.ProvideLink(Defines.DirectoriesResource.Guid, Defines.MoveResource.Name, dir => new { href = $"/{Defines.MOVE_PATH}" });
         }
 
-        private void ConfigureSettings()
+        private void ConfigureLocations()
         {
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.SettingsResource.Guid, $"{Defines.SETTINGS_PATH}/{{id?}}", new { controller = "settings" });
+            router.MapWebApiRoute(Defines.LocationsResource.Guid, $"{Defines.LOCATIONS_PATH}/{{id?}}", new { controller = "locations" });
+
+            // Self (Files)
+            hal.ProvideLink(Defines.LocationsResource.Guid, "self", location => new { href = $"/{Defines.LOCATIONS_PATH}/{location.id}" });
         }
     }
 }
