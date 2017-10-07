@@ -13,7 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer
 
         public static object WebServerJsonModel() {
             var obj = new {
-                id = WebServerId.CreateFromPath(ManagementUnit.Current.ApplicationHostConfigPath).Uuid
+                id = WebServerId.Create().Uuid
             };
 
             return Core.Environment.Hal.Apply(Defines.Resource.Guid, obj);

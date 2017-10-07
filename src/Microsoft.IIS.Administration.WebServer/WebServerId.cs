@@ -13,19 +13,11 @@ namespace Microsoft.IIS.Administration.WebServer
 
         private WebServerId() { }
 
-        public static WebServerId CreateFromPath(string applicationHostConfigPath) {
-            string uuid = Core.Utils.Uuid.Encode(applicationHostConfigPath ?? string.Empty, PURPOSE);
+        public static WebServerId Create() {
+            string uuid = Core.Utils.Uuid.Encode(string.Empty, PURPOSE);
             return new WebServerId() {
-                ApplicationHostConfigPath = applicationHostConfigPath,
+                ApplicationHostConfigPath = null,
                 Uuid = uuid
-            };
-        }
-
-        public static WebServerId CreateFromUuid(string uuid) {
-            string appHostConfigPath = Core.Utils.Uuid.Decode(uuid, PURPOSE);
-            return new WebServerId() {
-                Uuid = uuid,
-                ApplicationHostConfigPath = string.IsNullOrEmpty(appHostConfigPath) ? null : appHostConfigPath
             };
         }
     }
