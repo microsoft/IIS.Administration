@@ -49,6 +49,7 @@ namespace Microsoft.IIS.Administration.Files
 
         [HttpPatch]
         [ResourceInfo(Name = Defines.LocationsName)]
+        [Audit(AuditAttribute.ALL)]
         public async Task<object> Patch([FromBody] dynamic model, string id)
         {
             FileId fileId = FileId.FromUuid(id);
@@ -72,6 +73,7 @@ namespace Microsoft.IIS.Administration.Files
 
         [HttpPost]
         [ResourceInfo(Name = Defines.LocationsName)]
+        [Audit(AuditAttribute.ALL)]
         public async Task<object> Post([FromBody] dynamic model)
         {
             ILocation location = _helper.CreateLocation(model);
@@ -85,6 +87,7 @@ namespace Microsoft.IIS.Administration.Files
         }
 
         [HttpDelete]
+        [Audit(AuditAttribute.ALL)]
         public async Task Delete(string id)
         {
             FileId fileId = FileId.FromUuid(id);
