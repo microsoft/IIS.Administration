@@ -69,8 +69,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             // memory
             if (fields.Exists("memory")) {
                 obj.memory = new {
+                    handles = snapshot.HandleCount,
                     private_working_set = snapshot.PrivateWorkingSet,
-                    working_set = snapshot.WorkingSet,
                     private_bytes = snapshot.PrivateBytes
                 };
             }

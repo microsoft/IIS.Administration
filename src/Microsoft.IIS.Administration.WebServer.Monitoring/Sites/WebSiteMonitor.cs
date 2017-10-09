@@ -7,12 +7,14 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     using Microsoft.IIS.Administration.Monitoring;
     using Microsoft.Web.Administration;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
 
     class WebSiteMonitor : IWebSiteMonitor
     {
         private CounterProvider _counterProvider;
         private Dictionary<int, string> _processCounterInstances = null;
+        private Dictionary<string, int> _siteProcessCounts = new Dictionary<string, int>();
 
         public WebSiteMonitor(CounterProvider counterProvider)
         {
@@ -83,9 +85,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     switch (counter.Name) {
                         case WorkerProcessCounterNames.ActiveRequests:
                             snapshot.ActiveRequests += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.Percent500:
-                            snapshot.Percent500 += counter.Value;
                             break;
                         case WorkerProcessCounterNames.RequestsSec:
                             snapshot.RequestsSec += counter.Value;
@@ -172,6 +171,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 }
             }
 
+            if (_siteProcessCounts.TryGetValue(site.Name, out int count)) {
+                snapshot.ProcessCount = count;
+            }
+
             return snapshot;
         }
 
@@ -201,6 +204,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
             if (pool != null) {
                 var wps = pool.GetWorkerProcesses();
+                _siteProcessCounts[site.Name] = wps.Count();
 
                 foreach (WorkerProcess wp in wps) {
                     if (!_processCounterInstances.ContainsKey(wp.ProcessId)) {

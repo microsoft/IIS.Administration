@@ -32,6 +32,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         long ThreadCount { get; }
 
+        long HandleCount { get; set; }
+
         long ProcessCount { get; }
 
         long IOReadSec { get; set; }

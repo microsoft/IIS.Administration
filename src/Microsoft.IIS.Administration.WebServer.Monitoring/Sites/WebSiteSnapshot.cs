@@ -72,6 +72,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public long HandleCount { get; set; }
 
+        public long ProcessCount { get; set; }
+
         public long PercentCpuTime { get; set; }
     }
 }
