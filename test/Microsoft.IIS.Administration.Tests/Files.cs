@@ -730,14 +730,14 @@ namespace Microsoft.IIS.Administration.Tests
         [Fact]
         public void CreateEditDeleteLocation()
         {
-            string physicalPath = GetRandomTestDirPath();
-            string physicalPath2 = GetRandomTestDirPath();
+            string physicalPath = Path.Combine("%temp%", Path.GetRandomFileName());
+            string physicalPath2 = Path.Combine("%temp%", Path.GetRandomFileName());
 
-            string expanded = Environment.ExpandEnvironmentVariables(physicalPath);
-            string expanded2 = Environment.ExpandEnvironmentVariables(physicalPath2);
+            string expanded = null;
+            string expanded2 = null;
 
-            Assert.True(!expanded.Equals(physicalPath));
-            Assert.True(!expanded2.Equals(physicalPath2));
+            Assert.True(Environment.ExpandEnvironmentVariables(physicalPath) != physicalPath);
+            Assert.True(Environment.ExpandEnvironmentVariables(physicalPath2) != physicalPath2);
 
             JObject location = null;
             string alias2 = "IisAdminTestAlias2";
@@ -761,6 +761,11 @@ namespace Microsoft.IIS.Administration.Tests
                     var claims = location["claims"].ToObject<IEnumerable<string>>();
                     Assert.True(Enumerable.SequenceEqual<string>(claims, new string[] { "read", "write" }));
 
+                    expanded = client.Get($"{Configuration.TEST_SERVER_URL}{FILES_PATH}")["files"]
+                                            .ToObject<IEnumerable<JObject>>()
+                                            .First(o => o.Value<string>("name").Equals(Path.GetFileName(physicalPath)))
+                                            .Value<string>("physical_path");
+
                     Assert.True(Directory.Exists(expanded));
 
                     body = JObject.FromObject(new {
@@ -779,6 +784,11 @@ namespace Microsoft.IIS.Administration.Tests
                     claims = location["claims"].ToObject<IEnumerable<string>>();
                     Assert.True(Enumerable.SequenceEqual<string>(claims, new string[] { "read" }));
 
+                    expanded2 = client.Get($"{Configuration.TEST_SERVER_URL}{FILES_PATH}")["files"]
+                                            .ToObject<IEnumerable<JObject>>()
+                                            .First(o => o.Value<string>("name").Equals(Path.GetFileName(physicalPath2)))
+                                            .Value<string>("physical_path");
+
                     Assert.True(Directory.Exists(expanded2));
 
                     client.Delete(Utils.Self(location));
@@ -794,11 +804,11 @@ namespace Microsoft.IIS.Administration.Tests
                 }
                 finally {
 
-                    if (Directory.Exists(expanded)) {
+                    if (expanded != null && Directory.Exists(expanded)) {
                         Directory.Delete(expanded, false);
                     }
 
-                    if (Directory.Exists(expanded2)) {
+                    if (expanded2 != null && Directory.Exists(expanded2)) {
                         Directory.Delete(expanded2, false);
                     }
 
@@ -810,22 +820,6 @@ namespace Microsoft.IIS.Administration.Tests
         }
 
 
-
-
-
-        private string GetRandomTestDirPath()
-        {
-            string physicalPath = null;
-
-            do {
-                //
-                // Test requires environment variable in path
-                physicalPath = Path.Combine("%temp%", Path.GetRandomFileName());
-            }
-            while (Directory.Exists(physicalPath) || File.Exists(physicalPath));
-
-            return physicalPath;
-        }
 
         private JObject RenameSitesFile(HttpClient client, JObject site, JObject file, string newName)
         {
