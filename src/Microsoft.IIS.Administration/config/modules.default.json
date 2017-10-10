@@ -89,6 +89,10 @@
       "enabled": true
     },
     {
+      "name": "Microsoft.IIS.Administration.WebServer.Monitoring",
+      "enabled": true
+    },
+    {
       "name": "Microsoft.IIS.Administration.WebServer.RequestFiltering",
       "enabled": true
     },

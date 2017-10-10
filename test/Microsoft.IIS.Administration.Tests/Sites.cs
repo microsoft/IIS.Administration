@@ -18,6 +18,7 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net;
     using System.IO;
     using System.Threading;
+    using System.Dynamic;
 
     public class Sites
     {
@@ -455,30 +456,46 @@ namespace Microsoft.IIS.Administration.Tests
             return true;
         }
 
-        public static JObject CreateSite(HttpClient client, string name, int port, string physicalPath, bool createDirectoryIfNotExist = true)
+        public static JObject CreateSite(HttpClient client, string name, int port, string physicalPath, bool createDirectoryIfNotExist = true, JObject appPool = null)
         {
             if (createDirectoryIfNotExist && !Directory.Exists(physicalPath)) {
                 Directory.CreateDirectory(physicalPath);
+
+                File.WriteAllText(Path.Combine(physicalPath, "iisstart.htm"), "Default file");
             }
 
-            var site = new {
-                name = name,
-                physical_path = physicalPath,
-                bindings = new object[] {
-                    new {
-                        ip_address = "*",
-                        port = port.ToString(),
-                        protocol = "http"
-                    }
+            string iisstart = Path.Combine(physicalPath, "iisstart.htm");
+            if (createDirectoryIfNotExist && !File.Exists(iisstart)) {
+                Directory.CreateDirectory(physicalPath);
+
+                File.WriteAllText(iisstart, "Default file");
+            }
+
+            dynamic site = new ExpandoObject();
+            site.name = name;
+            site.physical_path = physicalPath;
+            site.bindings = new object[] {
+                new {
+                    ip_address = "*",
+                    port = port.ToString(),
+                    protocol = "http"
                 }
             };
+
+            if (appPool != null) {
+                site.application_pool = new {
+                    id = appPool.Value<string>("id")
+                };
+            }
 
             string siteStr = JsonConvert.SerializeObject(site);
 
             JObject result;
+
             if(!CreateSite(client, siteStr, out result)) {
                 throw new Exception();
             }
+
             return result;
         }
 
@@ -510,31 +527,13 @@ namespace Microsoft.IIS.Administration.Tests
             return true;
         }
 
-        public static JObject GetSite(HttpClient client, string siteName)
+        public static JObject GetSite(HttpClient client, string name)
         {
-            List<JObject> sites;
+            var site = client.Get(SITE_URL)["websites"]
+                        .ToObject<IEnumerable<JObject>>()
+                        .FirstOrDefault(p => p.Value<string>("name").Equals(name, StringComparison.OrdinalIgnoreCase));
 
-            if (!(GetSites(client, out sites))) {
-                return null;
-            }
-
-            JObject siteRef =  sites.FirstOrDefault(s => {
-                string name = DynamicHelper.Value(s["name"]);
-
-                return name == null ? false : name.Equals(siteName, StringComparison.OrdinalIgnoreCase);
-            });
-
-            if(siteRef == null) {
-                return null;
-            }
-
-            string siteContent;
-            if(client.Get($"{Configuration.TEST_SERVER_URL}{ siteRef["_links"]["self"].Value<string>("href") }", out siteContent)) {
-
-                return JsonConvert.DeserializeObject<JObject>(siteContent);
-            }
-
-            return null;
+            return site == null ? null : Utils.FollowLink(client, site, "self");
         }
 
         public static void EnsureNoSite(HttpClient client, string siteName)
@@ -575,7 +574,7 @@ namespace Microsoft.IIS.Administration.Tests
         private static JObject GetCertificate(HttpClient client)
         {
             string result;
-            if (!client.Get(CertificatesUrl, out result)) {
+            if (!client.Get(CertificatesUrl + "?intended_purpose=server authentication", out result)) {
                 return null;
             }
 

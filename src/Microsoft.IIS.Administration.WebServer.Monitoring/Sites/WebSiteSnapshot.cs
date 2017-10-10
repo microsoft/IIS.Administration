@@ -24,13 +24,11 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public long CurrentConnections { get; set; }
 
-        public long TotalRequestsSec { get; set; }
+        public long RequestsSec { get; set; }
 
         public long TotalRequests { get; set; }
 
         public long ActiveRequests { get; set; }
-
-        public long RequestsSec { get; set; }
 
         public long FileCacheMemoryUsage { get; set; }
 

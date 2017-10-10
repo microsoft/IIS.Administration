@@ -51,15 +51,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             // requests
             if (fields.Exists("requests")) {
                 obj.requests = new {
-                    per_sec = snapshot.TotalRequestsSec,
-                    total = snapshot.TotalRequests,
-                };
-            }
-
-            //
-            // requests
-            if (fields.Exists("requests")) {
-                obj.requests = new {
                     active = snapshot.ActiveRequests,
                     per_sec = snapshot.RequestsSec,
                     total = snapshot.TotalRequests

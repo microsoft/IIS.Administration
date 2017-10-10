@@ -52,7 +52,7 @@ namespace Microsoft.IIS.Administration.Monitoring
             
             IEnumerable<IPerfCounter> counters = _cache.Get<IEnumerable<IPerfCounter>>(key);
 
-            if (counters == null) {
+            if (counters == null || counters.Count() == 0) {
 
                 counters = _counterFinder.GetCounters(category, instance, counterNames);
 

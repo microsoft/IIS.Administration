@@ -71,10 +71,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                             snapshot.TotalConnectionAttempts += counter.Value;
                             break;
                         case WebSiteCounterNames.TotalMethodRequestsSec:
-                            snapshot.TotalRequestsSec += counter.Value;
+                            snapshot.RequestsSec += counter.Value;
                             break;
                         case WebSiteCounterNames.TotalOtherMethodRequestsSec:
-                            snapshot.TotalRequestsSec += counter.Value;
+                            snapshot.RequestsSec += counter.Value;
                             break;
                         case WebSiteCounterNames.TotalMethodRequests:
                             snapshot.TotalRequests += counter.Value;
@@ -91,12 +91,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     switch (counter.Name) {
                         case WorkerProcessCounterNames.ActiveRequests:
                             snapshot.ActiveRequests += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.RequestsSec:
-                            snapshot.RequestsSec += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.TotalRequests:
-                            snapshot.TotalRequests += counter.Value;
                             break;
                         case WorkerProcessCounterNames.CurrentFileCacheMemoryUsage:
                             snapshot.FileCacheMemoryUsage += counter.Value;
