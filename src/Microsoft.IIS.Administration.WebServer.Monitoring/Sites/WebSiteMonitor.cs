@@ -55,6 +55,12 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                         case WebSiteCounterNames.BytesSentSec:
                             snapshot.BytesSentSec += counter.Value;
                             break;
+                        case WebSiteCounterNames.TotalBytesRecv:
+                            snapshot.TotalBytesRecv += counter.Value;
+                            break;
+                        case WebSiteCounterNames.TotalBytesSent:
+                            snapshot.TotalBytesSent += counter.Value;
+                            break;
                         case WebSiteCounterNames.ConnectionAttemptsSec:
                             snapshot.ConnectionAttemptsSec += counter.Value;
                             break;
@@ -81,7 +87,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(WorkerProcessCounterNames.Category)) {
+                else if (counter.CategoryName.Equals(WorkerProcessCounterNames.Category)) {
                     switch (counter.Name) {
                         case WorkerProcessCounterNames.ActiveRequests:
                             snapshot.ActiveRequests += counter.Value;
@@ -136,7 +142,17 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(ProcessCounterNames.Category)) {
+                else if (counter.CategoryName.Equals(MemoryCounterNames.Category)) {
+                    switch (counter.Name) {
+                        case MemoryCounterNames.AvailableBytes:
+                            snapshot.AvailableBytes += counter.Value;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                else if (counter.CategoryName.Equals(ProcessCounterNames.Category)) {
                     switch (counter.Name) {
                         case ProcessCounterNames.PercentCpu:
                             snapshot.PercentCpuTime += counter.Value;
@@ -227,6 +243,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                         WorkerProcessCounterNames.CounterNames));
                 }
             }
+
+            counters.AddRange(await _counterProvider.GetSingletonCounters(MemoryCounterNames.Category, MemoryCounterNames.CounterNames));
 
             return counters;
         }

@@ -22,6 +22,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public long PrivateWorkingSet { get; set; }
 
+        public long AvailableBytes { get; set; }
+
         public long WorkingSet { get; set; }
 
         public long IOReadSec { get; set; }

@@ -10,6 +10,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public long BytesRecvSec { get; set; }
 
+        public long TotalBytesSent { get; set; }
+
+        public long TotalBytesRecv { get; set; }
+
         public long TotalConnectionAttempts { get; set; }
 
         public long ConnectionAttemptsSec { get; set; }

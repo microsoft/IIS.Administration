@@ -26,6 +26,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
             long bytesSentSec = 0;
             long bytesRecvSec = 0;
+            long totalBytesSent = 0;
+            long totalBytesRecv = 0;
             long connectionAttemptsSec = 0;
             long totalConnectionAttempts = 0;
             long currentConnections = 0;
@@ -65,6 +67,12 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                         case WebSiteCounterNames.BytesSentSec:
                             bytesSentSec += counter.Value;
                             break;
+                        case WebSiteCounterNames.TotalBytesRecv:
+                            totalBytesRecv += counter.Value;
+                            break;
+                        case WebSiteCounterNames.TotalBytesSent:
+                            totalBytesSent += counter.Value;
+                            break;
                         case WebSiteCounterNames.ConnectionAttemptsSec:
                             connectionAttemptsSec += counter.Value;
                             break;
@@ -91,7 +99,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(WorkerProcessCounterNames.Category)) {
+                else if (counter.CategoryName.Equals(WorkerProcessCounterNames.Category)) {
                     switch (counter.Name) {
                         case WorkerProcessCounterNames.ActiveRequests:
                             activeRequests += counter.Value;
@@ -101,7 +109,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(ProcessCounterNames.Category)) {
+                else if (counter.CategoryName.Equals(ProcessCounterNames.Category)) {
                     switch (counter.Name) {
                         case ProcessCounterNames.PercentCpu:
                             percentCpuTime += counter.Value;
@@ -135,7 +143,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(MemoryCounterNames.Category)) {
+                else if (counter.CategoryName.Equals(MemoryCounterNames.Category)) {
                     switch (counter.Name) {
                         case MemoryCounterNames.AvailableBytes:
                             availableBytes += counter.Value;
@@ -145,7 +153,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(CacheCounterNames.Category)) {
+                else if (counter.CategoryName.Equals(CacheCounterNames.Category)) {
                     switch (counter.Name) {
                         case CacheCounterNames.CurrentFileCacheMemoryUsage:
                             fileCacheMemoryUsage += counter.Value;
@@ -194,6 +202,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
             snapshot.BytesRecvSec = bytesRecvSec;
             snapshot.BytesSentSec = bytesSentSec;
+            snapshot.TotalBytesSent = totalBytesSent;
+            snapshot.TotalBytesRecv = totalBytesRecv;
             snapshot.ConnectionAttemptsSec = connectionAttemptsSec;
             snapshot.TotalConnectionAttempts = totalConnectionAttempts;
             snapshot.CurrentConnections = currentConnections;

@@ -14,6 +14,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public long BytesSentSec { get; set; }
 
+        public long TotalBytesSent { get; set; }
+
+        public long TotalBytesRecv { get; set; }
+
         public long TotalConnectionAttempts { get; set; }
 
         public long ConnectionAttemptsSec { get; set; }
@@ -25,8 +29,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         public long TotalRequests { get; set; }
 
         public long ActiveRequests { get; set; }
-
-        public long Percent500 { get; set; }
 
         public long RequestsSec { get; set; }
 
@@ -69,6 +71,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         public long ThreadCount { get; set; }
 
         public long PrivateBytes { get; set; }
+
+        public long AvailableBytes { get; set; }
 
         public long HandleCount { get; set; }
 

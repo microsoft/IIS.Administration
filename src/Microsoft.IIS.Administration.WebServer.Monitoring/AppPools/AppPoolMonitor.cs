@@ -99,7 +99,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
 
-                if (counter.CategoryName.Equals(ProcessCounterNames.Category)) {
+                else if (counter.CategoryName.Equals(ProcessCounterNames.Category)) {
                     switch (counter.Name) {
                         case ProcessCounterNames.PercentCpu:
                             snapshot.PercentCpuTime += counter.Value;
@@ -127,6 +127,16 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                             break;
                         case ProcessCounterNames.PageFaultsSec:
                             snapshot.PageFaultsSec += counter.Value;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                else if (counter.CategoryName.Equals(MemoryCounterNames.Category)) {
+                    switch (counter.Name) {
+                        case MemoryCounterNames.AvailableBytes:
+                            snapshot.AvailableBytes += counter.Value;
                             break;
                         default:
                             break;
@@ -176,6 +186,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     WorkerProcessCounterNames.GetInstanceName(wp.ProcessId, pool.Name),
                     WorkerProcessCounterNames.CounterNames));
             }
+
+            poolCounters.AddRange( await _counterProvider.GetSingletonCounters(MemoryCounterNames.Category, MemoryCounterNames.CounterNames));
 
             return poolCounters;
         }

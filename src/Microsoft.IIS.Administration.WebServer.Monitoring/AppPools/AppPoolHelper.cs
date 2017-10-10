@@ -43,7 +43,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 obj.memory = new {
                     handles = snapshot.HandleCount,
                     private_working_set = snapshot.PrivateWorkingSet,
-                    private_bytes = snapshot.PrivateBytes
+                    private_bytes = snapshot.PrivateBytes,
+                    available = snapshot.AvailableBytes
                 };
             }
 

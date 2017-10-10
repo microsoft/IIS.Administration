@@ -85,6 +85,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         public const string ServiceUptime = "Service Uptime";
         public const string BytesRecvSec = "Bytes Received/sec";
         public const string BytesSentSec = "Bytes Sent/sec";
+        public const string TotalBytesSent = "Total Bytes Sent";
+        public const string TotalBytesRecv = "Total Bytes Received";
         public const string ConnectionAttemptsSec = "Connection Attempts/sec";
         public const string CurrentConnections = "Current Connections";
         public const string TotalConnectionAttempts = "Total Connection Attempts (all instances)";
@@ -97,6 +99,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             ServiceUptime,
             BytesRecvSec,
             BytesSentSec,
+            TotalBytesRecv,
+            TotalBytesSent,
             ConnectionAttemptsSec,
             CurrentConnections,
             TotalConnectionAttempts,

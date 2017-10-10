@@ -40,6 +40,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     bytes_sent_sec = snapshot.BytesSentSec,
                     bytes_recv_sec = snapshot.BytesRecvSec,
                     connection_attempts_sec = snapshot.ConnectionAttemptsSec,
+                    total_bytes_sent = snapshot.TotalBytesSent,
+                    total_bytes_recv = snapshot.TotalBytesRecv,
                     total_connection_attempts = snapshot.TotalConnectionAttempts,
                     current_connections = snapshot.CurrentConnections,
                 };
@@ -60,8 +62,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 obj.requests = new {
                     active = snapshot.ActiveRequests,
                     per_sec = snapshot.RequestsSec,
-                    total = snapshot.TotalRequests,
-                    percent_500_sec = snapshot.Percent500
+                    total = snapshot.TotalRequests
                 };
             }
 
@@ -71,7 +72,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 obj.memory = new {
                     handles = snapshot.HandleCount,
                     private_working_set = snapshot.PrivateWorkingSet,
-                    private_bytes = snapshot.PrivateBytes
+                    private_bytes = snapshot.PrivateBytes,
+                    available = snapshot.AvailableBytes
                 };
             }
 
@@ -80,7 +82,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             if (fields.Exists("cpu")) {
                 obj.cpu = new {
                     percent_usage = snapshot.PercentCpuTime,
-                    threads = snapshot.ThreadCount
+                    threads = snapshot.ThreadCount,
+                    processes = snapshot.ProcessCount
                 };
             }
 
