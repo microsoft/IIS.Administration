@@ -21,7 +21,7 @@ namespace Microsoft.IIS.Administration.WebServer {
         [HttpGet]
         [RequireWebServer]
         public object Get(string id) {
-            if(id != WebServerId.CreateFromPath(ManagementUnit.Current.ApplicationHostConfigPath).Uuid) {
+            if(id != WebServerId.Create().Uuid) {
                 return NotFound();
             }
 
