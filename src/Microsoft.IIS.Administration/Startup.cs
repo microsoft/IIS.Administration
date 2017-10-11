@@ -82,6 +82,8 @@ namespace Microsoft.IIS.Administration {
             // Authorization
             services.AddAuthorizationPolicy();
 
+            services.AddConfigurationWriter(_hostingEnv);
+
             //
             // Antiforgery
             services.TryAddSingleton<IAntiforgeryTokenStore, AntiForgeryTokenStore>();

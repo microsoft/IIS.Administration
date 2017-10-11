@@ -27,7 +27,7 @@ after_build:
     Push-Location $securityScript.Directory;
     .\security.ps1 Add-SelfRights -Path $appsettings.FullName;
     Pop-Location;
-    [System.IO.File]::ReadAllText("$env:iis_admin_solution_dir\test\appsettings.test.json").replace("IIS Administrators", [System.Security.Principal.WindowsIdentity]::GetCurrent().Name.Replace('\', '\\')) | Out-File $appsettings.FullName;
+    [System.IO.File]::ReadAllText("$env:iis_admin_solution_dir\test\appsettings.test.json").replace("`"Administrator`"", "`"$([System.Security.Principal.WindowsIdentity]::GetCurrent().Name.Replace('\', '\\'))`"") | Out-File $appsettings.FullName;
     Restart-Service "Microsoft IIS Administration";
 test_script:
 - ps: dotnet test "$env:iis_admin_solution_dir\test\Microsoft.IIS.Administration.Tests\Microsoft.IIS.Administration.Tests.csproj"

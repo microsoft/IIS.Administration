@@ -3,7 +3,11 @@
 
 
 namespace Microsoft.IIS.Administration {
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.IIS.Administration.Core;
     using Microsoft.IIS.Administration.Core.Utils;
     using Newtonsoft.Json;
     using Serilog;
@@ -12,13 +16,15 @@ namespace Microsoft.IIS.Administration {
 
 
     sealed class ConfigurationHelper {
+        public const string APPSETTINGS_NAME = "appsettings.json";
+
         private string _basePath;
         private string[] _args;
 
         public ConfigurationHelper(string[] args) {
             _args = args;
 
-            RootPath = string.Equals(Environment.GetEnvironmentVariable("USE_CURRENT_DIRECTORY_AS_ROOT"), "true", StringComparison.OrdinalIgnoreCase) ?
+            RootPath = string.Equals(System.Environment.GetEnvironmentVariable("USE_CURRENT_DIRECTORY_AS_ROOT"), "true", StringComparison.OrdinalIgnoreCase) ?
                        Directory.GetCurrentDirectory() : Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
 
             _basePath = Path.Combine(RootPath, "config");
@@ -39,14 +45,14 @@ namespace Microsoft.IIS.Administration {
             // Configure builder
             return new ConfigurationBuilder()
                             .SetBasePath(_basePath)
-                            .AddJsonFile("appsettings.json")
+                            .AddJsonFile(APPSETTINGS_NAME, false, true)
                             .AddEnvironmentVariables()
                             .AddCommandLine(_args)
                             .Build();
         }
 
         private void TransformAppSettings() {
-            string filePath = Path.Combine(_basePath, "appsettings.json");
+            string filePath = Path.Combine(_basePath, APPSETTINGS_NAME);
 
             try {
                 dynamic configObject = JsonConvert.DeserializeObject(File.ReadAllText(filePath));
@@ -65,5 +71,14 @@ namespace Microsoft.IIS.Administration {
         }
 
 
+    }
+
+    static class ConfigurationExtensions
+    {
+        public static void AddConfigurationWriter(this IServiceCollection services, IHostingEnvironment hostingEnvironment)
+        {
+            var writer = new ConfigurationWriter(hostingEnvironment.GetConfigPath(ConfigurationHelper.APPSETTINGS_NAME));
+            services.TryAddSingleton<IConfigurationWriter>(writer);
+        }
     }
 }
