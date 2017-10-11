@@ -57,6 +57,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             //
+            // version
+            if (fields.Exists("version")) {
+                obj.version = new UrlRewriteFeatureManager().GetVersion()?.ToString();
+            }
+
+            //
             // website
             if (fields.Exists("website")) {
                 obj.website = SiteHelper.ToJsonModelRef(site);

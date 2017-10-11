@@ -10,7 +10,6 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Core.Http;
     using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
-    using System;
     using System.Net;
     using System.Threading.Tasks;
     using Web.Administration;
