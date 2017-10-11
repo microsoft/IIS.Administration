@@ -27,6 +27,19 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
         }
 
+        public Version GetVersion()
+        {
+            Version version = null;
+
+            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(REGKEY_URL_REWRITE_INSTALLED, false)) {
+                if (key != null) {
+                    version = Version.Parse((string)key.GetValue("Version"));
+                }
+            }
+
+            return version;
+        }
+
         public async Task Install()
         {
             string tempPath = Path.GetTempPath() + Guid.NewGuid().ToString();
