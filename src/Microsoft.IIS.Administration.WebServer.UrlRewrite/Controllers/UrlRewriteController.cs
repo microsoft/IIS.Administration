@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System.Threading.Tasks;
     using Web.Administration;
 
+    [RequireWebServer]
     public class UrlRewriteController : ApiBaseController
     {
         [HttpGet]

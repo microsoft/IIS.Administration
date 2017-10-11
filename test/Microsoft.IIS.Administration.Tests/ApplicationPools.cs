@@ -211,7 +211,36 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        public static bool CreateAppPool(HttpClient client, string testPool, out string id)
+        public static JObject CreateAppPool(HttpClient client, string name)
+        {
+            var pool = new {
+                name = name
+            };
+
+            return client.Post(APP_POOLS_URL, pool);
+        }
+
+        public static JObject GetAppPool(HttpClient client, string name)
+        {
+            var pool =  client.Get(APP_POOLS_URL)["app_pools"]
+                        .ToObject<IEnumerable<JObject>>()
+                        .FirstOrDefault(p => p.Value<string>("name").Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            return pool == null ? null : Utils.FollowLink(client, pool, "self");
+        }
+
+        public static void EnsureNoPool(HttpClient client, string name)
+        {
+            JObject pool = GetAppPool(client, name);
+
+            if (pool == null) {
+                return;
+            }
+
+            client.Delete(Utils.Self(pool));
+        }
+
+        private static bool CreateAppPool(HttpClient client, string testPool, out string id)
         {
             id = null;
 
@@ -261,44 +290,6 @@ namespace Microsoft.IIS.Administration.Tests
             }
 
             return true;
-        }
-
-        public static JObject GetAppPool(HttpClient client, string poolName)
-        {
-            List<JObject> pools;
-
-            if (!(GetAppPools(client, out pools))) {
-                return null;
-            }
-
-            JObject poolRef = pools.FirstOrDefault(s => {
-                string name = DynamicHelper.Value(s["name"]);
-
-                return name == null ? false : name.Equals(poolName, StringComparison.OrdinalIgnoreCase);
-            });
-
-            if (poolRef == null) {
-                return null;
-            }
-
-            string poolContent;
-            if (client.Get($"{Configuration.TEST_SERVER_URL}{ poolRef["_links"]["self"].Value<string>("href") }", out poolContent)) {
-
-                return JsonConvert.DeserializeObject<JObject>(poolContent);
-            }
-
-            return null;
-        }
-
-        private static void EnsureNoPool(HttpClient client, string poolName)
-        {
-            JObject pool = GetAppPool(client, poolName);
-
-            if(pool == null) {
-                return;
-            }
-
-            DeleteAppPool(client, Utils.Self(pool));
         }
 
         private void WaitForStatus(HttpClient client, JObject pool)

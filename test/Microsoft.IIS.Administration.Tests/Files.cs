@@ -705,6 +705,8 @@ namespace Microsoft.IIS.Administration.Tests
                         File.Create(Path.Combine(physicalPath, file)).Dispose();
                     }
 
+                    int fileCount = Directory.GetFiles(physicalPath).Count() + Directory.GetDirectories(physicalPath).Count();
+
                     JObject folder = Utils.FollowLink(client, site, "files");
 
                     HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, Utils.GetLink(folder, "files"));
@@ -713,7 +715,7 @@ namespace Microsoft.IIS.Administration.Tests
                     var res = client.SendAsync(req).Result;
 
                     Assert.True(res.Content.Headers.Contains("Content-Range"));
-                    Assert.True(res.Content.Headers.GetValues("Content-Range").First().Equals("2-5/8"));
+                    Assert.True(res.Content.Headers.GetValues("Content-Range").First().Equals($"2-5/{fileCount}"));
 
                     var children = JObject.Parse(res.Content.ReadAsStringAsync().Result)["files"].ToObject<IEnumerable<JObject>>();
                     Assert.True(children.Count() == 4);

@@ -90,6 +90,13 @@ namespace Microsoft.IIS.Administration
             Release();
         }
 
+        public void StopModules()
+        {
+            foreach (IModule module in _modules) {
+                module.Stop();
+            }
+        }
+
 
         #region IAdminHost method implementations
 

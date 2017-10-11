@@ -33,6 +33,7 @@
     <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.IPRestrictions\Microsoft.IIS.Administration.WebServer.IPRestrictions.csproj" />
     <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Logging\Microsoft.IIS.Administration.WebServer.Logging.csproj" />
     <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Modules\Microsoft.IIS.Administration.WebServer.Modules.csproj" />
+    <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Monitoring\Microsoft.IIS.Administration.WebServer.Monitoring.csproj" />
     <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.RequestFiltering\Microsoft.IIS.Administration.WebServer.RequestFiltering.csproj" />
     <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.RequestMonitor\Microsoft.IIS.Administration.WebServer.RequestMonitor.csproj" />
     <ProjectReference Include="..\..\Microsoft.IIS.Administration.WebServer.Scm\Microsoft.IIS.Administration.WebServer.Scm.csproj" />
