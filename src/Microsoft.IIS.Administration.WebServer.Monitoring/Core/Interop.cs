@@ -9,6 +9,8 @@ namespace Microsoft.IIS.Administration.Monitoring
 
     public abstract class SafeHandleZeroOrMinusOneIsInvalid : SafeHandle
     {
+        private static readonly IntPtr InvalidPointer = new IntPtr(-1);
+
         public SafeHandleZeroOrMinusOneIsInvalid(IntPtr invalidHandleValue, bool ownsHandle) : base(invalidHandleValue, ownsHandle)
         {
         }
@@ -19,7 +21,7 @@ namespace Microsoft.IIS.Administration.Monitoring
 
         public override bool IsInvalid {
             get {
-                return handle == IntPtr.Zero || handle == new IntPtr(-1);
+                return handle == IntPtr.Zero || handle == InvalidPointer;
             }
         }
     }
@@ -76,17 +78,6 @@ namespace Microsoft.IIS.Administration.Monitoring
         public IntPtr WideStringValue;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    struct PDH_COUNTER_INFO
-    {
-        public UInt32 dwLength;
-        public UInt32 dwType;
-        public UInt32 CVersion;
-        public UInt32 CStatus;
-        public Int64 lScale;
-        public Int64 lDefaultScale;
-    }
-
     [Flags()]
     public enum PdhFormat : uint
     {
@@ -107,13 +98,6 @@ namespace Microsoft.IIS.Administration.Monitoring
         NONE = 0,
         PDH_NOEXPANDCOUNTERS  = 1,
         PDH_NOEXPANDINSTANCES  = 2
-    }
-
-    [Flags()]
-    public enum PerfCounterAttributes // winperf.h
-    {
-        PERF_TYPE_NUMBER = 0x00000000,
-        PERF_TYPE_COUNTER = 0x00000400
     }
 
     public class Pdh
@@ -190,12 +174,5 @@ namespace Microsoft.IIS.Administration.Monitoring
             IntPtr mszExpandedPathList,
             ref long pcchPathListLength,
             PdhExpansionFlags dwFlags);
-
-        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern UInt32 PdhGetCounterInfo(
-            PdhCounterHandle hCounter,
-            bool bRetrieveExplainText,
-            ref int pdwBufferSize,
-            IntPtr lpBuffer);
     }
 }

@@ -109,7 +109,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             TotalMethodRequests,
             TotalOtherMethodRequests
         };
-
     }
 
     static class MemoryCounterNames
@@ -120,7 +119,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         public static readonly string[] CounterNames = new string[] {
             AvailableBytes
         };
-
     }
 
     static class CacheCounterNames
@@ -155,6 +153,5 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             UriCacheHits,
             UriCacheMisses
         };
-
     }
 }
