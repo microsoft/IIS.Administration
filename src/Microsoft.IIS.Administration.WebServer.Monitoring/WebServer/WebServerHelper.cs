@@ -23,7 +23,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
             //
             // id
-            obj.id = WebServerId.CreateFromPath(ManagementUnit.Current.ApplicationHostConfigPath).Uuid;
+            obj.id = WebServerId.Create().Uuid;
 
             //
             // network
