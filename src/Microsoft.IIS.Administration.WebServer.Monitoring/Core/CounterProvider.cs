@@ -56,11 +56,21 @@ namespace Microsoft.IIS.Administration.Monitoring
 
                 counters = _counterFinder.GetCounters(category, instance, counterNames);
 
-                monitor.AddCounters(counters);
+                if (counters.Count() > 0) {
 
-                _cache.Set(key, counters, new MemoryCacheEntryOptions() {
-                    SlidingExpiration = CacheExpiration
-                }.RegisterPostEvictionCallback(PostEvictionCallback));
+                    bool didCreate = _concurrentCacheHelper.GetOrCreate(
+                        key,
+                        () => counters,
+                        new MemoryCacheEntryOptions() {
+                            SlidingExpiration = CacheExpiration
+                        }.RegisterPostEvictionCallback(PostEvictionCallback),
+                        out IEnumerable<IPerfCounter> entry
+                    );
+
+                    if (didCreate) {
+                        monitor.AddCounters(entry);
+                    }
+                }
             }
 
             try {
@@ -103,11 +113,13 @@ namespace Microsoft.IIS.Administration.Monitoring
 
                 IEnumerable<IPerfCounter> counters = _counterFinder.GetSingletonCounters(category, counterNames);
 
-                monitor = new CounterMonitor(counters);
-
-                _cache.Set(category, monitor, new MemoryCacheEntryOptions() {
-                    SlidingExpiration = CacheExpiration
-                }.RegisterPostEvictionCallback(PostEvictionCallback));
+                monitor = _concurrentCacheHelper.GetOrCreate(
+                    category,
+                    () => new CounterMonitor(counters),
+                    new MemoryCacheEntryOptions() {
+                        SlidingExpiration = CacheExpiration
+                    }.RegisterPostEvictionCallback(PostEvictionCallback)
+                );
             }
 
             try {
