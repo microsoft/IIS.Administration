@@ -1,3 +1,4 @@
+
 Microsoft IIS Administration API
 --------------------------------
 
@@ -22,12 +23,14 @@ There is a blog post to get up and running on Nano Server located at https://blo
 * (SolutionRoot)\scripts\publish\bin\setup\setup.ps1 Install -Verbose
 
 ### Develop and Debug in Visual studio 2017: ###
-* Fork or clone this project
+* Clone this project
 * Load the project in visual studio
 * Try restoring all the NuGet packages
 * Run PowerShell as an Administrator
 * Run Configure-DevEnvironment.ps1 script in the scripts dir
 * From the visual studio run profile menu select option Microsoft.IIS.Administration and run the application.
+* If you are not able to browse the site or your getting generic brwser error, most like SSL certificate is not configured for that. IIS   express installs SSL certificates on   port 44300-44399. Try changing the port to one of these in appsettings.json 
+  **ex: "urls":"https://*:44326"**
 
 ### Using the new API ###
 1. Navigate to https://manage.iis.net
