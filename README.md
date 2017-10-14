@@ -21,6 +21,13 @@ There is a blog post to get up and running on Nano Server located at https://blo
 * (SolutionRoot)\scripts\publish\publish.ps1
 * (SolutionRoot)\scripts\publish\bin\setup\setup.ps1 Install -Verbose
 
+### Develop and Debug in Visual studio 2017: ###
+* Fork or clone this project
+* Load the project in visual studio
+* Try restoring all the NuGet packages
+* Run PowerShell as an Administrator
+* Run Configure-DevEnvironment.ps1 script in the scripts dir
+
 ### Using the new API ###
 1. Navigate to https://manage.iis.net
 2. Click 'Get Access Token'
