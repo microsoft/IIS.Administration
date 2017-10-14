@@ -27,6 +27,7 @@ There is a blog post to get up and running on Nano Server located at https://blo
 * Try restoring all the NuGet packages
 * Run PowerShell as an Administrator
 * Run Configure-DevEnvironment.ps1 script in the scripts dir
+* From the visual studio run profile menu select option Microsoft.IIS.Administration and run the application.
 
 ### Using the new API ###
 1. Navigate to https://manage.iis.net
