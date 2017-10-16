@@ -180,7 +180,7 @@ function Create-SelfSignedCertificate($_subject, $_friendlyName, $_alternativeNa
     $cert.InitializeFromPrivateKey(2, $key, "")
     $cert.Subject = $subjectDn
     $cert.Issuer = $issuerDn
-    $cert.NotBefore = (get-date).AddMinutes(-10)
+    $cert.NotBefore = (get-date).ToUniversalTime().AddMinutes(-10)
     $cert.NotAfter = $cert.NotBefore.AddYears(2)
     #Use Sha256
     $hashAlgorithm = New-Object -ComObject X509Enrollment.CObjectId
