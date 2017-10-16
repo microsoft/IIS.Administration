@@ -154,4 +154,14 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             UriCacheMisses
         };
     }
+
+    static class ProcessorCounterNames
+    {
+        public const string Category = "Processor";
+        public const string IdleTime = "% Idle Time";
+
+        public static readonly string[] CounterNames = new string[] {
+            IdleTime
+        };
+    }
 }

@@ -42,9 +42,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             if (fields.Exists("memory")) {
                 obj.memory = new {
                     handles = snapshot.HandleCount,
-                    private_working_set = snapshot.PrivateWorkingSet,
                     private_bytes = snapshot.PrivateBytes,
-                    available = snapshot.AvailableBytes
+                    private_working_set = snapshot.PrivateWorkingSet,
+                    system_in_use = snapshot.SystemMemoryInUse,
+                    installed = snapshot.TotalInstalledMemory
                 };
             }
 

@@ -30,6 +30,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public long PercentCpuTime { get; set; }
 
+        public long SystemPercentCpuTime { get; set; }
+
         public long HandleCount { get; set; }
 
         public long PrivateWorkingSet { get; set; }
@@ -48,7 +50,11 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public long FileCacheMisses { get; set; }
 
-        public long AvailableBytes { get; set; }
+        public long AvailableMemory { get; set; }
+
+        public long SystemMemoryInUse { get; set; }
+
+        public long TotalInstalledMemory { get; set; }
 
         public long FileCacheMemoryUsage { get; set; }
 

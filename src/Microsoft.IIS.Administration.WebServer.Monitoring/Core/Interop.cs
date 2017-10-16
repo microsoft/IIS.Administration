@@ -25,6 +25,7 @@ namespace Microsoft.IIS.Administration.Monitoring
             }
         }
     }
+
     public class PdhLogHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
         public PdhLogHandle() : base(true)
@@ -100,7 +101,7 @@ namespace Microsoft.IIS.Administration.Monitoring
         PDH_NOEXPANDINSTANCES  = 2
     }
 
-    public class Pdh
+    class Pdh
     {
         private const string PerformanceCounterLib = "pdh.dll";
 
