@@ -20,6 +20,15 @@ namespace Microsoft.IIS.Administration.Monitoring
 
         public T GetOrCreate<T>(string key, Func<T> factory, MemoryCacheEntryOptions options)
         {
+            GetOrCreate(key, factory, options, out T t);
+
+            return t;
+        }
+
+        public bool GetOrCreate<T>(string key, Func<T> factory, MemoryCacheEntryOptions options, out T t)
+        {
+            bool created = false;
+
             _lock.EnterUpgradeableReadLock();
 
             T obj = default(T);
@@ -35,7 +44,10 @@ namespace Microsoft.IIS.Administration.Monitoring
                         obj = _cache.Get<T>(key);
 
                         if (obj == null) {
+
                             obj = factory();
+
+                            created = true;
                         }
 
                         _cache.Set(key, obj, options);
@@ -49,7 +61,9 @@ namespace Microsoft.IIS.Administration.Monitoring
                 _lock.ExitUpgradeableReadLock();
             }
 
-            return obj;
+            t = obj;
+
+            return created;
         }
 
         public void Dispose()

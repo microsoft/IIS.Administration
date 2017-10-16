@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
     class ProcessUtil
     {
-                public static IEnumerable<int> GetWebserverProcessIds()
+        public static IEnumerable<int> GetWebserverProcessIds()
         {
             List<int> ids = new List<int>();
             Dictionary<int, int> map = GetProcessMap();
@@ -73,7 +73,6 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             var instances = counterFinder.GetInstances(ProcessCounterNames.Category).Where(instance => instance.StartsWith(processName, StringComparison.OrdinalIgnoreCase));
 
             List<IPerfCounter> counters = new List<IPerfCounter>();
-
 
             try {
                 foreach (string instance in instances) {

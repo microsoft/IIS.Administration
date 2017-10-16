@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 {
     using Microsoft.IIS.Administration.Monitoring;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -13,6 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     {
         private IEnumerable<int> _webserverProcesses;
         private CounterProvider _provider;
+        private Dictionary<int, string> _processCounterMap;
 
         public WebServerMonitor(CounterProvider provider)
         {
@@ -275,11 +277,46 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
             counters.AddRange(await _provider.GetSingletonCounters(CacheCounterNames.Category, CacheCounterNames.CounterNames));
             
-            foreach (string instance in await ProcessUtil.GetProcessCounterInstances(_webserverProcesses)) {
-                counters.AddRange(await _provider.GetCounters(ProcessCounterNames.Category, instance, ProcessCounterNames.CounterNames));
+            if (_processCounterMap == null) {
+                _processCounterMap = await ProcessUtil.GetProcessCounterMap(_provider, "w3wp");
+            }
+
+            foreach (int processId in _webserverProcesses) {
+
+                string instanceName = await TryGetProcessCounterInstance(processId);
+
+                if (instanceName != null) {
+                    counters.AddRange(await _provider.GetCounters(ProcessCounterNames.Category, instanceName, ProcessCounterNames.CounterNames));
+                }
             }
 
             return counters;
+        }
+
+        private async Task<string> TryGetProcessCounterInstance(int id)
+        {
+            if (!_processCounterMap.TryGetValue(id, out string instanceName)) {
+
+                Process p = Process.GetProcessById(id);
+                
+                if (p != null) {
+
+                    var map = await ProcessUtil.GetProcessCounterMap(_provider, p.ProcessName);
+
+                    foreach (int key in map.Keys) {
+                        _processCounterMap[key] = map[key];
+                    }
+
+                    if (_processCounterMap.TryGetValue(id, out instanceName)) {
+                        return instanceName;
+                    }
+                }
+            }
+            else {
+                return instanceName;
+            }
+
+            return null;
         }
     }
 }
