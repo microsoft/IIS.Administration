@@ -4,6 +4,7 @@
 
 namespace Microsoft.IIS.Administration.Tests
 {
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -13,11 +14,19 @@ namespace Microsoft.IIS.Administration.Tests
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class Monitoring
     {
         private const string SiteName = "ServerMonitorTestSite";
         private static readonly string SitePath = Path.Combine(Configuration.TEST_ROOT_PATH, SiteName);
+
+        private ITestOutputHelper _output;
+
+        public Monitoring(ITestOutputHelper output)
+        {
+            _output = output;
+        }
 
         [Fact]
         public async Task WebServer()
@@ -36,17 +45,25 @@ namespace Microsoft.IIS.Administration.Tests
                         int tries = 0;
                         JObject snapshot = null;
 
-                        while (tries < 7) {
+                        while (tries < 10) {
 
                             snapshot = serverMonitor.Current;
 
-                            if (snapshot != null && snapshot["requests"].Value<long>("per_sec") > 0) {
+                            _output.WriteLine("Waiting for webserver to track requests per sec and processes");
+                            _output.WriteLine(snapshot == null ? "Snapshot is null" : snapshot.ToString(Formatting.Indented));
+
+                            if (snapshot != null
+                                && snapshot["requests"].Value<long>("per_sec") > 0
+                                && snapshot["cpu"].Value<long>("threads") > 0) {
                                 break;
                             }
 
                             await Task.Delay(1000);
                             tries++;
                         }
+
+                        _output.WriteLine("Validating webserver monitoring data");
+                        _output.WriteLine(snapshot.ToString(Formatting.Indented));
 
                         Assert.True(snapshot["requests"].Value<long>("per_sec") > 0);
                         Assert.True(snapshot["network"].Value<long>("total_bytes_sent") > 0);
@@ -85,11 +102,14 @@ namespace Microsoft.IIS.Administration.Tests
                     using (var serverMonitor = new ServerMonitor())
                     using (var sc = new ServiceController("W3SVC")) {
 
-                        await Task.Delay(2000);
+                        JObject snapshot = await serverMonitor.GetSnapshot(5000);
 
-                        JObject snapshot = serverMonitor.Current;
+                        _output.WriteLine("Validating server is running worker processes");
+                        _output.WriteLine(snapshot.ToString(Formatting.Indented));
 
                         Assert.True(snapshot["cpu"].Value<long>("processes") > 0);
+
+                        _output.WriteLine("Restarting IIS");
 
                         sc.Stop();
                         DateTime stopTime = DateTime.Now;
@@ -108,6 +128,9 @@ namespace Microsoft.IIS.Administration.Tests
                         while (tries < 5) {
 
                             snapshot = serverMonitor.Current;
+
+                            _output.WriteLine("checking for requests / sec counter increase after startup");
+                            _output.WriteLine(snapshot.ToString(Formatting.Indented));
 
                             if (snapshot["requests"].Value<long>("per_sec") > 0) {
                                 break;
@@ -179,6 +202,9 @@ namespace Microsoft.IIS.Administration.Tests
                 var start = DateTime.Now;
                 var timeout = TimeSpan.FromSeconds(20);
 
+                _output.WriteLine($"Created {numberSites} sites");
+                _output.WriteLine($"Waiting for all site processes to start");
+
                 while (DateTime.Now - start < timeout && serverMonitor.Current["cpu"].Value<long>("processes") < numberSites) {
                     await Task.Delay(1000);
                 }
@@ -188,6 +214,9 @@ namespace Microsoft.IIS.Administration.Tests
                 }
 
                 JObject snapshot = serverMonitor.Current;
+
+                _output.WriteLine("Validating webserver monitoring data");
+                _output.WriteLine(snapshot.ToString(Formatting.Indented));
 
                 Assert.True(snapshot["network"].Value<long>("total_bytes_sent") > 0);
                 Assert.True(snapshot["network"].Value<long>("total_bytes_recv") > 0);
@@ -313,6 +342,9 @@ namespace Microsoft.IIS.Administration.Tests
 
                         JObject snapshot = serverMonitor.Current;
 
+                        _output.WriteLine("Validing monitoring data for application pool");
+                        _output.WriteLine(snapshot.ToString(Formatting.Indented));
+
                         Assert.True(snapshot["requests"].Value<long>("total") > 0);
                         Assert.True(snapshot["memory"].Value<long>("private_working_set") > 0);
                         Assert.True(snapshot["memory"].Value<long>("system_in_use") > 0);
@@ -333,6 +365,9 @@ namespace Microsoft.IIS.Administration.Tests
                             await Task.Delay(1000);
                             tries++;
                         }
+
+                        _output.WriteLine("Validing monitoring data for application pool");
+                        _output.WriteLine(snapshot.ToString(Formatting.Indented));
 
                         Assert.True(snapshot["requests"].Value<long>("per_sec") > 0);
 
@@ -384,6 +419,22 @@ namespace Microsoft.IIS.Administration.Tests
                     await Task.Delay(1000);
                 }
             }
+        }
+
+        public async Task<JObject> GetSnapshot(int timeout)
+        {
+            var end = DateTime.UtcNow + TimeSpan.FromMilliseconds(timeout);
+
+            while (DateTime.UtcNow < end) {
+
+                if (Current != null) {
+                    return Current;
+                }
+
+                await Task.Delay(1000);
+            }
+
+            throw new Exception("Timed out getting server monitor snapshot.");
         }
 
         public void Dispose()
