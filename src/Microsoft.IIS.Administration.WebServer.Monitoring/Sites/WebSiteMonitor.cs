@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 {
     using Microsoft.IIS.Administration.Monitoring;
     using Microsoft.Web.Administration;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -13,6 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     class WebSiteMonitor : IWebSiteMonitor
     {
         private CounterProvider _counterProvider;
+        private static readonly int _processorCount = Environment.ProcessorCount;
         private Dictionary<int, string> _processCounterInstances = null;
         private Dictionary<string, int> _siteProcessCounts = new Dictionary<string, int>();
 
@@ -42,6 +44,8 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             snapshot.Name = site.Name;
 
             var counters = await Query(site);
+
+            long percentCpu = 0;
 
             foreach (var counter in counters) {
                 if (counter.CategoryName.Equals(WebSiteCounterNames.Category)) {
@@ -139,7 +143,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 else if (counter.CategoryName.Equals(MemoryCounterNames.Category)) {
                     switch (counter.Name) {
                         case MemoryCounterNames.AvailableBytes:
-                            snapshot.AvailableBytes += counter.Value;
+                            snapshot.AvailableMemory += counter.Value;
                             break;
                         default:
                             break;
@@ -149,7 +153,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 else if (counter.CategoryName.Equals(ProcessCounterNames.Category)) {
                     switch (counter.Name) {
                         case ProcessCounterNames.PercentCpu:
-                            snapshot.PercentCpuTime += counter.Value;
+                            percentCpu += counter.Value;
                             break;
                         case ProcessCounterNames.HandleCount:
                             snapshot.HandleCount += counter.Value;
@@ -180,6 +184,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                     }
                 }
             }
+
+            snapshot.PercentCpuTime = percentCpu / _processorCount;
+            snapshot.TotalInstalledMemory = MemoryData.TotalInstalledMemory;
+            snapshot.SystemMemoryInUse = MemoryData.TotalInstalledMemory - snapshot.AvailableMemory;
 
             if (_siteProcessCounts.TryGetValue(site.Name, out int count)) {
                 snapshot.ProcessCount = count;

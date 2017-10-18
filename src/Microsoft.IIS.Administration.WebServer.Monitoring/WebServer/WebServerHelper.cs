@@ -54,9 +54,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             if (fields.Exists("memory")) {
                 obj.memory = new {
                     handles = snapshot.HandleCount,
-                    private_working_set = snapshot.PrivateWorkingSet,
                     private_bytes = snapshot.PrivateBytes,
-                    available = snapshot.AvailableBytes
+                    private_working_set = snapshot.PrivateWorkingSet,
+                    system_in_use = snapshot.SystemMemoryInUse,
+                    installed = snapshot.TotalInstalledMemory
                 };
             }
 
@@ -64,9 +65,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             // cpu
             if (fields.Exists("cpu")) {
                 obj.cpu = new {
-                    percent_usage = snapshot.PercentCpuTime,
                     threads = snapshot.ThreadCount,
-                    processes = snapshot.ProcessCount
+                    processes = snapshot.ProcessCount,
+                    percent_usage = snapshot.PercentCpuTime,
+                    system_percent_usage = snapshot.SystemPercentCpuTime
                 };
             }
 

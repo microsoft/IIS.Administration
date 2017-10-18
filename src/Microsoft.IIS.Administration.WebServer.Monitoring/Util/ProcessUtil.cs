@@ -179,10 +179,31 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         internal string szExeFile;
     }
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    class MEMORYSTATUSEX
+    {
+        public uint dwLength;
+        public uint dwMemoryLoad;
+        public ulong ullTotalPhys;
+        public ulong ullAvailPhys;
+        public ulong ullTotalPageFile;
+        public ulong ullAvailPageFile;
+        public ulong ullTotalVirtual;
+        public ulong ullAvailVirtual;
+        public ulong ullAvailExtendedVirtual;
+        public MEMORYSTATUSEX()
+        {
+            this.dwLength = (uint)Marshal.SizeOf<MEMORYSTATUSEX>();
+        }
+    }
+
     class NativeMethods
     {
         private const string ProcessLib = "kernel32";
         public static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+
+        [DllImport(ProcessLib, SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);
 
         [DllImport(ProcessLib, SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern IntPtr CreateToolhelp32Snapshot([In]UInt32 dwFlags, [In]UInt32 th32ProcessID);

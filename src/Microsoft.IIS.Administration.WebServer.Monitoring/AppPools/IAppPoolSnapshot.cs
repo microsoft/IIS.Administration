@@ -22,7 +22,11 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         long PrivateWorkingSet { get; set; }
 
-        long AvailableBytes { get; set; }
+        long AvailableMemory { get; set; }
+
+        long SystemMemoryInUse { get; set; }
+
+        long TotalInstalledMemory { get; set; }
 
         long WorkingSet { get; set; }
 

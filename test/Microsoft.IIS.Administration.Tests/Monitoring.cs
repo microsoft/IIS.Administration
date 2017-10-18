@@ -20,7 +20,7 @@ namespace Microsoft.IIS.Administration.Tests
         private static readonly string SitePath = Path.Combine(Configuration.TEST_ROOT_PATH, SiteName);
 
         [Fact]
-        public async Task MonitorWebServer()
+        public async Task WebServer()
         {
             using (HttpClient client = ApiHttpClient.Create()) {
                 Sites.EnsureNoSite(client, SiteName);
@@ -51,11 +51,15 @@ namespace Microsoft.IIS.Administration.Tests
                         Assert.True(snapshot["requests"].Value<long>("per_sec") > 0);
                         Assert.True(snapshot["network"].Value<long>("total_bytes_sent") > 0);
                         Assert.True(snapshot["network"].Value<long>("total_bytes_recv") > 0);
+                        Assert.True(snapshot["network"].Value<long>("total_connection_attempts") > 0);
                         Assert.True(snapshot["requests"].Value<long>("total") > 0);
                         Assert.True(snapshot["memory"].Value<long>("private_working_set") > 0);
-                        Assert.True(snapshot["memory"].Value<long>("available") > 0);
+                        Assert.True(snapshot["memory"].Value<long>("system_in_use") > 0);
+                        Assert.True(snapshot["memory"].Value<long>("installed") > 0);
                         Assert.True(snapshot["cpu"].Value<long>("threads") > 0);
                         Assert.True(snapshot["cpu"].Value<long>("processes") > 0);
+                        Assert.True(snapshot["cpu"].Value<long>("percent_usage") >= 0);
+                        Assert.True(snapshot["cpu"].Value<long>("system_percent_usage") >= 0);
 
                         Assert.True(serverMonitor.ErrorCount == 0);
                     }
@@ -187,9 +191,14 @@ namespace Microsoft.IIS.Administration.Tests
 
                 Assert.True(snapshot["network"].Value<long>("total_bytes_sent") > 0);
                 Assert.True(snapshot["network"].Value<long>("total_bytes_recv") > 0);
+                Assert.True(snapshot["network"].Value<long>("total_connection_attempts") > 0);
                 Assert.True(snapshot["requests"].Value<long>("total") > 0);
                 Assert.True(snapshot["memory"].Value<long>("private_working_set") > 0);
-                Assert.True(snapshot["memory"].Value<long>("available") > 0);
+                Assert.True(snapshot["memory"].Value<long>("system_in_use") > 0);
+                Assert.True(snapshot["memory"].Value<long>("installed") > 0);
+                Assert.True(snapshot["cpu"].Value<long>("threads") > 0);
+                Assert.True(snapshot["cpu"].Value<long>("processes") > 0);
+                Assert.True(snapshot["cpu"].Value<long>("percent_usage") >= 0);
                 Assert.True(snapshot["cpu"].Value<long>("threads") > 0);
                 Assert.True(snapshot["cpu"].Value<long>("processes") > 0);
 
@@ -222,7 +231,7 @@ namespace Microsoft.IIS.Administration.Tests
         }
 
         [Fact]
-        public async Task MonitorWebSite()
+        public async Task WebSite()
         {
             const string name = SiteName + "z";
 
@@ -266,9 +275,11 @@ namespace Microsoft.IIS.Administration.Tests
                         Assert.True(snapshot["requests"].Value<long>("per_sec") > 0);
                         Assert.True(snapshot["network"].Value<long>("total_bytes_sent") > 0);
                         Assert.True(snapshot["network"].Value<long>("total_bytes_recv") > 0);
+                        Assert.True(snapshot["network"].Value<long>("total_connection_attempts") > 0);
                         Assert.True(snapshot["requests"].Value<long>("total") > 0);
                         Assert.True(snapshot["memory"].Value<long>("private_working_set") > 0);
-                        Assert.True(snapshot["memory"].Value<long>("available") > 0);
+                        Assert.True(snapshot["memory"].Value<long>("system_in_use") > 0);
+                        Assert.True(snapshot["memory"].Value<long>("installed") > 0);
                         Assert.True(snapshot["cpu"].Value<long>("threads") > 0);
                         Assert.True(snapshot["cpu"].Value<long>("processes") > 0);
 
@@ -284,7 +295,7 @@ namespace Microsoft.IIS.Administration.Tests
         }
 
         [Fact]
-        public async Task MonitorAppPool()
+        public async Task AppPool()
         {
             using (HttpClient client = ApiHttpClient.Create()) {
                 Sites.EnsureNoSite(client, SiteName);
@@ -304,7 +315,8 @@ namespace Microsoft.IIS.Administration.Tests
 
                         Assert.True(snapshot["requests"].Value<long>("total") > 0);
                         Assert.True(snapshot["memory"].Value<long>("private_working_set") > 0);
-                        Assert.True(snapshot["memory"].Value<long>("available") > 0);
+                        Assert.True(snapshot["memory"].Value<long>("system_in_use") > 0);
+                        Assert.True(snapshot["memory"].Value<long>("installed") > 0);
                         Assert.True(snapshot["cpu"].Value<long>("threads") > 0);
                         Assert.True(snapshot["cpu"].Value<long>("processes") > 0);
 

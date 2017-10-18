@@ -70,7 +70,11 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         long PrivateBytes { get; set; }
 
-        long AvailableBytes { get; set; }
+        long AvailableMemory { get; set; }
+
+        long SystemMemoryInUse { get; set; }
+
+        long TotalInstalledMemory { get; set; }
 
         long HandleCount { get; set; }
 
