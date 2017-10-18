@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration.Monitoring
 {
     using System;
     using System.Runtime.InteropServices;
+    using System.Text;
 
     public abstract class SafeHandleZeroOrMinusOneIsInvalid : SafeHandle
     {
@@ -145,7 +146,7 @@ namespace Microsoft.IIS.Administration.Monitoring
             IntPtr hQuery);
 
         [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern UInt32 PdhAddCounterW(
+        public static extern UInt32 PdhAddEnglishCounterW(
             PdhQueryHandle hQuery,
             string szFullCounterPath,
             IntPtr dwUserData,
@@ -168,12 +169,19 @@ namespace Microsoft.IIS.Administration.Monitoring
             IntPtr lpdwType,
             out PDH_FMT_COUNTERVALUE pValue);
 
-        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Ansi)]
-        public static extern UInt32 PdhExpandWildCardPathA(
+        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern UInt32 PdhExpandWildCardPathW(
             string szdataSource,
             string szWildCardPath,
             IntPtr mszExpandedPathList,
             ref long pcchPathListLength,
             PdhExpansionFlags dwFlags);
+
+        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern UInt32 PdhLookupPerfNameByIndexW(
+            string szMachineName,
+            uint dwNameIndex,
+            StringBuilder szNameBuffer,
+            ref uint pcchNameBufferSize);
     }
 }
