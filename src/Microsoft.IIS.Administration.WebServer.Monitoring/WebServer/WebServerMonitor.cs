@@ -17,11 +17,23 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         private static readonly int _processorCount = Environment.ProcessorCount;
         private IEnumerable<int> _webserverProcesses;
         private CounterProvider _provider;
+        private ProcessCounterNames _processCounterNames = null;
+        private WorkerProcessCounterNames _workerProcessCounterNames = null;
+        private WebSiteCounterNames _webSiteCounterNames = null;
+        private ProcessorCounterNames _processorCounterNames = null;
+        private MemoryCounterNames _memoryCounterNames = null;
+        private CacheCounterNames _cacheCounterNames = null;
         private Dictionary<int, string> _processCounterMap;
 
-        public WebServerMonitor(CounterProvider provider)
+        public WebServerMonitor(CounterProvider provider, ICounterTranslator translator)
         {
             _provider = provider;
+            _processCounterNames = new ProcessCounterNames(translator);
+            _workerProcessCounterNames = new WorkerProcessCounterNames(translator);
+            _webSiteCounterNames = new WebSiteCounterNames(translator);
+            _processorCounterNames = new ProcessorCounterNames(translator);
+            _memoryCounterNames = new MemoryCounterNames(translator);
+            _cacheCounterNames = new CacheCounterNames(translator);
         }
 
         public async Task<IWebServerSnapshot> GetSnapshot()
@@ -65,153 +77,129 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             long uriCacheMisses = 0;
 
             foreach (IPerfCounter counter in counters) {
-                if (counter.CategoryName.Equals(WebSiteCounterNames.Category)) {
-                    switch (counter.Name) {
-                        case WebSiteCounterNames.BytesRecvSec:
-                            bytesRecvSec += counter.Value;
-                            break;
-                        case WebSiteCounterNames.BytesSentSec:
-                            bytesSentSec += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalBytesRecv:
-                            totalBytesRecv += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalBytesSent:
-                            totalBytesSent += counter.Value;
-                            break;
-                        case WebSiteCounterNames.ConnectionAttemptsSec:
-                            connectionAttemptsSec += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalConnectionAttempts:
-                            totalConnectionAttempts += counter.Value;
-                            break;
-                        case WebSiteCounterNames.CurrentConnections:
-                            currentConnections += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalMethodRequestsSec:
-                            requestsSec += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalOtherMethodRequestsSec:
-                            requestsSec += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalMethodRequests:
-                            totalRequests += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalOtherMethodRequests:
-                            totalRequests += counter.Value;
-                            break;
-                        default:
-                            break;
+                if (counter.CategoryName.Equals(_webSiteCounterNames.Category)) {
+                    if (counter.Name == _webSiteCounterNames.BytesRecvSec) {
+                        bytesRecvSec += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.BytesSentSec) {
+                        bytesSentSec += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalBytesRecv) {
+                        totalBytesRecv += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalBytesSent) {
+                        totalBytesSent += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.ConnectionAttemptsSec) {
+                        connectionAttemptsSec += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalConnectionAttempts) {
+                        totalConnectionAttempts += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.CurrentConnections) {
+                        currentConnections += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalMethodRequestsSec) {
+                        requestsSec += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalOtherMethodRequestsSec) {
+                        requestsSec += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalMethodRequests) {
+                        totalRequests += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalOtherMethodRequests) {
+                        totalRequests += counter.Value;
                     }
                 }
 
-                else if (counter.CategoryName.Equals(WorkerProcessCounterNames.Category)) {
-                    switch (counter.Name) {
-                        case WorkerProcessCounterNames.ActiveRequests:
-                            activeRequests += counter.Value;
-                            break;
-                        default:
-                            break;
+                else if (counter.CategoryName.Equals(_workerProcessCounterNames.Category)) {
+                    if (counter.Name == _workerProcessCounterNames.ActiveRequests) {
+                        activeRequests += counter.Value;
                     }
                 }
 
-                else if (counter.CategoryName.Equals(ProcessCounterNames.Category)) {
-                    switch (counter.Name) {
-                        case ProcessCounterNames.PercentCpu:
-                            percentCpuTime += counter.Value;
-                            break;
-                        case ProcessCounterNames.HandleCount:
-                            handleCount += counter.Value;
-                            break;
-                        case ProcessCounterNames.PrivateBytes:
-                            privateBytes += counter.Value;
-                            break;
-                        case ProcessCounterNames.ThreadCount:
-                            threadCount += counter.Value;
-                            break;
-                        case ProcessCounterNames.PrivateWorkingSet:
-                            privateWorkingSet += counter.Value;
-                            break;
-                        case ProcessCounterNames.WorkingSet:
-                            workingSet += counter.Value;
-                            break;
-                        case ProcessCounterNames.IOReadSec:
-                            IOReadSec += counter.Value;
-                            break;
-                        case ProcessCounterNames.IOWriteSec:
-                            IOWriteSec += counter.Value;
-                            break;
-                        case ProcessCounterNames.PageFaultsSec:
-                            pageFaultsSec += counter.Value;
-                            break;
-                        default:
-                            break;
+                else if (counter.CategoryName.Equals(_processCounterNames.Category)) {
+                    if (counter.Name == _processCounterNames.PercentCpu) {
+                        percentCpuTime += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.HandleCount) {
+                        handleCount += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.PrivateBytes) {
+                        privateBytes += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.ThreadCount) {
+                        threadCount += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.PrivateWorkingSet) {
+                        privateWorkingSet += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.WorkingSet) {
+                        workingSet += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.IOReadSec) {
+                        IOReadSec += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.IOWriteSec) {
+                        IOWriteSec += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.PageFaultsSec) {
+                        pageFaultsSec += counter.Value;
                     }
                 }
 
-                else if (counter.CategoryName.Equals(ProcessorCounterNames.Category)) {
-                    switch (counter.Name) {
-                        case ProcessorCounterNames.IdleTime:
-                            systemPercentCpuTime += 100 - counter.Value;
-                            break;
-                        default:
-                            break;
+                else if (counter.CategoryName.Equals(_processorCounterNames.Category)) {
+                    if (counter.Name == _processorCounterNames.IdleTime) {
+                        systemPercentCpuTime += 100 - counter.Value;
                     }
                 }
 
-                else if (counter.CategoryName.Equals(MemoryCounterNames.Category)) {
-                    switch (counter.Name) {
-                        case MemoryCounterNames.AvailableBytes:
-                            availableBytes += counter.Value;
-                            break;
-                        default:
-                            break;
+                else if (counter.CategoryName.Equals(_memoryCounterNames.Category)) {
+                    if (counter.Name == _memoryCounterNames.AvailableBytes) {
+                        availableBytes += counter.Value;
                     }
                 }
 
-                else if (counter.CategoryName.Equals(CacheCounterNames.Category)) {
-                    switch (counter.Name) {
-                        case CacheCounterNames.CurrentFileCacheMemoryUsage:
-                            fileCacheMemoryUsage += counter.Value;
-                            break;
-                        case CacheCounterNames.CurrentFilesCached:
-                            currentFilesCached += counter.Value;
-                            break;
-                        case CacheCounterNames.CurrentUrisCached:
-                            currentUrisCached += counter.Value;
-                            break;
-                        case CacheCounterNames.FileCacheHits:
-                            fileCacheHits += counter.Value;
-                            break;
-                        case CacheCounterNames.FileCacheMisses:
-                            fileCacheMisses += counter.Value;
-                            break;
-                        case CacheCounterNames.OutputCacheCurrentItems:
-                            outputCacheCurrentItems += counter.Value;
-                            break;
-                        case CacheCounterNames.OutputCacheCurrentMemoryUsage:
-                            outputCacheCurrentMemoryUsage += counter.Value;
-                            break;
-                        case CacheCounterNames.OutputCacheTotalHits:
-                            outputCacheTotalHits += counter.Value;
-                            break;
-                        case CacheCounterNames.OutputCacheTotalMisses:
-                            outputCacheTotalMisses += counter.Value;
-                            break;
-                        case CacheCounterNames.TotalFilesCached:
-                            totalFilesCached += counter.Value;
-                            break;
-                        case CacheCounterNames.TotalUrisCached:
-                            totalUrisCached += counter.Value;
-                            break;
-                        case CacheCounterNames.UriCacheHits:
-                            uriCacheHits += counter.Value;
-                            break;
-                        case CacheCounterNames.UriCacheMisses:
-                            uriCacheMisses += counter.Value;
-                            break;
-                        default:
-                            break;
+                else if (counter.CategoryName.Equals(_cacheCounterNames.Category)) {
+                    if (counter.Name == _cacheCounterNames.CurrentFileCacheMemoryUsage) {
+                        fileCacheMemoryUsage += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.CurrentFilesCached) {
+                        currentFilesCached += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.CurrentUrisCached) {
+                        currentUrisCached += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.FileCacheHits) {
+                        fileCacheHits += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.FileCacheMisses) {
+                        fileCacheMisses += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.OutputCacheCurrentItems) {
+                        outputCacheCurrentItems += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.OutputCacheCurrentMemoryUsage) {
+                        outputCacheCurrentMemoryUsage += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.OutputCacheTotalHits) {
+                        outputCacheTotalHits += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.OutputCacheTotalMisses) {
+                        outputCacheTotalMisses += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.TotalFilesCached) {
+                        totalFilesCached += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.TotalUrisCached) {
+                        totalUrisCached += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.UriCacheHits) {
+                        uriCacheHits += counter.Value;
+                    }
+                    else if (counter.Name == _cacheCounterNames.UriCacheMisses) {
+                        uriCacheMisses += counter.Value;
                     }
                 }
             }
@@ -281,22 +269,22 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             _webserverProcesses = ProcessUtil.GetWebserverProcessIds();
 
             // Only use total counter if instances are available
-            if (counterFinder.GetInstances(WebSiteCounterNames.Category).Any(i => i != TotalInstance)) {
-                counters.AddRange(await _provider.GetCounters(WebSiteCounterNames.Category, TotalInstance, WebSiteCounterNames.CounterNames));
+            if (counterFinder.GetInstances(_webSiteCounterNames.Category).Any(i => i != TotalInstance)) {
+                counters.AddRange(await _provider.GetCounters(_webSiteCounterNames.Category, TotalInstance, _webSiteCounterNames.CounterNames));
             }
 
-            if (counterFinder.GetInstances(WorkerProcessCounterNames.Category).Any(i => i != TotalInstance)) {
-                counters.AddRange(await _provider.GetCounters(WorkerProcessCounterNames.Category, TotalInstance, WorkerProcessCounterNames.CounterNames));
+            if (counterFinder.GetInstances(_workerProcessCounterNames.Category).Any(i => i != TotalInstance)) {
+                counters.AddRange(await _provider.GetCounters(_workerProcessCounterNames.Category, TotalInstance, _workerProcessCounterNames.CounterNames));
             }
 
-            counters.AddRange(await _provider.GetSingletonCounters(MemoryCounterNames.Category, MemoryCounterNames.CounterNames));
+            counters.AddRange(await _provider.GetSingletonCounters(_memoryCounterNames.Category, _memoryCounterNames.CounterNames));
 
-            counters.AddRange(await _provider.GetSingletonCounters(CacheCounterNames.Category, CacheCounterNames.CounterNames));
+            counters.AddRange(await _provider.GetSingletonCounters(_cacheCounterNames.Category, _cacheCounterNames.CounterNames));
 
-            counters.AddRange(await _provider.GetCounters(ProcessorCounterNames.Category, TotalInstance, ProcessorCounterNames.CounterNames));
+            counters.AddRange(await _provider.GetCounters(_processorCounterNames.Category, TotalInstance, _processorCounterNames.CounterNames));
 
             if (_processCounterMap == null) {
-                _processCounterMap = await ProcessUtil.GetProcessCounterMap(_provider, "w3wp");
+                _processCounterMap = await ProcessUtil.GetProcessCounterMap(_processCounterNames, _provider, "w3wp");
             }
 
             foreach (int processId in _webserverProcesses) {
@@ -304,7 +292,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 string instanceName = await TryGetProcessCounterInstance(processId);
 
                 if (instanceName != null) {
-                    counters.AddRange(await _provider.GetCounters(ProcessCounterNames.Category, instanceName, ProcessCounterNames.CounterNames));
+                    counters.AddRange(await _provider.GetCounters(_processCounterNames.Category, instanceName, _processCounterNames.CounterNames));
                 }
             }
 
@@ -319,7 +307,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                 
                 if (p != null) {
 
-                    var map = await ProcessUtil.GetProcessCounterMap(_provider, p.ProcessName);
+                    var map = await ProcessUtil.GetProcessCounterMap(_processCounterNames, _provider, p.ProcessName);
 
                     foreach (int key in map.Keys) {
                         _processCounterMap[key] = map[key];

@@ -17,16 +17,24 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         private static readonly int _processorCount = Environment.ProcessorCount;
         private Dictionary<int, string> _processCounterInstances = null;
         private Dictionary<string, int> _siteProcessCounts = new Dictionary<string, int>();
+        private ProcessCounterNames _processCounterNames = null;
+        private WebSiteCounterNames _webSiteCounterNames = null;
+        private WorkerProcessCounterNames _workerProcessCounterNames = null;
+        private MemoryCounterNames _memoryCounterNames = null;
 
-        public WebSiteMonitor(CounterProvider counterProvider)
+        public WebSiteMonitor(CounterProvider counterProvider, ICounterTranslator translator)
         {
             _counterProvider = counterProvider;
+            _processCounterNames = new ProcessCounterNames(translator);
+            _webSiteCounterNames = new WebSiteCounterNames(translator);
+            _workerProcessCounterNames = new WorkerProcessCounterNames(translator);
+            _memoryCounterNames = new MemoryCounterNames(translator);
         }
 
         public async Task <IEnumerable<IWebSiteSnapshot>> GetSnapshots(IEnumerable<Site> sites)
         {
             if (_processCounterInstances == null) {
-                _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_counterProvider, "W3WP");
+                _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_processCounterNames, _counterProvider, "W3WP");
             }
 
             var snapshots = new List<WebSiteSnapshot>();
@@ -48,139 +56,123 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             long percentCpu = 0;
 
             foreach (var counter in counters) {
-                if (counter.CategoryName.Equals(WebSiteCounterNames.Category)) {
-                    switch (counter.Name) {
-                        case WebSiteCounterNames.ServiceUptime:
-                            snapshot.Uptime = counter.Value;
-                            break;
-                        case WebSiteCounterNames.BytesRecvSec:
-                            snapshot.BytesRecvSec += counter.Value;
-                            break;
-                        case WebSiteCounterNames.BytesSentSec:
-                            snapshot.BytesSentSec += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalBytesRecv:
-                            snapshot.TotalBytesRecv += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalBytesSent:
-                            snapshot.TotalBytesSent += counter.Value;
-                            break;
-                        case WebSiteCounterNames.ConnectionAttemptsSec:
-                            snapshot.ConnectionAttemptsSec += counter.Value;
-                            break;
-                        case WebSiteCounterNames.CurrentConnections:
-                            snapshot.CurrentConnections += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalConnectionAttempts:
-                            snapshot.TotalConnectionAttempts += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalMethodRequestsSec:
-                            snapshot.RequestsSec += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalOtherMethodRequestsSec:
-                            snapshot.RequestsSec += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalMethodRequests:
-                            snapshot.TotalRequests += counter.Value;
-                            break;
-                        case WebSiteCounterNames.TotalOtherMethodRequests:
-                            snapshot.TotalRequests += counter.Value;
-                            break;
-                        default:
-                            break;
+                if (counter.CategoryName.Equals(_webSiteCounterNames.Category)) {
+                    if (counter.Name == _webSiteCounterNames.ServiceUptime) {
+                        snapshot.Uptime = counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.BytesRecvSec) {
+                        snapshot.BytesRecvSec += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.BytesSentSec) {
+                        snapshot.BytesSentSec += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalBytesRecv) {
+                        snapshot.TotalBytesRecv += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalBytesSent) {
+                        snapshot.TotalBytesSent += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.ConnectionAttemptsSec) {
+                        snapshot.ConnectionAttemptsSec += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.CurrentConnections) {
+                        snapshot.CurrentConnections += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalConnectionAttempts) {
+                        snapshot.TotalConnectionAttempts += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalMethodRequestsSec) {
+                        snapshot.RequestsSec += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalOtherMethodRequestsSec) {
+                        snapshot.RequestsSec += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalMethodRequests) {
+                        snapshot.TotalRequests += counter.Value;
+                    }
+                    else if (counter.Name == _webSiteCounterNames.TotalOtherMethodRequests) {
+                        snapshot.TotalRequests += counter.Value;
                     }
                 }
 
-                else if (counter.CategoryName.Equals(WorkerProcessCounterNames.Category)) {
-                    switch (counter.Name) {
-                        case WorkerProcessCounterNames.ActiveRequests:
-                            snapshot.ActiveRequests += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.CurrentFileCacheMemoryUsage:
-                            snapshot.FileCacheMemoryUsage += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.CurrentFilesCached:
-                            snapshot.CurrentFilesCached += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.CurrentUrisCached:
-                            snapshot.CurrentUrisCached += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.FileCacheHits:
-                            snapshot.FileCacheHits += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.FileCacheMisses:
-                            snapshot.FileCacheMisses += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.OutputCacheCurrentItems:
-                            snapshot.OutputCacheCurrentItems += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.OutputCacheCurrentMemoryUsage:
-                            snapshot.OutputCacheCurrentMemoryUsage += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.OutputCacheTotalHits:
-                            snapshot.OutputCacheTotalHits += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.OutputCacheTotalMisses:
-                            snapshot.OutputCacheTotalMisses += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.TotalFilesCached:
-                            snapshot.TotalFilesCached += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.TotalUrisCached:
-                            snapshot.TotalUrisCached += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.UriCacheHits:
-                            snapshot.UriCacheHits += counter.Value;
-                            break;
-                        case WorkerProcessCounterNames.UriCacheMisses:
-                            snapshot.UriCacheMisses += counter.Value;
-                            break;
-                        default:
-                            break;
+                else if (counter.CategoryName.Equals(_workerProcessCounterNames.Category)) {
+                    if (counter.Name == _workerProcessCounterNames.ActiveRequests) {
+                        snapshot.ActiveRequests += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.CurrentFileCacheMemoryUsage) {
+                        snapshot.FileCacheMemoryUsage += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.CurrentFilesCached) {
+                        snapshot.CurrentFilesCached += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.CurrentUrisCached) {
+                        snapshot.CurrentUrisCached += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.FileCacheHits) {
+                        snapshot.FileCacheHits += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.FileCacheMisses) {
+                        snapshot.FileCacheMisses += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.OutputCacheCurrentItems) {
+                        snapshot.OutputCacheCurrentItems += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.OutputCacheCurrentMemoryUsage) {
+                        snapshot.OutputCacheCurrentMemoryUsage += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.OutputCacheTotalHits) {
+                        snapshot.OutputCacheTotalHits += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.OutputCacheTotalMisses) {
+                        snapshot.OutputCacheTotalMisses += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.TotalFilesCached) {
+                        snapshot.TotalFilesCached += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.TotalUrisCached) {
+                        snapshot.TotalUrisCached += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.UriCacheHits) {
+                        snapshot.UriCacheHits += counter.Value;
+                    }
+                    else if (counter.Name == _workerProcessCounterNames.UriCacheMisses) {
+                        snapshot.UriCacheMisses += counter.Value;
                     }
                 }
 
-                else if (counter.CategoryName.Equals(MemoryCounterNames.Category)) {
-                    switch (counter.Name) {
-                        case MemoryCounterNames.AvailableBytes:
-                            snapshot.AvailableMemory += counter.Value;
-                            break;
-                        default:
-                            break;
+                else if (counter.CategoryName.Equals(_memoryCounterNames.Category)) {
+                    if (counter.Name == _memoryCounterNames.AvailableBytes) {
+                        snapshot.AvailableMemory += counter.Value;
                     }
                 }
 
-                else if (counter.CategoryName.Equals(ProcessCounterNames.Category)) {
-                    switch (counter.Name) {
-                        case ProcessCounterNames.PercentCpu:
-                            percentCpu += counter.Value;
-                            break;
-                        case ProcessCounterNames.HandleCount:
-                            snapshot.HandleCount += counter.Value;
-                            break;
-                        case ProcessCounterNames.PrivateBytes:
-                            snapshot.PrivateBytes += counter.Value;
-                            break;
-                        case ProcessCounterNames.ThreadCount:
-                            snapshot.ThreadCount += counter.Value;
-                            break;
-                        case ProcessCounterNames.PrivateWorkingSet:
-                            snapshot.PrivateWorkingSet += counter.Value;
-                            break;
-                        case ProcessCounterNames.WorkingSet:
-                            snapshot.WorkingSet += counter.Value;
-                            break;
-                        case ProcessCounterNames.IOReadSec:
-                            snapshot.IOReadSec += counter.Value;
-                            break;
-                        case ProcessCounterNames.IOWriteSec:
-                            snapshot.IOWriteSec += counter.Value;
-                            break;
-                        case ProcessCounterNames.PageFaultsSec:
-                            snapshot.PageFaultsSec += counter.Value;
-                            break;
-                        default:
-                            break;
+                else if (counter.CategoryName.Equals(_processCounterNames.Category)) {
+                    if (counter.Name == _processCounterNames.PercentCpu) {
+                        percentCpu += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.HandleCount) {
+                        snapshot.HandleCount += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.PrivateBytes) {
+                        snapshot.PrivateBytes += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.ThreadCount) {
+                        snapshot.ThreadCount += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.PrivateWorkingSet) {
+                        snapshot.PrivateWorkingSet += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.WorkingSet) {
+                        snapshot.WorkingSet += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.IOReadSec) {
+                        snapshot.IOReadSec += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.IOWriteSec) {
+                        snapshot.IOWriteSec += counter.Value;
+                    }
+                    else if (counter.Name == _processCounterNames.PageFaultsSec) {
+                        snapshot.PageFaultsSec += counter.Value;
                     }
                 }
             }
@@ -214,7 +206,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         {
             var counters = new List<IPerfCounter>();
 
-            counters.AddRange(await _counterProvider.GetCounters(WebSiteCounterNames.Category, site.Name, WebSiteCounterNames.CounterNames));
+            counters.AddRange(await _counterProvider.GetCounters(_webSiteCounterNames.Category, site.Name, _webSiteCounterNames.CounterNames));
 
             Application rootApp = site.Applications["/"];
 
@@ -226,7 +218,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
                 foreach (WorkerProcess wp in wps) {
                     if (!_processCounterInstances.ContainsKey(wp.ProcessId)) {
-                        _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_counterProvider, "W3WP");
+                        _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_processCounterNames, _counterProvider, "W3WP");
 
                         //
                         // Counter instance doesn't exist
@@ -235,18 +227,18 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
                         }
                     }
 
-                    counters.AddRange(await _counterProvider.GetCounters(ProcessCounterNames.Category, _processCounterInstances[wp.ProcessId], ProcessCounterNames.CounterNames));
+                    counters.AddRange(await _counterProvider.GetCounters(_processCounterNames.Category, _processCounterInstances[wp.ProcessId], _processCounterNames.CounterNames));
                 }
 
                 foreach (WorkerProcess wp in wps) {
                     counters.AddRange(await _counterProvider.GetCounters(
-                        WorkerProcessCounterNames.Category,
+                        _workerProcessCounterNames.Category,
                         WorkerProcessCounterNames.GetInstanceName(wp.ProcessId, pool.Name),
-                        WorkerProcessCounterNames.CounterNames));
+                        _workerProcessCounterNames.CounterNames));
                 }
             }
 
-            counters.AddRange(await _counterProvider.GetSingletonCounters(MemoryCounterNames.Category, MemoryCounterNames.CounterNames));
+            counters.AddRange(await _counterProvider.GetSingletonCounters(_memoryCounterNames.Category, _memoryCounterNames.CounterNames));
 
             return counters;
         }
