@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration.Monitoring
 {
     using System;
     using System.Runtime.InteropServices;
+    using System.Text;
 
     public abstract class SafeHandleZeroOrMinusOneIsInvalid : SafeHandle
     {
@@ -101,6 +102,14 @@ namespace Microsoft.IIS.Administration.Monitoring
         PDH_NOEXPANDINSTANCES  = 2
     }
 
+    public enum PdhdetailLevel
+    {
+        PERF_DETAIL_NOVICE = 100,
+        PERF_DETAIL_ADVANCED = 200,
+        PERF_DETAIL_EXPERT = 300,
+        PERF_DETAIL_WIZARD = 400
+    }
+
     class Pdh
     {
         private const string PerformanceCounterLib = "pdh.dll";
@@ -168,12 +177,32 @@ namespace Microsoft.IIS.Administration.Monitoring
             IntPtr lpdwType,
             out PDH_FMT_COUNTERVALUE pValue);
 
-        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Ansi)]
-        public static extern UInt32 PdhExpandWildCardPathA(
+        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern UInt32 PdhExpandWildCardPathW(
             string szdataSource,
             string szWildCardPath,
             IntPtr mszExpandedPathList,
             ref long pcchPathListLength,
             PdhExpansionFlags dwFlags);
+
+        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern UInt32 PdhLookupPerfNameByIndexW(
+            string szMachineName,
+            uint dwNameIndex,
+            StringBuilder szNameBuffer,
+            ref uint pcchNameBufferSize);
+
+        [DllImport(PerformanceCounterLib, SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern UInt32 PdhEnumObjectItemsW(
+          string szDataSource,
+          string szMachineName,
+          string szObjectName,
+          IntPtr mszCounterList,
+          ref long pcchCounterListLength,
+          IntPtr mszInstanceList,
+          ref long pcchInstanceListLength,
+          PdhdetailLevel dwDetailLevel,
+          uint dwFlags
+        );
     }
 }

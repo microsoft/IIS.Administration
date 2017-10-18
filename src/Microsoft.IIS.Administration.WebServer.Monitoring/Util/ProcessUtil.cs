@@ -35,11 +35,11 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             return ids;
         }
 
-        public static async Task<IEnumerable<string>> GetProcessCounterInstances(IEnumerable<int> processIds)
+        public static async Task<IEnumerable<string>> GetProcessCounterInstances(ProcessCounterNames processCounterNames, IEnumerable<int> processIds)
         {
             const string ProcessIdentifier = "ID Process";
             var provider = new CounterFinder();
-            var processIdCounters = provider.GetCountersByName(ProcessCounterNames.Category, ProcessIdentifier);
+            var processIdCounters = provider.GetCountersByName(processCounterNames.Category, ProcessIdentifier);
 
             var targetProcessInstances = new List<string>();
 
@@ -65,18 +65,18 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         // Process counters instance names are not equivalent to their process IDs therefore a map must be generated to distinguish them
         // key: process id
         // value: process counter instance name
-        public static async Task<Dictionary<int, string>> GetProcessCounterMap(ICounterProvider provider, string processName)
+        public static async Task<Dictionary<int, string>> GetProcessCounterMap(ProcessCounterNames processCounterNames, ICounterProvider provider, string processName)
         {
             var counterFinder = new CounterFinder();
             var map = new Dictionary<int, string>();
 
-            var instances = counterFinder.GetInstances(ProcessCounterNames.Category).Where(instance => instance.StartsWith(processName, StringComparison.OrdinalIgnoreCase));
+            var instances = counterFinder.GetInstances(processCounterNames.Category).Where(instance => instance.StartsWith(processName, StringComparison.OrdinalIgnoreCase));
 
             List<IPerfCounter> counters = new List<IPerfCounter>();
 
             try {
                 foreach (string instance in instances) {
-                    counters.AddRange(await provider.GetCounters(ProcessCounterNames.Category, instance, ProcessCounterNames.CounterNames));
+                    counters.AddRange(await provider.GetCounters(processCounterNames.Category, instance, processCounterNames.CounterNames));
                 }
             }
             catch (MissingCountersException) {
@@ -85,7 +85,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             }
 
             foreach (IPerfCounter counter in counters) {
-                if (counter.Name.Equals(ProcessCounterNames.ProcessId)) {
+                if (counter.Name.Equals(processCounterNames.ProcessId)) {
 
                     //
                     // process id fits in int

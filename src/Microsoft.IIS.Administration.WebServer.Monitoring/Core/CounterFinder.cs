@@ -72,6 +72,11 @@ namespace Microsoft.IIS.Administration.Monitoring
             return strings;
         }
 
+        public IEnumerable<string> GetCounterNames(string category)
+        {
+            return EnumerateCounterNames(category);
+        }
+
         public bool CounterExists(IPerfCounter counter)
         {
             return GetCounters(counter.CategoryName, counter.InstanceName).Any(c => c.Name.Equals(counter.Name));
@@ -115,11 +120,12 @@ namespace Microsoft.IIS.Administration.Monitoring
                 if (cchPathListLength > 0) {
                     //
                     // If we received a buffer size allocate one
-                    mszExpandedPathList = Marshal.AllocHGlobal((int)cchPathListLength);
+                    // Unicode size is 2 bytes
+                    mszExpandedPathList = Marshal.AllocHGlobal(2 * (int)cchPathListLength);
                 }
 
                 try {
-                    result = Pdh.PdhExpandWildCardPathA(null, searchPattern, mszExpandedPathList, ref cchPathListLength, flags);
+                    result = Pdh.PdhExpandWildCardPathW(null, searchPattern, mszExpandedPathList, ref cchPathListLength, flags);
 
                     if (result == Pdh.PDH_MORE_DATA) {
                         continue;
@@ -133,8 +139,8 @@ namespace Microsoft.IIS.Administration.Monitoring
                         throw new Win32Exception((int)result);
                     }
 
-                    buffer = new byte[cchPathListLength];
-                    Marshal.Copy(mszExpandedPathList, buffer, 0, (int)cchPathListLength);
+                    buffer = new byte[cchPathListLength * 2];
+                    Marshal.Copy(mszExpandedPathList, buffer, 0, buffer.Length);
 
                 }
                 finally {
@@ -160,17 +166,102 @@ namespace Microsoft.IIS.Administration.Monitoring
             int start = 0;
             int end = 0;
 
+            var chars = Encoding.Unicode.GetChars(buffer);
+
             do {
 
                 do {
                     end++;
                 }
-                while (buffer[end] != 0);
+                while (end < chars.Length && chars[end] != 0);
 
-                strings.Add(Encoding.ASCII.GetString(buffer, start, end - start));
+                strings.Add(new string(chars, start, end - start));
                 start = end;
 
-            } while (buffer[end + 1] != 0);
+            } while (start < chars.Length - 1 && chars[start + 1] != 0);
+
+            return strings;
+        }
+
+        private IEnumerable<string> EnumerateCounterNames(string category)
+        {
+            long cchCounterListLength = 0, cchInstanceListLength = 0;
+            
+            uint result = 0;
+            byte[] countersBuffer = null;
+
+            //
+            // Do - while, the buffer can grow after being told the necessary size
+            do {
+
+                IntPtr mszExpandedCounterList = IntPtr.Zero;
+                IntPtr mszExpandedInstanceList = IntPtr.Zero;
+                
+                if (cchCounterListLength > 0) {
+                    mszExpandedCounterList = Marshal.AllocHGlobal(2 * (int)cchCounterListLength);
+                }
+
+                if (cchInstanceListLength > 0) {
+                    mszExpandedInstanceList = Marshal.AllocHGlobal(2 * (int)cchInstanceListLength);
+                }
+
+                try {
+                    result = Pdh.PdhEnumObjectItemsW(null, null, category, mszExpandedCounterList, ref cchCounterListLength, mszExpandedInstanceList, ref cchInstanceListLength, PdhdetailLevel.PERF_DETAIL_WIZARD, 0);
+
+                    if (result == Pdh.PDH_MORE_DATA) {
+                        continue;
+                    }
+
+                    if (result == Pdh.PDH_CSTATUS_NO_OBJECT || result == Pdh.PDH_CSTATUS_NO_INSTANCE) {
+                        return new List<string>();
+                    }
+
+                    if (result != 0 && result != Pdh.PDH_MORE_DATA) {
+                        throw new Win32Exception((int)result);
+                    }
+
+                    countersBuffer = new byte[cchCounterListLength * 2];
+                    Marshal.Copy(mszExpandedCounterList, countersBuffer, 0, countersBuffer.Length);
+
+                }
+                finally {
+
+                    if (mszExpandedCounterList != IntPtr.Zero) {
+                        Marshal.FreeHGlobal(mszExpandedCounterList);
+                    }
+
+                    if (mszExpandedInstanceList != IntPtr.Zero) {
+                        Marshal.FreeHGlobal(mszExpandedInstanceList);
+                    }
+
+                }
+
+            } while (result == Pdh.PDH_MORE_DATA);
+
+            if (countersBuffer == null) {
+                throw new Win32Exception((int)result);
+            }
+
+            //
+            // Parse paths from filled buffer
+
+            List<string> strings = new List<string>();
+            int start = 0;
+            int end = 0;
+
+            var chars = Encoding.Unicode.GetChars(countersBuffer);
+
+            do {
+
+                do {
+                    end++;
+                }
+                while (end < chars.Length && chars[end] != 0);
+
+                strings.Add(new string(chars, start, end - start));
+                start = end + 1;
+
+            } while (start < chars.Length && chars[start] != 0);
 
             return strings;
         }
