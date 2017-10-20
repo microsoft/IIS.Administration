@@ -18,9 +18,9 @@ namespace Microsoft.IIS.Administration.Monitoring
         private MemoryCache _cache;
         private Timer _cacheEvicter;
         private ConcurrentCacheHelper _concurrentCacheHelper;
-        private CounterFinder _counterFinder = new CounterFinder();
+        private CounterFinder _counterFinder;
 
-        public CounterProvider()
+        public CounterProvider(CounterFinder finder)
         {
             //
             // Cache strategy
@@ -34,6 +34,8 @@ namespace Microsoft.IIS.Administration.Monitoring
                 CompactOnMemoryPressure = false
             });
 
+            _counterFinder = finder;
+
             _concurrentCacheHelper = new ConcurrentCacheHelper(_cache);
 
             _cacheEvicter = new Timer(TimerCallback, null, ScanFrequency, ScanFrequency);
@@ -44,7 +46,7 @@ namespace Microsoft.IIS.Administration.Monitoring
             string key = category + instance;
 
             CounterMonitor monitor = _concurrentCacheHelper.GetOrCreate<CounterMonitor>(category,
-                () => new CounterMonitor(Enumerable.Empty<IPerfCounter>()),
+                () => new CounterMonitor(_counterFinder, Enumerable.Empty<IPerfCounter>()),
                 new MemoryCacheEntryOptions() {
                     SlidingExpiration = CacheExpiration
                 }.RegisterPostEvictionCallback(PostEvictionCallback)
@@ -115,7 +117,7 @@ namespace Microsoft.IIS.Administration.Monitoring
 
                 monitor = _concurrentCacheHelper.GetOrCreate(
                     category,
-                    () => new CounterMonitor(counters),
+                    () => new CounterMonitor(_counterFinder, counters),
                     new MemoryCacheEntryOptions() {
                         SlidingExpiration = CacheExpiration
                     }.RegisterPostEvictionCallback(PostEvictionCallback)

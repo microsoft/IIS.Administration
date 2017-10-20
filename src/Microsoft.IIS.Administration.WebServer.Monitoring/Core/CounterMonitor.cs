@@ -21,11 +21,12 @@ namespace Microsoft.IIS.Administration.Monitoring
         private Dictionary<IPerfCounter, PdhCounterHandle> _counters = new Dictionary<IPerfCounter, PdhCounterHandle>();
         private PdhQueryHandle _query;
         private DateTime _lastCalculatedTime;
-        private CounterFinder _counterFinder = new CounterFinder();
+        private CounterFinder _counterFinder;
         private ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        public CounterMonitor(IEnumerable<IPerfCounter> counters)
+        public CounterMonitor(CounterFinder finder, IEnumerable<IPerfCounter> counters)
         {
+            _counterFinder = finder;
             AddCounters(counters);
         }
 
@@ -222,7 +223,7 @@ namespace Microsoft.IIS.Administration.Monitoring
             foreach (var counter in counters) {
                 PdhCounterHandle hCounter;
 
-                result = Pdh.PdhAddCounterW(_query, counter.Path, IntPtr.Zero, out hCounter);
+                result = Pdh.PdhAddEnglishCounterW(_query, counter.Path, IntPtr.Zero, out hCounter);
                 if (result == Pdh.PDH_CSTATUS_NO_OBJECT ||
                     result == Pdh.PDH_CSTATUS_NO_COUNTER) {
                     missingCounters.Add(counter);

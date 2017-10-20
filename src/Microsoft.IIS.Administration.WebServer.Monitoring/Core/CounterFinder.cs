@@ -18,6 +18,13 @@ namespace Microsoft.IIS.Administration.Monitoring
 
     public class CounterFinder
     {
+        private ICounterTranslator _translator;
+
+        public CounterFinder(ICounterTranslator translator)
+        {
+            _translator = translator;
+        }
+
         public IEnumerable<IPerfCounter> GetSingletonCounters(string category, IEnumerable<string> counterNames)
         {
             List<IPerfCounter> counters = new List<IPerfCounter>();
@@ -57,7 +64,7 @@ namespace Microsoft.IIS.Administration.Monitoring
 
         public IEnumerable<string> GetInstances(string category)
         {
-            List<string> strings = ExpandCounterPath(@"\" + category + @"(*)\*", PdhExpansionFlags.PDH_NOEXPANDCOUNTERS);
+            List<string> strings = ExpandCounterPath(@"\" + _translator.TranslateCategory(category) + @"(*)\*", PdhExpansionFlags.PDH_NOEXPANDCOUNTERS);
 
             for (int i = 0; i < strings.Count; i++) {
                 string s = strings[i];
@@ -84,7 +91,7 @@ namespace Microsoft.IIS.Administration.Monitoring
             }
 
             List<IPerfCounter> counters = new List<IPerfCounter>();
-            List<string> strings = ExpandCounterPath(@"\" + category + @"(" + instance + @")\*", PdhExpansionFlags.NONE);
+            List<string> strings = ExpandCounterPath(@"\" + _translator.TranslateCategory(category) + @"(" + instance + @")\*", PdhExpansionFlags.NONE);
 
             for (int i = 0; i < strings.Count; i++) {
                 string s = strings[i];
@@ -115,11 +122,12 @@ namespace Microsoft.IIS.Administration.Monitoring
                 if (cchPathListLength > 0) {
                     //
                     // If we received a buffer size allocate one
-                    mszExpandedPathList = Marshal.AllocHGlobal((int)cchPathListLength);
+                    // Unicode size is 2 bytes
+                    mszExpandedPathList = Marshal.AllocHGlobal(2 * (int)cchPathListLength);
                 }
 
                 try {
-                    result = Pdh.PdhExpandWildCardPathA(null, searchPattern, mszExpandedPathList, ref cchPathListLength, flags);
+                    result = Pdh.PdhExpandWildCardPathW(null, searchPattern, mszExpandedPathList, ref cchPathListLength, flags);
 
                     if (result == Pdh.PDH_MORE_DATA) {
                         continue;
@@ -133,8 +141,8 @@ namespace Microsoft.IIS.Administration.Monitoring
                         throw new Win32Exception((int)result);
                     }
 
-                    buffer = new byte[cchPathListLength];
-                    Marshal.Copy(mszExpandedPathList, buffer, 0, (int)cchPathListLength);
+                    buffer = new byte[cchPathListLength * 2];
+                    Marshal.Copy(mszExpandedPathList, buffer, 0, buffer.Length);
 
                 }
                 finally {
@@ -160,17 +168,19 @@ namespace Microsoft.IIS.Administration.Monitoring
             int start = 0;
             int end = 0;
 
+            var chars = Encoding.Unicode.GetChars(buffer);
+
             do {
 
                 do {
                     end++;
                 }
-                while (buffer[end] != 0);
+                while (end < chars.Length && chars[end] != 0);
 
-                strings.Add(Encoding.ASCII.GetString(buffer, start, end - start));
+                strings.Add(new string(chars, start, end - start));
                 start = end;
 
-            } while (buffer[end + 1] != 0);
+            } while (start < chars.Length - 1 && chars[start + 1] != 0);
 
             return strings;
         }
