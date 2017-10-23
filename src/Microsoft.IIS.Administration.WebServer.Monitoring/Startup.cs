@@ -18,13 +18,13 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         public void Use(IServiceCollection services)
         {
-            var finder = new CounterFinder(new CounterTranslator());
+            var finder = new CounterFinder((ICounterTranslator) new CounterTranslator());
 
             _provider = new CounterProvider(finder);
 
-            var appPoolMonitor = new AppPoolMonitor(_provider, finder);
-            var webserverMonitor = new WebServerMonitor(_provider, finder);
-            var siteMonitor = new WebSiteMonitor(_provider, finder);
+            var appPoolMonitor = new AppPoolMonitor(_provider);
+            var webserverMonitor = new WebServerMonitor(_provider);
+            var siteMonitor = new WebSiteMonitor(_provider);
 
             services.AddSingleton<ICounterProvider>(_provider);
             services.AddSingleton<IAppPoolMonitor>(appPoolMonitor);

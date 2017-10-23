@@ -11,7 +11,7 @@ namespace Microsoft.IIS.Administration.Monitoring
     using System.Threading;
     using System.Threading.Tasks;
 
-    public class CounterProvider : ICounterProvider, IDisposable
+    sealed class CounterProvider : ICounterProvider, IDisposable
     {
         private static readonly TimeSpan CacheExpiration = TimeSpan.FromSeconds(30);
         private static readonly TimeSpan ScanFrequency = TimeSpan.FromSeconds(5);
@@ -39,6 +39,11 @@ namespace Microsoft.IIS.Administration.Monitoring
             _concurrentCacheHelper = new ConcurrentCacheHelper(_cache);
 
             _cacheEvicter = new Timer(TimerCallback, null, ScanFrequency, ScanFrequency);
+        }
+
+        public Task<IEnumerable<string>> GetInstances(string category)
+        {
+            return Task.FromResult(_counterFinder.GetInstances(category));
         }
 
         public async Task<IEnumerable<IPerfCounter>> GetCounters(string category, string instance, IEnumerable<string> counterNames)

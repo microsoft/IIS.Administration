@@ -16,7 +16,7 @@ namespace Microsoft.IIS.Administration.Monitoring
     /// Does not provide values for performance counters.
     /// </summary>
 
-    public class CounterFinder
+    sealed class CounterFinder
     {
         private ICounterTranslator _translator;
 

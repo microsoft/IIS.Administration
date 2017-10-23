@@ -11,23 +11,21 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     using System.Linq;
     using System.Threading.Tasks;
 
-    class AppPoolMonitor : IAppPoolMonitor
+    sealed class AppPoolMonitor : IAppPoolMonitor
     {
         ICounterProvider _counterProvider;
         private Dictionary<int, string> _processCounterInstances = null;
         private static readonly int _processorCount = Environment.ProcessorCount;
-        private CounterFinder _finder = null;
 
-        public AppPoolMonitor(ICounterProvider provider, CounterFinder finder)
+        public AppPoolMonitor(ICounterProvider provider)
         {
             _counterProvider = provider;
-            _finder = finder;
         }
 
         public async Task<IEnumerable<IAppPoolSnapshot>> GetSnapshots(IEnumerable<ApplicationPool> pools)
         {
             if (_processCounterInstances == null) {
-                _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_finder, _counterProvider, "W3WP");
+                _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_counterProvider, "W3WP");
             }
 
             var snapshots = new List<IAppPoolSnapshot>();
@@ -178,7 +176,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
             foreach (WorkerProcess wp in wps) {
                 if (!_processCounterInstances.ContainsKey(wp.ProcessId)) {
-                    _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_finder, _counterProvider, "W3WP");
+                    _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_counterProvider, "W3WP");
 
                     //
                     // Counter instance doesn't exist

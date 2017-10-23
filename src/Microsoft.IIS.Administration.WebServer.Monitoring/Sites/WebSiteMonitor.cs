@@ -11,24 +11,22 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     using System.Linq;
     using System.Threading.Tasks;
 
-    class WebSiteMonitor : IWebSiteMonitor
+    sealed class WebSiteMonitor : IWebSiteMonitor
     {
         private ICounterProvider _counterProvider;
         private static readonly int _processorCount = Environment.ProcessorCount;
         private Dictionary<int, string> _processCounterInstances = null;
         private Dictionary<string, int> _siteProcessCounts = new Dictionary<string, int>();
-        private CounterFinder _finder;
 
-        public WebSiteMonitor(ICounterProvider counterProvider, CounterFinder finder)
+        public WebSiteMonitor(ICounterProvider counterProvider)
         {
             _counterProvider = counterProvider;
-            _finder = finder;
         }
 
         public async Task <IEnumerable<IWebSiteSnapshot>> GetSnapshots(IEnumerable<Site> sites)
         {
             if (_processCounterInstances == null) {
-                _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_finder, _counterProvider, "W3WP");
+                _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_counterProvider, "W3WP");
             }
 
             var snapshots = new List<WebSiteSnapshot>();
@@ -228,7 +226,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
                 foreach (WorkerProcess wp in wps) {
                     if (!_processCounterInstances.ContainsKey(wp.ProcessId)) {
-                        _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_finder, _counterProvider, "W3WP");
+                        _processCounterInstances = await ProcessUtil.GetProcessCounterMap(_counterProvider, "W3WP");
 
                         //
                         // Counter instance doesn't exist
