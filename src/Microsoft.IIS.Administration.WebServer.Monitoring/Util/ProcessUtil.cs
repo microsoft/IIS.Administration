@@ -35,40 +35,15 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             return ids;
         }
 
-        public static async Task<IEnumerable<string>> GetProcessCounterInstances(CounterFinder finder, IEnumerable<int> processIds)
-        {
-            const string ProcessIdentifier = "ID Process";
-            var processIdCounters = finder.GetCountersByName(ProcessCounterNames.Category, ProcessIdentifier);
-
-            var targetProcessInstances = new List<string>();
-
-            using (var monitor = new CounterMonitor(finder, processIdCounters)) {
-                try {
-                    await monitor.Refresh();
-
-                    foreach (var counter in monitor.Counters) {
-                        if (counter.Name.Equals(ProcessIdentifier) && processIds.Contains((int)counter.Value)) {
-                            targetProcessInstances.Add(counter.InstanceName);
-                        }
-                    }
-                }
-                catch (MissingCountersException) {
-                    return Enumerable.Empty<string>();
-                }
-            }
-
-            return targetProcessInstances;
-        }
-
         //
         // Process counters instance names are not equivalent to their process IDs therefore a map must be generated to distinguish them
         // key: process id
         // value: process counter instance name
-        public static async Task<Dictionary<int, string>> GetProcessCounterMap(CounterFinder finder, ICounterProvider provider, string processName)
+        public static async Task<Dictionary<int, string>> GetProcessCounterMap(ICounterProvider provider, string processName)
         {
             var map = new Dictionary<int, string>();
 
-            var instances = finder.GetInstances(ProcessCounterNames.Category).Where(instance => instance.StartsWith(processName, StringComparison.OrdinalIgnoreCase));
+            var instances = (await provider.GetInstances(ProcessCounterNames.Category)).Where(instance => instance.StartsWith(processName, StringComparison.OrdinalIgnoreCase));
 
             List<IPerfCounter> counters = new List<IPerfCounter>();
 

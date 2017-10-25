@@ -5,6 +5,7 @@
 namespace Microsoft.IIS.Administration.WebServer.Monitoring
 {
     using Core.Http;
+    using Microsoft.IIS.Administration.Core;
     using System.Threading.Tasks;
 
     [RequireWebServer]
@@ -17,6 +18,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             _monitor = monitor;
         }
 
+        [ResourceInfo(Name = Defines.WebServerMonitoringName)]
         public async Task<object> Get()
         {
             return WebServerHelper.ToJsonModel(await _monitor.GetSnapshot(), Context.Request.GetFields());

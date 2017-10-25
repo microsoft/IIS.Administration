@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.Monitoring
     /// Concurrent collection of performance counters that can be refreshed to populate performance counter values
     /// </summary>
 
-    public sealed class CounterMonitor : IDisposable
+    sealed class CounterMonitor : IDisposable
     {
         private readonly TimeSpan RefreshRate = TimeSpan.FromMilliseconds(1000);
         private Dictionary<IPerfCounter, PdhCounterHandle> _counters = new Dictionary<IPerfCounter, PdhCounterHandle>();

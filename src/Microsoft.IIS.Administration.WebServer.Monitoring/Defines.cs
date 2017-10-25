@@ -11,7 +11,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     {
         private const string ENDPOINT = "monitoring";
 
-        public const string MonitoringName = "Microsoft.WebServer.Monitoring";
+        public const string WebServerMonitoringName = "Microsoft.WebServer.Monitoring";
         public static readonly string PATH = $"{WebServer.Defines.PATH}/{ENDPOINT}";
         public static readonly ResDef WebServerMonitoringResource = new ResDef("monitoring", new Guid("2D6444DA-CFA4-4D0B-9384-0D117408EEC8"), ENDPOINT);
 
