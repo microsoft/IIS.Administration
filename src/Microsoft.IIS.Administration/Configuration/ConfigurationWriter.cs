@@ -4,6 +4,7 @@
 namespace Microsoft.IIS.Administration
 {
     using Microsoft.IIS.Administration.Core;
+    using Microsoft.IIS.Administration.Files;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
@@ -24,6 +25,20 @@ namespace Microsoft.IIS.Administration
                 throw new ArgumentNullException(nameof(name));
             }
 
+            try {
+                WriteSectionInteral(name, value);
+            }
+            catch (IOException e) {
+                if (e.HResult == HResults.FileInUse) {
+                    throw new LockedException("appsettings.json");
+                }
+
+                throw;
+            }
+        }
+
+        private void WriteSectionInteral(string name, object value)
+        {
             JToken root = JObject.Parse(File.ReadAllText(_path));
             JToken seeker = root;
             JToken parent = null;
