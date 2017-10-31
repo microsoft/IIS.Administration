@@ -120,6 +120,9 @@ namespace Microsoft.IIS.Administration.Files
 
             // Self (Files)
             hal.ProvideLink(Defines.LocationsResource.Guid, "self", location => new { href = $"/{Defines.LOCATIONS_PATH}/{location.id}" });
+
+            // File
+            hal.ProvideLink(Defines.LocationsResource.Guid, "directory", location => new { href = $"/{Defines.FILES_PATH}/{location.id}" });
         }
     }
 }
