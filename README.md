@@ -17,9 +17,9 @@ There is a blog post to get up and running on Nano Server located at https://blo
 
 ### Publish and Install: ###
 * Run PowerShell as an Administrator
-* Run the Publish.ps1 script located in the scripts directory
-* (SolutionRoot)\scripts\publish\publish.ps1
-* (SolutionRoot)\scripts\publish\bin\setup\setup.ps1 Install -Verbose
+* Run the `Publish.ps1` script located in the scripts directory
+* `(SolutionRoot)\scripts\publish\publish.ps1`
+* `(SolutionRoot)\scripts\publish\bin\setup\setup.ps1 Install -Verbose`
 
 ### Using the new API ###
 1. Navigate to https://manage.iis.net
