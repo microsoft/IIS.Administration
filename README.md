@@ -3,23 +3,35 @@ Microsoft IIS Administration API
 
 [![Build status](https://ci.appveyor.com/api/projects/status/l62ov4c6fbdi6vrq/branch/dev?svg=true)](https://ci.appveyor.com/project/jimmyca15/iis-administration-ed6b3/branch/dev)
 
-### Requirements: ###
-* IIS installed
-* .NET Core installed (https://www.microsoft.com/net/download/core#/runtime)
+To find the latest news for the IIS Administration api visit the blog at https://blogs.iis.net/adminapi.
+
+Documentation is available at https://docs.microsoft.com/en-us/IIS-Administration 
+
+### Installation: ###
+* Supports 64 bit Windows Server 2008 R2 and above
+
+The latest installer can be obtained from https://manage.iis.net/get. The installer will automatically download and install all dependencies.
 
 ### Nano Server Installation: ###
 There is a blog post to get up and running on Nano Server located at https://blogs.iis.net/adminapi/microsoft-iis-administration-on-nano-server.
 
 ### Running Tests: ###
+* Run the ConfigureDevEnvironment script with the test environment flag
+`
+C:\src\repos\IIS.Administration\scripts\Configure-DevEnvironment.ps1 -ConfigureTestEnvironment
+`
 * Open the project in Visual Studio as an Administrator and launch without debugging
 * Open another instance of the project and run the tests located in the 'test' folder
 * Tests can also be run with the CLI
 
 ### Publish and Install: ###
-* Run PowerShell as an Administrator
-* Run the Publish.ps1 script located in the scripts directory
-* (SolutionRoot)\scripts\publish\publish.ps1
-* (SolutionRoot)\scripts\publish\bin\setup\setup.ps1 Install -Verbose
+Publishing and installing can be done through a PowerShell script. This requires the .NET Core SDK and Bower.
+
+```
+# Replace the path to match your clone location
+C:\src\repos\IIS.Administration\scripts\publish\publish.ps1
+C:\src\repos\IIS.Administration\scripts\publish\bin\setup\setup.ps1 Install -Verbose
+```
 
 ### Using the new API ###
 1. Navigate to https://manage.iis.net
@@ -31,20 +43,26 @@ There is a blog post to get up and running on Nano Server located at https://blo
 
 ## Examples ##
 
-### Intialize Api Client ###
+### C# ### 
+
+#### Intialize Api Client
+
 ```
-var httpClientHandler = new HttpClientHandler() {
-    Credentials = new NetworkCredential(userName, password, domain)
-};
-var apiClient = new HttpClient(httpClientHandler);
+var apiClient = new HttpClient(new HttpClientHandler() {
+   UseDefaultCredentials = true
+}, true);
 
 // Set access token for every request
 apiClient.DefaultRequestHeaders.Add("Access-Token", "Bearer {token}");
+
+// Request HAL (_links)
+apiClient.DefaultRequestHeaders.Add("Accept", "application/hal+json");
 ```
 
-### Get Web Sites ###
+#### Get Web Sites ####
 ```
-var res = apiClient.GetAsync("https://localhost:55539/api/webserver/websites").Result;
+var res = await apiClient.GetAsync("https://localhost:55539/api/webserver/websites");
+
 if (res.StatusCode != HttpStatusCode.OK) {
   HandleError(res);
   return;
@@ -53,20 +71,24 @@ if (res.StatusCode != HttpStatusCode.OK) {
 JArray sites = JObject.Parse(res.Content.ReadAsStringAsync().Result).Value<JArray>("websites");
 ```
 
-### Create a Web Site ###
+#### Create a Web Site ####
 ```
+
 var newSite = new {
-    name = "Contoso",
-    physical_path = @"C:\sites\Contoso",
-    bindings = new[] {
-        new {
-            port = 8080,
-            is_https = false,
-            ip_address = "*"
-        }
+  name = "Contoso",
+  physical_path = @"C:\inetpub\wwwroot",
+  bindings = new object[] {
+    new {
+      port = 8080,
+      protocol = "http",
+      ip_address = "*"
     }
+  }
 };
-var res = apiClient.PostAsJsonAsync<object>("https://localhost:55539/api/webserver/websites", newSite).Result;
+
+res = await apiClient.PostAsync("https://localhost:55539/api/webserver/websites", 
+    new StringContent(JsonConvert.SerializeObject(newSite), Encoding.UTF8, "application/json"));
+
 if (res.StatusCode != HttpStatusCode.Created) {
     HandleError(res);
     return;
@@ -74,3 +96,59 @@ if (res.StatusCode != HttpStatusCode.Created) {
 
 JObject site = JObject.Parse(res.Content.ReadAsStringAsync().Result);
 ```
+
+#### Update a Web Site ####
+```
+
+var updateObject = new {
+  bindings = new object[] {
+    new {
+      port = 8081,
+      protocol = "http",
+      ip_address = "*"
+    }
+  }
+};
+
+var updateRequest = new HttpRequestMessage(new HttpMethod("PATCH"),
+    "https://localhost:55539" + site["_links"]["self"].Value<string>("href"));
+
+updateRequest.Content = new StringContent(JsonConvert.SerializeObject(updateObject), Encoding.UTF8, "application/json");
+
+res = await apiClient.SendAsync(updateRequest);
+
+if (res.StatusCode != HttpStatusCode.OK) {
+    HandleError(res);
+    return;
+}
+
+site = JObject.Parse(res.Content.ReadAsStringAsync().Result);
+```
+
+#### Delete a Web Site ####
+```
+res = await apiClient.DeleteAsync("https://localhost:55539" + site["_links"]["self"].Value<string>("href"));
+```
+
+### PowerShell ###
+
+There is a [utils.ps1](./scripts/utils/utils.ps1) script that demonstrates how to generate an access token from PowerShell.
+
+```
+# Replace the path to match your clone location
+$accessToken = C:\src\repos\IIS.Administration\scripts\utils\utils.ps1 Generate-AccessToken -url "https://localhost:55539"
+```
+
+#### Get Web Sites ####
+
+````
+# Supply an access token to run the example
+
+$accessToken = "{Some Access token}"
+
+$headers = @{ "Access-Token" = "Bearer $accessToken"; "Accept" = "application/hal+json" }
+
+$response = Invoke-RestMethod "https://localhost:55539/api/webserver/websites" -UseDefaultCredentials -Headers $headers
+
+$response.websites
+````
