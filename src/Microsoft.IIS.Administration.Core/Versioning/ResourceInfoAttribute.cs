@@ -1,3 +1,4 @@
+
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
@@ -45,6 +46,8 @@ namespace Microsoft.IIS.Administration.Core
             }
             else {
                 type.Append(".");
+                if (previous.Contains("application/hal"))
+                    previous = previous.Remove(0, "application/".Length);
                 type.Append(previous);
             }
 
