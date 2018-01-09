@@ -6,7 +6,6 @@ namespace Microsoft.IIS.Administration.Cors
 {
     using AspNetCore.Builder;
     using AspNetCore.Http;
-    using AspNetCore.Mvc.Internal;
     using Core.Http;
     using Extensions.Configuration;
     using Extensions.DependencyInjection;
@@ -15,6 +14,7 @@ namespace Microsoft.IIS.Administration.Cors
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Threading.Tasks;
 
     public static class CorsExtensions
     {
@@ -111,7 +111,7 @@ namespace Microsoft.IIS.Administration.Cors
                             response.Headers.Add(corsHeader);
                         }
                     }
-                    return TaskCache.CompletedTask;
+                    return Task.CompletedTask;
                 });
             }
         }

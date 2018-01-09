@@ -19,6 +19,8 @@ namespace Microsoft.IIS.Administration {
     using Extensions.DependencyInjection.Extensions;
     using Files;
     using Logging;
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Server.HttpSys;
     using Microsoft.IIS.Administration.Core.Utils;
     using Microsoft.IIS.Administration.Security.Authorization;
     using Security;
@@ -76,7 +78,9 @@ namespace Microsoft.IIS.Administration {
 
             //
             // Authentication
-            services.AddAuthentication();
+            var authenticationBuilder =  services.AddAuthentication(HttpSysDefaults.AuthenticationScheme);
+
+            services.AddJwtBearerAuthentication(authenticationBuilder);
 
             //
             // Authorization
@@ -162,8 +166,8 @@ namespace Microsoft.IIS.Administration {
             //
             // Authentication
             //
+            app.UseAuthentication();
             app.UseWindowsAuthentication();
-            app.UseBearerAuthentication();
 
 
             //
