@@ -19,6 +19,11 @@ namespace Microsoft.IIS.Administration {
             IConfiguration config = configHelper.Build();
 
             //
+            // Setup hosting environment
+            var hostingManager = new HostingManager(config);
+
+            hostingManager.Initialize().Wait();
+
             //
             // Host
             using (var host = new WebHostBuilder()
