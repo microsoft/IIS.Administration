@@ -26,6 +26,7 @@
     },
     "Microsoft.IIS.Administration": {
       "commandName": "Project",
+      "workingDirectory": ".",
       "launchBrowser": true,
       "launchUrl": "https://localhost:44326",
       "environmentVariables": {
