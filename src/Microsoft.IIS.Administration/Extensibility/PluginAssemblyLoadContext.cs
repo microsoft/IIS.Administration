@@ -24,6 +24,10 @@ namespace Microsoft.IIS.Administration
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
+            if (typeof(PluginAssemblyLoadContext).Assembly.GetReferencedAssemblies().Any(a => a.Name ==  assemblyName.Name))
+            {
+                return null;
+            }
 
             Assembly asm = null;
 

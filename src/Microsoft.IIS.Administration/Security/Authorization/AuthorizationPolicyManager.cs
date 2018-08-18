@@ -7,7 +7,7 @@ namespace Microsoft.IIS.Administration.Security.Authorization {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.Extensions.Configuration;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
-
+    using Microsoft.AspNetCore.Server.HttpSys;
 
     sealed class AuthorizationPolicyManager {
         private const string WINDOWS_USER = "WindowsUser";
@@ -32,7 +32,7 @@ namespace Microsoft.IIS.Administration.Security.Authorization {
         public void Configure(AuthorizationOptions o) {
             //
             // Windows User
-            o.AddPolicy(WINDOWS_USER, p => p.AddAuthenticationSchemes("Negotiate", "NTLM").RequireAuthenticatedUser());
+            o.AddPolicy(WINDOWS_USER, p => p.AddAuthenticationSchemes(HttpSysDefaults.AuthenticationScheme).RequireAuthenticatedUser());
 
 
             //

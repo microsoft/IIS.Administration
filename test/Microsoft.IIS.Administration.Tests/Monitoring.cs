@@ -464,7 +464,7 @@ namespace Microsoft.IIS.Administration.Tests
                     try {
                         await client.GetAsync(Uri);
                     }
-                    catch (Exception e) {
+                    catch (Exception) {
                     }
 
                     await Task.Delay(20);
