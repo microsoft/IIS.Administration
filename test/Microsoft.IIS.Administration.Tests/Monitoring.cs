@@ -205,7 +205,9 @@ namespace Microsoft.IIS.Administration.Tests
                 _output.WriteLine($"Created {numberSites} sites");
                 _output.WriteLine($"Waiting for all site processes to start");
 
-                while (DateTime.Now - start < timeout && serverMonitor.Current["cpu"].Value<long>("processes") < numberSites) {
+                while (DateTime.Now - start <= timeout && 
+                       (serverMonitor.Current["cpu"].Value<long>("processes") < numberSites ||
+                       serverMonitor.Current["network"].Value<long>("total_bytes_sent") == 0)) {
                     await Task.Delay(1000);
                 }
 
