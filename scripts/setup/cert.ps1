@@ -117,6 +117,7 @@ function New($_name)
     $dnsNames = @()
     $dnsNames += "localhost"
 	$dnsNames += hostname
+	$dnsNames += [System.Net.Dns]::GetHostByName($(hostname)).HostName
 	$dnsNames += "$_name"
 	return Create-SelfSignedCertificate "localhost" $_name $dnsNames -ErrorAction Stop
 }
