@@ -417,19 +417,29 @@ function Install
     # Get the certificate currently bound on desired installation port if any
     $preboundCert = .\net.ps1 GetSslBindingInfo -Port $Port
 
-    # If a certificate is bound we delete it to bind our cert
-    if ( $preboundCert -ne $null) {
-        $rollbackStore.preboundCertInfo = $preboundCert
+    $useIisAdminCert = $true
 
-        # Remove any preexisting HTTPS. binding on the specified port
-        Write-Verbose "Deleting certificate from port $Port in HTTP.Sys"
-        .\net.ps1 DeleteSslBinding -Port $Port | Out-Null
+    if ($preboundCert -ne $null) {
+
+        $useIisAdminCert = .\cert.ps1 Is-IISAdminCertificate -Thumbprint $preboundCert.CertificateHash
     }
 
-    Write-Verbose "Binding Certificate to port $Port in HTTP.Sys"
+    if ($useIisAdminCert) {
 
-    .\net.ps1 BindCert -Hash $cert.thumbprint -Port $Port -AppId $(.\globals.ps1 IIS_ADMINISTRATION_APP_ID)  | Out-Null
-    $rollbackStore.newBoundCertPort = $Port
+        # If a certificate is bound we delete it to bind our cert
+        if ( $preboundCert -ne $null) {
+            $rollbackStore.preboundCertInfo = $preboundCert
+
+            # Remove any preexisting HTTPS. binding on the specified port
+            Write-Verbose "Deleting certificate from port $Port in HTTP.Sys"
+            .\net.ps1 DeleteSslBinding -Port $Port | Out-Null
+        }
+
+        Write-Verbose "Binding Certificate to port $Port in HTTP.Sys"
+
+        .\net.ps1 BindCert -Hash $cert.thumbprint -Port $Port -AppId $(.\globals.ps1 IIS_ADMINISTRATION_APP_ID)  | Out-Null
+        $rollbackStore.newBoundCertPort = $Port
+    }
 
     # Construct an access rule that allows full control for Administrators
     .\security.ps1 Set-Acls -Path $adminRoot

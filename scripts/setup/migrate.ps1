@@ -122,13 +122,38 @@ function Migrate {
     if ($destinationSvc.Status -eq [System.ServiceProcess.ServiceControllerStatus]::Running) {
         Stop-Service $destinationSvc.Name -ErrorAction Stop
     }
+    
+    $sslBindingInfo = $null
+
+    $oldServicePort = .\config.ps1 Get-ConfigPort -Path $Source
+    $newServicePort = .\config.ps1 Get-ConfigPort -Path $Destination
+    
+    # Get the certificate info used by the old service
+    $oldServiceCertInfo = .\net.ps1 GetSslBindingInfo -Port $oldServicePort
+    $newServiceCertInfo = .\net.ps1 GetSslBindingInfo -Port $newServicePort
+
+    $oldServiceUsesIisAdminCert = .\cert.ps1 Is-IISAdminCertificate -Thumbprint $oldServiceCertInfo.CertificateHash
+    $newServiceUsesIisAdminCert = .\cert.ps1 Is-IISAdminCertificate -Thumbprint $newServiceCertInfo.CertificateHash
+
+    if ($oldServiceUsesIisAdminCert -and $newServiceUsesIisAdminCert) {
+
+        # Copy over Ssl binding
+        $sslBindingInfo = .\net.ps1 CopySslBindingInfo -SourcePort $newServicePort -DestinationPort $oldServicePort
+    }
+    else {
+
+        $sslBindingInfo = $oldServiceCertInfo
+    }
+
+    # Remove unused binding
+    if ($newServiceUsesIisAdminCert -and $oldServicePort -ne $newServicePort) {
+
+        # The new service's port is only temporary since the migration will cause it to take the value of the old service
+        # We delete the temporary ssl binding since it won't be used anymore
+        .\net.ps1 DeleteSslBinding -Port $newServicePort
+    }
 
     $userFiles = .\config.ps1 Get-UserFileMap
-    
-    # Copy over Ssl bindings, in this case the source and destination are reversed
-    $sourcePort = .\config.ps1 Get-ConfigPort -Path $Destination
-    $destinationPort = .\config.ps1 Get-ConfigPort -Path $Source
-    $sslBindingInfo = .\net.ps1 CopySslBindingInfo -SourcePort $sourcePort -DestinationPort $destinationPort
 
     .\modules.ps1 Migrate-Modules -Source $Source -Destination $Destination
     .\config.ps1 Migrate-AppSettings -Source $Source -Destination $Destination

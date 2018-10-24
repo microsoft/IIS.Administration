@@ -10,7 +10,8 @@ Param (
                  "AddToTrusted",
                  "Create",
                  "Get-IISAdminCertificates",
-                 "Get-LatestIISAdminCertificate")]
+                 "Get-LatestIISAdminCertificate",
+                 "Is-IISAdminCertificate")]
     [string]
     $Command,
     
@@ -293,6 +294,27 @@ function Get-IISAdminCerts {
     $adminCerts
 }
 
+# Tests whether a provided certificate is an IIS Administration generated certificate.
+# Thumbprint: Used to filter the certificate by its thumbprint (hash).
+function Is-IISAdminCert($_thumbprint) {
+
+    $ret = $false
+
+    $certs = Get-IISAdminCerts
+    
+    foreach ($cert in $certs) {
+
+      if ($cert.Thumbprint -eq $_thumbprint) {
+          
+          $ret = $true
+
+          break
+      }
+    }
+
+    $ret
+}
+
 function Get-LatestIISAdminCert {
     $cert = $null
     $certs = Get-IISAdminCerts
@@ -321,6 +343,10 @@ switch ($Command)
     "Get-LatestIISAdminCertificate"
     {
         return Get-LatestIISAdminCert
+    }
+    "Is-IISAdminCertificate"
+    {
+        return Is-IISAdminCert $Thumbprint
     }
     "Delete"
     {
