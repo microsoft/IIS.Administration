@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildVersion)" />
-    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="1.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="1.0.*" />
   </ItemGroup>
 
 </Project>
