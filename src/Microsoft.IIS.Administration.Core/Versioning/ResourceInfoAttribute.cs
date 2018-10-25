@@ -49,7 +49,7 @@ namespace Microsoft.IIS.Administration.Core
             }
             else {
                 type.Append(".");
-                type.Append(previous.StartsWith(applicationTypePrefix) ? previous.Substring(applicationTypePrefix.Length) : previous);
+                type.Append(previous.StartsWith(applicationTypePrefix, StringComparison.OrdinalIgnoreCase) ? previous.Substring(applicationTypePrefix.Length) : previous);
             }
 
             return type.ToString();
