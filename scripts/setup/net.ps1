@@ -144,7 +144,7 @@ function Copy-SslBindingInfo($sourcePort, $destPort) {
         $sourceCert = Get-Item "Cert:\LocalMachine\my\$($sourceInfo.CertificateHash)"
 
         if ($sourceCert -eq $null) {
-            "Source binding certificate not found"
+            throw "Source binding certificate not found"
         }
 
         DeleteHttpsBinding $destPort
