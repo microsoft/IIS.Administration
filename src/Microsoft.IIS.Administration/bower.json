@@ -1,7 +1,0 @@
-{
-  "name": "microsoft.iis.administration",
-  "private": true,
-  "dependencies": {
-    "jquery-3.2.0.min": "https://code.jquery.com/jquery-3.2.0.min.js"
-  }
-}

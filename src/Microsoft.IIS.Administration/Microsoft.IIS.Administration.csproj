@@ -26,7 +26,7 @@
     <None Update="Properties\PublishProfiles;node_modules;bower_components;**.xproj;**.user;**.vspscc;approot;log.txt;logs;config\**\*;plugins">
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
-    <Content Update="bower.json;approot;log.txt;logs;config\**\*">
+    <Content Update="approot;log.txt;logs;config\**\*">
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
@@ -54,6 +54,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="1.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="1.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="1.0.3" />
+    <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="1.0.163" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.1.0" />
   </ItemGroup>
 
@@ -68,14 +69,6 @@
     <ItemGroup>
       <Content Include="wwwroot/**/*.js" CopyToPublishDirectory="PreserveNewest" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);@(Content)" />
     </ItemGroup>
-  </Target>
-
-  <Target Name="PostcompileScript" AfterTargets="Build">
-    <Exec Command="bower install" />
-  </Target>
-
-  <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
-    <Exec Command="bower install" />
   </Target>
 
 </Project>
