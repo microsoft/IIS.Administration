@@ -421,6 +421,7 @@ function Install
 
     if ($preboundCert -ne $null) {
 
+        # We will use the IIS Admin certificate only if the pre-existing binding was using it
         $useIisAdminCert = .\cert.ps1 Is-IISAdminCertificate -Thumbprint $preboundCert.CertificateHash
     }
 
