@@ -214,7 +214,7 @@ function AddUserToGroup($userPath, $_group) {
 }
 
 function Set-Acls($_path) {
-    
+
 	if ([System.String]::IsNullOrEmpty($_path)) {
 		throw "Path cannot be null"
 	}

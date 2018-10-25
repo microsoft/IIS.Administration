@@ -137,7 +137,8 @@ function Migrate {
 
     if ($oldServiceUsesIisAdminCert -and $newServiceUsesIisAdminCert) {
 
-        # Copy over Ssl binding
+        # Migration moves an old service's settings to a new service, thus the new service will begin using the old service's port
+        # Here we copy over binding info if the services are using the IIS Administration certificate to enable certificate renewal
         $sslBindingInfo = .\net.ps1 CopySslBindingInfo -SourcePort $newServicePort -DestinationPort $oldServicePort
     }
     else {
@@ -148,8 +149,8 @@ function Migrate {
     # Remove unused binding
     if ($newServiceUsesIisAdminCert -and $oldServicePort -ne $newServicePort) {
 
-        # The new service's port is only temporary since the migration will cause it to take the value of the old service
-        # We delete the temporary ssl binding since it won't be used anymore
+        # The migration causes the new service's port to become unused since it will begin using the old service's port
+        # As long as the old service's port and new service's port aren't the same, we need to clean it up
         .\net.ps1 DeleteSslBinding -Port $newServicePort
     }
 
