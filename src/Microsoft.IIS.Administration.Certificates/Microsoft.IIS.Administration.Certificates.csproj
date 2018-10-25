@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildVersion)" />
-    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.1.0" />
+    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.1.*" />
   </ItemGroup>
 
 </Project>

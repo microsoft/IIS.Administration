@@ -122,13 +122,39 @@ function Migrate {
     if ($destinationSvc.Status -eq [System.ServiceProcess.ServiceControllerStatus]::Running) {
         Stop-Service $destinationSvc.Name -ErrorAction Stop
     }
+    
+    $sslBindingInfo = $null
+
+    $oldServicePort = .\config.ps1 Get-ConfigPort -Path $Source
+    $newServicePort = .\config.ps1 Get-ConfigPort -Path $Destination
+    
+    # Get the certificate info used by the old service
+    $oldServiceCertInfo = .\net.ps1 GetSslBindingInfo -Port $oldServicePort
+    $newServiceCertInfo = .\net.ps1 GetSslBindingInfo -Port $newServicePort
+
+    $oldServiceUsesIisAdminCert = .\cert.ps1 Is-IISAdminCertificate -Thumbprint $oldServiceCertInfo.CertificateHash
+    $newServiceUsesIisAdminCert = .\cert.ps1 Is-IISAdminCertificate -Thumbprint $newServiceCertInfo.CertificateHash
+
+    if ($oldServiceUsesIisAdminCert -and $newServiceUsesIisAdminCert) {
+
+        # Migration moves an old service's settings to a new service, thus the new service will begin using the old service's port
+        # Here we copy over binding info if the services are using the IIS Administration certificate to enable certificate renewal
+        $sslBindingInfo = .\net.ps1 CopySslBindingInfo -SourcePort $newServicePort -DestinationPort $oldServicePort
+    }
+    else {
+
+        $sslBindingInfo = $oldServiceCertInfo
+    }
+
+    # Remove unused binding
+    if ($newServiceUsesIisAdminCert -and $oldServicePort -ne $newServicePort) {
+
+        # The migration causes the new service's port to become unused since it will begin using the old service's port
+        # As long as the old service's port and new service's port aren't the same, we need to clean it up
+        .\net.ps1 DeleteSslBinding -Port $newServicePort
+    }
 
     $userFiles = .\config.ps1 Get-UserFileMap
-    
-    # Copy over Ssl bindings, in this case the source and destination are reversed
-    $sourcePort = .\config.ps1 Get-ConfigPort -Path $Destination
-    $destinationPort = .\config.ps1 Get-ConfigPort -Path $Source
-    $sslBindingInfo = .\net.ps1 CopySslBindingInfo -SourcePort $sourcePort -DestinationPort $destinationPort
 
     .\modules.ps1 Migrate-Modules -Source $Source -Destination $Destination
     .\config.ps1 Migrate-AppSettings -Source $Source -Destination $Destination

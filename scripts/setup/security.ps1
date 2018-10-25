@@ -404,7 +404,21 @@ function Add-FullControl($_path, $_identity, $_recurse) {
 						[System.Security.AccessControl.AccessControlType]::Allow)
     
     $acl = Get-Acl -Path $_path
-    $acl.SetAccessRule($fullControl)
+
+    $account = $_identity.Translate([System.Security.Principal.NTAccount])
+
+    foreach ($access in $acl.Access) {
+
+        if ($access.FileSystemRights -eq [System.Security.AccessControl.FileSystemRights]::FullControl -and
+            $access.AccessControlType -eq [System.Security.AccessControl.AccessControlType]::Allow -and
+            $access.IdentityReference -eq $account) {
+
+            return
+        }
+    }
+    
+    $acl.AddAccessRule($fullControl)
+
     Set-AclForced $_path $acl $_recurse
 }
 

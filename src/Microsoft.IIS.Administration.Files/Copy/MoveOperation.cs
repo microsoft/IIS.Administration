@@ -13,7 +13,6 @@ namespace Microsoft.IIS.Administration.Files
 
     class MoveOperation
     {
-        private long _currentSize = -1;
         private IFileProvider _fileProvider;
 
         public MoveOperation(IFileInfo source, IFileInfo destination, string tempPath, IFileProvider fileProvider)
@@ -40,26 +39,7 @@ namespace Microsoft.IIS.Administration.Files
         public IFileInfo Destination { get; private set; }
         public IFileInfo Source { get; private set; }
         public long TotalSize { get; private set; }
-
-        public long CurrentSize {
-            get {
-                if (_currentSize != -1) {
-                    return _currentSize;
-                }
-
-                if (Source.Type == FileType.File) {
-                    // refresh
-                    var dest = string.IsNullOrEmpty(TempPath) ? _fileProvider.GetFile(Destination.Path) : _fileProvider.GetFile(TempPath);
-                    return dest.Exists ? dest.Size : 0;
-                }
-                else {
-                    return 0;
-                }
-            }
-            set {
-                _currentSize = value;
-            }
-        }
+        public long CurrentSize { get; set; } = 0;
 
         private void Initialize()
         {
