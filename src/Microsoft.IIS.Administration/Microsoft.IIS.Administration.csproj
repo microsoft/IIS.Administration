@@ -55,7 +55,6 @@
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="1.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="1.0.5" />
     <PackageReference Include="Microsoft.Web.LibraryManager.Build" Version="1.0.163" />
-
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.1.0" />
   </ItemGroup>
 
