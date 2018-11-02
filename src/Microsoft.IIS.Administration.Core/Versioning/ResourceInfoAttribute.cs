@@ -35,8 +35,11 @@ namespace Microsoft.IIS.Administration.Core
 
         public static string ContentType(string name, string version, string previous = null)
         {
+            const string applicationTypePrefix = "application/";
+
             StringBuilder type = new StringBuilder();
-            type.Append("application/vnd.");
+            type.Append(applicationTypePrefix);
+            type.Append("vnd.");
             type.Append(name);
             type.Append(".");
             type.Append(version);
@@ -46,7 +49,7 @@ namespace Microsoft.IIS.Administration.Core
             }
             else {
                 type.Append(".");
-                type.Append(previous);
+                type.Append(previous.StartsWith(applicationTypePrefix, StringComparison.OrdinalIgnoreCase) ? previous.Substring(applicationTypePrefix.Length) : previous);
             }
 
             return type.ToString();
