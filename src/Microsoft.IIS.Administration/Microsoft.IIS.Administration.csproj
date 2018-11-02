@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildVersion)" />    
+    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildVersion)" />
     <PackageReference Include="Microsoft.AspNetCore.Antiforgery" Version="1.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="1.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="1.0.5" />
