@@ -37,6 +37,33 @@ a:hover {
     color:#0094ff;
 }
 
+a:focus {
+    /* accessibility */
+    outline-style: dashed;
+    outline-width: 2px;
+    outline-offset: -2px;
+    outline-color: #000;
+    text-decoration: underline;
+}
+
+button:focus {
+    /* accessibility */
+    outline-style: dashed;
+    outline-width: 2px;
+    outline-offset: -2px;
+    outline-color: #000;
+    text-decoration: underline;
+}
+
+.btn:focus {
+    /* accessibility */
+    outline-style: dashed;
+    outline-width: 2px;
+    outline-offset: -2px;
+    outline-color: #000;
+    text-decoration: underline;
+}
+
 
 .disabled * {
     cursor: default;
