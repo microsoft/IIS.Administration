@@ -5,10 +5,10 @@
 namespace Microsoft.IIS.Administration {
     using AspNetCore.Builder;
     using AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Server.HttpSys;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.IIS.Administration.WindowsService;
-    using Net.Http.Server;
     using Serilog;
 
     public class Program {
@@ -26,15 +26,15 @@ namespace Microsoft.IIS.Administration {
                 .UseConfiguration(config)
                 .ConfigureServices(s => s.AddSingleton(config)) // Configuration Service
                 .UseStartup<Startup>()
-                .UseWebListener(o => {
+                .UseHttpSys(o => {
                     //
                     // Kernel mode Windows Authentication
-                    o.ListenerSettings.Authentication.Schemes = AuthenticationSchemes.Negotiate | AuthenticationSchemes.NTLM;
+                    o.Authentication.Schemes = AuthenticationSchemes.Negotiate | AuthenticationSchemes.NTLM;
 
                     //
                     // Need anonymous to allow CORS preflight requests
                     // app.UseWindowsAuthentication ensures (if needed) the request is authenticated to proceed
-                    o.ListenerSettings.Authentication.AllowAnonymous = true;
+                    o.Authentication.AllowAnonymous = true;
                 })
                 .Build()
                 .UseHttps()) {
@@ -45,7 +45,7 @@ namespace Microsoft.IIS.Administration {
                     //
                     // Run as a Service
                     Log.Information($"Running as service: {serviceName}");
-                    new ServiceHelper(serviceName).Run(token => host.Run(token))
+                    new ServiceHelper(serviceName).Run(token => host.RunAsync(token))
                                                   .Wait();
                 }
                 else {

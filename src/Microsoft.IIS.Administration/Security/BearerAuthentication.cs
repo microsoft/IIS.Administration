@@ -3,64 +3,61 @@
 
 
 namespace Microsoft.IIS.Administration.Security {
-    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
-    using AspNetCore.Builder;
     using Core.Security;
     using Microsoft.Extensions.DependencyInjection;
-
     using System;
-
-    using System.Collections.Generic;
-
-    using System.IO;
-
-    using Microsoft.AspNetCore.Authentication;
-
-    using Microsoft.AspNetCore.Authentication.JwtBearer;
-
-    using Microsoft.AspNetCore.Builder;
-
     using Microsoft.AspNetCore.Hosting;
-
-    using Microsoft.AspNetCore.Http;
-
     using Microsoft.Extensions.Configuration;
-
-    using Microsoft.Extensions.DependencyInjection;
-
-    using Microsoft.Net.Http.Headers;
-
-    using Newtonsoft.Json.Linq;
+    using Microsoft.IIS.Administration.Core;
+    using Microsoft.AspNetCore.Server.HttpSys;
 
     public static class BearerAuthenticationExtensions {
 
-        public static void UseBearerAuthentication(this IServiceCollection services) {
-            // var validator = new BearerTokenValidator((IApiKeyProvider)builder.ApplicationServices.GetService(typeof(IApiKeyProvider)));
+        public static IServiceCollection AddBearerAuthentication(this IServiceCollection services, Action<ApiKeyOptions> configure = null)
+        {
+            var opts = new ApiKeyOptions();
+
+            if (configure != null)
+            {
+                configure.Invoke(opts);
+            }
+
+            IHostingEnvironment env = services.BuildServiceProvider().GetRequiredService<IHostingEnvironment>();
+            IConfiguration config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+
+            var provider = new ApiKeyProvider(opts);
+
+            provider.UseStorage(new ApiKeyFileStorage(env.GetConfigPath("api-keys.json")));
+            provider.UseStorage(new ApiKeyConfigStorage(config));
+
+            var validator = new BearerTokenValidator(provider);
 
             services.AddAuthentication(options =>
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = HttpSysDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
+            })
+            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
+                options.SecurityTokenValidators.Add(validator);
+
                 options.Events = new JwtBearerEvents()
                 {
                     OnMessageReceived = ctx =>
                     {
-                        ctx.HttpContext.RequestServices.GetRequiredService<BearerTokenValidator>().OnReceivingToken(ctx);
+                        validator.OnReceivingToken(ctx);
                         return System.Threading.Tasks.Task.FromResult(0);
                     },
                     OnTokenValidated = ctx =>
                     {
-                        ctx.HttpContext.RequestServices.GetRequiredService<BearerTokenValidator>().OnValidatedToken(ctx);
+                        validator.OnValidatedToken(ctx);
                         return System.Threading.Tasks.Task.FromResult(0);
                     }
                 };
             });
-            options.SecurityTokenValidators.Add(validator);
 
-            return builder.UseJwtBearerAuthentication(options);
+            return services.AddSingleton<IApiKeyProvider>(provider);
         }
     }
 }

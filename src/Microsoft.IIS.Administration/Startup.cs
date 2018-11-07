@@ -71,12 +71,8 @@ namespace Microsoft.IIS.Administration {
             services.AddCors();
 
             //
-            // Api Keys
-            services.AddApiKeyProvider();
-
-            //
             // Authentication
-            services.UseBearerAuthentication();
+            services.AddBearerAuthentication();
 
             //
             // Authorization
