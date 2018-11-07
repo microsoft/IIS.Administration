@@ -76,7 +76,7 @@ namespace Microsoft.IIS.Administration {
 
             //
             // Authentication
-            services.AddAuthentication();
+            services.UseBearerAuthentication();
 
             //
             // Authorization
@@ -122,7 +122,7 @@ namespace Microsoft.IIS.Administration {
                 builder.AddApplicationPart(asm);
             }
 
-            builder.AddControllersAsServices();            
+            builder.AddControllersAsServices();
             builder.AddWebApiConventions();
         }
 
@@ -163,7 +163,6 @@ namespace Microsoft.IIS.Administration {
             // Authentication
             //
             app.UseWindowsAuthentication();
-            app.UseBearerAuthentication();
 
 
             //

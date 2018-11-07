@@ -6,11 +6,9 @@
     <Description>Microsoft.IIS.Administration.Certificates Class Library</Description>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
-    <TargetFramework>netstandard1.6</TargetFramework>
-    <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>Microsoft.IIS.Administration.Certificates</AssemblyName>
     <PackageId>Microsoft.IIS.Administration.Certificates</PackageId>
-    <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;dnxcore50;portable-net45+win8</PackageTargetFallback>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,8 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildVersion)" />
-    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.1.2" />
+    <PackageReference Include="MicroBuild.Core" Version="0.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.3.2" />
   </ItemGroup>
 
 </Project>

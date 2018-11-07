@@ -189,7 +189,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
                 return true;
             }
 
-            return await _authorization.AuthorizeAsync(Context.User, null, "system");
+            return (await _authorization.AuthorizeAsync(Context.User, null, "system")).Succeeded;
         }
     }
 }
