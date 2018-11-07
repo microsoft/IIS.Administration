@@ -3,32 +3,61 @@
 
 
 namespace Microsoft.IIS.Administration.Security {
-    using AspNetCore.Authentication.JwtBearer;
+    using Microsoft.AspNetCore.Authentication;
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
     using AspNetCore.Builder;
     using Core.Security;
+    using Microsoft.Extensions.DependencyInjection;
+
+    using System;
+
+    using System.Collections.Generic;
+
+    using System.IO;
+
+    using Microsoft.AspNetCore.Authentication;
+
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+
+    using Microsoft.AspNetCore.Builder;
+
+    using Microsoft.AspNetCore.Hosting;
+
+    using Microsoft.AspNetCore.Http;
+
+    using Microsoft.Extensions.Configuration;
+
+    using Microsoft.Extensions.DependencyInjection;
+
+    using Microsoft.Net.Http.Headers;
+
+    using Newtonsoft.Json.Linq;
 
     public static class BearerAuthenticationExtensions {
 
-        public static IApplicationBuilder UseBearerAuthentication(this IApplicationBuilder builder) {
-            var validator = new BearerTokenValidator((IApiKeyProvider)builder.ApplicationServices.GetService(typeof(IApiKeyProvider)));
+        public static void UseBearerAuthentication(this IServiceCollection services) {
+            // var validator = new BearerTokenValidator((IApiKeyProvider)builder.ApplicationServices.GetService(typeof(IApiKeyProvider)));
 
-            //
-            // Options
-            var options = new JwtBearerOptions() {
-                AutomaticAuthenticate = true,
-                AutomaticChallenge = true,
-                Events = new JwtBearerEvents() {
-                    OnMessageReceived = ctx => {
-                        validator.OnReceivingToken(ctx);
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+                options.Events = new JwtBearerEvents()
+                {
+                    OnMessageReceived = ctx =>
+                    {
+                        ctx.HttpContext.RequestServices.GetRequiredService<BearerTokenValidator>().OnReceivingToken(ctx);
                         return System.Threading.Tasks.Task.FromResult(0);
                     },
-                    OnTokenValidated = ctx => {
-                        validator.OnValidatedToken(ctx);
+                    OnTokenValidated = ctx =>
+                    {
+                        ctx.HttpContext.RequestServices.GetRequiredService<BearerTokenValidator>().OnValidatedToken(ctx);
                         return System.Threading.Tasks.Task.FromResult(0);
                     }
-                }
-            };
-
+                };
+            });
             options.SecurityTokenValidators.Add(validator);
 
             return builder.UseJwtBearerAuthentication(options);
