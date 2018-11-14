@@ -35,6 +35,15 @@ $(document).ready(function () {
         $(this).siblings().removeClass("selected");
         $(this).addClass("selected");
     });
+
+    //
+    // handle Enter and Space keyup event to select the input-focused <li> element
+    $(".radio-row li").keyup(function (event) {
+        if (event.which === 13 || event.which === 32) {
+            $(this).siblings().removeClass("selected");
+            $(this).addClass("selected");
+        }
+    });
 });
 
 
