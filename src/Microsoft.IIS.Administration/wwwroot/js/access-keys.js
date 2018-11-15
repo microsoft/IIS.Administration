@@ -64,6 +64,14 @@ $(document).ready(function () {
         $("#newTokenForm input[name='expiration']").val(seconds || "");
     })
 
+    $("#key").ready(function () {
+        var range = document.createRange();
+        var selection = window.getSelection();
+        range.selectNodeContents(document.getElementById('key'));
+        selection.removeAllRanges();
+        selection.addRange(range);        
+    })
+
     $("#clipboardCopy").click(function () {
         var range = document.createRange();
         var selection = window.getSelection();
