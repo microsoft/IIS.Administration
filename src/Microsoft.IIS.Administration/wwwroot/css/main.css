@@ -305,13 +305,21 @@ input[type=checkbox]:not(old):checked + label > span:before {
     font-weight : bold;
 }
 
-input[type=radio]:not(old):checked + label > span > span{
-    display          : block;
-    width            : 0.85em;
-    height           : 0.85em;
-    margin           : 0.17em;
-    border           : 0.0625em solid #0094ff;
-    background-color : #0094ff;
+input[type=checkbox]:not(old):focus + label {
+    outline-style: dashed;
+    outline-width: 2px;
+    outline-offset: -2px;
+    outline-color: #000;
+    text-decoration: underline;
+}
+
+input[type=radio]:not(old):checked + label > span > span {
+    display: block;
+    width: 0.85em;
+    height: 0.85em;
+    margin: 0.17em;
+    border: 0.0625em solid #0094ff;
+    background-color: #0094ff;
 }
 
 
