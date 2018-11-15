@@ -37,6 +37,30 @@ a:hover {
     color:#0094ff;
 }
 
+a:focus {
+    outline-style: dashed;
+    outline-width: 2px;
+    outline-offset: -2px;
+    outline-color: #000;
+    text-decoration: underline;
+}
+
+button:focus {
+    outline-style: dashed;
+    outline-width: 2px;
+    outline-offset: -2px;
+    outline-color: #000;
+    text-decoration: underline;
+}
+
+.btn:focus {
+    outline-style: dashed;
+    outline-width: 2px;
+    outline-offset: -2px;
+    outline-color: #000;
+    text-decoration: underline;
+}
+
 
 .disabled * {
     cursor: default;
@@ -230,6 +254,14 @@ input[type="text"] {
     background: #0094ff;
     color: #fff;
     cursor: pointer;
+}
+
+.radio-row li:focus {
+    outline-style: dashed;
+    outline-width: 2px;
+    outline-offset: -2px;
+    outline-color: #000;
+    text-decoration: underline;
 }
 
 /*
