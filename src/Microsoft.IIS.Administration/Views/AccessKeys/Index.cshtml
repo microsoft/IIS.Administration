@@ -79,7 +79,6 @@
         </div>
         @(formToken)
     </form>
-
     <section id="tokenForm" class="modal-form">
         <fieldset>
             <h1>@newToken?.Purpose</h1>
@@ -91,7 +90,8 @@
             </p>
         </fieldset>
         <p class="right">
-            <a id="ok" class="btn btn-default" href="/security/tokens" >Got it</a>
+            <a tabindex="0" id="clipboardCopy" class="btn btn-default">Copy</a>
+            <a id="ok" class="btn btn-default" href="/security/tokens">Got it</a>
         </p>
     </section>
 </div>

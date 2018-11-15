@@ -64,6 +64,15 @@ $(document).ready(function () {
         $("#newTokenForm input[name='expiration']").val(seconds || "");
     })
 
+    $("#clipboardCopy").click(function () {
+        var range = document.createRange();
+        var selection = window.getSelection();
+        range.selectNodeContents(document.getElementById('key'));
+        selection.removeAllRanges();
+        selection.addRange(range);     
+        document.execCommand('copy');
+    })
+
     //
     // Scroll
     $(document).scroll(function () {
