@@ -39,12 +39,17 @@ namespace Microsoft.IIS.Administration
             Log.Logger.Debug($"Loading plugin {assemblyName}");
 
             Assembly assembly = _loader.LoadFromAssemblyPath(assemblyPath);
+
             _loadedAssemblies.Add(assembly);
 
+            //
             // Every module should expose a type called Startup in a namespace equivalent to the assembly name
-            Type type = assembly.GetType(assemblyName + ".Startup"); 
-            IModule module = (IModule) Activator.CreateInstance(type);
+            Type type = assembly.GetType(assemblyName + ".Startup");
+
+            IModule module = (IModule)Activator.CreateInstance(type);
+
             _moduleHolder.Add(module);
+
             return assembly;
         }
 
