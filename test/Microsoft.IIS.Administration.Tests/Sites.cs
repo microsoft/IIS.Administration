@@ -506,27 +506,6 @@ namespace Microsoft.IIS.Administration.Tests
             return Globals.Success(response);
         }
 
-        public static bool GetSites(HttpClient client, out List<JObject> sites)
-        {
-            string response = null;
-            sites = null;
-
-            if(!client.Get(SITE_URL, out response)) {
-                return false;
-            }
-
-            JObject jObj = JsonConvert.DeserializeObject<JObject>(response);
-
-            JArray sArr = jObj["websites"] as JArray;
-            sites = new List<JObject>();
-
-            foreach(JObject site in sArr) {
-                sites.Add(site);
-            }
-
-            return true;
-        }
-
         public static JObject GetSite(HttpClient client, string name)
         {
             var site = client.Get(SITE_URL)["websites"]
