@@ -414,7 +414,7 @@ namespace Microsoft.IIS.Administration.Tests
                         var result = await responseMessage.Content.ReadAsStringAsync();
                         _snapshot = JObject.Parse(result);
                     }
-                    catch (Exception e) {
+                    catch {
                         ErrorCount++;
                     }
 
@@ -466,7 +466,7 @@ namespace Microsoft.IIS.Administration.Tests
                     try {
                         await client.GetAsync(Uri);
                     }
-                    catch (Exception e) {
+                    catch {
                     }
 
                     await Task.Delay(20);
