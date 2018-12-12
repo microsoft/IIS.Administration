@@ -12,7 +12,12 @@ $(document).ready(function () {
 
     $("#showNewForm").click(function () {
         $("#tokenForm").hide();
+
+        // show the newTokenForm
         $("#modal, #newTokenForm").show();
+
+        // set input-focus to the first control of the newTokenForm
+        $("#purpose").focus(); 
     });
 
     $("#tokenGenerator").submit(function () {
@@ -65,11 +70,15 @@ $(document).ready(function () {
     })
 
     $("#key").ready(function () {
+        // select the newly generated token
         var range = document.createRange();
         var selection = window.getSelection();
         range.selectNodeContents(document.getElementById('key'));
         selection.removeAllRanges();
-        selection.addRange(range);        
+        selection.addRange(range);
+
+        // set input-focus to the first control of the tokenGenerator
+        $("#clipboardCopy").focus(); 
     })
 
     $("#clipboardCopy").click(function () {
