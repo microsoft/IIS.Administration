@@ -35,7 +35,11 @@ Param(
     
     [parameter()]
     [switch]
-    $DeleteBinding
+    $DeleteBinding,
+
+    [parameter()]
+    [boolean]
+    $LegacyConfigurations = $true
 )
 
 Set-StrictMode -Off
@@ -95,7 +99,7 @@ function Install() {
     }
     else {
         $ServiceName = .\globals.ps1 DEFAULT_SERVICE_NAME
-        .\install.ps1 -Path $adminRoot -Port $Port -SkipVerification:$SkipVerification -DistributablePath $DistributablePath -CertHash $CertHash -Version $Version -ServiceName $ServiceName
+        .\install.ps1 -Path $adminRoot -Port $Port -SkipVerification:$SkipVerification -DistributablePath $DistributablePath -CertHash $CertHash -Version $Version -ServiceName $ServiceName -LegacyConfigurations:$LegacyConfigurations
     }
 }
 
@@ -123,7 +127,7 @@ function Upgrade() {
 
     $installed = $false
     try {
-        .\install.ps1 -Path $adminRoot -Version $Version -SkipVerification:$SkipVerification -ServiceName $ServiceName -Port 0 -DistributablePath $DistributablePath -CertHash $CertHash
+        .\install.ps1 -Path $adminRoot -Version $Version -SkipVerification:$SkipVerification -ServiceName $ServiceName -Port 0 -DistributablePath $DistributablePath -CertHash $CertHash -LegacyConfigurations:$LegacyConfigurations
         $installed = $true
         .\migrate.ps1 -Source $latest -Destination $(Join-Path $adminRoot $Version)
     }

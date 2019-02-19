@@ -32,7 +32,11 @@ Param(
 
     [parameter()]
     [switch]
-    $DontCopy
+    $DontCopy,
+
+    [parameter()]
+    [switch]
+    $LegacyConfigurations
 )
 
 
@@ -351,7 +355,7 @@ function Install
         }
     }
 
-    .\config.ps1 Write-AppSettings -Port $Port -AppSettingsPath (Join-Path $adminRoot "Microsoft.IIS.Administration\config\appsettings.json")
+    .\config.ps1 Write-AppSettings -Port $Port -LegacyConfigurations:$LegacyConfigurations -AppSettingsPath (Join-Path $adminRoot "Microsoft.IIS.Administration\config\appsettings.json")
 
     # Need a cert to bind to the port the API is supposed to listen on
     $cert = $null

@@ -17,7 +17,11 @@ Param(
     
     [parameter()]
     [switch]
-    $KeepFiles
+    $KeepFiles,
+
+    [parameter()]
+    [string]
+    $IISAdminOwnersGroup = "IIS Administration API Owners"
 )
 
 .\require.ps1 Is-Administrator
@@ -121,6 +125,9 @@ function Uninstall($_path)
             }
         }
     }
+
+    Remove-LocalGroup -Name $IISAdminOwnersGroup -ErrorAction "Continue"
+
     exit 0
 }
 
