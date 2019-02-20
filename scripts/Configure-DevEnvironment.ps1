@@ -37,6 +37,7 @@ try {
 
         Write-Host "appsettings.json created at $(Join-Path $configDir "appsettings.json")"
         Write-Host "Add users to the 'users' section to grant access to the application"
+        Write-Host "Add ""manage.iis.net"" to the cors rule if you wish to manage IIS through browser"
         Write-Host "For more info about the security configuration visit https://docs.microsoft.com/en-us/iis-administration/configuration/appsettings.json#security"
     }
 

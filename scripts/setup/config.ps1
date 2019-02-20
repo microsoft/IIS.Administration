@@ -45,7 +45,11 @@ Param (
     
     [parameter()]
     [string]
-    $Destination
+    $Destination,
+
+    [parameter()]
+    [switch]
+    $IncludeDefaultCors
 )
 
 # Name of file we place installation data in
@@ -123,8 +127,16 @@ function Write-AppSettings($_appSettingsPath, $_port) {
 
     $settings = .\json.ps1 Get-JsonContent -Path $_appSettingsPath
 
-    $settings.security.users.administrators += $(.\security.ps1 CurrentAdUser)
-    $settings.security.users.owners += $(.\security.ps1 CurrentAdUser)
+    $groupName = .\globals.ps1 'IIS_ADMIN_API_OWNERS'
+    $groupDescription = .\globals.ps1 'IIS_ADMIN_API_OWNERS_DESCRIPTION'
+    $currentAdUser = .\security.ps1 CurrentAdUser
+    .\security.ps1 EnsureLocalGroupMember -AdPath $currentAdUser -Name $groupName -Description $groupDescription
+    $settings.security.users.administrators += $groupName
+    $settings.security.users.owners += $groupName
+
+    if ($IncludeDefaultCors) {
+        $settings.cors.rules += @{ "origin" = "https://manage.iis.net"; "allow" = $true }
+    }
 
     if ($_port -ne $null -and $_port -ne $(.\globals.ps1 DEFAULT_PORT)) {
         .\json.ps1 Add-Property -JsonObject $settings -Name "urls" -Value "https://*:$_port"

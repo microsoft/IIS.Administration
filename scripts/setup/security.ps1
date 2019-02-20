@@ -13,7 +13,9 @@ Param(
                  "Set-Acls",
                  "Add-SelfRights",
                  "Set-AclForced",
-                 "Add-FullControl")]
+                 "Add-FullControl",
+                 "EnsureLocalGroupMember")]
+
     [string]
     $Command,
     
@@ -123,7 +125,7 @@ function GroupEquals($group, $_name, $desc) {
 # Creates a local group with the specified name and description.
 # Name: The name for the local group.
 # Description: The description for the local group.
-function CreateLocalGroup($_name, $desc) {
+function CreateLocalGroup($_name, $desc, $skipIfExists = $false) {
 
 	if ([System.String]::IsNullOrEmpty($_name)) {
 		throw "Name cannot be null"
@@ -132,6 +134,9 @@ function CreateLocalGroup($_name, $desc) {
     $group = GetLocalGroup $_name;
 
     if($group -ne $null) {
+        if ($skipIfExists) {
+            return $group
+        }
         throw "Group $_name already exists"
     }
 
@@ -157,17 +162,18 @@ function RemoveLocalGroup($_name) {
 
 	if ([System.String]::IsNullOrEmpty($_name)) {
 		throw "Name cannot be null"
-	}
+    }
 
     $g = GetLocalGroup $_name
 
     if($g -ne $null) {
         if (-not($(GroupCommandletsAvailable))) {
             $localAd = GetLocalAd
-            $localAd.Children.Remove($g.Path)
+            return $localAd.Children.Remove($g.Path)
         }
         else {
             Remove-LocalGroup -Name $_name
+            return $true
         }
     }
 }
@@ -422,6 +428,12 @@ function Add-FullControl($_path, $_identity, $_recurse) {
     Set-AclForced $_path $acl $_recurse
 }
 
+## ensure the member/group exists in the specified group
+function EnsureLocalGroupMember($groupName, $description, $AdPath) {
+    $group = CreateLocalGroup $groupName $description $true
+    return AddUserToGroup $AdPath $group
+}
+
 switch($Command)
 {
     "GetLocalGroup"
@@ -431,6 +443,10 @@ switch($Command)
     "CreateLocalGroup"
     {
         return CreateLocalGroup $Name $Description
+    }
+    "EnsureLocalGroupMember"
+    {
+        return EnsureLocalGroupMember $Name $Description $AdPath
     }
     "RemoveLocalGroup"
     {

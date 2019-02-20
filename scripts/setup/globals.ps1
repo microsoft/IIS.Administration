@@ -14,12 +14,16 @@ Param (
                  "DEFAULT_SERVICE_NAME",
                  "SERVICE_DESCRIPTION",
                  "CERT_EXPIRATION_WINDOW",
-                 "CERT_NAME")]
+                 "CERT_NAME",
+                 "IIS_ADMIN_API_OWNERS",
+                 "INSTALLER_FLAG",
+                 "IIS_ADMIN_API_OWNERS_DESCRIPTION")]
     [string]
     $Command
 )
 
 $INSTALL_METHOD_KEY = "IIS_ADMIN_INSTALL_METHOD"
+$installerFlag = "This item will be removed if the Microsoft IIS Administration API is uninstalled."
 
 switch ($Command)
 {
@@ -76,6 +80,15 @@ switch ($Command)
     "CERT_NAME"
     {
         return "Microsoft IIS Administration Server Certificate"
+    }
+    "IIS_ADMIN_API_OWNERS" {
+        return "IIS Administration API Owners"
+    }
+    "INSTALLER_FLAG" {
+        return $installerFlag
+    }
+    "IIS_ADMIN_API_OWNERS_DESCRIPTION" {
+        return "Membership of this group indicates ownership and full access of Microsoft IIS Administration API. $installerFlag"
     }
     default
     {
