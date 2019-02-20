@@ -123,7 +123,12 @@ function Uninstall($_path)
     }
 
     $groupName = .\globals.ps1 'IIS_ADMIN_API_OWNERS'
-    .\security.ps1 RemoveLocalGroup -Name $groupName -VerifyInstallerFlag
+    $group = .\security.ps1 GetLocalGroup -Name $groupName
+    $installerFlag = .\globals.ps1 'INSTALLER_FLAG'
+    if (!($group.Description.Contains($installerFlag))) {
+        return $false
+    }
+    .\security.ps1 RemoveLocalGroup -Name $groupName
 
     exit 0
 }

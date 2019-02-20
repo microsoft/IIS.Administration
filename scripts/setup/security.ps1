@@ -49,11 +49,7 @@ Param(
     
     [parameter()]
     [switch]
-    $Recurse,
-
-    [parameter()]
-    [switch]
-    $VerifyInstallerFlag
+    $Recurse
 )
 
 # Nano Server does not support ADSI provider
@@ -162,20 +158,13 @@ function CreateLocalGroup($_name, $desc, $skipIfExists = $false) {
 
 # Deletes a local group by name.
 # Name: The name of the local group to delete.
-function RemoveLocalGroup($_name, $verifyInstallerFlag) {
+function RemoveLocalGroup($_name) {
 
 	if ([System.String]::IsNullOrEmpty($_name)) {
 		throw "Name cannot be null"
     }
 
     $g = GetLocalGroup $_name
-
-    if ($verifyInstallerFlag) {
-        $installerFlag = .\globals.ps1 'INSTALLER_FLAG'
-        if (!($g.Description.Contains($installerFlag))) {
-            return $false
-        }
-    }
 
     if($g -ne $null) {
         if (-not($(GroupCommandletsAvailable))) {
@@ -461,7 +450,7 @@ switch($Command)
     }
     "RemoveLocalGroup"
     {
-        return RemoveLocalGroup $Name $VerifyInstallerFlag
+        return RemoveLocalGroup $Name
     }
     "CurrentAdUser"
     {

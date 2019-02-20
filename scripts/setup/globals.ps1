@@ -82,7 +82,7 @@ switch ($Command)
         return "Microsoft IIS Administration Server Certificate"
     }
     "IIS_ADMIN_API_OWNERS" {
-        return "Microsoft IIS Administration API Owners"
+        return "IIS Administration API Owners"
     }
     "INSTALLER_FLAG" {
         return $installerFlag
