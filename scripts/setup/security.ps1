@@ -170,20 +170,21 @@ function RemoveLocalGroup($_name, $verifyInstallerFlag) {
 
     $g = GetLocalGroup $_name
 
-    $installerFlag = .\globals.ps1 'INSTALLER_FLAG'
     if ($verifyInstallerFlag) {
+        $installerFlag = .\globals.ps1 'INSTALLER_FLAG'
         if (!($g.Description.Contains($installerFlag))) {
-            return
+            return $false
         }
     }
 
     if($g -ne $null) {
         if (-not($(GroupCommandletsAvailable))) {
             $localAd = GetLocalAd
-            $localAd.Children.Remove($g.Path)
+            return $localAd.Children.Remove($g.Path)
         }
         else {
             Remove-LocalGroup -Name $_name
+            return $true
         }
     }
 }

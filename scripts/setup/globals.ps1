@@ -23,7 +23,7 @@ Param (
 )
 
 $INSTALL_METHOD_KEY = "IIS_ADMIN_INSTALL_METHOD"
-$installerFlag = "This item will be removed when Microsoft IIS Administration API is uninstalled."
+$installerFlag = "This item will be removed if the Microsoft IIS Administration API is uninstalled."
 
 switch ($Command)
 {
