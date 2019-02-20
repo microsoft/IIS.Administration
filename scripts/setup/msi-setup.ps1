@@ -20,7 +20,7 @@ Param(
 
     [parameter()]
     [boolean]
-    $LegacyConfigurations = $true
+    $IncludeDefaultCors = $true
 )
 
 function Get-ScriptDirectory {
@@ -60,7 +60,7 @@ function Install() {
         $Port = 0
     }
 
-    .\install.ps1 -Path $adminRoot -Port $Port -DistributablePath $Path -Version $Version -ServiceName $ServiceName -LegacyConfigurations:$LegacyConfigurations -DontCopy
+    .\install.ps1 -Path $adminRoot -Port $Port -DistributablePath $Path -Version $Version -ServiceName $ServiceName -IncludeDefaultCors:$IncludeDefaultCors -DontCopy
 }
 
 function Upgrade() {
@@ -85,7 +85,7 @@ function Upgrade() {
     
     $installed = $false
     try {
-        .\install.ps1 -Path $adminRoot -Port 0 -DistributablePath $Path -Version $Version -ServiceName $ServiceName -LegacyConfigurations:$LegacyConfigurations -DontCopy
+        .\install.ps1 -Path $adminRoot -Port 0 -DistributablePath $Path -Version $Version -ServiceName $ServiceName -IncludeDefaultCors:$IncludeDefaultCors -DontCopy
         $installed = $true
         .\migrate.ps1 -Source $latest -Destination $(Join-Path $adminRoot $Version)
         try {            

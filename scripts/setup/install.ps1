@@ -36,7 +36,7 @@ Param(
 
     [parameter()]
     [switch]
-    $LegacyConfigurations
+    $IncludeDefaultCors
 )
 
 
@@ -355,7 +355,7 @@ function Install
         }
     }
 
-    .\config.ps1 Write-AppSettings -Port $Port -LegacyConfigurations:$LegacyConfigurations -AppSettingsPath (Join-Path $adminRoot "Microsoft.IIS.Administration\config\appsettings.json")
+    .\config.ps1 Write-AppSettings -Port $Port -IncludeDefaultCors:$IncludeDefaultCors -AppSettingsPath (Join-Path $adminRoot "Microsoft.IIS.Administration\config\appsettings.json")
 
     # Need a cert to bind to the port the API is supposed to listen on
     $cert = $null

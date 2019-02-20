@@ -13,7 +13,9 @@ Param(
                  "Set-Acls",
                  "Add-SelfRights",
                  "Set-AclForced",
-                 "Add-FullControl")]
+                 "Add-FullControl",
+                 "EnsureLocalGroupMember")]
+
     [string]
     $Command,
     
@@ -47,7 +49,11 @@ Param(
     
     [parameter()]
     [switch]
-    $Recurse
+    $Recurse,
+
+    [parameter()]
+    [switch]
+    $VerifyInstallerFlag
 )
 
 # Nano Server does not support ADSI provider
@@ -123,7 +129,7 @@ function GroupEquals($group, $_name, $desc) {
 # Creates a local group with the specified name and description.
 # Name: The name for the local group.
 # Description: The description for the local group.
-function CreateLocalGroup($_name, $desc) {
+function CreateLocalGroup($_name, $desc, $skipIfExists = $false) {
 
 	if ([System.String]::IsNullOrEmpty($_name)) {
 		throw "Name cannot be null"
@@ -132,6 +138,9 @@ function CreateLocalGroup($_name, $desc) {
     $group = GetLocalGroup $_name;
 
     if($group -ne $null) {
+        if ($skipIfExists) {
+            return $group
+        }
         throw "Group $_name already exists"
     }
 
@@ -153,13 +162,20 @@ function CreateLocalGroup($_name, $desc) {
 
 # Deletes a local group by name.
 # Name: The name of the local group to delete.
-function RemoveLocalGroup($_name) {
+function RemoveLocalGroup($_name, $verifyInstallerFlag) {
 
 	if ([System.String]::IsNullOrEmpty($_name)) {
 		throw "Name cannot be null"
-	}
+    }
 
     $g = GetLocalGroup $_name
+
+    $installerFlag = .\globals.ps1 'INSTALLER_FLAG'
+    if ($verifyInstallerFlag) {
+        if (!($g.Description.Contains($installerFlag))) {
+            return
+        }
+    }
 
     if($g -ne $null) {
         if (-not($(GroupCommandletsAvailable))) {
@@ -422,6 +438,12 @@ function Add-FullControl($_path, $_identity, $_recurse) {
     Set-AclForced $_path $acl $_recurse
 }
 
+## ensure the member/group exists in the specified group
+function EnsureLocalGroupMember($groupName, $description, $AdPath) {
+    $group = CreateLocalGroup $groupName $description $true
+    return AddUserToGroup $AdPath $group
+}
+
 switch($Command)
 {
     "GetLocalGroup"
@@ -432,9 +454,13 @@ switch($Command)
     {
         return CreateLocalGroup $Name $Description
     }
+    "EnsureLocalGroupMember"
+    {
+        return EnsureLocalGroupMember $Name $Description $AdPath
+    }
     "RemoveLocalGroup"
     {
-        return RemoveLocalGroup $Name
+        return RemoveLocalGroup $Name $VerifyInstallerFlag
     }
     "CurrentAdUser"
     {

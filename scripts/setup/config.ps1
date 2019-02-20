@@ -48,34 +48,13 @@ Param (
     $Destination,
 
     [parameter()]
-    [string]
-    $IISAdminOwnersGroup = "IIS Administration API Owners",
-
-    [parameter()]
     [switch]
-    $LegacyConfigurations
+    $IncludeDefaultCors
 )
 
 # Name of file we place installation data in
 $INSTALL_FILE = "setup.config"
 $IISAdminSiteName = "IISAdmin"
-
-## Ensure the local gorup exists
-function EnsureGroup($group) {
-    if (!(Get-LocalGroup -Name $group -ErrorAction SilentlyContinue)) {
-        New-LocalGroup -Name $group | Out-Null
-    }
-}
-
-## ensure the member/group exists in the specified group
-function EnsureMember($group, $userOrGroup) {
-    ## NOTE: Get-LocalGroupMember works case-sensitevly. So, as a workaround, Where-Object is used here
-    $modify = !(Get-LocalGroupMember -Group $group -ErrorAction SilentlyContinue | Where-Object { $_.Name -eq $userOrGroup })
-    if ($modify) {
-        Add-LocalGroupMember -Group $group -Member $userOrGroup | Out-Null
-    }
-    return $modify
-}
 
 # Returns a map of the files that contain user configurable settings.
 function Get-UserFileMap {
@@ -148,12 +127,14 @@ function Write-AppSettings($_appSettingsPath, $_port) {
 
     $settings = .\json.ps1 Get-JsonContent -Path $_appSettingsPath
 
-    EnsureGroup $IISAdminOwnersGroup
-    EnsureMember $IISAdminOwnersGroup $(.\security.ps1 CurrentAdUser)
-    $settings.security.users.administrators += $IISAdminOwnersGroup
-    $settings.security.users.owners += $IISAdminOwnersGroup
+    $groupName = .\globals.ps1 'IIS_ADMIN_API_OWNERS'
+    $groupDescription = .\globals.ps1 'IIS_ADMIN_API_OWNERS_DESCRIPTION'
+    $currentAdUser = .\security.ps1 CurrentAdUser
+    .\security.ps1 EnsureLocalGroupMember -AdPath $currentAdUser -Name $groupName -Description $groupDescription
+    $settings.security.users.administrators += $groupName
+    $settings.security.users.owners += $groupName
 
-    if ($LegacyConfigurations) {
+    if ($IncludeDefaultCors) {
         $settings.cors.rules += @{ "origin" = "https://manage.iis.net"; "allow" = $true }
     }
 

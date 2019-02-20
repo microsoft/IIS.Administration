@@ -39,7 +39,7 @@ Param(
 
     [parameter()]
     [boolean]
-    $LegacyConfigurations = $true
+    $IncludeDefaultCors = $true
 )
 
 Set-StrictMode -Off
@@ -99,7 +99,7 @@ function Install() {
     }
     else {
         $ServiceName = .\globals.ps1 DEFAULT_SERVICE_NAME
-        .\install.ps1 -Path $adminRoot -Port $Port -SkipVerification:$SkipVerification -DistributablePath $DistributablePath -CertHash $CertHash -Version $Version -ServiceName $ServiceName -LegacyConfigurations:$LegacyConfigurations
+        .\install.ps1 -Path $adminRoot -Port $Port -SkipVerification:$SkipVerification -DistributablePath $DistributablePath -CertHash $CertHash -Version $Version -ServiceName $ServiceName -IncludeDefaultCors:$IncludeDefaultCors
     }
 }
 
@@ -127,7 +127,7 @@ function Upgrade() {
 
     $installed = $false
     try {
-        .\install.ps1 -Path $adminRoot -Version $Version -SkipVerification:$SkipVerification -ServiceName $ServiceName -Port 0 -DistributablePath $DistributablePath -CertHash $CertHash -LegacyConfigurations:$LegacyConfigurations
+        .\install.ps1 -Path $adminRoot -Version $Version -SkipVerification:$SkipVerification -ServiceName $ServiceName -Port 0 -DistributablePath $DistributablePath -CertHash $CertHash -IncludeDefaultCors:$IncludeDefaultCors
         $installed = $true
         .\migrate.ps1 -Source $latest -Destination $(Join-Path $adminRoot $Version)
     }
