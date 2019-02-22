@@ -83,7 +83,7 @@ function Uninstall($_path)
                 .\security.ps1 Add-FullControl -Path $InstallationDirectory.FullName -Identity $system -Recurse
             }
             catch {
-                Write-Warning "Unable to obtain full control of installation directory"
+                Write-Warning "Unable to obtain full control of installation directory: $($_.Exception.Message)"
             }
         }
 
@@ -117,7 +117,7 @@ function Uninstall($_path)
                 .\files.ps1 Remove-ItemForced -Path $setupConfig -ErrorAction Stop
             }
             catch {
-                Write-Warning "Could not remove installation configuration file"
+                Write-Warning "Could not remove installation configuration file: $($_.Exception.Message)"
             }
         }
     }

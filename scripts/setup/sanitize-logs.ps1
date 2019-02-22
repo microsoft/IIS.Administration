@@ -112,6 +112,7 @@ function Clear-CcsAuditPasswords($IisAdministrationPath) {
                 Clear-CcsAuditPasswordsFromFile -filePath $file.FullName
             }
             catch {
+                Write-Warning "Error clearing ccs audit password from $($file.FullName): $($_.Exception.Message)"
                 #If one file fails, do not block the remaining files
             }
         }
