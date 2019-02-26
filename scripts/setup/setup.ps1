@@ -139,7 +139,7 @@ function Upgrade() {
         throw $_
     }
 
-    .\uninstall.ps1 -Path $latest
+    .\uninstall.ps1 -Path $latest -KeepGroups
 }
 
 function Uninstall() {

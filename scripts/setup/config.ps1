@@ -115,7 +115,10 @@ function Remove($_path) {
     }
 }
 
-function EnsureOwnerGroup($settings) {
+## create "IIS Administration API Owners" group if it does not exist, and and the current user to the group if not already added
+## Note that this method also includes a phase the indiciates the group is created by the installer so it can be removed if the application
+## is uninistalled
+function Ensure-IncludesIisAdminApiOwners($settings) {
     $groupName = .\globals.ps1 'IIS_ADMIN_API_OWNERS'
     $groupDescription = .\globals.ps1 'IIS_ADMIN_API_OWNERS_DESCRIPTION'
     $currentAdUser = .\security.ps1 CurrentAdUser
@@ -139,7 +142,7 @@ function Write-AppSettings($_appSettingsPath, $_port) {
     }
 
     $settings = .\json.ps1 Get-JsonContent -Path $_appSettingsPath
-    EnsureOwnerGroup $settings
+    Ensure-IncludesIisAdminApiOwners $settings
 
     if ($IncludeDefaultCors) {
         $settings.cors.rules += @{ "origin" = "https://manage.iis.net"; "allow" = $true }
@@ -168,7 +171,7 @@ function Migrate-AppSettings($_source, $_destination) {
     if ($oldAppSettings.administrators -ne $null) {
         .\json.ps1 Remove-Property -JsonObject $oldAppSettings -Name "administrators"
     }
-    EnsureOwnerGroup $oldAppSettings
+    Ensure-IncludesIisAdminApiOwners $oldAppSettings
 
     .\json.ps1 Set-JsonContent -Path $(Join-Path $Destination $userFiles["appsettings.json"]) -JsonObject $oldAppSettings
 }

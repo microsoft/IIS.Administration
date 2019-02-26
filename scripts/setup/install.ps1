@@ -257,7 +257,7 @@ function rollback() {
             .\files.ps1 Remove-ItemForced -Path $logsPath
         }
         catch {
-            write-warning "Could not delete logs folder $logsPath: $($_.Exception.Message)"
+            write-warning "Could not delete logs folder ${logsPath}: $($_.Exception.Message)"
         } 
     }
 
@@ -271,7 +271,7 @@ function rollback() {
             .\files.ps1 Remove-ItemForced -Path $adminRoot
         }
         catch {
-            write-warning "Could not delete installation folder $adminRoot: $($_.Exception.Message)"
+            write-warning "Could not delete installation folder ${adminRoot}: $($_.Exception.Message)"
         } 
     }
 

@@ -89,7 +89,7 @@ function Upgrade() {
         $installed = $true
         .\migrate.ps1 -Source $latest -Destination $(Join-Path $adminRoot $Version)
         try {            
-            .\uninstall.ps1 -Path $latest -KeepFiles
+            .\uninstall.ps1 -Path $latest -KeepFiles -KeepGroups
         }
         catch {
             # Uninstall must not throw
