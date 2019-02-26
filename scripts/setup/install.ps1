@@ -144,7 +144,7 @@ function rollback() {
             Stop-Service $rollbackStore.createdService -ErrorAction SilentlyContinue
         }
         catch {
-            Write-Warning "Could not stop newly created service"
+            Write-Warning "Could not stop newly created service: $($_.Exception.Message)"
         }
 
         sc.exe delete "$($rollbackStore.createdService)" | Out-Null
@@ -172,7 +172,7 @@ function rollback() {
             New-Service -BinaryPathName $binaryPath -StartupType $startType -DisplayName $name -Name $name -ErrorAction Stop | Out-Null
         }
         catch {
-            Write-Warning "Could not restore the $($name) service."
+            Write-Warning "Could not restore the $($name) service: $($_.Exception.Message)"
         }
     }
 
@@ -185,7 +185,7 @@ function rollback() {
             .\net.ps1 DeleteSslBinding -Port $rollbackStore.newBoundCertPort
         }
         catch {
-            Write-Warning "Could not roll back SSL binding on port $($rollbackStore.newBoundCertPort)"
+            Write-Warning "Could not roll back SSL binding on port $($rollbackStore.newBoundCertPort): $($_.Exception.Message)"
         }
     }
 
@@ -199,7 +199,7 @@ function rollback() {
             .\net.ps1 BindCert -Hash $($info.CertificateHash) -AppId $($info.AppId) -Port $($info.IpEndpoint.Port)
         }
         catch {
-            Write-Warning "Could not restore previous SSL binding"
+            Write-Warning "Could not restore previous SSL binding: $($_.Exception.Message)"
         }
     }
 
@@ -213,7 +213,7 @@ function rollback() {
             .\config.ps1 Remove -Path $configPath
         }
         catch {
-            Write-Warning "Could not remove setup config"
+            Write-Warning "Could not remove setup config: $($_.Exception.Message)"
         }
     }
 
@@ -230,7 +230,7 @@ function rollback() {
             }
         }
         catch {
-            write-warning "Could not delete certificate that was created during installation."
+            write-warning "Could not delete certificate that was created during installation: $($_.Exception.Message)"
         }
     }
 
@@ -243,7 +243,7 @@ function rollback() {
             Start-Service $rollbackStore.stoppedOldService
         }
         catch {
-            write-warning "Could not restart service $($rollbackStore.stoppedOldService)."
+            write-warning "Could not restart service $($rollbackStore.stoppedOldService): $($_.Exception.Message)"
         } 
     }
 
@@ -257,7 +257,7 @@ function rollback() {
             .\files.ps1 Remove-ItemForced -Path $logsPath
         }
         catch {
-            write-warning "Could not delete logs folder $logsPath."
+            write-warning "Could not delete logs folder ${logsPath}: $($_.Exception.Message)"
         } 
     }
 
@@ -271,7 +271,7 @@ function rollback() {
             .\files.ps1 Remove-ItemForced -Path $adminRoot
         }
         catch {
-            write-warning "Could not delete installation folder $adminRoot."
+            write-warning "Could not delete installation folder ${adminRoot}: $($_.Exception.Message)"
         } 
     }
 
@@ -458,7 +458,7 @@ function Install
 		Start-Service "$ServiceName" -ErrorAction Stop
 	}
     catch {
-        throw "Could not start service"
+        throw "Could not start service: $($_.Exception.Message)"
     }
 
     $svc = Get-Service "$ServiceName" -ErrorAction SilentlyContinue

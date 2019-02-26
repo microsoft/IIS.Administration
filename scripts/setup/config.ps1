@@ -115,6 +115,22 @@ function Remove($_path) {
     }
 }
 
+## create "IIS Administration API Owners" group if it does not exist, and and the current user to the group if not already added
+## Note that this method also includes a phase the indiciates the group is created by the installer so it can be removed if the application
+## is uninistalled
+function Ensure-IncludesIisAdminApiOwners($settings) {
+    $groupName = .\globals.ps1 'IIS_ADMIN_API_OWNERS'
+    $groupDescription = .\globals.ps1 'IIS_ADMIN_API_OWNERS_DESCRIPTION'
+    $currentAdUser = .\security.ps1 CurrentAdUser
+    .\security.ps1 EnsureLocalGroupMember -AdPath $currentAdUser -Name $groupName -Description $groupDescription
+    if (!$settings.security.users.administrators.Contains($groupName)) {
+        $settings.security.users.administrators += $groupName
+    }
+    if (!$settings.security.users.owners.Contains($groupName)) {
+        $settings.security.users.owners += $groupName
+    }
+}
+
 # Writes install time information into the appsettings.json file
 # AppSettingsPath: The full path to the appsettings.json file
 function Write-AppSettings($_appSettingsPath, $_port) {
@@ -126,13 +142,7 @@ function Write-AppSettings($_appSettingsPath, $_port) {
     }
 
     $settings = .\json.ps1 Get-JsonContent -Path $_appSettingsPath
-
-    $groupName = .\globals.ps1 'IIS_ADMIN_API_OWNERS'
-    $groupDescription = .\globals.ps1 'IIS_ADMIN_API_OWNERS_DESCRIPTION'
-    $currentAdUser = .\security.ps1 CurrentAdUser
-    .\security.ps1 EnsureLocalGroupMember -AdPath $currentAdUser -Name $groupName -Description $groupDescription
-    $settings.security.users.administrators += $groupName
-    $settings.security.users.owners += $groupName
+    Ensure-IncludesIisAdminApiOwners $settings
 
     if ($IncludeDefaultCors) {
         $settings.cors.rules += @{ "origin" = "https://manage.iis.net"; "allow" = $true }
@@ -161,6 +171,7 @@ function Migrate-AppSettings($_source, $_destination) {
     if ($oldAppSettings.administrators -ne $null) {
         .\json.ps1 Remove-Property -JsonObject $oldAppSettings -Name "administrators"
     }
+    Ensure-IncludesIisAdminApiOwners $oldAppSettings
 
     .\json.ps1 Set-JsonContent -Path $(Join-Path $Destination $userFiles["appsettings.json"]) -JsonObject $oldAppSettings
 }
@@ -238,6 +249,7 @@ function Write-Config($obj, $_path) {
             $port = [int]::parse($sPort)
         }
         catch {
+            Write-Warning $_.Exception.Message
             throw "Misconfigured 'urls' in appsettings: $($appsettings.urls)."
         }
     }

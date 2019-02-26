@@ -118,8 +118,7 @@ if (-not([string]::IsNullOrEmpty($SignType))) {
 		}
 	}
 	catch {
-		Write-Warning $_.Exception.Message
-		throw "Could not find msbuild"
+		throw "Could not find msbuild: $($_.Exception.Message)"
 	}
 
 	if ([string]::IsNullOrEmpty($SigningIdentity)) {
@@ -135,8 +134,7 @@ try {
 	}
 }
 catch {
-    Write-Warning $_.Exception.Message
-    throw "Could not find dotnet tools"
+    throw "Could not find dotnet tools: $($_.Exception.Message)"
 }
 
 DeletePreExistingFiles $OutputPath
@@ -171,8 +169,7 @@ try{
 	}
 }
 catch {
-    Write-Warning $_.Exception.Message
-    throw "Publish failed"
+    throw "Publish failed: $($_.Exception.Message)"
 }
 
 $outputConfigPath = Join-Path $applicationPath "config"
@@ -218,7 +215,7 @@ try {
 	}
 }
 catch {
-	throw "Could not build plugins for publishing"
+	throw "Could not build plugins for publishing: $($_.Exception.Message)"
 }
 
 # Copy setup

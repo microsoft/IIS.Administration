@@ -93,6 +93,7 @@ function GetLocalGroup($groupName) {
             $group = $localAd.Children.Find($groupName, 'group')
         }
         catch {
+            Write-Warning $_.Exception.Message
             #COM Exception if group doesn't exit
         }
     }
@@ -376,7 +377,7 @@ function _Set-AclForced($_path, $_acl, $_recurse) {
         }
         catch {
             # Fail state: owner will be the Administrators group
-            Write-Warning "Could not restore owner for $($item.fullname)"
+            Write-Warning "Could not restore owner for $($item.fullname): $($_.Exception.Message)"
         }
 
         # Revert any token privileges adjusted

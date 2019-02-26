@@ -17,7 +17,11 @@ Param(
     
     [parameter()]
     [switch]
-    $KeepFiles
+    $KeepFiles,
+
+    [parameter()]
+    [switch]
+    $KeepGroups
 )
 
 .\require.ps1 Is-Administrator
@@ -83,7 +87,7 @@ function Uninstall($_path)
                 .\security.ps1 Add-FullControl -Path $InstallationDirectory.FullName -Identity $system -Recurse
             }
             catch {
-                Write-Warning "Unable to obtain full control of installation directory"
+                Write-Warning "Unable to obtain full control of installation directory: $($_.Exception.Message)"
             }
         }
 
@@ -117,7 +121,7 @@ function Uninstall($_path)
                 .\files.ps1 Remove-ItemForced -Path $setupConfig -ErrorAction Stop
             }
             catch {
-                Write-Warning "Could not remove installation configuration file"
+                Write-Warning "Could not remove installation configuration file: $($_.Exception.Message)"
             }
         }
     }
@@ -125,8 +129,10 @@ function Uninstall($_path)
     $groupName = .\globals.ps1 'IIS_ADMIN_API_OWNERS'
     $group = .\security.ps1 GetLocalGroup -Name $groupName
     $installerFlag = .\globals.ps1 'INSTALLER_FLAG'
-    if ($group -and $group.Description.Contains($installerFlag)) {
-        .\security.ps1 RemoveLocalGroup -Name $groupName
+    if (!$KeepGroups) {
+        if ($group -and $group.Description.Contains($installerFlag)) {
+            .\security.ps1 RemoveLocalGroup -Name $groupName
+        }
     }
 
     exit 0

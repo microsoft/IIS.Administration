@@ -24,7 +24,7 @@ function Rollback {
             Stop-Service $migrateRollback.startedNewService -ErrorAction Stop
         }
         catch {
-            Write-Warning "Could not stop newly created service $($migrateRollback.startedNewService)"
+            Write-Warning "Could not stop newly created service $($migrateRollback.startedNewService): $($_.Exception.Message)"
         }
     }
 
@@ -37,7 +37,7 @@ function Rollback {
             sc.exe delete "$($migrateRollback.createdNewService)" | Out-Null
         }
         catch {
-            Write-Warning "Could not remove newly created service '$($migrateRollback.createdNewService)'"
+            Write-Warning "Could not remove newly created service '$($migrateRollback.createdNewService)': $($_.Exception.Message)"
         }
     }
 
@@ -55,7 +55,7 @@ function Rollback {
             New-Service -BinaryPathName $binaryPath -StartupType $startType -DisplayName $name -Name $name -ErrorAction Stop | Out-Null
         }
         catch {
-            Write-Warning "Could not restore the $($name) service."
+            Write-Warning "Could not restore the $($name) service: $($_.Exception.Message)"
         }
     }  
 
@@ -68,7 +68,7 @@ function Rollback {
             Start-Service $migrateRollback.stoppedSourceService -ErrorAction Stop
         }
         catch {
-            Write-Warning "Could not restart source service"
+            Write-Warning "Could not restart source service: $($_.Exception.Message)"
         }
     }
 }
@@ -116,6 +116,7 @@ function Migrate {
         .\sanitize-logs.ps1 -Source $source
     }
     catch {
+        Write-Warning "Error sanitizing logs: $($_.Exception.Message)"
         # Never fail
     }
 
