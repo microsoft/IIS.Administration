@@ -22,6 +22,8 @@
 
     <MicrosoftNETestSdkVersion>15.9.0</MicrosoftNETestSdkVersion>
     <XUnitVersion>2.4.1</XUnitVersion>
+    <XUnitAbstractionsVersion>2.0.3</XUnitAbstractionsVersion>
+    <XUnitCoreVersion>2.4.1</XUnitCoreVersion>
     <XUnitRunnerVisualStudioVersion>2.4.1</XUnitRunnerVisualStudioVersion>
   </PropertyGroup>
 </Project>
