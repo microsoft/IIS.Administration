@@ -158,7 +158,7 @@ if (-not($SkipRestore)) {
 
 try{
 	if ([string]::IsNullOrEmpty($SignType)) {
-		dotnet publish $ProjectPath --framework netcoreapp1.0 --output $applicationPath  --configuration $configuration
+		dotnet publish $ProjectPath --framework netcoreapp2.1 --output $applicationPath  --configuration $configuration
 	}
 	else {
 		msbuild $ProjectPath /t:publish /p:Configuration=$Configuration /p:PublishDir=$applicationPath /p:SignType=$SignType /p:SigningIdentity=$SigningIdentity
@@ -204,7 +204,7 @@ try {
     }
 
 	if ([string]::IsNullOrEmpty($SignType)) {
-		dotnet publish $packagerPath --framework netcoreapp1.0 --output $outputPluginsFolder  --configuration $configuration
+		dotnet publish $packagerPath --framework netcoreapp2.1 --output $outputPluginsFolder  --configuration $configuration
 	}
 	else {
 		msbuild $packagerPath /t:publish /p:Configuration=$Configuration /p:PublishDir=$outputPluginsFolder /p:SignType=$SignType /p:SigningIdentity=$SigningIdentity
