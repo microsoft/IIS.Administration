@@ -16,7 +16,6 @@ namespace Microsoft.IIS.Administration
     class ModuleLoader
     {
         private IHostingEnvironment _env;
-        private AssemblyLoadContext _loader;
         private List<Assembly> _loadedAssemblies;
         private AdminHost _moduleHolder;
         private string _moduleLoadBasePath;
@@ -29,7 +28,6 @@ namespace Microsoft.IIS.Administration
             this._moduleLoadBasePath = Path.Combine(env.ContentRootPath, PLUGINS_FOLDER_NAME);
             this._loadedAssemblies = new List<Assembly>();
             this._moduleHolder = AdminHost.Instance;
-            this._loader = new PluginAssemblyLoadContext(_moduleLoadBasePath);
         }
 
         public Assembly LoadModule(string assemblyName)
@@ -38,7 +36,7 @@ namespace Microsoft.IIS.Administration
 
             Log.Logger.Debug($"Loading plugin {assemblyName}");
 
-            Assembly assembly = _loader.LoadFromAssemblyPath(assemblyPath);
+            var assembly = Assembly.LoadFrom(assemblyPath);
 
             _loadedAssemblies.Add(assembly);
 
