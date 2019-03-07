@@ -20,7 +20,7 @@ namespace Microsoft.IIS.Administration.Extensibility
 
         public PluginAssemblyLoadContext(string pluginDirectory)
         {
-            this._pluginDir = pluginDirectory;
+            _pluginDir = pluginDirectory;
         }
 
         private Assembly LoadFromCurrentDomain(AssemblyName target)
@@ -30,11 +30,28 @@ namespace Microsoft.IIS.Administration.Extensibility
                 var existingName = existing.GetName();
                 if (existingName.Name == target.Name)
                 {
-                    // assume higher version always compatable
-                    if (existingName.Version >= target.Version)
+                    if (!existingName.CultureInfo.Equals(target.CultureInfo) && !target.CultureInfo.IsNeutralCulture)
                     {
-                        return existing;
+                        throw new ApplicationException($"Conflicting cultures for {target}, app: {existingName.CultureInfo} plugin: {target.CultureInfo}");
                     }
+                    if (existingName.ProcessorArchitecture != target.ProcessorArchitecture &&
+                        target.ProcessorArchitecture != ProcessorArchitecture.None)
+                    {
+                        throw new ApplicationException($"Conflicting arch for {target}, app: {existingName.ProcessorArchitecture} plugin: {target.ProcessorArchitecture}");
+                    }
+                    if (existingName.Version < target.Version)
+                    {
+                        throw new ApplicationException($"Version downgrade for {target}, app: {existingName.Version} plugin: {target.Version}");
+                    }
+                    if (existingName.Version.Major != target.Version.Major)
+                    {
+                        throw new ApplicationException($"Major version conflict for {target}, app: {existingName.Version} plugin: {target.Version}");
+                    }
+                    if (existingName.Version != target.Version)
+                    {
+                        Log.Warning($"Version mismatch for {target}, app: {existingName.Version} plugin: {target.Version}");
+                    }
+                    return existing;
                 }
             }
             return null;
@@ -63,7 +80,7 @@ namespace Microsoft.IIS.Administration.Extensibility
         private Assembly LoadFromRuntimeDir(AssemblyName assemblyName)
         {
             string winRuntime = null;
-            string runtimes = Path.Combine(this._pluginDir, "runtimes");
+            string runtimes = Path.Combine(_pluginDir, "runtimes");
 
             if (Directory.Exists(runtimes))
             {
