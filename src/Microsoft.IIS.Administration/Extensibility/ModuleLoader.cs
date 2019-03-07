@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration
 {
     using AspNetCore.Hosting;
     using Core;
+    using Microsoft.IIS.Administration.Extensibility;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -16,6 +17,7 @@ namespace Microsoft.IIS.Administration
     class ModuleLoader
     {
         private IHostingEnvironment _env;
+        private AssemblyLoadContext _loader;
         private List<Assembly> _loadedAssemblies;
         private AdminHost _moduleHolder;
         private string _moduleLoadBasePath;
@@ -28,6 +30,7 @@ namespace Microsoft.IIS.Administration
             this._moduleLoadBasePath = Path.Combine(env.ContentRootPath, PLUGINS_FOLDER_NAME);
             this._loadedAssemblies = new List<Assembly>();
             this._moduleHolder = AdminHost.Instance;
+            this._loader = new PluginAssemblyLoadContext(_moduleLoadBasePath);
         }
 
         public Assembly LoadModule(string assemblyName)
@@ -36,18 +39,14 @@ namespace Microsoft.IIS.Administration
 
             Log.Logger.Debug($"Loading plugin {assemblyName}");
 
-            var assembly = Assembly.LoadFrom(assemblyPath);
-
+            Assembly assembly = _loader.LoadFromAssemblyPath(assemblyPath);
             _loadedAssemblies.Add(assembly);
 
             //
             // Every module should expose a type called Startup in a namespace equivalent to the assembly name
             Type type = assembly.GetType(assemblyName + ".Startup");
-
-            IModule module = (IModule)Activator.CreateInstance(type);
-
+            IModule module = (IModule) Activator.CreateInstance(type);
             _moduleHolder.Add(module);
-
             return assembly;
         }
 

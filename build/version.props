@@ -20,7 +20,7 @@
     <SystemSecurityCryptographyCspVersion>4.3.0</SystemSecurityCryptographyCspVersion>
     <SystemServiceProcessServiceControllerVersion>4.5.0</SystemServiceProcessServiceControllerVersion>
 
-    <MicrosoftNETestSdkVersion>15.9.0</MicrosoftNETestSdkVersion>
+    <MicrosoftNETestSdkVersion>16.0.1</MicrosoftNETestSdkVersion>
     <XUnitVersion>2.4.1</XUnitVersion>
     <XUnitAbstractionsVersion>2.0.3</XUnitAbstractionsVersion>
     <XUnitCoreVersion>2.4.1</XUnitCoreVersion>
