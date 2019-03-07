@@ -23,20 +23,28 @@ namespace Microsoft.IIS.Administration.Extensibility
             this._pluginDir = pluginDirectory;
         }
 
-        protected override Assembly Load(AssemblyName assemblyName)
+        private Assembly LoadFromCurrentDomain(AssemblyName target)
         {
-            var loaded = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.FullName == assemblyName.FullName);
-            if (loaded != null)
+            foreach (var existing in AppDomain.CurrentDomain.GetAssemblies())
             {
-                return loaded;
+                var existingName = existing.GetName();
+                if (existingName.Name == target.Name)
+                {
+                    // assume higher version always compatable
+                    if (existingName.Version >= target.Version)
+                    {
+                        return existing;
+                    }
+                }
             }
+            return null;
+        }
 
-            Assembly asm = null;
-
-            IList<string> rootPaths = new List<string>();
-
-            rootPaths.Add(Path.Combine(this._pluginDir, $"{assemblyName.Name}.{assemblyName.Version}"));
-            rootPaths.Add(this._pluginDir);
+        private Assembly LoadFromPluginDir(AssemblyName assemblyName)
+        {
+            var rootPaths = new List<string>();
+            rootPaths.Add(Path.Combine(_pluginDir, $"{assemblyName.Name}.{assemblyName.Version}"));
+            rootPaths.Add(_pluginDir);
 
             foreach (var path in rootPaths)
             {
@@ -46,35 +54,48 @@ namespace Microsoft.IIS.Administration.Extensibility
                 {
                     // If LoadFromAssemblyPath's argument does not point to a valid assembly a fatal error will occur that will not throw an exception
                     // The process will terminate ungracefully
-                    asm = this.LoadFromAssemblyPath(asmPath);
+                    return LoadFromAssemblyPath(asmPath);
                 }
             }
+            return null;
+        }
 
-            // Possible runtime assembly
-            if (asm == null)
+        private Assembly LoadFromRuntimeDir(AssemblyName assemblyName)
+        {
+            string winRuntime = null;
+            string runtimes = Path.Combine(this._pluginDir, "runtimes");
+
+            if (Directory.Exists(runtimes))
             {
-                string winRuntime = null;
-                string runtimes = Path.Combine(this._pluginDir, "runtimes");
+                winRuntime = Directory.GetDirectories(runtimes).FirstOrDefault(d => d.ToLower().Contains("win"));
+            }
 
-                if (Directory.Exists(runtimes))
+            if (winRuntime != null)
+            {
+                foreach (var file in Directory.GetFiles(winRuntime, "*.dll", SearchOption.AllDirectories))
                 {
-                    winRuntime = Directory.GetDirectories(runtimes).FirstOrDefault(d => d.ToLower().Contains("win"));
-                }
-
-                if (winRuntime != null)
-                {
-                    foreach (var file in Directory.GetFiles(winRuntime, "*.dll", SearchOption.AllDirectories))
+                    if (Path.GetFileName(file) == assemblyName.Name + ".dll")
                     {
-                        if (Path.GetFileName(file) == assemblyName.Name + ".dll")
-                        {
-                            asm = this.LoadFromAssemblyPath(file);
-                            break;
-                        }
+                        return LoadFromAssemblyPath(file);
                     }
                 }
             }
+            return null;
+        }
 
-            return asm;
+        protected override Assembly Load(AssemblyName assemblyName)
+        {
+            Assembly asm = LoadFromCurrentDomain(assemblyName);
+            if (asm != null)
+            {
+                return asm;
+            }
+            asm = LoadFromPluginDir(assemblyName);
+            if (asm != null)
+            {
+                return asm;
+            }
+            return LoadFromCurrentDomain(assemblyName);
         }
     }
 }
