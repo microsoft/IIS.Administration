@@ -90,10 +90,7 @@ function CheckUninstallParameters() {
 
 function Install() {
     $adminRoot = $Path
-
-       
     $latest = .\ver.ps1 Get-Latest -Path $adminRoot
-
     if ($latest -ne $null) {
         Upgrade
     }
@@ -210,7 +207,7 @@ function Uninstall() {
                 Write-Host "Successfully removed installation folder."
             }
             else {
-                Write-Warning "Cannot remove the installation folder because it is not empty"
+                Write-Warning "Cannot remove the installation folder $dir because it is not empty"
             }
         }
         Catch

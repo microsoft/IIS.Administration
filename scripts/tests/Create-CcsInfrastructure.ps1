@@ -1,6 +1,7 @@
-if ($env:iis_admin_solution_dir -eq $null) {
-    throw "iis_admin_solution_dir not found"
-}
+param(
+    [string]
+    $TestRoot = "$env:SystemDrive\tests\iisadmin"
+)
 
 $CCS_FOLDER_NAME = "CentralCertStore"
 $CERTIFICATE_PASS = "abcdefg"
@@ -20,13 +21,7 @@ function New-CcsSelfSignedCertificate($certName) {
     $cert
 }
 
-$testRoot = $env:iis_admin_test_dir
-
-if ([string]::IsNullOrEmpty($testRoot)) {
-    $testRoot = "$env:SystemDrive\tests\iisadmin"
-}
-
-$ccsPath = [System.IO.Path]::Combine($testRoot, $CCS_FOLDER_NAME)
+$ccsPath = [System.IO.Path]::Combine($TestRoot, $CCS_FOLDER_NAME)
 
 if (-not(Test-Path $ccsPath)) {
     New-Item -Type Directory -Path $ccsPath -ErrorAction Stop | Out-Null

@@ -8,6 +8,20 @@ Param(
 
 #Requires -RunAsAdministrator
 #Requires -Version 4.0
+
+function ReplaceTemplate($path, $env) {
+    $templateSuffix = ".template"
+    if (!($path.EndsWith($templateSuffix))) {
+        throw "Template file name $path must end with $templateSuffix"
+    }
+    $content = Get-Content -Path $path -Raw -Encoding UTF8
+    foreach ($key in $env.Keys) {
+        $content = $content -replace "%${key}%", $env[$key]
+    }
+    $outFile = $path.Substring(0, $path.Length - $templateSuffix.Length)
+    Set-Content -Path $outFile -Value $content -Force
+}
+
 $scriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
 try {
@@ -16,17 +30,6 @@ try {
     $solutionDir = (Resolve-Path (Join-Path $scriptDir "..")).Path
 
     Write-Host "Setting environment variables."
-	if ($env:iis_admin_solution_dir -eq $null) {
-		$env:iis_admin_solution_dir = $solutionDir
-		setx iis_admin_solution_dir $env:iis_admin_solution_dir /m
-        Write-Verbose "iis_admin_solution_dir $env:iis_admin_solution_dir"
-	}
-
-	if ($env:iis_admin_test_dir  -eq $null -and $ConfigureTestEnvironment) {
-		$env:iis_admin_test_dir = $([System.IO.Path]::Combine("$env:SystemDrive\", "tests\iisadmin"))
-		setx iis_admin_test_dir $env:iis_admin_test_dir /m
-        Write-Verbose "iis_admin_test_dir $env:iis_admin_test_dir"
-	}
 
     # Check for existence of app configuration files
     # Create them from defaults if they don't exist
@@ -45,9 +48,19 @@ try {
         Copy-Item $(Join-Path $configDir "modules.default.json") $(Join-Path $configDir "modules.json")
     }
 
+    try {
+        $solutionRoot = git rev-parse --show-toplevel
+    } catch {
+        Write-Warning "Unable to determine git root, using parent directory as solution root: $_"
+        $solutionRoot = Join-Path $PSScriptRoot ".."
+    }
+    $testRoot = Join-Path $solutionRoot ".test"
     if ($ConfigureTestEnvironment) {
         Write-Host "Configuring test environment"
-        .\tests\Create-CcsInfrastructure.ps1
+        .\tests\Create-CcsInfrastructure.ps1 -TestRoot $testRoot
+        $env = @{ "iis_admin_test_dir" = (ConvertTo-Json $testRoot).Trim('"') }
+        ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "appsettings.test.json.template")) $env
+        ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "Microsoft.IIS.Administration.Tests", "test.config.json.template")) $env
     }
 }
 finally {

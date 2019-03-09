@@ -221,3 +221,7 @@ src/*/wwwroot/lib
 PublishProfiles
 scripts/publish/version.txt
 src/Microsoft.IIS.Administration/wwwroot/static/Microsoft.IIS.Administration.WebServer.HttpRequestTracing/freb.xsl
+dist
+.test
+test\Microsoft.IIS.Administration.Tests\test.config.json
+test\appsettings.test.json

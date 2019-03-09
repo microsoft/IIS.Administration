@@ -7,10 +7,10 @@
     "users": {
       "administrators": [
         "IIS Administrators",
-        "Administrator"
+        "IIS Administration API Owners"
       ],
       "owners": [
-        "Administrator"
+        "IIS Administration API Owners"
       ]
     },
     "access_policy": {
