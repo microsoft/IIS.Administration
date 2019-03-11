@@ -87,23 +87,52 @@ function CleanUp() {
 }
 
 function StartTest() {
+    $group = GetGlobalVariable IIS_ADMIN_API_OWNERS
+    $member = & ([System.IO.Path]::Combine($scriptDir, "setup", "security.ps1")) CurrentAdUser
+    if (!(Get-LocalGroupMember -Group $group -Member $member -ErrorAction SilentlyContinue)) {
+        Add-LocalGroupMember -Group $group -Member $member
+    }
     $pingEndpoint = "https://localhost:$testPort"
     try {
-        Invoke-WebRequest $pingEndpoint | Out-Null
+        Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint | Out-Null
     } catch {
         Write-Error "Failed to ping test server $pingEndpoint, did you forget to start it manually?"
         Exit 1
     }
-    ## do the real test
+}
+
+function VerifyPath($path) {
+    if (!(Test-Path $path)) {
+        Write-Path "$path does not exist"
+        return $false
+    }
+    return $true
+}
+
+function VerifyPrecondition() {
+    if (!(VerifyPath [System.IO.Path]::Combine($projectRoot, "test", "appsettings.test.json")) `
+        -or !(VerifyPath [System.IO.Path]::Combine($projectRoot, "test", "Microsoft.IIS.Administration.Tests", "test.config.json.template"))) {
+        throw "Test configurations do no exist, run .\scripts\Configure-DevEnvironment.ps1 -ConfigureTestEnvironment"
+    }
+}
+
+function GetGlobalVariable($name) {
+    & ([System.IO.Path]::Combine($scriptDir, "setup", "globals.ps1")) $name
 }
 
 ########################################################### Main Script ##################################################################
 
-$scriptDir = Join-Path $PSScriptRoot "scripts"
+try {
+    $projectRoot = git rev-parse --show-toplevel
+} catch {
+    Write-Warning "Error looking for project root $_, using script location instead"
+    $projectRoot = $PSScriptRoot
+}
+$scriptDir = Join-Path $projectRoot "scripts"
 # publish script only takes full path
 $publishPath = ForceResolvePath "$publishPath"
 $installPath = ForceResolvePath "$installPath"
-$serviceName = & ([System.IO.Path]::Combine($scriptDir, "setup", "globals.ps1")) DEFAULT_SERVICE_NAME
+$serviceName = GetGlobalVariable DEFAULT_SERVICE_NAME
 
 Write-Host "[Build] Starting clean up..."
 CleanUp

@@ -5,10 +5,10 @@
 namespace Microsoft.IIS.Administration {
     using AspNetCore.Builder;
     using AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Hosting.WindowsServices;
     using Microsoft.AspNetCore.Server.HttpSys;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.IIS.Administration.WindowsService;
     using Serilog;
 
     public class Program {
@@ -45,8 +45,7 @@ namespace Microsoft.IIS.Administration {
                     //
                     // Run as a Service
                     Log.Information($"Running as service: {serviceName}");
-                    new ServiceHelper(serviceName).Run(token => host.RunAsync(token))
-                                                  .Wait();
+                    host.RunAsService();
                 }
                 else {
                     //
