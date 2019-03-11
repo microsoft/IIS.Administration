@@ -252,9 +252,9 @@ function Set-Acls($_path) {
 						[System.Security.AccessControl.PropagationFlags]::None,
 						[System.Security.AccessControl.AccessControlType]::Allow)
     
-    $administratorsRead = New-Object System.Security.AccessControl.FileSystemAccessRule(
+    $administratorsModify = New-Object System.Security.AccessControl.FileSystemAccessRule(
 						$administrators, 
-						[System.Security.AccessControl.FileSystemRights]::ReadAndExecute,
+						[System.Security.AccessControl.FileSystemRights]::Modify,
 					    [System.Security.AccessControl.InheritanceFlags]"ContainerInherit,ObjectInherit", 
 						[System.Security.AccessControl.PropagationFlags]::None,
 						[System.Security.AccessControl.AccessControlType]::Allow)
@@ -281,7 +281,7 @@ function Set-Acls($_path) {
     $acl.Access | Foreach-Object { $acl.RemoveAccessRule($_) }
     $acl.AddAccessRule($currentUserRead)
     $acl.AddAccessRule($trustedInstallerFullControl)
-    $acl.AddAccessRule($administratorsRead)
+    $acl.AddAccessRule($administratorsModify)
     $acl.AddAccessRule($systemRead)
     # Update the folder to use the new ACL
     Set-Acl -Path $_path -AclObject $acl
@@ -293,7 +293,7 @@ function Set-Acls($_path) {
     # Remove all existing access rules
     $acl.Access | Foreach-Object { $acl.RemoveAccessRule($_) }
     $acl.AddAccessRule($currentUserRead)
-    $acl.AddAccessRule($administratorsRead)
+    $acl.AddAccessRule($administratorsModify)
     $acl.AddAccessRule($trustedInstallerFullControl)
     $acl.AddAccessRule($systemFullControl)
     # Update the folder to use the new ACL
