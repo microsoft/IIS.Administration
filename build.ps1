@@ -16,9 +16,6 @@ param(
     [string]
     $installPath = (Join-Path $env:ProgramFiles "IIS Administration"),
 
-    [switch]
-    $enableIISFeatures,
-
     [int]
     $testPort = 44326
 )

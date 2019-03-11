@@ -28,3 +28,10 @@ jobs:
     - checkout: self
       clean: false
       submodules: true
+
+    - task: PowerShell@2
+      displayName: 'PowerShell Script build.ps1'
+      inputs:
+        targetType: filePath
+        filePath: ./build.ps1
+        arguments: '-devSetup -install -test'
