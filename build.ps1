@@ -8,6 +8,9 @@ param(
     $install,
 
     [switch]
+    $startService,
+
+    [switch]
     $test,
 
     [string]
@@ -83,12 +86,14 @@ function CleanUp() {
     }
 }
 
-function StartTest() {
+function StartTestService($hold) {
     $group = GetGlobalVariable IIS_ADMIN_API_OWNERS
     $member = & ([System.IO.Path]::Combine($scriptDir, "setup", "security.ps1")) CurrentAdUser
     if (!(Get-LocalGroupMember -Group $group -Member $member -ErrorAction SilentlyContinue)) {
         Add-LocalGroupMember -Group $group -Member $member
     }
+
+    Write-Host "[Build] Sanity tests..."
     $pingEndpoint = "https://localhost:$testPort"
     try {
         Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint | Out-Null
@@ -96,6 +101,15 @@ function StartTest() {
         Write-Error "Failed to ping test server $pingEndpoint, did you forget to start it manually?"
         Exit 1
     }
+
+    if ($hold) {
+        Read-Host "Press enter to continue..."
+    }
+}
+
+function StartTest() {
+    Write-Host "[Build] Functional tests..."
+    dotnet test ([System.IO.Path]::Combine($projectRoot, "test", "Microsoft.IIS.Administration.Tests", "Microsoft.IIS.Administration.Tests.csproj"))
 }
 
 function VerifyPath($path) {
@@ -146,10 +160,18 @@ try {
     Publish
     
     if ($install) {
-        Write-Host "[Build] Installing test service..."
+        Write-Host "[Build] Installing service..."
         InstallTestService
     }
     
+    if ($test -or $startService) {
+        Write-Host "[Build] Starting service..."
+        if ($test -and $startService) {
+            Write-Warning "[Build] -test flag is provided, unit tests will continue right after service is started. To hold to service in running stage for manual testing, omit the -test flag"
+        }
+        StartTestService (!$test)
+    }
+
     if ($test) {
         Write-Host "[Build] Starting test..."
         StartTest
