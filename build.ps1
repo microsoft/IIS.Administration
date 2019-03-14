@@ -8,9 +8,6 @@ param(
     $install,
 
     [switch]
-    $startService,
-
-    [switch]
     $test,
 
     [string]
@@ -24,6 +21,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+function BuildHeader {
+    "[Build] $(Get-Date -Format yyyyMMddTHHmmssffff):"
+}
 
 function ForceResolvePath($path) {
     $path = Resolve-Path $path -ErrorAction SilentlyContinue -ErrorVariable err
@@ -39,6 +40,12 @@ function DevEnvSetup() {
 
 function Publish() {
     & ([System.IO.Path]::Combine($scriptDir, "publish", "publish.ps1")) -OutputPath $publishPath -SkipPrompt
+    if ($test) {
+        Write-Host "$(BuildHeader) Overwriting published config file with test configurations..."
+        $testConfig = [System.IO.Path]::Combine($projectRoot, "test", "appsettings.test.json")
+        $publishConfig = [System.IO.Path]::Combine($publishPath, "Microsoft.IIS.Administration", "config", "appsettings.json")
+        Copy-Item -Path $testconfig -Destination $publishConfig -Force
+    }
 }
 
 function EnsureIISFeatures() {
@@ -50,17 +57,9 @@ function EnsureIISFeatures() {
 function InstallTestService() {
     & ([System.IO.Path]::Combine($scriptDir, "setup", "setup.ps1")) Install -DistributablePath $publishPath -Path $installPath -Verbose -Port $testPort
     $adminGroup = & ([System.IO.Path]::Combine($scriptDir, "setup", "globals.ps1")) IIS_ADMIN_API_OWNERS
-    $user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
     if (!(Get-LocalGroupMember -Group $adminGroup -Member $user -ErrorAction SilentlyContinue)) {
         Add-LocalGroupMember -Group $adminGroup -Member $user
     }
-    $testConfigLocation = [System.IO.Path]::Combine($PSScriptRoot, "test", "appsettings.test.json")
-    $configLocation = Get-ChildItem -Recurse $installPath appsettings.json
-    if ($configLocation -is [Array]) {
-        throw "Multiple config files detected in $installPath"
-    }
-    Copy-Item -Path $testConfigLocation -Destination $configLocation -Force
-    Restart-Service $serviceName
 }
 
 function UninistallTestService() {
@@ -93,7 +92,7 @@ function StartTestService($hold) {
         Add-LocalGroupMember -Group $group -Member $member
     }
 
-    Write-Host "[Build] Sanity tests..."
+    Write-Host "$(BuildHeader) Sanity tests..."
     $pingEndpoint = "https://localhost:$testPort"
     try {
         Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint | Out-Null
@@ -108,7 +107,7 @@ function StartTestService($hold) {
 }
 
 function StartTest() {
-    Write-Host "[Build] Functional tests..."
+    Write-Host "$(BuildHeader) Functional tests..."
     dotnet test ([System.IO.Path]::Combine($projectRoot, "test", "Microsoft.IIS.Administration.Tests", "Microsoft.IIS.Administration.Tests.csproj"))
 }
 
@@ -132,6 +131,8 @@ function GetGlobalVariable($name) {
 }
 
 ########################################################### Main Script ##################################################################
+$debug = $PSBoundParameters['debug']
+$user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
 try {
     $projectRoot = git rev-parse --show-toplevel
@@ -145,42 +146,45 @@ $publishPath = ForceResolvePath "$publishPath"
 $installPath = ForceResolvePath "$installPath"
 $serviceName = GetGlobalVariable DEFAULT_SERVICE_NAME
 
-Write-Host "[Build] Starting clean up..."
+Write-Host "$(BuildHeader) Starting clean up..."
 CleanUp
 
 try {
     if ($devSetup) {
-        Write-Host "[Build] Dev setup..."
+        Write-Host "$(BuildHeader) Dev setup..."
         DevEnvSetup
-        Write-Host "[Build] Ensure IIS Features..."
+        Write-Host "$(BuildHeader) Ensure IIS Features..."
         EnsureIISFeatures
     }
     
-    Write-Host "[Build] Publishing..."
+    Write-Host "$(BuildHeader) Publishing..."
     Publish
     
     if ($install) {
-        Write-Host "[Build] Installing service..."
+        Write-Host "$(BuildHeader) Installing service..."
         InstallTestService
     }
     
-    if ($test -or $startService) {
-        Write-Host "[Build] Starting service..."
-        if ($test -and $startService) {
-            Write-Warning "[Build] -test flag is provided, unit tests will continue right after service is started. To hold to service in running stage for manual testing, omit the -test flag"
-        }
-        StartTestService (!$test)
-    }
-
     if ($test) {
-        Write-Host "[Build] Starting test..."
+        Write-Host "$(BuildHeader) Starting service..."
+        StartTestService (!$test)
+
+        if ($debug) {
+            $proceed = Read-Host "$(BuildHeader) Pausing for debug, continue? (Y/n)..."
+            if ($proceed -NotLike "y*") {
+                Write-Host "$(BuildHeader) Aborting..."
+                Exit 1
+            }
+        }
+
+        Write-Host "$(BuildHeader) Starting test..."
         StartTest
     }
 } catch {
     throw
 } finally {
-    Write-Host "[Build] Final clean up..."
+    Write-Host "$(BuildHeader) Final clean up..."
     CleanUp
 }
 
-Write-Host "[Build] done..."
+Write-Host "$(BuildHeader) done..."
