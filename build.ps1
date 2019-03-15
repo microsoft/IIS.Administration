@@ -56,10 +56,6 @@ function EnsureIISFeatures() {
 
 function InstallTestService() {
     & ([System.IO.Path]::Combine($scriptDir, "setup", "setup.ps1")) Install -DistributablePath $publishPath -Path $installPath -Verbose -Port $testPort
-    $adminGroup = & ([System.IO.Path]::Combine($scriptDir, "setup", "globals.ps1")) IIS_ADMIN_API_OWNERS
-    if (!(Get-LocalGroupMember -Group $adminGroup -Member $user -ErrorAction SilentlyContinue)) {
-        Add-LocalGroupMember -Group $adminGroup -Member $user
-    }
 }
 
 function UninistallTestService() {
