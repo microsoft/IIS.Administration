@@ -141,7 +141,7 @@ namespace Microsoft.IIS.Administration.Tests
             return docFeature.Value<JArray>("files");
         }
 
-        public static JObject CreateFileInternal(HttpClient client, JObject docFeature, string fileName)
+        private static JObject CreateFileInternal(HttpClient client, JObject docFeature, string fileName)
         {
             string featureUuid = docFeature.Value<string>("id");
 
