@@ -84,9 +84,6 @@ function CleanUp() {
 function StartTestService($hold) {
     $group = GetGlobalVariable IIS_ADMIN_API_OWNERS
     $member = & ([System.IO.Path]::Combine($scriptDir, "setup", "security.ps1")) CurrentAdUser
-    if (!(Get-LocalGroupMember -Group $group -Member $member -ErrorAction SilentlyContinue)) {
-        Add-LocalGroupMember -Group $group -Member $member
-    }
 
     Write-Host "$(BuildHeader) Sanity tests..."
     $pingEndpoint = "https://localhost:$testPort"
