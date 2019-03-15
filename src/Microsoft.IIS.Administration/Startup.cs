@@ -71,12 +71,8 @@ namespace Microsoft.IIS.Administration {
             services.AddCors();
 
             //
-            // Api Keys
-            services.AddApiKeyProvider();
-
-            //
             // Authentication
-            services.AddAuthentication();
+            services.AddBearerAuthentication();
 
             //
             // Authorization
@@ -122,7 +118,7 @@ namespace Microsoft.IIS.Administration {
                 builder.AddApplicationPart(asm);
             }
 
-            builder.AddControllersAsServices();            
+            builder.AddControllersAsServices();
             builder.AddWebApiConventions();
         }
 
@@ -163,7 +159,6 @@ namespace Microsoft.IIS.Administration {
             // Authentication
             //
             app.UseWindowsAuthentication();
-            app.UseBearerAuthentication();
 
 
             //

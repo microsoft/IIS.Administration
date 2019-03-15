@@ -44,6 +44,21 @@ namespace Microsoft.IIS.Administration.Tests {
             }
         }
 
+        public static string PROJECT_PATH
+        {
+            get
+            {
+                var val = _config.Value<string>("project_path");
+
+                if (string.IsNullOrEmpty(val))
+                {
+                    val = AppContext.BaseDirectory;
+                }
+
+                return Environment.ExpandEnvironmentVariables(val);
+            }
+        }
+
         public static JObject Raw {
             get {
                 return _config;

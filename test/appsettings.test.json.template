@@ -30,9 +30,9 @@
   },
   "logging": {
     "enabled": true,
-    "file_name": "iis-admin-api-test-{Date}.txt",
-    "min_level": "Information",
-    "path": "%temp%\\iis-admin-api\\"
+    "file_name": "log-{Date}.txt",
+    "min_level": "Error",
+    "path": null
   },
   "auditing": {
     "enabled": true,
@@ -59,7 +59,7 @@
       },
       {
         "alias": "tests",
-        "path": "D:\\GitHub\\Microsoft\\IIS.Administration\\.test",
+        "path": "%iis_admin_test_dir%",
         "claims": [
           "read",
           "write"

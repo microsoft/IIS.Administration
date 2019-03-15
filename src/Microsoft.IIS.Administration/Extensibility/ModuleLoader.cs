@@ -6,6 +6,7 @@ namespace Microsoft.IIS.Administration
 {
     using AspNetCore.Hosting;
     using Core;
+    using Microsoft.IIS.Administration.Extensibility;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -41,8 +42,9 @@ namespace Microsoft.IIS.Administration
             Assembly assembly = _loader.LoadFromAssemblyPath(assemblyPath);
             _loadedAssemblies.Add(assembly);
 
+            //
             // Every module should expose a type called Startup in a namespace equivalent to the assembly name
-            Type type = assembly.GetType(assemblyName + ".Startup"); 
+            Type type = assembly.GetType(assemblyName + ".Startup");
             IModule module = (IModule) Activator.CreateInstance(type);
             _moduleHolder.Add(module);
             return assembly;

@@ -217,9 +217,11 @@ namespace Microsoft.IIS.Administration.Tests
         [Fact]
         public void CreateEditDeleteFile()
         {
-            using (HttpClient client = ApiHttpClient.Create()) {
+            using (HttpClient client = ApiHttpClient.Create())
+            using (TestSiteContainer container = new TestSiteContainer(client))
+            {
 
-                JObject site = Sites.GetSite(client, "Default Web Site");
+                JObject site = Sites.GetSite(client, container.SiteName);
 
                 // Create web file
                 var webFile = CreateWebFile(client, site, TEST_FILE_NAME);
@@ -282,16 +284,19 @@ namespace Microsoft.IIS.Administration.Tests
             string testContent = "Test content for copying files.";
             JObject copyInfo = null;
 
-            using (HttpClient client = ApiHttpClient.Create()) {
+            using (HttpClient client = ApiHttpClient.Create())
+            using(TestSiteContainer container = new TestSiteContainer(client))
+            {
 
-                JObject site = Sites.GetSite(client, "Default Web Site");
+                JObject site = Sites.GetSite(client, container.SiteName);
 
                 var webFile = CreateWebFile(client, site, TEST_FILE_NAME);
 
                 var physicalPath = Environment.ExpandEnvironmentVariables(webFile["file_info"].Value<string>("physical_path"));
                 File.WriteAllText(physicalPath, testContent);
 
-                try {
+                try
+                {
                     var fileInfo = Utils.FollowLink(client, webFile.Value<JObject>("file_info"), "self");
                     var parent = fileInfo.Value<JObject>("parent");
 
@@ -309,7 +314,8 @@ namespace Microsoft.IIS.Administration.Tests
                     //
                     // Wait for copy to finish
                     HttpResponseMessage res = null;
-                    do {
+                    do
+                    {
                         res = client.GetAsync(Utils.Self(copyInfo)).Result;
                     } while (res.StatusCode == HttpStatusCode.OK);
 
@@ -322,11 +328,14 @@ namespace Microsoft.IIS.Administration.Tests
 
                     Assert.Equal(copyContent, testContent);
                 }
-                finally {
-                    if (webFile != null && webFile["file_info"] != null) {
+                finally
+                {
+                    if (webFile != null && webFile["file_info"] != null)
+                    {
                         Assert.True(client.Delete(Utils.Self(webFile.Value<JObject>("file_info"))));
                     }
-                    if (copyInfo != null) {
+                    if (copyInfo != null)
+                    {
                         Assert.True(client.Delete(Utils.Self(copyInfo.Value<JObject>("file"))));
                     }
                 }
@@ -439,9 +448,11 @@ namespace Microsoft.IIS.Administration.Tests
         [Fact]
         public void RangeUploadDownload()
         {
-            using (HttpClient client = ApiHttpClient.Create()) {
+            using (HttpClient client = ApiHttpClient.Create())
+            using (TestSiteContainer container = new TestSiteContainer(client))
+            {
 
-                JObject site = Sites.GetSite(client, "Default Web Site");
+                JObject site = Sites.GetSite(client, container.SiteName);
 
                 // Create web file
                 var webFile = CreateWebFile(client, site, TEST_FILE_NAME);
@@ -518,9 +529,11 @@ namespace Microsoft.IIS.Administration.Tests
             }
 
 
-            using (HttpClient client = ApiHttpClient.Create()) {
+            using (HttpClient client = ApiHttpClient.Create())
+            using (TestSiteContainer container = new TestSiteContainer(client))
+            {
 
-                JObject site = Sites.GetSite(client, "Default Web Site");
+                JObject site = Sites.GetSite(client, container.SiteName);
 
                 var webFiles = new List<JObject>();
                 var fileInfos = new List<JObject>();
@@ -561,9 +574,11 @@ namespace Microsoft.IIS.Administration.Tests
             var size = 1024 * 1024 * 5;
             var truncateSize = size / 2;
 
-            using (HttpClient client = ApiHttpClient.Create()) {
+            using (HttpClient client = ApiHttpClient.Create())
+            using (TestSiteContainer container = new TestSiteContainer(client))
+            {
 
-                JObject site = Sites.GetSite(client, "Default Web Site");
+                JObject site = Sites.GetSite(client, container.SiteName);
                 var webFile = CreateWebFile(client, site, TEST_FILE_NAME);
                 var fileInfo = Utils.FollowLink(client, webFile.Value<JObject>("file_info"), "self");
 
@@ -591,10 +606,12 @@ namespace Microsoft.IIS.Administration.Tests
         [Fact]
         public void CreateRenameFile()
         {
-            using (HttpClient client = ApiHttpClient.Create()) {
+            using (HttpClient client = ApiHttpClient.Create())
+            using (TestSiteContainer container = new TestSiteContainer(client))
+            {
+                JObject site = Sites.GetSite(client, container.SiteName);
                 JObject target = null;
                 string updatedName = "updated_test_file_name.txt";
-                JObject site = Sites.GetSite(client, "Default Web Site");
 
                 try {
                     var webFile = CreateWebFile(client, site, TEST_FILE_NAME);
@@ -616,10 +633,13 @@ namespace Microsoft.IIS.Administration.Tests
         [Fact]
         public void CreateRenameDirectory()
         {
-            using (HttpClient client = ApiHttpClient.Create()) {
+            using (HttpClient client = ApiHttpClient.Create())
+            using (TestSiteContainer container = new TestSiteContainer(client))
+            {
+
+                JObject site = Sites.GetSite(client, container.SiteName);
                 JObject target = null;
                 string updatedName = "updated_test_folder_name";
-                JObject site = Sites.GetSite(client, "Default Web Site");
 
                 try {
                     var webFile = CreateWebFile(client, site, TEST_FILE_NAME, "directory");
@@ -1003,6 +1023,32 @@ namespace Microsoft.IIS.Administration.Tests
             }
 
             return true;
+        }
+    }
+
+    class TestSiteContainer : IDisposable
+    {
+        public const string TEST_SITE_NAME = "test_site";
+        public const int TEST_PORT = 50306;
+        public static readonly string TEST_SITE_PATH = Path.Combine(Configuration.TEST_ROOT_PATH, TEST_SITE_NAME);
+        public static readonly string SITE_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/websites";
+
+        public readonly string SiteName = TEST_SITE_NAME;
+        private readonly string testSiteUri;
+        private readonly HttpClient client;
+
+        public TestSiteContainer(HttpClient client)
+        {
+            this.client = client;
+            Sites.EnsureNoSite(client, TEST_SITE_NAME);
+            JObject site = Sites.CreateSite(client, TEST_SITE_NAME, TEST_PORT, TEST_SITE_PATH);
+            Assert.NotNull(site);
+            testSiteUri = $"{SITE_URL}/{site.Value<string>("id")}";
+        }
+
+        public void Dispose()
+        {
+            Sites.DeleteSite(client, testSiteUri);
         }
     }
 }

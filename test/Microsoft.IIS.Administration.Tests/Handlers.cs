@@ -133,7 +133,7 @@ namespace Microsoft.IIS.Administration.Tests
             string result = null;
 
             try {
-                ChangeAllFeatureProperties(feature);
+                ChangeAllFeaturePropertiesInternal(feature);
                 Assert.True(client.Patch(Utils.Self(feature), feature, out result));
                 JObject patchedFeature = JObject.Parse(result);
                 AssertFeaturesEqual(feature, patchedFeature);
@@ -149,7 +149,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        private void ChangeAllFeatureProperties(JObject handlers)
+        private void ChangeAllFeaturePropertiesInternal(JObject handlers)
         {
             handlers[allowedAccessProperty]["read"] = !handlers[allowedAccessProperty].Value<bool>("read");
             handlers[allowedAccessProperty]["write"] = !handlers[allowedAccessProperty].Value<bool>("write");

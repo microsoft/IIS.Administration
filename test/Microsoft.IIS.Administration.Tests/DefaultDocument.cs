@@ -106,7 +106,7 @@ namespace Microsoft.IIS.Administration.Tests
                 Assert.True(DeleteFile(client, file));
             }
 
-            file = CreateFile(client, feature, fileName);
+            file = CreateFileInternal(client, feature, fileName);
             Assert.NotNull(file);
             Assert.True(DeleteFile(client, file));
         }
@@ -141,7 +141,7 @@ namespace Microsoft.IIS.Administration.Tests
             return docFeature.Value<JArray>("files");
         }
 
-        public static JObject CreateFile(HttpClient client, JObject docFeature, string fileName)
+        private static JObject CreateFileInternal(HttpClient client, JObject docFeature, string fileName)
         {
             string featureUuid = docFeature.Value<string>("id");
 

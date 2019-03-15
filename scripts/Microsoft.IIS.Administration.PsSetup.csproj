@@ -18,7 +18,7 @@
 
   <PropertyGroup>
     <Description>PsSetup</Description>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

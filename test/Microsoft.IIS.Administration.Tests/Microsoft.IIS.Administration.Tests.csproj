@@ -1,38 +1,38 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\build\version.props" />
 
   <PropertyGroup>
     <Description>Tests Class Library</Description>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>Microsoft.IIS.Administration.Tests</AssemblyName>
     <PackageId>Microsoft.IIS.Administration.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <RuntimeFrameworkVersion>1.0.0</RuntimeFrameworkVersion>
-    <PackageTargetFallback>$(PackageTargetFallback);dotnet5.6;dnxcore50;portable-net45+win8</PackageTargetFallback>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Update="xunit.runner.json;test.config.json">
+    <None Update="test.config.json;xunit.runner.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.IIS.Administration.WebServer\Microsoft.IIS.Administration.WebServer.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.IIS.Administration.Core\Microsoft.IIS.Administration.Core.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.IIS.Administration.Files.Core\Microsoft.IIS.Administration.Files.Core.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.IIS.Administration.Files\Microsoft.IIS.Administration.Files.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.IIS.Administration.WebServer.Files\Microsoft.IIS.Administration.WebServer.Files.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.IIS.Administration.WebServer\Microsoft.IIS.Administration.WebServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.0" />
-    <PackageReference Include="xunit" Version="2.2.0-beta5-build3474" />
-    <PackageReference Include="System.Net.NetworkInformation" Version="4.1.0" />
-    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="$(MicrosoftNETestSdkVersion)" />
+    <PackageReference Include="xunit" Version="$(XUnitVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(XUnitRunnerVisualStudioVersion)">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.Net.NetworkInformation" Version="$(SystemNetNetworkInformationVersion)" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="$(SystemServiceProcessServiceControllerVersion)" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
-  </ItemGroup>
-
 </Project>

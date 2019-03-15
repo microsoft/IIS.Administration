@@ -1,10 +1,36 @@
-resources:
-  repositories:
-    - repository: Microsoft/IIS.Common
-      type: github
-      name: Microsoft/IIS.Common
-      endpoint: GitHub-IIS
+trigger:
+  branches:
+    include:
+      - dev
+      - master
+      - preview/*
+      - releases/*
+
+pr:
+  autoCancel: false
+  branches:
+    include:
+      - dev
+      - master
+      - preview/*
+      - releases/*
 
 jobs:
-- template: azure-pipelines.yml@Microsoft/IIS.Common  # Template reference
+- job: build
+  pool:
+    name: 'Hosted VS2017'  # name of the pool to run this job in
+    demands:
+      - msbuild
+      - visualstudio
+      - vstest
+  steps:
+    - checkout: self
+      clean: false
+      submodules: true
 
+    - task: PowerShell@2
+      displayName: 'PowerShell Script build.ps1'
+      inputs:
+        targetType: filePath
+        filePath: ./build.ps1
+        arguments: '-devSetup -install -test -verbose'

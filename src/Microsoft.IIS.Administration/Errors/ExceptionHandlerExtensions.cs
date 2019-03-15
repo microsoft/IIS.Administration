@@ -5,7 +5,7 @@
 namespace Microsoft.IIS.Administration
 {
     using AspNetCore.Builder;
-    using AspNetCore.Mvc.Internal;
+    using System.Threading.Tasks;
 
     public static class ExceptionHandlerExtensions
     {
@@ -14,7 +14,7 @@ namespace Microsoft.IIS.Administration
             // The framework error handler allows us to control the response headers even on unhandled server errors.
             var exceptionHandlerOptions = new ExceptionHandlerOptions();
             exceptionHandlerOptions.ExceptionHandler = context => {
-                return TaskCache.CompletedTask;
+                return Task.CompletedTask;
             };
 
             //

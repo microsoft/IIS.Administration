@@ -456,6 +456,7 @@ function Install
 
 	try {
 		Start-Service "$ServiceName" -ErrorAction Stop
+		Write-Host "Service started"
 	}
     catch {
         throw "Could not start service: $($_.Exception.Message)"

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>Publish all of the core plugins for the Microsoft IIS Administration API</Description>
-    <TargetFramework>netcoreapp1.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
