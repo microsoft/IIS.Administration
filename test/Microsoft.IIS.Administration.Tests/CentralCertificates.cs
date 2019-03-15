@@ -40,7 +40,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
         public async Task CanEnable()
         {
             RequireCcsTestInfrastructure();
@@ -50,7 +50,7 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.True(Enable(FOLDER_PATH, user.Username, user.Password, PVK_PASS));
         }
 
-        [Fact]
+        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
         public async Task PathMustBeAllowed()
         {
             RequireCcsTestInfrastructure();
@@ -79,7 +79,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
         public void CredentialsMustBeValid()
         {
             RequireCcsTestInfrastructure();
@@ -107,7 +107,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
         public async Task DynamicallyAddsToStores()
         {
             RequireCcsTestInfrastructure();
@@ -121,7 +121,7 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.False(GetStores().Any(store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase)));
         }
 
-        [Fact]
+        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
         public async Task CcsCertificatesShown()
         {
             RequireCcsTestInfrastructure();
@@ -134,7 +134,7 @@ namespace Microsoft.IIS.Administration.Tests
             }));
         }
 
-        [Fact]
+        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
         public async Task CanCreateCcsBinding()
         {
             RequireCcsTestInfrastructure();
@@ -331,7 +331,6 @@ namespace Microsoft.IIS.Administration.Tests
 
             user.Username = CentralCertificates.CcsTestUsername;
             user.Password = Guid.NewGuid().ToString();
-
             await CreateLocalUser(user.Username, user.Password);
 
             return user;
@@ -339,8 +338,9 @@ namespace Microsoft.IIS.Administration.Tests
 
         private static Task CreateLocalUser(string username, string password)
         {
+            var createScriptLocation = Path.Combine(Configuration.PROJECT_PATH, "scripts", "tests", "Create-User.ps1");
             // User creation already implemented in powershell install scripts, vs many interop calls
-            return RunProcess("PowerShell.exe", $@"""c:\\src\\repos\\iis.administration\\scripts\tests\\Create-User.ps1"" -Name '{username}' -Password '{password}'");
+            return RunProcess("PowerShell.exe", $@"""{createScriptLocation}"" -Name '{username}' -Password '{password}'");
         }
 
         private static Task RunProcess(string tool, string arguments)
