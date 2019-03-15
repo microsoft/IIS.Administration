@@ -33,4 +33,4 @@ jobs:
       inputs:
         targetType: filePath
         filePath: ./build.ps1
-        arguments: '-devSetup -install -test'
+        arguments: '-devSetup -install -test -verbose'
