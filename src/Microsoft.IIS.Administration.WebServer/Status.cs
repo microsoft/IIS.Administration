@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer
         Stopped,
         Starting,
         Started,
+        Recycling,
     }
 
     public static class StatusExtensions

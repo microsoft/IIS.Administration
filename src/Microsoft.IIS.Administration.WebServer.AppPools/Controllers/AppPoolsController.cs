@@ -138,6 +138,9 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
                         case Status.Started:
                             appPool.Start();
                             break;
+                        case Status.Recycling:
+                            appPool.Recycle();
+                            break;
                     }
                 }
                 catch(COMException e) {
