@@ -4,6 +4,7 @@
 
 namespace Microsoft.IIS.Administration.WebServer.Info
 {
+    using Serilog;
     using System;
     using System.Diagnostics;
     using System.IO;
@@ -31,9 +32,10 @@ namespace Microsoft.IIS.Administration.WebServer.Info
                         return Status.Unknown;
                     }
                 }
-            } catch
+            } catch (PlatformNotSupportedException e)
             {
-                // TODO: log
+                // Exception occurs during debug when it this app is not run as service
+                Log.Error($"Error trying to retrieving service status ${e.ToString()}");
                 return Status.Unknown;
             }
 
