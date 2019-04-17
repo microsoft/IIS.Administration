@@ -18,13 +18,23 @@ namespace Microsoft.IIS.Administration.WebServer.Info
         {
             ServiceControllerStatus status;
 
-            using (var service = GetService()) {
-                if (service != null) {
-                    status = service.Status;
+            try
+            {
+                using (var service = GetService())
+                {
+                    if (service != null)
+                    {
+                        status = service.Status;
+                    }
+                    else
+                    {
+                        return Status.Unknown;
+                    }
                 }
-                else {
-                    return Status.Unknown;
-                }
+            } catch
+            {
+                // TODO: log
+                return Status.Unknown;
             }
 
             return FromServiceControllerStatus(status);

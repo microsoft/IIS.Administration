@@ -6,7 +6,6 @@
     <AssemblyName>Bundle</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>Microsoft IIS Administration API Bundle</PackageId>
-    <RuntimeFrameworkVersion>2.0.0</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>
