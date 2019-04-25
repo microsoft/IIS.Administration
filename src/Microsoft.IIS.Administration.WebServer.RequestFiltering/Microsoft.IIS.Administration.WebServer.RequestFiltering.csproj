@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\build\sign.props" />
   <Import Project="..\..\build\version.props" />
+  <Import Project="..\..\build\plugins.props" />
 
   <PropertyGroup>
     <Description>Microsoft.IIS.Administration.WebServer.RequestFiltering Class Library</Description>

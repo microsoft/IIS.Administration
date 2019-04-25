@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\build\plugins.props" />
 
   <PropertyGroup>
     <Description>Microsoft.IIS.Administration.WebServer.MimeTypes Class Library</Description>

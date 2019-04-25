@@ -219,6 +219,8 @@ _Pvt_Extensions
 **publishoutput/
 src/*/wwwroot/lib
 PublishProfiles
+
+.build
 scripts/publish/version.txt
 src/Microsoft.IIS.Administration/wwwroot/static/Microsoft.IIS.Administration.WebServer.HttpRequestTracing/freb.xsl
 dist

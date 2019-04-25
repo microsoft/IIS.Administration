@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\build\sign.props" />
   <Import Project="..\..\build\version.props" />
+  <Import Project="..\..\build\Microsoft.IIS.Administration.props" />
 
   <PropertyGroup>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
@@ -10,6 +11,8 @@
     <OutputType>Exe</OutputType>
     <PackageId>Microsoft.IIS.Administration</PackageId>
     <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+    <OutputPath>$(AppOutputRoot)</OutputPath>
+    <PublishDir>$(AppPublishRoot)</PublishDir>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,0 +1,7 @@
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project=".\Microsoft.IIS.Administration.props" />
+  <PropertyGroup>
+    <OutputPath>$(AppOutputRoot)\plugins</OutputPath>
+    <PublishDir>$(AppPublishRoot)\plugins</PublishDir>
+  </PropertyGroup>
+</Project>
