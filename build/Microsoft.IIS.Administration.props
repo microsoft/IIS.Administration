@@ -1,9 +1,19 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <OutputRoot>$(SolutionDir)\.build</OutputRoot>
-    <AppOutputRoot>$(SolutionDir)\.build\Microsoft.IIS.Administration</AppOutputRoot>
-    <PublishRoot>$(SolutionDir)\dist</PublishRoot>
-    <AppPublishRoot>$(SolutionDir)\dist\Microsoft.IIS.Administration</AppPublishRoot>
+    <OutputRoot>$(SolutionDir).build</OutputRoot>
+    <AppOutputRoot>$(SolutionDir).build\Microsoft.IIS.Administration</AppOutputRoot>
+    <PluginsOutputRoot>$(SolutionDir).build\Microsoft.IIS.Administration\plugins</PluginsOutputRoot>
+    <PublishRoot>$(SolutionDir)dist</PublishRoot>
+    <AppPublishRoot>$(SolutionDir)dist\Microsoft.IIS.Administration</AppPublishRoot>
+    <PluginsPublishRoot>$(SolutionDir)dist\Microsoft.IIS.Administration\plugins</PluginsPublishRoot>
+
+    <!-- Publish properties -->
+    <PublishProtocol>FileSystem</PublishProtocol>
+    <Configuration>Release</Configuration>
+    <Platform>Any CPU</Platform>
+    <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
+    <SelfContained>false</SelfContained>
+    <_IsPortable>false</_IsPortable>
   </PropertyGroup>
 </Project>

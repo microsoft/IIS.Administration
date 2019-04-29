@@ -7,7 +7,7 @@
     <Description>Microsoft.IIS.Administration.WebServer.Compression Class Library</Description>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <AssemblyName>Microsoft.IIS.Administration.WebServer.Compression</AssemblyName>
     <PackageId>Microsoft.IIS.Administration.WebServer.Compression</PackageId>
   </PropertyGroup>

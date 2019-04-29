@@ -38,6 +38,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="config\api-keys.json" />
+    <None Remove="config\appsettings.json" />
+    <None Remove="config\modules.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="config\api-keys.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="config\appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="config\modules.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -70,6 +88,10 @@
     </FilesToSign>
   </ItemGroup>
 
+  <Target Name="CreatConfigs" BeforeTargets="PrepareForBuild">
+    <Exec Command="powershell -NonInteractive -executionpolicy Unrestricted -command &quot;&amp;&apos;..\..\scripts\build\Copy-Configs.ps1&apos; &apos;$(MSBuildProjectDirectory)&apos;&quot;" />
+  </Target>
+
   <!-- Workaround for: Files generated during build are not copying to publish directory on first publish https://github.com/dotnet/cli/issues/5498#issuecomment-275932671 -->
   <Target Name="AddGeneratedContentItems" BeforeTargets="AssignTargetPaths" DependsOnTargets="PrepareForPublish">
     <ItemGroup>
@@ -77,4 +99,10 @@
     </ItemGroup>
   </Target>
 
+  <ItemGroup>
+    <AllPluginDlls Include="$(PluginsPublishRoot)\**\*"></AllPluginDlls>
+    <PluginDlls Include="$(PluginsPublishRoot)\**\*">
+      <DuplicateDependency>$(AppPublishRoot)%(RecursiveDir)%(Filename)%(Extension)</DuplicateDependency>
+    </PluginDlls>
+  </ItemGroup>
 </Project>
