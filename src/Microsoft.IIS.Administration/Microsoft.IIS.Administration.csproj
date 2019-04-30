@@ -41,6 +41,20 @@
     <None Remove="config\api-keys.json" />
     <None Remove="config\appsettings.json" />
     <None Remove="config\modules.json" />
+    <None Remove="Views\AccessKeys\Index.cshtml" />
+    <None Remove="Views\Connect\Index.cshtml" />
+    <None Remove="Views\Explorer\Index.cshtml" />
+    <None Remove="Views\Ping\Index.cshtml" />
+    <None Remove="Views\Shared\_Layout.cshtml" />
+    <None Remove="wwwroot\css\access-keys.css" />
+    <None Remove="wwwroot\css\connect.css" />
+    <None Remove="wwwroot\css\explorer.css" />
+    <None Remove="wwwroot\css\main.css" />
+    <None Remove="wwwroot\js\access-keys.js" />
+    <None Remove="wwwroot\js\connect.js" />
+    <None Remove="wwwroot\js\explorer.js" />
+    <None Remove="wwwroot\js\main.js" />
+    <None Remove="wwwroot\lib\jquery-3.2.0.min\jquery.min.js" />
   </ItemGroup>
 
   <ItemGroup>
@@ -89,7 +103,7 @@
   </ItemGroup>
 
   <Target Name="CreatConfigs" BeforeTargets="PrepareForBuild">
-    <Exec Command="powershell -NonInteractive -executionpolicy Unrestricted -command &quot;&amp;&apos;..\..\scripts\build\Copy-Configs.ps1&apos; &apos;$(MSBuildProjectDirectory)&apos;&quot;" />
+    <Exec Command="powershell -NonInteractive -executionpolicy Unrestricted -command &quot;&amp;'..\..\scripts\build\Copy-Configs.ps1' '$(MSBuildProjectDirectory)'&quot;" />
   </Target>
 
   <!-- Workaround for: Files generated during build are not copying to publish directory on first publish https://github.com/dotnet/cli/issues/5498#issuecomment-275932671 -->
@@ -104,5 +118,50 @@
     <PluginDlls Include="$(PluginsPublishRoot)\**\*">
       <DuplicateDependency>$(AppPublishRoot)%(RecursiveDir)%(Filename)%(Extension)</DuplicateDependency>
     </PluginDlls>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Views\AccessKeys\Index.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\Connect\Index.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\Explorer\Index.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\Ping\Index.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\Shared\_Layout.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\css\access-keys.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\css\connect.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\css\explorer.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\css\main.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\js\access-keys.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\js\connect.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\js\explorer.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\js\main.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="wwwroot\lib\jquery-3.2.0.min\jquery.min.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>
