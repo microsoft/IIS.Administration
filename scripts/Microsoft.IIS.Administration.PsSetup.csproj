@@ -1,33 +1,116 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\build\sign.props" />
+  <Import Project="..\build\Microsoft.IIS.Administration.props" />
 
-  <PropertyGroup>
-    <ScriptsOutputPath>bin\setup</ScriptsOutputPath>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" $(SignType) != '' ">
-    <ScriptsOutputPath>bin\signed\setup</ScriptsOutputPath>
-  </PropertyGroup>
-  
-  <Target Name="CopySetupScripts" BeforeTargets="CopyFilesToOutputDirectory">
-    <ItemGroup>
-      <_SetupScripts Include="setup\*.ps1;setup\*.json" />
-    </ItemGroup>
-    <Copy SourceFiles="@(_SetupScripts)" DestinationFiles="@(_SetupScripts->'$(OutDir)setup\%(Filename)%(Extension)')" />
-  </Target>
+  <ItemGroup>
+    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildVersion)" />
+  </ItemGroup>
 
   <PropertyGroup>
     <Description>PsSetup</Description>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <ScriptsOutputPath>$(PublishRoot)\setup</ScriptsOutputPath>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildVersion)" />
+    <None Remove="setup\acl-util.ps1" />
+    <None Remove="setup\cache.ps1" />
+    <None Remove="setup\cert.ps1" />
+    <None Remove="setup\config.ps1" />
+    <None Remove="setup\dependencies.ps1" />
+    <None Remove="setup\files.ps1" />
+    <None Remove="setup\globals.ps1" />
+    <None Remove="setup\install.ps1" />
+    <None Remove="setup\json.ps1" />
+    <None Remove="setup\migrate.ps1" />
+    <None Remove="setup\modules.ps1" />
+    <None Remove="setup\msi-setup.ps1" />
+    <None Remove="setup\net.ps1" />
+    <None Remove="setup\netsh.ps1" />
+    <None Remove="setup\require.ps1" />
+    <None Remove="setup\sanitize-logs.ps1" />
+    <None Remove="setup\security.ps1" />
+    <None Remove="setup\services.ps1" />
+    <None Remove="setup\setup.ps1" />
+    <None Remove="setup\uninstall.ps1" />
+    <None Remove="setup\ver.ps1" />
+    <None Remove="setup\version.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="setup\acl-util.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\cache.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\cert.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\config.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\dependencies.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\files.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\globals.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\install.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\json.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\migrate.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\modules.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\msi-setup.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\net.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\netsh.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\require.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\sanitize-logs.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\security.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\services.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\setup.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\uninstall.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\ver.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\version.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <Target Name="AssignScripts" BeforeTargets="SignFiles">
     <ItemGroup Condition=" '$(SignType)' != '' ">
-      <FilesToSign Include="$(OutDir)setup\*.ps1;">
+      <FilesToSign Include="$(OutputPath)setup\*.ps1;">
         <Authenticode>$(SigningIdentity)</Authenticode>
       </FilesToSign>
     </ItemGroup>
@@ -35,15 +118,9 @@
 
   <Target Name="PostcompileScript" AfterTargets="Build">
     <ItemGroup>
-      <_SignedScripts Include="$(OutDir)setup\*.ps1;$(OutDir)setup\*.json" />
+      <_SignedScripts Include="$(OutputPath)setup\*.ps1;$(OutputPath)setup\*.json" />
     </ItemGroup>
     <Copy SourceFiles="@(_SignedScripts)" DestinationFiles="@(_SignedScripts->'$(ScriptsOutputPath)\%(Filename)%(Extension)')" />
   </Target>
-
-  <Target Name="PostPostcompileScript" AfterTargets="PostcompileScript">
-    <RemoveDir Directories="bin\$(Configuration);" />
-  </Target>
-
-
 
 </Project>

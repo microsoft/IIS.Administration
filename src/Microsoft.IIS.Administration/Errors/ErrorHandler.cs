@@ -4,6 +4,7 @@
 
 namespace Microsoft.IIS.Administration {
     using System;
+    using System.Diagnostics;
     using System.Net;
     using System.Threading.Tasks;
     using AspNetCore.Http;
@@ -30,11 +31,19 @@ namespace Microsoft.IIS.Administration {
                 //
                 // Try to handle known Api Errors
                 IError error = e as IError;
-                if (error != null) {
+                if (error != null)
+                {
                     await HandleApiError(error, context);
                     return;
                 }
-
+                else
+                {
+                    using (var log = new EventLog("Application"))
+                    {
+                        log.Source = "Microsoft IIS Administration API";
+                        log.WriteEntry($"Microsoft IIS Administration API encountered an unexpected error: {e.ToString()}", EventLogEntryType.Error);
+                    }
+                }
                 throw;
             }
         }
