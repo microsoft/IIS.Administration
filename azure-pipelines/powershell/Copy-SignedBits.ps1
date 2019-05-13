@@ -1,3 +1,4 @@
+[cmdletbinding()]
 param(
     [string]
     $buildDir,
@@ -33,6 +34,7 @@ try {
         if (!(Test-Path $publishedBit)) {
             Write-Error "Cannot find published bit $publishedBit"
         }
+        Write-Verbose "Copying ${bitPath} to ${publishedBit}..."
         Copy-Item -Path $bitPath -Destination $publishedBit -Force
     }
 } finally {
