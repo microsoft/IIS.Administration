@@ -29,11 +29,19 @@ if (!$buildDir -or !$publishDir) {
 
 Push-Location $buildDir
 try {
-    foreach ($bitPath in Get-ChildItem -Recurse -Filter Microsoft.IIS.*.dll | Resolve-Path -Relative) {
+    foreach ($bitLocation in Get-ChildItem -Recurse -Filter Microsoft.IIS.*.dll) {
+        $bitPath = Resolve-Path -LiteralPath $bitLocation.FullName -Relative
         Write-Verbose "Built bit ${bitPath} located"
         $publishedBit =  Join-Path $publishDir $bitPath
         if (!(Test-Path $publishedBit)) {
-            Write-Error "Cannot find published bit $publishedBit"
+            Write-Verbose "Cannot find published bit $publishedBit"
+            ## Plugin's dependecies were also in the build directory, ignoring
+            if ($bitLocation.Directory.Name -eq "plugins" -and (Get-ChildItem $bitLocation.Directory.Parent.FullName $bitLocation.Name)) {
+                Write-Verbose "Item is core library, skipping copy..."
+                continue
+            } else {
+                Write-Error "${publishedBit} not found"
+            }
         }
         Write-Verbose "Copying ${bitPath} to ${publishedBit}..."
         Copy-Item -Path $bitPath -Destination $publishedBit -Force

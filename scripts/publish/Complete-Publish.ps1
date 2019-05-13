@@ -10,7 +10,7 @@ param(
 function Move-SymbolsFiles {
     $symbolsDir = Join-Path $publishDir symbols
     if (!(Test-Path $symbolsDir)) {
-        mkdir $symbolsDir
+        mkdir $symbolsDir | Out-Null
     }
     Get-ChildItem -Path "*.pdb" -Recurse -File | ForEach-Object { Move-Item  $_.FullName $symbolsDir -Force }
 }
