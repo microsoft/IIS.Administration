@@ -29,12 +29,11 @@ if (!$buildDir -or !$publishDir) {
 Push-Location $buildDir
 try {
     foreach ($bitPath in Get-ChildItem -Recurse -Filter Microsoft.IIS.*.dll | Resolve-Path -Relative) {
-        $builtBit = Join-Path $buildDir $bitPath
         $publishedBit =  Join-Path $publishDir $bitPath
         if (!(Test-Path $publishedBit)) {
             Write-Error "Cannot find published bit $publishedBit"
         }
-        Copy-Item -Path $builtBit -Destination $publishedBit -Force
+        Copy-Item -Path $bitPath -Destination $publishedBit -Force
     }
 } finally {
     Pop-Location
