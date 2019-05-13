@@ -30,6 +30,7 @@ if (!$buildDir -or !$publishDir) {
 Push-Location $buildDir
 try {
     foreach ($bitPath in Get-ChildItem -Recurse -Filter Microsoft.IIS.*.dll | Resolve-Path -Relative) {
+        Write-Verbose "Built bit ${bitPath} located"
         $publishedBit =  Join-Path $publishDir $bitPath
         if (!(Test-Path $publishedBit)) {
             Write-Error "Cannot find published bit $publishedBit"
