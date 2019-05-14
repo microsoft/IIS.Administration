@@ -97,7 +97,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(SignType)' != '' ">
-    <FilesToSign Include="$(IntermediateOutputPath)\$(TargetFileName);">
+    <FilesToSign Include="$(IntermediateOutputPath)\$(TargetFileName);wwwroot\js\access-keys.js;wwwroot\js\connect.js;wwwroot\js\explorer.js;wwwroot\js\main.js">
       <Authenticode>$(SigningIdentity)</Authenticode>
     </FilesToSign>
   </ItemGroup>
