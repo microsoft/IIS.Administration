@@ -18,4 +18,12 @@
     <ProjectReference Include="..\Microsoft.IIS.Administration.Core\Microsoft.IIS.Administration.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.Diagnostics.Process" Version="$(SystemDiagnosticsProcessVersion)" />
+  </ItemGroup>
+
 </Project>

@@ -8,7 +8,6 @@
     <AppPublishRoot>$(SolutionDir)dist\Microsoft.IIS.Administration</AppPublishRoot>
     <PluginsPublishRoot>$(SolutionDir)dist\Microsoft.IIS.Administration\plugins</PluginsPublishRoot>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(SolutionDir)build\MSSharedLibSN1024.snk</AssemblyOriginatorKeyFile>
 
     <!-- Publish properties -->
     <PublishProtocol>FileSystem</PublishProtocol>
