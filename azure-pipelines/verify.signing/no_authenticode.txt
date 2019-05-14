@@ -1,3 +1,3 @@
 *\newtonsoft.json.*dll, oss newtonsoft
 *\serilog.*dll, oss serilog
-*\jquery.min.js, oss jquery
+*\*.js, skip javascript signing
