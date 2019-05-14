@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <OutputPath>$(AppOutputRoot)\plugins</OutputPath>
+    <OutDir>$(AppOutputRoot)\plugins</OutDir>
     <PublishDir>$(AppPublishRoot)\plugins</PublishDir>
   </PropertyGroup>
 </Project>

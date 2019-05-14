@@ -11,7 +11,7 @@
     <OutputType>Exe</OutputType>
     <PackageId>Microsoft.IIS.Administration</PackageId>
     <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
-    <OutputPath>$(AppOutputRoot)</OutputPath>
+    <OutDir>$(AppOutputRoot)</OutDir>
     <PublishDir>$(AppPublishRoot)</PublishDir>
   </PropertyGroup>
 
