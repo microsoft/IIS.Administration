@@ -8,7 +8,7 @@
     <AppPublishRoot>$(SolutionDir)dist\Microsoft.IIS.Administration</AppPublishRoot>
     <PluginsPublishRoot>$(SolutionDir)dist\Microsoft.IIS.Administration\plugins</PluginsPublishRoot>
     <SignAssembly>true</SignAssembly>
-    <CopyBuildOutputToPublishDirectory>trye</CopyBuildOutputToPublishDirectory>
+    <CopyBuildOutputToPublishDirectory>true</CopyBuildOutputToPublishDirectory>
 
     <!-- Publish properties -->
     <PublishProtocol>FileSystem</PublishProtocol>
