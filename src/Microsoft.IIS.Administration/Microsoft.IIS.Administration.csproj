@@ -110,7 +110,7 @@
     <Exec Command="powershell -NonInteractive -executionpolicy Unrestricted -command &quot;&amp;'..\..\scripts\build\Copy-Configs.ps1' '$(MSBuildProjectDirectory)'&quot;" />
   </Target>
 
-  <Target Name="CleanBuildDir" Condition="$(CleanBuildDir)" AfterTargets="Build">
+  <Target Name="CleanBuildDir" Condition="$(CleanBuildDir) != ''" AfterTargets="Build">
     <Exec Command="powershell -NonInteractive -executionpolicy Unrestricted -command &quot;&amp;..\..\scripts\build\Clean-BuildDir.ps1&quot;" />
   </Target>
 
