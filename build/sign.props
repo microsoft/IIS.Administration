@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(SignType)' != ''">
-    <FilesToSign Include="$(FilesToSign);$(OutDir)\$(TargetFileName)">
+    <FilesToSign Include="$(FilesToSign);$(OutputPath)\$(TargetFileName)">
       <Authenticode>$(SigningIdentity)</Authenticode>
     </FilesToSign>
   </ItemGroup>
