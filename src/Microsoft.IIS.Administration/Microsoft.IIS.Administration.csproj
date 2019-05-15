@@ -97,7 +97,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(SignType)' != '' ">
-    <FilesToSign Include="$(IntermediateOutputPath)\$(TargetFileName);">
+    <FilesToSign Include="$(OutDir)\$(TargetFileName);">
       <Authenticode>$(SigningIdentity)</Authenticode>
     </FilesToSign>
   </ItemGroup>

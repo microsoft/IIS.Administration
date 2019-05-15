@@ -110,7 +110,7 @@
 
   <Target Name="AssignScripts" BeforeTargets="SignFiles">
     <ItemGroup Condition=" '$(SignType)' != '' ">
-      <FilesToSign Include="$(OutputPath)setup\*.ps1;">
+      <FilesToSign Include="$(OutDir)setup\*.ps1;">
         <Authenticode>$(SigningIdentity)</Authenticode>
       </FilesToSign>
     </ItemGroup>
@@ -118,7 +118,7 @@
 
   <Target Name="PostcompileScript" AfterTargets="Build">
     <ItemGroup>
-      <_SignedScripts Include="$(OutputPath)setup\*.ps1;$(OutputPath)setup\*.json" />
+      <_SignedScripts Include="$(OutDir)setup\*.ps1;$(OutDir)setup\*.json" />
     </ItemGroup>
     <Copy SourceFiles="@(_SignedScripts)" DestinationFiles="@(_SignedScripts->'$(ScriptsOutputPath)\%(Filename)%(Extension)')" />
   </Target>
