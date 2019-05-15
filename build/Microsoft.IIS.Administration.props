@@ -8,7 +8,7 @@
     <AppPublishRoot>$(SolutionDir)dist\Microsoft.IIS.Administration</AppPublishRoot>
     <PluginsPublishRoot>$(SolutionDir)dist\Microsoft.IIS.Administration\plugins</PluginsPublishRoot>
     <SignAssembly>true</SignAssembly>
-    <CopyBuildOutputToPublishDirectory>true</CopyBuildOutputToPublishDirectory>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
     <!-- Publish properties -->
     <PublishProtocol>FileSystem</PublishProtocol>

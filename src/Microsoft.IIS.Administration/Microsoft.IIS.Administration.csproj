@@ -74,6 +74,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="MicroBuild.Plugins.Signing" Version="1.1.137">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Antiforgery" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.1.1" />
@@ -104,6 +108,10 @@
 
   <Target Name="CreatConfigs" BeforeTargets="PrepareForBuild">
     <Exec Command="powershell -NonInteractive -executionpolicy Unrestricted -command &quot;&amp;'..\..\scripts\build\Copy-Configs.ps1' '$(MSBuildProjectDirectory)'&quot;" />
+  </Target>
+
+  <Target Name="CleanBuildDir" Condition="$(CleanBuildDir)" AfterTargets="Build">
+    <Exec Command="powershell -NonInteractive -executionpolicy Unrestricted -command &quot;&amp;..\..\scripts\build\Clean-BuildDir.ps1&quot;" />
   </Target>
 
   <!-- Workaround for: Files generated during build are not copying to publish directory on first publish https://github.com/dotnet/cli/issues/5498#issuecomment-275932671 -->

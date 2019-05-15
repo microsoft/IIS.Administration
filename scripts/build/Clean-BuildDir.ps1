@@ -4,11 +4,11 @@ param(
     $solutionDir = [System.IO.Path]::Combine($PSScriptRoot, "..", ".."),
 
     [string]
-    $publishDir = [System.IO.Path]::Combine($solutionDir, "dist")
+    $manifestDir = [System.IO.Path]::Combine($solutionDir, ".build")
 )
 
 function Move-SymbolsFiles {
-    $symbolsDir = Join-Path $publishDir symbols
+    $symbolsDir = Join-Path $manifestDir symbols
     if (!(Test-Path $symbolsDir)) {
         mkdir $symbolsDir | Out-Null
     }
@@ -32,28 +32,16 @@ function Remove-PluginDependenciesFiles {
     Remove-Item -Path '.\plugins\*.deps.json'
 }
 
-function Remove-NonWindowsRuntime {
-    foreach ($runtime in Get-ChildItem . -Name "runtimes" -Directory -Recurse) {
-        foreach ($os in ((Resolve-Path $runtime) | Get-ChildItem)) {
-            if (!$os.Name.StartsWith('win')) {
-                Remove-Item $os.FullName -Force -Recurse
-            }
-        }
-    }
-}
-
 function Copy-3rdPartyNotice {
-    Copy-Item (Join-Path $solutionDir ThirdPartyNotices.txt) $publishDir
+    Copy-Item (Join-Path $solutionDir ThirdPartyNotices.txt) $manifestDir
 }
 
-Push-Location (Join-Path $publishDir "Microsoft.IIS.Administration")
+Push-Location (Join-Path $manifestDir "Microsoft.IIS.Administration")
 try {
     Move-SymbolsFiles
     Remove-DuplicateDlls
     Remove-PluginDependenciesFiles
-    Remove-NonWindowsRuntime
     Copy-3rdPartyNotice
 } finally {
     Pop-Location
 }
-
