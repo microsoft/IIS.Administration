@@ -38,7 +38,7 @@ try {
             Copy-Item -Path $builtBit -Destination $publishedBit -Force
             Write-Verbose "Copied built bit to $publishedBit"
         } else {
-            Write-Error "Cannot find published bit $publishedBit"
+            Write-Warning "Cannot find published bit $publishedBit"
         }
     }
 } finally {
