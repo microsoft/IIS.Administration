@@ -1,4 +1,7 @@
-## This script would need to manually called after msbuild publish beause there is not "PostPublish" task in msbuild
+## This script is used to finalize build/dist directory for publish. It does the following
+## * Dedupe depenciece from root dir and plugin dir
+## * Move symbol files
+## * Copy 3rd Party notice
 param(
     [string]
     $solutionDir = [System.IO.Path]::Combine($PSScriptRoot, "..", ".."),

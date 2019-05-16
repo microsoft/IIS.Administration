@@ -1,3 +1,6 @@
+## This is a workaround to issue https://github.com/dotnet/sdk/issues/3236
+## Published directory is what we need to publish but all the signed bit are in build directory
+## We will copy over the signed bits
 [CmdletBinding()]
 param(
     [string]
