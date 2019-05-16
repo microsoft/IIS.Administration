@@ -34,11 +34,12 @@ try {
         Write-Verbose "Locate built bit $bitPath"
         $builtBit = Join-Path $buildDir $bitPath
         $publishedBit =  Join-Path $publishDir $bitPath
-        if (!(Test-Path $publishedBit)) {
+        if (Test-Path $publishedBit) {
+            Copy-Item -Path $builtBit -Destination $publishedBit -Force
+            Write-Verbose "Copied built bit to $publishedBit"
+        } else {
             Write-Error "Cannot find published bit $publishedBit"
         }
-        Write-Verbose "Copied built bit to $publishedBit"
-        Copy-Item -Path $builtBit -Destination $publishedBit -Force
     }
 } finally {
     Pop-Location
