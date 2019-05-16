@@ -12,10 +12,12 @@
   </ItemGroup>
 
   <!-- Include this segment to debug signing -->
+  <!--
   <ItemGroup>
     <PackageReference Include="MicroBuild.Plugins.Signing" Version="1.1.137">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+  -->
 </Project>
