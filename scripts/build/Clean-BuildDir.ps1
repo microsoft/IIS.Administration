@@ -32,6 +32,16 @@ function Remove-PluginDependenciesFiles {
     Remove-Item -Path '.\plugins\*.deps.json'
 }
 
+function Remove-NonWindowsRuntime {
+    foreach ($runtime in Get-ChildItem . -Name "runtimes" -Directory -Recurse) {
+        foreach ($os in ((Resolve-Path $runtime) | Get-ChildItem)) {
+            if (!$os.Name.StartsWith('win')) {
+                Remove-Item $os.FullName -Force -Recurse
+            }
+        }
+    }
+}
+
 function Copy-3rdPartyNotice {
     Copy-Item (Join-Path $solutionDir ThirdPartyNotices.txt) $manifestDir
 }
@@ -41,6 +51,7 @@ try {
     Move-SymbolsFiles
     Remove-DuplicateDlls
     Remove-PluginDependenciesFiles
+    Remove-NonWindowsRuntime
     Copy-3rdPartyNotice
 } finally {
     Pop-Location

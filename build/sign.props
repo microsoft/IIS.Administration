@@ -10,4 +10,10 @@
       <Authenticode>$(SigningIdentity)</Authenticode>
     </FilesToSign>
   </ItemGroup>
+
+  <!-- Include this segment to debug signing -->
+  <PackageReference Include="MicroBuild.Plugins.Signing" Version="1.1.137">
+    <PrivateAssets>all</PrivateAssets>
+    <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+  </PackageReference>
 </Project>
