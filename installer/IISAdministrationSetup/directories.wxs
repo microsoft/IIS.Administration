@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<?include ..\shared\common.wxi ?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir" />
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="TARGETDIR" >
+      <Directory Id="$(var.ProgramFilesFolder)" >
+        <Directory Id="INSTALLDIR" ShortName="$(var.ProductNameShort)" Name="$(var.ProductFolderName)" />
+      </Directory>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="versionDir" Name="$(var.MsiVersion)" />
+      <Directory Id="LogsDir" Name="logs" />
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="versionDir">
+      <Directory Id="HostDir" Name="host" />
+      <Directory Id="MSIISAdminDir" Name="Microsoft.IIS.Administration" />
+      <Directory Id="SetupDir" Name="setup" />
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="LogsDir">
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="MSIISAdminDir">
+      <Directory Id="ConfigDir" Name="config" />
+      <Directory Id="PluginsDir" Name="plugins" />
+      <Directory Id="RefsDir" Name="refs" />
+      <Directory Id="ViewsDir" Name="views" />
+      <Directory Id="wwwRootDir" Name="wwwroot" />
+      <Directory Id="RTDir" Name="runtimes">
+        <Directory Id="RTWinDir" Name="win">
+          <Directory Id="RTWinLibDir" Name="lib">
+            <Directory Id="Runtimes_Win_Lib_NetCoreApp20" Name="netcoreapp2.0" />
+            <Directory Id="Runtimes_Win_Lib_NetCoreApp21" Name="netcoreapp2.1" />
+            <Directory Id="Runtimes_Win_Lib_NetStandard13" Name="netstandard1.3" />
+            <Directory Id="Runtimes_Win_Lib_NetStandard20" Name="netstandard2.0" />
+          </Directory>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="PluginsDir">
+      <Directory Id="PRTDir" Name="runtimes">
+        <Directory Id="PRTWinDir" Name="win">
+          <Directory Id="PRTWinLibDir" Name="lib">
+            <Directory Id="Plugins_Runtimes_Win_Lib_NetCoreApp20" Name="netcoreapp2.0" />
+            <Directory Id="Plugins_Runtimes_Win_Lib_NetCoreApp21" Name="netcoreapp2.1" />
+            <Directory Id="Plugins_Runtimes_Win_Lib_NetStandard20" Name="netstandard2.0" />
+          </Directory>
+        </Directory>
+      </Directory>
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="ViewsDir">
+      <Directory Id="ViewsAccessKeysDir" Name="AccessKeys" />
+      <Directory Id="ViewsConnectDir" Name="Connect" />
+      <Directory Id="ViewsExplorerDir" Name="Explorer" />
+      <Directory Id="ViewsPingDir" Name="Ping" />
+      <Directory Id="ViewsSharedDir" Name="Shared" />
+    </DirectoryRef>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="wwwRootDir">
+      <Directory Id="wwwCSSDir" Name="css" />
+      <Directory Id="wwwJSDir" Name="js" />
+      <Directory Id="wwwLibDir" Name="lib">
+        <Directory Id="wwwjquery320Dir" Name="jquery-3.2.0.min" />
+      </Directory>
+    </DirectoryRef>
+  </Fragment>
+</Wix>

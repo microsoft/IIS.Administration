@@ -1,0 +1,1089 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<?include ..\shared\common.wxi ?>
+
+<?define APIDir = "$(var.ArtifactsRoot)\Microsoft.IIS.Administration" ?>
+<?define SetupDir = "$(var.ArtifactsRoot)\Setup" ?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <Component Id="C_EmptyLogsDir" Directory="LogsDir" Guid="1629CD63-4336-4902-89BE-AAF85A984098" KeyPath="yes">
+      <CreateFolder />
+    </Component>
+  </Fragment>
+  
+  <Fragment>
+    <Component Id="C_ThirdPartyNotice.txt" Guid="3F38363B-ED38-4919-ACE6-DF7CC7578FDF" Directory="versionDir" Win64="$(var.IsWin64)">
+      <File Id="ThirdPartyNotice.txt" Source="$(var.ArtifactsRoot)\ThirdPartyNotices.txt" />
+    </Component>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="Microsoft_IIS_Administration_Collection" Directory="MSIISAdminDir">
+      <Component Id="C_Microsoft.AspNetCore.Antiforgery.dll" Guid="4BE3E035-DB0D-4FC6-93DB-3505A13F7BDC" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Antiforgery.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Antiforgery.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Authentication.Abstractions.dll" Guid="8E16F520-26E7-46B6-A9E1-28E34F173A88" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Authentication.Abstractions.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Authentication.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Authentication.Core.dll" Guid="FFDA11E6-FBF7-400A-A91C-A981BD278F37" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Authentication.Core.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Authentication.Core.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Authentication.dll" Guid="2B9C06A5-44D6-486F-9E8B-0B8F3AA166E9" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Authentication.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Authentication.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Authentication.JwtBearer.dll" Guid="0383D486-E5FF-4604-9241-CFC796FB1ECA" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Authentication.JwtBearer.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Authentication.JwtBearer.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Authorization.dll" Guid="0A28E9DF-FE21-4871-9C24-1D0CC165E7E3" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Authorization.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Authorization.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Authorization.Policy.dll" Guid="19BC27E1-67FC-44B9-88D5-FC292EC62A1C" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Authorization.Policy.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Authorization.Policy.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Cors.dll" Guid="0447D1EF-EBC5-4C24-91C0-B4C47C05E20B" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Cors.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Cors.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Cryptography.Internal.dll" Guid="9A255631-733F-4208-A4C8-3D0E4EDF1818" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Cryptography.Internal.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Cryptography.Internal.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.DataProtection.Abstractions.dll" Guid="FC7266D1-0F53-432B-851C-5CF5FCE619BE" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.DataProtection.Abstractions.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.DataProtection.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.DataProtection.dll" Guid="6AB5BB96-4338-44C6-8E17-153F260A7D01" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.DataProtection.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.DataProtection.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Diagnostics.Abstractions.dll" Guid="1CBBA965-1CF6-4D13-A7D7-41D953D74D66" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Diagnostics.Abstractions.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Diagnostics.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Diagnostics.dll" Guid="EEB4FA53-9D5C-48A2-A167-44AC4E51B06F" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Diagnostics.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Diagnostics.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Hosting.Abstractions.dll" Guid="70795288-E5CF-45CA-AE5F-AB969F1BBCFE" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Hosting.Abstractions.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Hosting.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Hosting.dll" Guid="26C1136D-5CF0-412C-A0DD-F85428BDA6FD" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Hosting.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Hosting.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Hosting.Server.Abstractions.dll" Guid="5E20837F-9135-4C6B-A89B-8A7F1B982F9E" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Hosting.Server.Abstractions.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Hosting.Server.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Hosting.WindowsServices.dll" Guid="1B67041A-7EC8-4321-8C99-31A3E374A677" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Hosting.WindowsServices.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Hosting.WindowsServices.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Html.Abstractions.dll" Guid="F0C56AFE-6FB7-4586-BDB5-EDA6CD6BA31B" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Html.Abstractions.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Html.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Http.Abstractions.dll" Guid="6B7614AF-D320-4D25-93E9-8723B5E8003B" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Http.Abstractions.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Http.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Http.dll" Guid="6D8B8CFD-F7F7-495F-AB7E-CD00D05399BE" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Http.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Http.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Http.Extensions.dll" Guid="DFEF679D-8F2E-46B3-8516-3F95ADC8E0AA" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Http.Extensions.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Http.Extensions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Http.Features.dll" Guid="CFD54D11-C53B-4221-8913-057EEC8459C2" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Http.Features.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Http.Features.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.JsonPatch.dll" Guid="F155BD7F-396C-472E-A90B-538C406E5184" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.JsonPatch.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.JsonPatch.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Localization.dll" Guid="C41C13F7-C985-40E9-967E-BA66B0E3D86D" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Localization.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Localization.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.Abstractions.dll" Guid="39A9ABC9-D3FD-4656-9C15-8FCB66817D26" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.Abstractions.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.ApiExplorer.dll" Guid="3596B583-3F73-4F10-B8D7-7A243F9F07E7" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.ApiExplorer.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.ApiExplorer.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.Core.dll" Guid="DA6E951F-7323-4649-9ED7-E394A768492F" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.Core.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.Core.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.Cors.dll" Guid="A901D2D2-FC71-4B97-B15C-278A570E47D3" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.Cors.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.Cors.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.DataAnnotations.dll" Guid="34C0BF48-D2A7-43DF-AA65-EEAF01408283" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.DataAnnotations.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.DataAnnotations.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.dll" Guid="C9C9F1F9-E35D-49DB-B29B-1A1453C9F485" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.Formatters.Json.dll" Guid="563E0D8B-42CD-483F-A6AB-AB1B65392F53" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.Formatters.Json.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.Formatters.Json.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.Localization.dll" Guid="C48E13EF-9B46-42EF-B487-9243666F2CC4" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.Localization.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.Localization.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.Razor.dll" Guid="2FE6F94B-12F7-46F4-899B-64E406215BF5" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.Razor.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.Razor.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" Guid="08719757-2D3E-4996-8678-2737E5E30E19" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" KeyPath="yes" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.Razor.Extensions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.RazorPages.dll" Guid="75DDBDA6-05B5-4101-B1AD-47E3761749B4" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.RazorPages.dll" KeyPath="yes" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.RazorPages.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.TagHelpers.dll" Guid="EFCB5C25-E432-4FD1-A6D4-3BD629FA1603" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.TagHelpers.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.TagHelpers.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.ViewFeatures.dll" Guid="23DBF4FB-D5ED-4EE9-B93C-765BB1EB909B" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.ViewFeatures.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.ViewFeatures.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Mvc.WebApiCompatShim.dll" Guid="1EED3664-C81A-4F75-AA48-2D2295D77385" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Mvc.WebApiCompatShim.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Mvc.WebApiCompatShim.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Razor.dll" Guid="11088907-F567-4877-8700-4705816DC3B1" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Razor.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Razor.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Razor.Language.dll" Guid="D40D2264-E307-406B-8C6F-AD99C216CF42" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Razor.Language.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Razor.Language.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Razor.Runtime.dll" Guid="CEA63D76-84E8-4CF3-9137-244A29DC7CF4" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Razor.Runtime.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Razor.Runtime.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.ResponseCaching.Abstractions.dll" Guid="E6FDAE19-8F07-43DC-BE7B-9F429FFD8C8F" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.ResponseCaching.Abstractions.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.ResponseCaching.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Routing.Abstractions.dll" Guid="D09C60B8-643F-4B50-AE22-D2C39DE1FAC6" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Routing.Abstractions.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Routing.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Routing.dll" Guid="25E7DCBA-D310-456E-A88D-DA5452A803AB" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Routing.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Routing.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.Server.HttpSys.dll" Guid="709B6D1B-DA50-4294-876D-8F82679C211F" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.Server.HttpSys.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.Server.HttpSys.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.StaticFiles.dll" Guid="67ABE15E-6B49-4753-9887-C9DFB90DA6F0" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.StaticFiles.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.StaticFiles.dll" />
+      </Component>
+      <Component Id="C_Microsoft.AspNetCore.WebUtilities.dll" Guid="F4B4B0B1-CA21-4DEA-85E9-20F965FF37B0" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.AspNetCore.WebUtilities.dll" Source="$(var.APIDir)\Microsoft.AspNetCore.WebUtilities.dll" />
+      </Component>
+      <Component Id="C_Microsoft.CodeAnalysis.CSharp.dll" Guid="B2843849-ED8C-46BD-9F9E-F7BB93FD3F33" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.CodeAnalysis.CSharp.dll" KeyPath="yes" Source="$(var.APIDir)\Microsoft.CodeAnalysis.CSharp.dll" />
+      </Component>
+      <Component Id="C_Microsoft.CodeAnalysis.dll" Guid="0CD85EB3-FB99-476F-B39E-0B0B7B9492B8" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.CodeAnalysis.dll" KeyPath="yes" Source="$(var.APIDir)\Microsoft.CodeAnalysis.dll" />
+      </Component>
+      <Component Id="C_Microsoft.CodeAnalysis.Razor.dll" Guid="AF6FFB93-8FE6-40DA-87CD-CDCC13B3A00C" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.CodeAnalysis.Razor.dll" KeyPath="yes" Source="$(var.APIDir)\Microsoft.CodeAnalysis.Razor.dll" />
+      </Component>
+      <Component Id="C_Microsoft.DotNet.PlatformAbstractions.dll" Guid="32C88A80-7174-4729-9DB6-3563A7E419B3" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.DotNet.PlatformAbstractions.dll" KeyPath="yes" Source="$(var.APIDir)\Microsoft.DotNet.PlatformAbstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Caching.Abstractions.dll" Guid="BE6A1ABA-173E-4F6F-BC0F-3496564E2C71" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Caching.Abstractions.dll" Source="$(var.APIDir)\Microsoft.Extensions.Caching.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Caching.Memory.dll" Guid="556E2776-9526-44DA-873D-8826ACAD81EE" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Caching.Memory.dll" Source="$(var.APIDir)\Microsoft.Extensions.Caching.Memory.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Configuration.Abstractions.dll" Guid="ADC47BD3-DD8B-4771-97F2-ABA571C7B494" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Configuration.Abstractions.dll" Source="$(var.APIDir)\Microsoft.Extensions.Configuration.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Configuration.Binder.dll" Guid="0E3FBF43-E1BB-46D8-9452-D08DCFF436AA" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Configuration.Binder.dll" Source="$(var.APIDir)\Microsoft.Extensions.Configuration.Binder.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Configuration.CommandLine.dll" Guid="05df34c6-b948-4bf7-862d-5e79154beef5" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Configuration.CommandLine.dll" Source="$(var.APIDir)\Microsoft.Extensions.Configuration.CommandLine.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Configuration.dll" Guid="D302F6F6-71D8-4FD0-A98B-1AC9339FF806" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Configuration.dll" Source="$(var.APIDir)\Microsoft.Extensions.Configuration.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Configuration.EnvironmentVariables.dll" Guid="36D1C5BE-1F6F-45E2-88DF-FBD98DE9ED3B" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Configuration.EnvironmentVariables.dll" Source="$(var.APIDir)\Microsoft.Extensions.Configuration.EnvironmentVariables.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Configuration.FileExtensions.dll" Guid="C36611F3-595C-4F8D-8B2D-71F035E181AA" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Configuration.FileExtensions.dll" Source="$(var.APIDir)\Microsoft.Extensions.Configuration.FileExtensions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Configuration.Json.dll" Guid="26D375B1-14C5-4DB3-B7E8-794BC42B42DC" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Configuration.Json.dll" Source="$(var.APIDir)\Microsoft.Extensions.Configuration.Json.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.DependencyInjection.Abstractions.dll" Guid="826CBB90-7463-4143-9761-295007BFE4CF" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.DependencyInjection.Abstractions.dll" Source="$(var.APIDir)\Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.DependencyInjection.dll" Guid="F7FC5556-EF3F-461F-A284-0ED88487E1BB" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.DependencyInjection.dll" Source="$(var.APIDir)\Microsoft.Extensions.DependencyInjection.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.DependencyModel.dll" Guid="31D77EFE-E1A3-4CD8-85F4-0791E513FA9F" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.DependencyModel.dll" Source="$(var.APIDir)\Microsoft.Extensions.DependencyModel.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.FileProviders.Abstractions.dll" Guid="80F7F3DB-F408-4776-A43C-DE869DA548E4" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.FileProviders.Abstractions.dll" Source="$(var.APIDir)\Microsoft.Extensions.FileProviders.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.FileProviders.Composite.dll" Guid="456BD22E-F287-4E13-9D4D-A1EC7482F169" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.FileProviders.Composite.dll" Source="$(var.APIDir)\Microsoft.Extensions.FileProviders.Composite.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.FileProviders.Physical.dll" Guid="F3A04EB4-BDDC-45C2-A3D6-C751DBE46B88" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.FileProviders.Physical.dll" Source="$(var.APIDir)\Microsoft.Extensions.FileProviders.Physical.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.FileSystemGlobbing.dll" Guid="28B7F2EF-2201-4DBB-9869-FC2AECD81DEB" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.FileSystemGlobbing.dll" Source="$(var.APIDir)\Microsoft.Extensions.FileSystemGlobbing.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Hosting.Abstractions.dll" Guid="B14F29E7-233C-4055-994E-6B6349A87B12" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Hosting.Abstractions.dll" Source="$(var.APIDir)\Microsoft.Extensions.Hosting.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Localization.Abstractions.dll" Guid="FCB6B10C-6597-4CAC-932D-7BC64CFF6D61" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Localization.Abstractions.dll" Source="$(var.APIDir)\Microsoft.Extensions.Localization.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Localization.dll" Guid="C514D26F-AB69-4EF1-8702-429C1FC958F9" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Localization.dll" Source="$(var.APIDir)\Microsoft.Extensions.Localization.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Logging.Abstractions.dll" Guid="2D7A75AE-6D68-484B-8033-4F9FDDA7E7BF" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Logging.Abstractions.dll" Source="$(var.APIDir)\Microsoft.Extensions.Logging.Abstractions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Logging.dll" Guid="A29F4FA6-04EF-41A1-B24B-16901667FB1C" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Logging.dll" Source="$(var.APIDir)\Microsoft.Extensions.Logging.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.ObjectPool.dll" Guid="081C6DBA-8FE3-48FD-A2E7-53536FA656FB" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.ObjectPool.dll" Source="$(var.APIDir)\Microsoft.Extensions.ObjectPool.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Options.ConfigurationExtensions.dll" Guid="DADB0B1C-547D-47BE-824B-63080FF24658" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Options.ConfigurationExtensions.dll" Source="$(var.APIDir)\Microsoft.Extensions.Options.ConfigurationExtensions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Options.dll" Guid="84CF6084-E38E-49D8-9FE7-2972B5652968" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Options.dll" Source="$(var.APIDir)\Microsoft.Extensions.Options.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Primitives.dll" Guid="BC9A323C-B723-4470-9DEF-C8C6027DD5AA" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Primitives.dll" Source="$(var.APIDir)\Microsoft.Extensions.Primitives.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.WebEncoders.dll" Guid="4A8B8908-5C1C-4DA4-B665-237E08550D00" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.WebEncoders.dll" Source="$(var.APIDir)\Microsoft.Extensions.WebEncoders.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IdentityModel.Logging.dll" Guid="2EDBB001-114E-4345-883E-9349B47D3C0B" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IdentityModel.Logging.dll" Source="$(var.APIDir)\Microsoft.IdentityModel.Logging.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IdentityModel.Protocols.dll" Guid="219FB2CC-83F9-4383-88E4-1599DC76C0AF" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IdentityModel.Protocols.dll" Source="$(var.APIDir)\Microsoft.IdentityModel.Protocols.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IdentityModel.Protocols.OpenIdConnect.dll" Guid="1C5C99DE-E934-4906-9487-2C2687EBF23A" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IdentityModel.Protocols.OpenIdConnect.dll" Source="$(var.APIDir)\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IdentityModel.Tokens.dll" Guid="2328829F-A123-4376-95E5-6E2F40A7787B" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IdentityModel.Tokens.dll" Source="$(var.APIDir)\Microsoft.IdentityModel.Tokens.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.Core.dll" Guid="2EF8E906-F3E3-4260-9884-C5531192EF57" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.Core.dll" Source="$(var.APIDir)\Microsoft.IIS.Administration.Core.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.Files.Core.dll" Guid="50E181F9-B895-4646-A805-8045E45EAAC1" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.Files.Core.dll" Source="$(var.APIDir)\Microsoft.IIS.Administration.Files.Core.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.dll" Guid="440C6551-8062-4903-953F-954ABFE3B54C" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.dll" Source="$(var.APIDir)\Microsoft.IIS.Administration.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Net.Http.Headers.dll" Guid="4369A9C7-F00C-4C58-95BA-7B7F20EBC873" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Net.Http.Headers.dll" Source="$(var.APIDir)\Microsoft.Net.Http.Headers.dll" />
+      </Component>
+      <Component Id="C_Newtonsoft.Json.Bson.dll" Guid="06A1371D-CD18-4A1F-8503-603D7658D508" Win64="$(var.IsWin64)">
+        <File Id="Newtonsoft.Json.Bson.dll" Source="$(var.APIDir)\Newtonsoft.Json.Bson.dll" />
+      </Component>
+      <Component Id="C_Newtonsoft.Json.dll" Guid="FF10B74E-EB89-4417-A917-1FDFF63DA521" Win64="$(var.IsWin64)">
+        <File Id="Newtonsoft.Json.dll" Source="$(var.APIDir)\Newtonsoft.Json.dll" />
+      </Component>
+      <Component Id="C_Serilog.dll" Guid="42986AF7-838E-4DCD-9FA7-6D74E8673841" Win64="$(var.IsWin64)">
+        <File Id="Serilog.dll" Source="$(var.APIDir)\Serilog.dll" />
+      </Component>
+      <Component Id="C_Serilog.Extensions.Logging.dll" Guid="D25EABA9-BC49-4A8B-8D99-ACDECBB2B304" Win64="$(var.IsWin64)">
+        <File Id="Serilog.Extensions.Logging.dll" Source="$(var.APIDir)\Serilog.Extensions.Logging.dll" />
+      </Component>
+      <Component Id="C_Serilog.Sinks.File.dll" Guid="5BD82363-9D2A-4F9B-A581-FBCCA7352CA2" Win64="$(var.IsWin64)">
+        <File Id="Serilog.Sinks.File.dll" Source="$(var.APIDir)\Serilog.Sinks.File.dll" />
+      </Component>
+      <Component Id="C_Serilog.Sinks.RollingFile.dll" Guid="0D70E3A5-4E40-4084-82DF-9AC2CD6C033A" Win64="$(var.IsWin64)">
+        <File Id="Serilog.Sinks.RollingFile.dll" Source="$(var.APIDir)\Serilog.Sinks.RollingFile.dll" />
+      </Component>
+      <Component Id="C_System.Diagnostics.DiagnosticSource.dll" Guid="B5D2F2AD-4AF7-478F-A52E-7ED0990C69F5" Win64="$(var.IsWin64)">
+        <File Id="System.Diagnostics.DiagnosticSource.dll" Source="$(var.APIDir)\System.Diagnostics.DiagnosticSource.dll" />
+      </Component>
+      <Component Id="C_System.Diagnostics.EventLog.dll" Guid="D45D414F-B55A-4D89-8D23-DD417A1963F1" Win64="$(var.IsWin64)">
+        <File Id="System.Diagnostics.EventLog.dll" Source="$(var.APIDir)\System.Diagnostics.EventLog.dll" />
+      </Component>
+      <Component Id="C_System.IdentityModel.Tokens.Jwt.dll" Guid="60F8E554-0409-450D-A670-706D31D50CC5" Win64="$(var.IsWin64)">
+        <File Id="System.IdentityModel.Tokens.Jwt.dll" Source="$(var.APIDir)\System.IdentityModel.Tokens.Jwt.dll" />
+      </Component>
+      <Component Id="C_System.Net.Http.Formatting.dll" Guid="A92F868E-AA87-433E-A681-39849B954E3F" Win64="$(var.IsWin64)">
+        <File Id="System.Net.Http.Formatting.dll" Source="$(var.APIDir)\System.Net.Http.Formatting.dll" />
+      </Component>
+      <Component Id="C_System.Runtime.CompilerServices.Unsafe.dll" Guid="EE8CDE4C-0793-4AA6-9FE9-6D89118C6654" Win64="$(var.IsWin64)">
+        <File Id="System.Runtime.CompilerServices.Unsafe.dll" Source="$(var.APIDir)\System.Runtime.CompilerServices.Unsafe.dll" />
+      </Component>
+      <Component Id="C_System.Security.Cryptography.Pkcs.dll" Guid="42D46760-DF6D-47B7-8DFE-46AAF515C4AC" Win64="$(var.IsWin64)">
+        <File Id="System.Security.Cryptography.Pkcs.dll" Source="$(var.APIDir)\System.Security.Cryptography.Pkcs.dll" />
+      </Component>
+      <Component Id="C_System.Security.Cryptography.Xml.dll" Guid="502278FF-436D-4938-99E9-84DF26EF80D0" Win64="$(var.IsWin64)">
+        <File Id="System.Security.Cryptography.Xml.dll" Source="$(var.APIDir)\System.Security.Cryptography.Xml.dll" />
+      </Component>
+      <Component Id="C_System.Security.Permissions.dll" Guid="11E9B571-A261-4D26-80E9-03BF1DA331A1" Win64="$(var.IsWin64)">
+        <File Id="System.Security.Permissions.dll" KeyPath="yes" Source="$(var.APIDir)\System.Security.Permissions.dll" />
+      </Component>
+      <Component Id="C_System.ServiceProcess.ServiceController.dll" Guid="92B3860D-9535-4D78-8361-A5F62FA1B015" Win64="$(var.IsWin64)">
+        <File Id="System.ServiceProcess.ServiceController.dll" KeyPath="yes" Source="$(var.APIDir)\System.ServiceProcess.ServiceController.dll" />
+      </Component>
+      <Component Id="C_System.Text.Encodings.Web.dll" Guid="FB58EE19-A83F-4D7F-8F6D-6F25995680C6" Win64="$(var.IsWin64)">
+        <File Id="System.Text.Encodings.Web.dll" KeyPath="yes" Source="$(var.APIDir)\System.Text.Encodings.Web.dll" />
+      </Component>
+      <Component Id="C_System.Threading.AccessControl.dll" Guid="97458D4E-5DAA-44AE-883B-D28B9300A643" Win64="$(var.IsWin64)">
+        <File Id="System.Threading.AccessControl.dll" KeyPath="yes" Source="$(var.APIDir)\System.Threading.AccessControl.dll" />
+      </Component>
+      <Component Id="C_microsoft.iis.administration.deps.json" Guid="8D909799-BAB3-4AE7-89FE-8CA026CE64E4" Win64="$(var.IsWin64)">
+        <File Id="microsoft.iis.administration.deps.json" Source="$(var.APIDir)\microsoft.iis.administration.deps.json" />
+      </Component>
+      <Component Id="C_microsoft.iis.administration.runtimeconfig.json" Guid="9F61E619-94B2-44A7-B527-9CF55467ED8E" Win64="$(var.IsWin64)">
+        <File Id="microsoft.iis.administration.runtimeconfig.json" Source="$(var.APIDir)\microsoft.iis.administration.runtimeconfig.json" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="WinRuntimesLib_Collection">
+      <!-- NetCoreApp 2.0 -->
+      <Component Id="C_NetCoreApp20_System.Diagnostics.EventLog.dll" Guid="AA55CC3C-5F1E-40D8-8941-8B7390C65A3A" Directory="Runtimes_Win_Lib_NetCoreApp20" Win64="$(var.IsWin64)">
+        <File Id="NetCoreApp20_System.Diagnostics.EventLog.dll" KeyPath="yes" Source="$(var.APIDir)\runtimes\win\lib\netcoreapp2.0\System.Diagnostics.EventLog.dll" />
+      </Component>
+
+      <!-- NetCoreApp 2.1 -->
+      <Component Id="C_NetCoreApp21_System.Security.Cryptography.Pkcs.dll" Guid="F7C381F3-F028-4A96-950F-279716F42193" Directory="Runtimes_Win_Lib_NetCoreApp21" Win64="$(var.IsWin64)">
+        <File Id="NetCoreApp21_System.Security.Cryptography.Pkcs.dll" KeyPath="yes" Source="$(var.APIDir)\runtimes\win\lib\netcoreapp2.1\System.Security.Cryptography.Pkcs.dll" />
+      </Component>
+
+      <!-- NetStandard 1.3 -->
+      <Component Id="C_NetStandard13_System.Text.Encoding.CodePages.dll" Guid="14E9F5AC-4DCB-4CD0-BFD0-309DCA884BAB" Directory="Runtimes_Win_Lib_NetStandard13" Win64="$(var.IsWin64)">
+        <File Id="NetStandard13_System.Text.Encoding.CodePages.dll" KeyPath="yes" Source="$(var.APIDir)\runtimes\win\lib\netstandard1.3\System.Text.Encoding.CodePages.dll" />
+      </Component>
+
+      <!-- NetStandard 2.0 -->
+      <Component Id="C_NetStandard20_System.ServiceProcess.ServiceController.dll" Guid="A3EF6C12-347B-44FF-A7BD-8C366FBFE004" Directory="Runtimes_Win_Lib_NetStandard20" Win64="$(var.IsWin64)">
+        <File Id="NetStandard20_System.ServiceProcess.ServiceController.dll" KeyPath="yes" Source="$(var.APIDir)\runtimes\win\lib\netstandard2.0\System.ServiceProcess.ServiceController.dll" />
+      </Component>
+      <Component Id="C_NetStandard20_System.Threading.AccessControl.dll" Guid="3395B60B-3566-4C08-8D1C-CFF105B60581"  Directory="Runtimes_Win_Lib_NetStandard20" Win64="$(var.IsWin64)">
+        <File Id="NetStandard20_System.Threading.AccessControl.dll" KeyPath="yes" Source="$(var.APIDir)\runtimes\win\lib\netstandard2.0\System.Threading.AccessControl.dll" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="Plugins_Collection" Directory="PluginsDir">
+      <Component Id="C_Microsoft.IIS.Administration.AccessManagement.dll" Guid="57FB4B1C-4BFD-4653-B420-6882ABCD1D7B" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.AccessManagement.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.AccessManagement.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.Certificates.dll" Guid="8110B76F-2412-4638-A79C-D76B52839D9E" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.Certificates.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.Certificates.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.Files.dll" Guid="7B30F2F4-94A7-4651-B2D9-2F096A64389D" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.Files.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.Files.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Applications.dll" Guid="AC55D24B-DEC2-4BC4-8DE6-582C169DC670" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Applications.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Applications.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.AppPools.dll" Guid="34704400-F900-44D1-B57D-8577746323AC" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.AppPools.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.AppPools.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Authentication.dll" Guid="C9AE0EEC-E901-4C80-B8E3-B9D431075C5E" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Authentication.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Authentication.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Authorization.dll" Guid="5587DD38-73B3-404E-BBC5-718514826D41" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Authorization.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Authorization.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.CentralCertificates.dll" Guid="3B5A0CA2-4C9E-49FF-AE93-A11BCB74E567" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.CentralCertificates.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.CentralCertificates.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Compression.dll" Guid="76CAD4C8-3421-4E95-8756-4E6B690FBB98" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Compression.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Compression.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.DefaultDocuments.dll" Guid="A75DA0CE-7CA9-4380-A50F-1A56ACB239FE" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.DefaultDocuments.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.DefaultDocuments.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Delegation.dll" Guid="E4C78C21-FC9A-41C4-9589-12AD5F3B4969" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Delegation.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Delegation.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.DirectoryBrowsing.dll" Guid="0979F432-9BD0-4512-9B84-B938A6F1E27B" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.DirectoryBrowsing.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.DirectoryBrowsing.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.dll" Guid="579FCBFB-0B03-4EC6-A99B-C356B1CF65A3" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Files.dll" Guid="C83022B2-421E-41D3-B862-38B0418C81D0" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Files.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Files.dll" />
+      </Component>      
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Handlers.dll" Guid="D7F5C977-D2C1-4734-977B-F746468C86B7" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Handlers.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Handlers.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.HttpRedirect.dll" Guid="884FE494-8ABC-4694-99FC-CEA21C326220" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.HttpRedirect.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.HttpRedirect.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.HttpRequestTracing.dll" Guid="AC82CD9C-EF34-4AE9-B128-3021A17BAB68" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.HttpRequestTracing.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.HttpRequestTracing.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.HttpResponseHeaders.dll" Guid="5C8A634B-D393-4CB5-A9C1-6270A88D7F05" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.HttpResponseHeaders.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.HttpResponseHeaders.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Info.dll" Guid="1B4FF032-66DF-4CD0-A139-C793BF563E6D" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Info.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Info.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.IPRestrictions.dll" Guid="FDE22DCF-CAD3-43F5-849F-BDA618DF071C" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.IPRestrictions.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.IPRestrictions.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Logging.dll" Guid="D3163479-AF6F-468C-85C4-C861068139F4" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Logging.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Logging.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Modules.dll" Guid="FF80AF75-A4AC-432C-8627-36BDF16338FC" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Modules.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Modules.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Monitoring.dll" Guid="86923A85-7859-4F14-A780-698BB83DE229" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Monitoring.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Monitoring.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.RequestFiltering.dll" Guid="8E5756B8-72D7-47A0-BDD9-C2071F4D9856" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.RequestFiltering.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.RequestFiltering.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.RequestMonitor.dll" Guid="D3C9BBB5-6049-4D34-80AF-94EAE87BE73A" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.RequestMonitor.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.RequestMonitor.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Scm.dll" Guid="0E0C697F-A9CC-42B3-8F40-AEDA855C533B" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Scm.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Scm.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.Sites.dll" Guid="8E75F267-FF88-4285-8B05-3BC62C78FB69" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.Sites.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.Sites.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.SslSettings.dll" Guid="D22A4F48-21B1-40A0-BB5C-7634289AE2C6" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.SslSettings.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.SslSettings.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.StaticContent.dll" Guid="E854B967-D999-4A08-A05B-AE7E0672BE5D" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.StaticContent.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.StaticContent.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.UrlRewrite.dll" Guid="B3D71239-62D4-48BB-9C62-70FA2697CA21" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.UrlRewrite.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.UrlRewrite.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.VirtualDirectories.dll" Guid="E4E05DFD-93DB-40D8-8594-F36C1A5E35C2" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.VirtualDirectories.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.VirtualDirectories.dll" />
+      </Component>
+      <Component Id="C_Microsoft.IIS.Administration.WebServer.WorkerProcesses.dll" Guid="2D18FA1A-212A-45F9-8B1C-8046FD128E9E" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.IIS.Administration.WebServer.WorkerProcesses.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebServer.WorkerProcesses.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Web.Administration.dll" Guid="01549DD9-37DF-48A1-A966-242FE51018E6" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Web.Administration.dll" Source="$(var.APIDir)\plugins\Microsoft.Web.Administration.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Win32.Registry.dll" Guid="F11AE8DC-6A01-4494-9C57-190D490BB345" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Win32.Registry.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\Microsoft.Win32.Registry.dll" />
+      </Component>
+      <Component Id="C_System.Security.AccessControl.dll" Guid="C2341F69-8C82-441B-9BB1-5B27B1D267B5" Win64="$(var.IsWin64)">
+        <File Id="System.Security.AccessControl.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\System.Security.AccessControl.dll" />
+      </Component>
+      <Component Id="C_System.Security.Cryptography.Cng.dll" Guid="AE687B55-FADA-487E-AC8C-A796456470C8" Win64="$(var.IsWin64)">
+        <File Id="System.Security.Cryptography.Cng.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\System.Security.Cryptography.Cng.dll" />
+      </Component>
+      <Component Id="C_System.Security.Principal.Windows.dll" Guid="0E46FA82-3193-495C-B843-D3691A45747E" Win64="$(var.IsWin64)">
+        <File Id="System.Security.Principal.Windows.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\System.Security.Principal.Windows.dll" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="PWinRuntimesLib_Collection">
+      <!-- NetCoreApp 2.0 -->
+      <Component Id="C_NetCoreApp20_System.Security.AccessControl.dll" Guid="24DBE019-5D24-4044-8D23-3B93FE0A7D3E" Directory="Plugins_Runtimes_Win_Lib_NetCoreApp20" Win64="$(var.IsWin64)">
+        <File Id="NetCoreApp20_System.Security.AccessControl.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\runtimes\win\lib\netcoreapp2.0\System.Security.AccessControl.dll" />
+      </Component>
+      <Component Id="C_NetCoreApp20_System.Security.Principal.Windows.dll" Guid="6679AEC0-6E0A-44E4-BF04-6D0CD3614579" Directory="Plugins_Runtimes_Win_Lib_NetCoreApp20" Win64="$(var.IsWin64)">
+        <File Id="NetCoreApp20_System.Security.Principal.Windows.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\runtimes\win\lib\netcoreapp2.0\System.Security.Principal.Windows.dll" />
+      </Component>
+
+      <!-- NetCoreApp 2.1 -->
+      <Component Id="C_NetCoreApp21_System.Security.Cryptography.Cng.dll" Guid="436E84B5-FC36-4213-9F8B-463B5451058B" Directory="Plugins_Runtimes_Win_Lib_NetCoreApp21" Win64="$(var.IsWin64)">
+        <File Id="NetCoreApp21_System.Security.Cryptography.Cng.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\runtimes\win\lib\netcoreapp2.1\System.Security.Cryptography.Cng.dll" />
+      </Component>
+
+      <!-- NetStandard 2.0 -->
+      <Component Id="C_NetStandard20_Microsoft.Win32.Registry.dll" Guid="F9F415BF-4A5A-4A20-9B06-7B3389EA990B" Directory="Plugins_Runtimes_Win_Lib_NetStandard20" Win64="$(var.IsWin64)">
+        <File Id="NetStandard20_Microsoft.Win32.Registry.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\runtimes\win\lib\netstandard2.0\Microsoft.Win32.Registry.dll" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="Refs_Collection" Directory="RefsDir">
+      <Component Id="C_Refs_Microsoft.CSharp.dll" Guid="3EF85172-3120-4E22-8BBB-7C0B864253FD" Win64="$(var.IsWin64)">
+        <File Id="Refs_Microsoft.CSharp.dll" Source="$(var.APIDir)\refs\Microsoft.CSharp.dll" />
+      </Component>
+      <Component Id="C_Refs_Microsoft.VisualBasic.dll" Guid="89131982-99B5-4250-BD79-C40E507F597E" Win64="$(var.IsWin64)">
+        <File Id="Refs_Microsoft.VisualBasic.dll" Source="$(var.APIDir)\refs\Microsoft.VisualBasic.dll" />
+      </Component>
+      <Component Id="C_Refs_Microsoft.Win32.Primitives.dll" Guid="78524EB2-2433-474E-819A-3A7D54B2B446" Win64="$(var.IsWin64)">
+        <File Id="Refs_Microsoft.Win32.Primitives.dll" Source="$(var.APIDir)\refs\Microsoft.Win32.Primitives.dll" />
+      </Component>
+      <Component Id="C_Refs_Microsoft.Win32.Registry.dll" Guid="02FFDB4E-F020-4F6C-A019-D06D9D762991" Win64="$(var.IsWin64)">
+        <File Id="Refs_Microsoft.Win32.Registry.dll" Source="$(var.APIDir)\refs\Microsoft.Win32.Registry.dll" />
+      </Component>
+      <Component Id="C_Refs_mscorlib.dll" Guid="EBAAFC44-A9C1-49E5-976F-B9E4DFD6705F" Win64="$(var.IsWin64)">
+        <File Id="Refs_mscorlib.dll" KeyPath="yes" Source="$(var.APIDir)\refs\mscorlib.dll" />
+      </Component>
+      <Component Id="C_Refs_netstandard.dll" Guid="861D5C2D-3C53-41C4-80E2-23CDC938730D" Win64="$(var.IsWin64)">
+        <File Id="Refs_netstandard.dll" KeyPath="yes" Source="$(var.APIDir)\refs\netstandard.dll" />
+      </Component>
+      <Component Id="C_Refs_System.AppContext.dll" Guid="757FF1AA-BDA2-415A-B6DB-66C0E13C6E71" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.AppContext.dll" Source="$(var.APIDir)\refs\System.AppContext.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Buffers.dll" Guid="868b596b-27ba-490f-b393-aad682cb37b8" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Buffers.dll" Source="$(var.APIDir)\refs\System.Buffers.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Collections.Concurrent.dll" Guid="6DDDCF8C-A668-4AE5-B018-A6D4150F3AD0" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Collections.Concurrent.dll" Source="$(var.APIDir)\refs\System.Collections.Concurrent.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Collections.dll" Guid="9652DEDB-ECB8-4E64-AB58-07D7CE6E196B" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Collections.dll" Source="$(var.APIDir)\refs\System.Collections.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Collections.Immutable.dll" Guid="e93027d4-bc2d-4bf8-8535-e5458af50ec4" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Collections.Immutable.dll" Source="$(var.APIDir)\refs\System.Collections.Immutable.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Collections.NonGeneric.dll" Guid="A3003E83-75CD-414B-B6CD-0486B36669A9" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Collections.NonGeneric.dll" Source="$(var.APIDir)\refs\System.Collections.NonGeneric.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Collections.Specialized.dll" Guid="8CC4D6D2-FFDC-4E59-AC9D-5BF8C389DC7A" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Collections.Specialized.dll" Source="$(var.APIDir)\refs\System.Collections.Specialized.dll" />
+      </Component>
+      <Component Id="C_Refs_System.ComponentModel.Annotations.dll" Guid="26F46E86-6E93-4BFE-9AAA-68CAD44587C3" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.ComponentModel.Annotations.dll" Source="$(var.APIDir)\refs\System.ComponentModel.Annotations.dll" />
+      </Component>
+      <Component Id="C_Refs_System.ComponentModel.DataAnnotations.dll" Guid="6E5640D0-2D86-4EE2-A676-E2DAB13DE650" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.ComponentModel.DataAnnotations.dll" Source="$(var.APIDir)\refs\System.ComponentModel.DataAnnotations.dll" />
+      </Component>
+      <Component Id="C_Refs_System.ComponentModel.dll" Guid="8763A0AB-EFBE-4B6A-8E94-BDF895659D60" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.ComponentModel.dll" Source="$(var.APIDir)\refs\System.ComponentModel.dll" />
+      </Component>
+      <Component Id="C_Refs_System.ComponentModel.EventBasedAsync.dll" Guid="C01EFF34-486E-46F5-BA29-3741CD1257A7" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.ComponentModel.EventBasedAsync.dll" Source="$(var.APIDir)\refs\System.ComponentModel.EventBasedAsync.dll" />
+      </Component>
+      <Component Id="C_Refs_System.ComponentModel.Primitives.dll" Guid="3E32D010-E798-4354-AA71-66E71D9DCCC0" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.ComponentModel.Primitives.dll" Source="$(var.APIDir)\refs\System.ComponentModel.Primitives.dll" />
+      </Component>
+      <Component Id="C_Refs_System.ComponentModel.TypeConverter.dll" Guid="4AAD7736-B7A3-44EC-BAEE-006A46E4D5C1" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.ComponentModel.TypeConverter.dll" Source="$(var.APIDir)\refs\System.ComponentModel.TypeConverter.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Configuration.dll" Guid="6F79551E-9C86-45C1-95F5-1DF4E99A6DBF" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Configuration.dll" Source="$(var.APIDir)\refs\System.Configuration.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Console.dll" Guid="FB26D5AB-780F-4CB1-B29E-08C779028443" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Console.dll" Source="$(var.APIDir)\refs\System.Console.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Core.dll" Guid="C0713F57-F7B5-4690-8489-EB37C6D408B3" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Core.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Core.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Data.Common.dll" Guid="04B93749-5F86-4F0E-8424-6CA58C999959" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Data.Common.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Data.Common.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Data.dll" Guid="CB7AF01F-B2AE-4FC7-90FF-2E6F521959A1" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Data.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Data.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Diagnostics.Contracts.dll" Guid="503B75FA-A678-461C-AF4E-878DDC734A09" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Diagnostics.Contracts.dll" Source="$(var.APIDir)\refs\System.Diagnostics.Contracts.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Diagnostics.Debug.dll" Guid="FE0D4376-2319-4424-83AB-BE3B2CE56B1B" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Diagnostics.Debug.dll" Source="$(var.APIDir)\refs\System.Diagnostics.Debug.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Diagnostics.EventLog.dll" Guid="81E5F17A-B76E-4ADB-A8AA-04240B132445" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Diagnostics.EventLog.dll" Source="$(var.APIDir)\refs\System.Diagnostics.EventLog.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Diagnostics.FileVersionInfo.dll" Guid="6D4223E1-161B-4545-A5F2-74ADD0306AC3" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Diagnostics.FileVersionInfo.dll" Source="$(var.APIDir)\refs\System.Diagnostics.FileVersionInfo.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Diagnostics.Process.dll" Guid="B594F557-3539-4D65-986A-208C079CCCF3" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Diagnostics.Process.dll" Source="$(var.APIDir)\refs\System.Diagnostics.Process.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Diagnostics.StackTrace.dll" Guid="455326B8-74E7-4749-89EB-9CFAE2835B7A" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Diagnostics.StackTrace.dll" Source="$(var.APIDir)\refs\System.Diagnostics.StackTrace.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Diagnostics.TextWriterTraceListener.dll" Guid="80C7CC6F-DEE3-4B08-B226-76420F39E153" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Diagnostics.TextWriterTraceListener.dll" Source="$(var.APIDir)\refs\System.Diagnostics.TextWriterTraceListener.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Diagnostics.Tools.dll" Guid="07742880-B120-48C5-9207-E8D3A35A3C3E" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Diagnostics.Tools.dll" Source="$(var.APIDir)\refs\System.Diagnostics.Tools.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Diagnostics.Tracing.dll" Guid="ACFBA1FA-E873-4BE0-BCDA-DEC710378B5F" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Diagnostics.Tracing.dll" Source="$(var.APIDir)\refs\System.Diagnostics.Tracing.dll" />
+      </Component>
+      <Component Id="C_Refs_System_ref.dll" Guid="157BFA5F-2F6D-4DB8-B4E9-338D51A07080" Win64="$(var.IsWin64)">
+        <File Id="Refs_System_ref.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Drawing_ref.dll" Guid="8A4D2DAE-2008-4470-B016-E2CE6455A210" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Drawing_ref.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Drawing.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Drawing.Primitives_ref.dll" Guid="454F5B7E-0D0A-407A-87F5-3EBB624D05A5" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Drawing.Primitives_ref.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Drawing.Primitives.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Dynamic.Runtime.dll" Guid="AD10845E-62DB-482F-8409-C26B5F07D10B" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Dynamic.Runtime.dll" Source="$(var.APIDir)\refs\System.Dynamic.Runtime.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Globalization.Calendars.dll" Guid="F1DD5202-80F4-48BD-B04D-3FC74E8A071A" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Globalization.Calendars.dll" Source="$(var.APIDir)\refs\System.Globalization.Calendars.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Globalization.dll" Guid="68F84FD8-79D8-45F7-8A38-06F805C5FB94" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Globalization.dll" Source="$(var.APIDir)\refs\System.Globalization.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Globalization.Extensions.dll" Guid="B4AC29A5-181B-4FF5-A288-1B2E8EFEF2D9" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Globalization.Extensions.dll" Source="$(var.APIDir)\refs\System.Globalization.Extensions.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.Compression.Brotli_ref.dll" Guid="FAE0D1EA-C3BE-4F01-8F89-807832B57156" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.Compression.Brotli_ref.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.IO.Compression.Brotli.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.Compression.dll" Guid="833A16D4-1FC1-4A15-B8F8-F5325A7B31BD" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.Compression.dll" Source="$(var.APIDir)\refs\System.IO.Compression.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.Compression.FileSystem.dll" Guid="89C2D62C-B29F-4EEF-A4DB-A3CFFFD0CEC3" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.Compression.FileSystem.dll" Source="$(var.APIDir)\refs\System.IO.Compression.FileSystem.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.Compression.ZipFile.dll" Guid="794D3B7D-4CDB-483B-AD13-B716F055E800" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.Compression.ZipFile.dll" Source="$(var.APIDir)\refs\System.IO.Compression.ZipFile.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.dll" Guid="1949BB91-9C2B-4CD4-86D5-AE47E39ADD8C" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.dll" Source="$(var.APIDir)\refs\System.IO.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.FileSystem.dll" Guid="E1F0722B-B8DE-403D-B695-F4EAE89AB1FC" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.FileSystem.dll" Source="$(var.APIDir)\refs\System.IO.FileSystem.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.FileSystem.DriveInfo.dll" Guid="C0C4B433-25B2-4986-BAEB-25EE7982D0E3" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.FileSystem.DriveInfo.dll" Source="$(var.APIDir)\refs\System.IO.FileSystem.DriveInfo.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.FileSystem.Primitives.dll" Guid="C25BC09D-ECFE-4354-837C-4B483CE99E89" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.FileSystem.Primitives.dll" Source="$(var.APIDir)\refs\System.IO.FileSystem.Primitives.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.FileSystem.Watcher.dll" Guid="78993F08-EECD-4197-B2AF-99C815F27026" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.FileSystem.Watcher.dll" Source="$(var.APIDir)\refs\System.IO.FileSystem.Watcher.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.IsolatedStorage.dll" Guid="2C0DE924-C553-42C7-958C-46C74FBBFDA2" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.IsolatedStorage.dll" Source="$(var.APIDir)\refs\System.IO.IsolatedStorage.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.MemoryMappedFiles.dll" Guid="7DB42AA0-C660-4FE0-AA9D-077D34F50763" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.MemoryMappedFiles.dll" Source="$(var.APIDir)\refs\System.IO.MemoryMappedFiles.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.Pipes.dll" Guid="E0F09214-BF73-47D5-B2F0-567D906C178E" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.Pipes.dll" Source="$(var.APIDir)\refs\System.IO.Pipes.dll" />
+      </Component>
+      <Component Id="C_Refs_System.IO.UnmanagedMemoryStream.dll" Guid="54603458-F7B8-49A9-8BEC-A6C6E341DB10" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.IO.UnmanagedMemoryStream.dll" Source="$(var.APIDir)\refs\System.IO.UnmanagedMemoryStream.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Linq.dll" Guid="3C60BCC2-40BA-44BC-8EE3-F75911B02568" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Linq.dll" Source="$(var.APIDir)\refs\System.Linq.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Linq.Expressions.dll" Guid="BF587E8A-6C9F-46C7-B3B6-DF8E8C866523" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Linq.Expressions.dll" Source="$(var.APIDir)\refs\System.Linq.Expressions.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Linq.Parallel.dll" Guid="AE7BFD38-DF71-43A6-A8C6-E2CD92E83715" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Linq.Parallel.dll" Source="$(var.APIDir)\refs\System.Linq.Parallel.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Linq.Queryable.dll" Guid="A02CCB0A-BD20-43F7-B6F6-0CA401DE7493" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Linq.Queryable.dll" Source="$(var.APIDir)\refs\System.Linq.Queryable.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Memory.dll" Guid="9F294F01-F22F-46BC-89A9-9F99294CFF16" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Memory.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Memory.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.dll" Guid="EF49E557-4CD3-49AD-B560-1AE5E8FA2624" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Net.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.Http.dll" Guid="4EA3A606-34B0-425F-9CD9-6838147AB9AD" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.Http.dll" Source="$(var.APIDir)\refs\System.Net.Http.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.HttpListener.dll" Guid="EFDDC4CC-9ECA-48C0-BC35-BE5F1B29A891" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.HttpListener_ref.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Net.HttpListener.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.Mail_ref.dll" Guid="D6D153C3-6E61-4A0E-8E82-D2C4415CE7A2" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.Mail_ref.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Net.Mail.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.NameResolution.dll" Guid="A0040F69-2139-4DBD-9E5E-8D18464D603A" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.NameResolution.dll" Source="$(var.APIDir)\refs\System.Net.NameResolution.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.NetworkInformation.dll" Guid="EE1BF3E4-8895-4450-B277-2EFFC857906A" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.NetworkInformation.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Net.NetworkInformation.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.Ping.dll" Guid="191195E8-BAA9-432E-A59B-7A6BF0E4AD68" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.Ping.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Net.Ping.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.Primitives.dll" Guid="F85B9B67-E650-47D2-8AFB-2B9E1A1EB8F0" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.Primitives.dll" Source="$(var.APIDir)\refs\System.Net.Primitives.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.Requests.dll" Guid="8E9F2832-7EC0-4810-8B2B-4CF0680172BF" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.Requests.dll" Source="$(var.APIDir)\refs\System.Net.Requests.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.Security.dll" Guid="2B1DBE56-8C8F-4D1E-8792-AD65E564E4F7" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.Security.dll" Source="$(var.APIDir)\refs\System.Net.Security.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.ServicePoint.dll" Guid="6F42B360-F1C8-4FF5-AED6-B79035BED6C8">
+        <File Id="Refs_System.Net.ServicePoint.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Net.ServicePoint.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.Sockets.dll" Guid="9029FA96-C688-4C03-A95F-3265D8DAF861" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.Sockets.dll" Source="$(var.APIDir)\refs\System.Net.Sockets.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.WebClient.dll" Guid="E634BD97-5E34-41FE-A05D-A22F8EEFC0B0" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.WebClient.dll" Source="$(var.APIDir)\refs\System.Net.WebClient.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.WebHeaderCollection.dll" Guid="9A2DE83B-3D10-44E2-9C2A-5A20EEE28465" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.WebHeaderCollection.dll" Source="$(var.APIDir)\refs\System.Net.WebHeaderCollection.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.WebProxy.dll" Guid="D749E7EC-CBE2-4EC9-A60A-882522359E72" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.WebProxy.dll" Source="$(var.APIDir)\refs\System.Net.WebProxy.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.WebSockets.Client.dll" Guid="7655D0DA-48ED-4993-8E27-D0772A443DB5" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.WebSockets.Client.dll" Source="$(var.APIDir)\refs\System.Net.WebSockets.Client.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Net.WebSockets.dll" Guid="623253C6-76A5-40E5-9A3E-4F76501E23DA" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Net.WebSockets.dll" Source="$(var.APIDir)\refs\System.Net.WebSockets.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Numerics.dll" Guid="C510F6B0-3B02-4EE0-B1A3-C0E0B47CCC33" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Numerics.dll" Source="$(var.APIDir)\refs\System.Numerics.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Numerics.Vectors.dll" Guid="2D22F071-2F67-41AF-95F7-CC4EA747C66E" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Numerics.Vectors.dll" Source="$(var.APIDir)\refs\System.Numerics.Vectors.dll" />
+      </Component>
+      <Component Id="C_Refs_System.ObjectModel.dll" Guid="16AB9F04-57EF-4858-B06B-C605C5F130E8" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.ObjectModel.dll" Source="$(var.APIDir)\refs\System.ObjectModel.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Reflection.DispatchProxy.dll" Guid="FA315722-1406-44AF-93F7-EB826B54E727" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Reflection.DispatchProxy.dll" Source="$(var.APIDir)\refs\System.Reflection.DispatchProxy.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Reflection.dll" Guid="60457BC8-59B9-45EB-B58C-59049D082F76" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Reflection.dll" Source="$(var.APIDir)\refs\System.Reflection.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Reflection.Emit_ref.dll" Guid="9A7ADB26-F509-4BC2-A3F2-AE1197B1419A" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Reflection.Emit_ref.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Reflection.Emit.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Reflection.Emit.ILGeneration.dll" Guid="FF90915D-783C-4664-B30D-5E977EE70090" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Reflection.Emit.ILGeneration_ref.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Reflection.Emit.ILGeneration.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Reflection.Emit.Lightweight.dll" Guid="6B857757-F5C4-4AEE-B0D3-C5DD7FD36A62" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Reflection.Emit.Lightweight_ref.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Reflection.Emit.Lightweight.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Reflection.Extensions.dll" Guid="6BD77214-7771-43F5-91B3-9A33A11BD4D9" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Reflection.Extensions.dll" Source="$(var.APIDir)\refs\System.Reflection.Extensions.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Reflection.Metadata.dll" Guid="6215836f-05cd-462f-a8a7-ae18ba0a53c7" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Reflection.Metadata.dll" Source="$(var.APIDir)\refs\System.Reflection.Metadata.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Reflection.Primitives.dll" Guid="A5FCA87A-EE2D-4975-89C4-15BA75C1811A" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Reflection.Primitives.dll" Source="$(var.APIDir)\refs\System.Reflection.Primitives.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Reflection.TypeExtensions.dll" Guid="B8974A77-9EB5-45A8-AC7B-EB91B36795C4" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Reflection.TypeExtensions.dll" Source="$(var.APIDir)\refs\System.Reflection.TypeExtensions.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Resources.Reader.dll" Guid="ac0e2231-8e7a-4fce-9345-e84546f4f6e5" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Resources.Reader.dll" Source="$(var.APIDir)\refs\System.Resources.Reader.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Resources.ResourceManager.dll" Guid="8BEE6F11-F2E3-499E-9964-9A0E0B9EC396" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Resources.ResourceManager.dll" Source="$(var.APIDir)\refs\System.Resources.ResourceManager.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Resources.Writer.dll" Guid="B9AA1D89-E52E-40A2-9085-61A6E2CBBCE6" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Resources.Writer.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Resources.Writer.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.CompilerServices.Unsafe.dll" Guid="F9C5CCE1-6A82-4ADD-9D83-DE66EA962504" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.CompilerServices.Unsafe.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Runtime.CompilerServices.Unsafe.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.CompilerServices.VisualC.dll" Guid="D766F77A-6B47-46C4-B546-C0DF0F11EA86" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.CompilerServices.VisualC.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Runtime.CompilerServices.VisualC.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.dll" Guid="78699C2C-210A-4517-BFDA-EB573713E15B" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.dll" Source="$(var.APIDir)\refs\System.Runtime.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.Extensions.dll" Guid="6C4E1090-88DF-46A1-9C8B-A5B3A032680B" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.Extensions.dll" Source="$(var.APIDir)\refs\System.Runtime.Extensions.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.Handles.dll" Guid="F34FBE03-9978-485B-B861-5782B0710C75" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.Handles.dll" Source="$(var.APIDir)\refs\System.Runtime.Handles.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.InteropServices.dll" Guid="C5B2D8F7-9F7E-4E3D-BC34-2FBEE75DCA33" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.InteropServices.dll" Source="$(var.APIDir)\refs\System.Runtime.InteropServices.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.InteropServices.RuntimeInformation.dll" Guid="E30097C5-792B-494F-84BB-0A037C4271F8" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.InteropServices.RuntimeInformation.dll" Source="$(var.APIDir)\refs\System.Runtime.InteropServices.RuntimeInformation.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.InteropServices.WindowsRuntime.dll" Guid="A08C883D-80E9-4C64-B9A9-C4C4EB1C6305" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.InteropServices.WindowsRuntime.dll" Source="$(var.APIDir)\refs\System.Runtime.InteropServices.WindowsRuntime.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.Loader.dll" Guid="73078455-8963-4E6B-B738-F7CC0924C8B7" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.Loader.dll" Source="$(var.APIDir)\refs\System.Runtime.Loader.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.Numerics.dll" Guid="5580C451-CA81-4F7B-B66D-F4A38F6E078B" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.Numerics.dll" Source="$(var.APIDir)\refs\System.Runtime.Numerics.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.Serialization.dll" Guid="AFBD4A49-73DA-4FD8-B0CB-8820F016C9BF" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.Serialization.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Runtime.Serialization.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.Serialization.Formatters.dll" Guid="A6553254-E936-436F-AE18-354B5977B84D" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.Serialization.Formatters.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Runtime.Serialization.Formatters.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.Serialization.Json.dll" Guid="D6946BC9-9FB7-43C2-B68F-F5FCB402875C" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.Serialization.Json.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Runtime.Serialization.Json.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.Serialization.Primitives.dll" Guid="44084097-63DC-47B7-9403-04859EF02062" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.Serialization.Primitives.dll" Source="$(var.APIDir)\refs\System.Runtime.Serialization.Primitives.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Runtime.Serialization.Xml.dll" Guid="9BF0F9AC-C7C7-4DC8-924A-494F7AAE9418" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Runtime.Serialization.Xml.dll" Source="$(var.APIDir)\refs\System.Runtime.Serialization.Xml.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.AccessControl.dll" Guid="8D9835D8-DFED-4F24-BE64-74F580992A79" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.AccessControl.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Security.AccessControl.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.Claims.dll" Guid="44564879-6A6E-40C1-9DEB-7C5E66176DF6" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.Claims.dll" Source="$(var.APIDir)\refs\System.Security.Claims.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.Cryptography.Algorithms.dll" Guid="A95CB3DB-1C10-4258-9630-2326B790E9B5" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.Cryptography.Algorithms.dll" Source="$(var.APIDir)\refs\System.Security.Cryptography.Algorithms.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.Cryptography.Csp.dll" Guid="464B81D8-AD7F-4D29-A409-C8CAFE6A4536" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.Cryptography.Csp.dll" Source="$(var.APIDir)\refs\System.Security.Cryptography.Csp.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.Cryptography.Encoding.dll" Guid="6EDF3FCE-BA66-40F8-9316-60B56AFFFD12" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.Cryptography.Encoding.dll" Source="$(var.APIDir)\refs\System.Security.Cryptography.Encoding.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.Cryptography.Primitives.dll" Guid="049B4786-DD8C-4799-A08C-4499D0C0CCA6" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.Cryptography.Primitives.dll" Source="$(var.APIDir)\refs\System.Security.Cryptography.Primitives.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.Cryptography.X509Certificates.dll" Guid="7B69F14B-165C-4F18-9E69-BF1458A56526" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.Cryptography.X509Certificates.dll" Source="$(var.APIDir)\refs\System.Security.Cryptography.X509Certificates.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.Cryptography.Xml.dll" Guid="0AFCF495-2763-4664-A129-04EF46DE7125" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.Cryptography.Xml.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Security.Cryptography.Xml.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.dll" Guid="F42BBA88-4C33-4CD7-A3F8-97D753972004" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Security.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.Permissions.dll" Guid="7261F09E-E062-4B41-A30A-F5AD12966E15" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.Permissions.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Security.Permissions.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.Principal.dll" Guid="B0A56103-C8CA-4295-944F-3F8EF22EF485" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.Principal.dll" Source="$(var.APIDir)\refs\System.Security.Principal.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.Principal.Windows.dll" Guid="692C09C9-DD6A-4637-8EFD-40A51BE5F42E" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.Principal.Windows.dll" Source="$(var.APIDir)\refs\System.Security.Principal.Windows.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Security.SecureString.dll" Guid="17B32462-1BF2-4D7E-AFC2-FA8E77405035" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Security.SecureString.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Security.SecureString.dll" />
+      </Component>
+      <Component Id="C_Refs_System.ServiceModel.Web.dll" Guid="F8C8C9AB-FEAF-437E-89F3-A6FCBA392E5E" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.ServiceModel.Web.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.ServiceModel.Web.dll" />
+      </Component>
+      <Component Id="C_Refs_System.ServiceProcess.dll" Guid="620522AA-C15C-4255-B66C-26F9EAD84E5A" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.ServiceProcess.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.ServiceProcess.dll" />
+      </Component>
+      <Component Id="C_Refs_System.ServiceProcess.ServiceController.dll" Guid="6F9423C4-8B3A-4DE1-9C50-E5C2946DF0E4" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.ServiceProcess.ServiceController.dll" Source="$(var.APIDir)\refs\System.ServiceProcess.ServiceController.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Text.Encoding.dll" Guid="89A54AA7-C3E9-44F6-8FED-112312FCBA84" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Text.Encoding.dll" Source="$(var.APIDir)\refs\System.Text.Encoding.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Text.Encoding.Extensions.dll" Guid="041F6E1D-62D3-421A-862F-5A2F81E56058" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Text.Encoding.Extensions.dll" Source="$(var.APIDir)\refs\System.Text.Encoding.Extensions.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Text.RegularExpressions.dll" Guid="2338FCDD-8068-4CCC-B958-48350EDEF77B" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Text.RegularExpressions.dll" Source="$(var.APIDir)\refs\System.Text.RegularExpressions.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Threading.dll" Guid="1F7D59A8-AB18-4B0E-A9D7-603C2E41CCDF" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Threading.dll" Source="$(var.APIDir)\refs\System.Threading.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Threading.Overlapped.dll" Guid="da78a966-1465-49e0-a4f6-1d68282b1013" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Threading.Overlapped.dll" Source="$(var.APIDir)\refs\System.Threading.Overlapped.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Threading.Tasks.Dataflow.dll" Guid="0A70846A-384A-4804-87E7-0738F76B5977" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Threading.Tasks.Dataflow.dll" Source="$(var.APIDir)\refs\System.Threading.Tasks.Dataflow.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Threading.Tasks.dll" Guid="548FD65D-557C-4EF1-B726-E30A566E8051" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Threading.Tasks.dll" Source="$(var.APIDir)\refs\System.Threading.Tasks.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Threading.Tasks.Extensions.dll" Guid="6fda7e1e-d547-42dd-9963-3d6fd0921ce2" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Threading.Tasks.Extensions.dll" Source="$(var.APIDir)\refs\System.Threading.Tasks.Extensions.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Threading.Tasks.Parallel.dll" Guid="7944D39A-0C6C-4686-A9C4-416D7FA4313B" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Threading.Tasks.Parallel.dll" Source="$(var.APIDir)\refs\System.Threading.Tasks.Parallel.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Threading.Thread.dll" Guid="238FA6BD-853B-4BB0-B389-FBA6439A5E3E" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Threading.Thread.dll" Source="$(var.APIDir)\refs\System.Threading.Thread.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Threading.ThreadPool.dll" Guid="57ED00B4-1E32-4800-8EC9-E5BA60C9CC34" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Threading.ThreadPool.dll" Source="$(var.APIDir)\refs\System.Threading.ThreadPool.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Threading.Timer.dll" Guid="CD55ABCC-A792-4B0D-BC61-B53DA1B9914C" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Threading.Timer.dll" Source="$(var.APIDir)\refs\System.Threading.Timer.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Transactions.dll" Guid="D10A2776-3E52-4982-93E4-8A6B47D3EB74" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Transactions.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Transactions.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Transactions.Local.dll" Guid="1F037D09-6498-4BA5-9F48-379E820913B8" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Transactions.Local.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Transactions.Local.dll" />
+      </Component>
+      <Component Id="C_Refs_System.ValueTuple.dll" Guid="7C43D4B9-AFAC-4728-BC5D-DE5593F672BC" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.ValueTuple.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.ValueTuple.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Web.dll" Guid="0BE091D6-05B7-445A-985B-7B471E71D5C6" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Web.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Web.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Web.HttpUtility.dll" Guid="C2772B77-D194-4AE3-BF58-F41011ECC5CB" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Web.HttpUtility.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Web.HttpUtility.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Windows.dll" Guid="60904FF0-D496-46FD-A1DB-92E0DA6182AE" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Windows.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Windows.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Xml.dll" Guid="F7799BD7-1B7A-4BD6-A82F-4102257CC1D9" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Xml.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Xml.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Xml.Linq.dll" Guid="C7035493-FFBD-42EE-90A4-531D2AA30853" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Xml.Linq.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Xml.Linq.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Xml.ReaderWriter.dll" Guid="5DF121F9-8998-4000-B75C-ACF314A27B0A" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Xml.ReaderWriter.dll" Source="$(var.APIDir)\refs\System.Xml.ReaderWriter.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Xml.Serialization.dll" Guid="3D7937ED-FFB2-4455-919C-6123B38B8C8C" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Xml.Serialization.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Xml.Serialization.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Xml.XDocument.dll" Guid="A946921A-05DB-489D-8888-2199007A3BA0" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Xml.XDocument.dll" Source="$(var.APIDir)\refs\System.Xml.XDocument.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Xml.XmlSerializer.dll" Guid="711D1A4C-0B38-4E09-BEB5-2A33436BC968" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Xml.XmlSerializer.dll" Source="$(var.APIDir)\refs\System.Xml.XmlSerializer.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Xml.XPath.dll" Guid="9F149C3D-08D4-4A34-B3B8-08DC626BBBEF" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Xml.XPath.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Xml.XPath.dll" />
+      </Component>
+      <Component Id="C_Refs_System.Xml.XPath.XDocument.dll" Guid="0BE951BB-1EE6-4CA3-9522-EE6A75810342" Win64="$(var.IsWin64)">
+        <File Id="Refs_System.Xml.XPath.XDocument.dll" KeyPath="yes" Source="$(var.APIDir)\refs\System.Xml.XPath.XDocument.dll" />
+      </Component>
+      <Component Id="C_Refs_WindowsBase.dll" Guid="3E7C1992-D501-4395-B54E-7B84D3CCBE2E" Win64="$(var.IsWin64)">
+        <File Id="Refs_WindowsBase.dll" KeyPath="yes" Source="$(var.APIDir)\refs\WindowsBase.dll" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="Scripts_Collection" Directory="SetupDir">
+      <Component Id="C_acl_util.ps1" Guid="BE73A2FB-2A76-4C33-9D5A-B0D752481A5F" Win64="$(var.IsWin64)">
+        <File Id="acl_util.ps1" Source="$(var.SetupDir)\acl-util.ps1" />
+      </Component>
+      <Component Id="C_cache.ps1" Guid="FCE9490B-D8C1-4C02-8BF5-54FD5F6792D7" Win64="$(var.IsWin64)">
+        <File Id="cache.ps1" Source="$(var.SetupDir)\cache.ps1" />
+      </Component>
+      <Component Id="C_cert.ps1" Guid="DB1AF02F-2963-44D5-8CA5-39F57CAAD954" Win64="$(var.IsWin64)">
+        <File Id="cert.ps1" Source="$(var.SetupDir)\cert.ps1" />
+      </Component>
+      <Component Id="C_config.ps1" Guid="2F8FD465-E2C1-4D5D-8395-D4AC12064B16" Win64="$(var.IsWin64)">
+        <File Id="config.ps1" Source="$(var.SetupDir)\config.ps1" />
+      </Component>
+      <Component Id="C_dependencies.ps1" Guid="533B7BC7-F453-46AF-BD0E-76E7764FCA68" Win64="$(var.IsWin64)">
+        <File Id="dependencies.ps1" Source="$(var.SetupDir)\dependencies.ps1" />
+      </Component>
+      <Component Id="C_files.ps1" Guid="B488EC22-EC6C-47D2-B15B-DCF8AF127EA7" Win64="$(var.IsWin64)">
+        <File Id="files.ps1" Source="$(var.SetupDir)\files.ps1" />
+      </Component>
+      <Component Id="C_globals.ps1" Guid="8FE4306D-E976-4599-9242-547342F9E2BA" Win64="$(var.IsWin64)">
+        <File Id="globals.ps1" Source="$(var.SetupDir)\globals.ps1" />
+      </Component>
+      <Component Id="C_install.ps1" Guid="AFAE59DA-884A-4C7C-9940-A7EC1C1449AB" Win64="$(var.IsWin64)">
+        <File Id="install.ps1" Source="$(var.SetupDir)\install.ps1" />
+      </Component>
+      <Component Id="C_json.ps1" Guid="65e0b709-7d80-4b09-bdb2-091cff2614d4" Win64="$(var.IsWin64)">
+        <File Id="json.ps1" Source="$(var.SetupDir)\json.ps1" />
+      </Component>
+      <Component Id="C_migrate.ps1" Guid="2065072B-6E7F-460F-86D0-856182513CB3" Win64="$(var.IsWin64)">
+        <File Id="migrate.ps1" Source="$(var.SetupDir)\migrate.ps1" />
+      </Component>
+      <Component Id="C_modules.ps1" Guid="D6E47EF9-03B0-49FD-AA87-9C4302202890" Win64="$(var.IsWin64)">
+        <File Id="modules.ps1" Source="$(var.SetupDir)\modules.ps1" />
+      </Component>
+      <Component Id="C_msisetup.ps1" Guid="B741E801-FD6D-459B-8D93-BA39E62FD015" Win64="$(var.IsWin64)">
+        <File Id="msisetup.ps1" Source="$(var.SetupDir)\msi-setup.ps1" />
+      </Component>
+      <Component Id="C_net.ps1" Guid="70EA0014-62BC-4CFE-A82B-69BDDED49B59" Win64="$(var.IsWin64)">
+        <File Id="net.ps1" Source="$(var.SetupDir)\net.ps1" />
+      </Component>
+      <Component Id="C_netsh.ps1" Guid="7740E663-2F88-47B5-BFAA-7497A9E17B47" Win64="$(var.IsWin64)">
+        <File Id="netsh.ps1" Source="$(var.SetupDir)\netsh.ps1" />
+      </Component>
+      <Component Id="C_require.ps1" Guid="E90E73C9-7753-4DF2-82B7-1D87F8BD9993" Win64="$(var.IsWin64)">
+        <File Id="require.ps1" Source="$(var.SetupDir)\require.ps1" />
+      </Component>
+      <Component Id="C_sanitize_logs.ps1" Guid="BB859A94-6BEC-44B5-93E8-6C0DB3A7698A" Win64="$(var.IsWin64)">
+        <File Id="sanitize_logs.ps1" Source="$(var.SetupDir)\sanitize-logs.ps1" />
+      </Component>
+      <Component Id="C_security.ps1" Guid="37D8687C-643A-4F6D-AD8F-4C8946340891" Win64="$(var.IsWin64)">
+        <File Id="security.ps1" Source="$(var.SetupDir)\security.ps1" />
+      </Component>
+      <Component Id="C_services.ps1" Guid="8AD46367-148F-443B-A7F6-8A644108FF34" Win64="$(var.IsWin64)">
+        <File Id="services.ps1" Source="$(var.SetupDir)\services.ps1" />
+      </Component>
+      <Component Id="C_setup.ps1" Guid="8677D950-B582-475C-AEEA-D642A7E60DB6" Win64="$(var.IsWin64)">
+        <File Id="setup.ps1" Source="$(var.SetupDir)\setup.ps1" />
+      </Component>
+      <Component Id="C_uninstall.ps1" Guid="00EAFCC8-84D9-474F-A5E9-D9167CFCB4A3" Win64="$(var.IsWin64)">
+        <File Id="uninstall.ps1" Source="$(var.SetupDir)\uninstall.ps1" />
+      </Component>
+      <Component Id="C_ver.ps1" Guid="115928F9-7895-4123-943C-FF8099D11A35" Win64="$(var.IsWin64)">
+        <File Id="ver.ps1" Source="$(var.SetupDir)\ver.ps1" />
+      </Component>
+      <Component Id="C_version.json" Guid="709960CD-BDAE-48AA-BBEB-7DCE1E05B753" Win64="$(var.IsWin64)">
+        <File Id="version.json" Source="$(var.SetupDir)\version.json" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="Config_Collection" Directory="ConfigDir">
+      <Component Id="C_appsettings.json" Guid="2667BF62-9935-4687-9150-30ADB32C935C" Win64="$(var.IsWin64)">
+        <File Id="appsettings.json" Source="$(var.APIDir)\Config\appsettings.json" />
+      </Component>
+      <Component Id="C_api_keys.json" Guid="1259FE37-BF57-441D-8346-8F0BBB5F09D6" Win64="$(var.IsWin64)">
+        <File Id="api_keys.json" Source="$(var.APIDir)\Config\api-keys.json" />
+      </Component>
+      <Component Id="C_modules.json" Guid="5CE6103F-44B5-474A-AB0A-9409FF6ADBE9" Win64="$(var.IsWin64)">
+        <File Id="modules.json" Source="$(var.APIDir)\Config\modules.json" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="Views_Collection">
+      <Component Id="C_Index_AccessKeys.cshtml" Guid="B2C22C4A-44CD-49AC-8019-B0BCDBE162C5" Directory="ViewsAccessKeysDir" Win64="$(var.IsWin64)">
+        <File Id="Index_AccessKeys.cshtml" Source="$(var.APIDir)\views\AccessKeys\Index.cshtml" />
+      </Component>
+      <Component Id="C_Index_Connect.cshtml" Guid="778C48D9-578C-4816-AC66-11E017E68564" Directory="ViewsConnectDir" Win64="$(var.IsWin64)">
+        <File Id="Index_Connect.cshtml" Source="$(var.APIDir)\views\Connect\Index.cshtml" />
+      </Component>
+      <Component Id="C_Index_Explorer.cshtml" Guid="AE6D9F89-10B3-4D03-AAAB-2DB442DD05AB" Directory="ViewsExplorerDir" Win64="$(var.IsWin64)">
+        <File Id="Index_Explorer.cshtml" Source="$(var.APIDir)\views\Explorer\Index.cshtml" />
+      </Component>
+      <Component Id="C_Index_Ping.cshtml" Guid="DB7F0717-6B77-413D-B7DB-211B00372B61" Directory="ViewsPingDir" Win64="$(var.IsWin64)">
+        <File Id="Index_Ping.cshtml" Source="$(var.APIDir)\views\Ping\Index.cshtml" />
+      </Component>
+      <Component Id="C_Layout.cshtml" Guid="4C64E177-4267-4394-A644-E5C07E711BA2" Directory="ViewsSharedDir" Win64="$(var.IsWin64)">
+        <File Id="Layout.cshtml" Source="$(var.APIDir)\views\Shared\_Layout.cshtml" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="wwwRoot_Collection">
+      <Component Id="C_accesskeys.css" Guid="0C5773CA-B713-4B4C-915C-7A8C3B4D480C" Directory="wwwCSSDir" Win64="$(var.IsWin64)">
+        <File Id="accesskeys.css" Source="$(var.APIDir)\wwwroot\css\access-keys.css" />
+      </Component>
+      <Component Id="C_connect.css" Guid="C8E4D456-74C0-4BC6-B4C9-AA65262DAF2C" Directory="wwwCSSDir" Win64="$(var.IsWin64)">
+        <File Id="connect.css" Source="$(var.APIDir)\wwwroot\css\connect.css" />
+      </Component>
+      <Component Id="C_explorer.css" Guid="2D7B9AEF-A283-45B1-A220-B5B9F0D1AD78" Directory="wwwCSSDir" Win64="$(var.IsWin64)">
+        <File Id="explorer.css" Source="$(var.APIDir)\wwwroot\css\explorer.css" />
+      </Component>
+      <Component Id="C_main.css" Guid="5EB8FC2A-3D52-4A1C-8AF9-0A40A0FA7921" Directory="wwwCSSDir" Win64="$(var.IsWin64)">
+        <File Id="main.css" Source="$(var.APIDir)\wwwroot\css\main.css" />
+      </Component>
+      <Component Id="C_accesskeys.js" Guid="3E1508A8-81E3-4D6B-8CD2-E7A8F8AB2AB2" Directory="wwwJSDir" Win64="$(var.IsWin64)">
+        <File Id="accesskeys.js" Source="$(var.APIDir)\wwwroot\js\access-keys.js" />
+      </Component>
+      <Component Id="C_connect.js" Guid="C1AA8247-694C-4816-BBEC-327C0B2D4F82"  Directory="wwwJSDir" Win64="$(var.IsWin64)">
+        <File Id="connect.js" Source="$(var.APIDir)\wwwroot\js\connect.js" />
+      </Component>
+      <Component Id="C_explorer.js" Guid="C4C8BC96-DE2D-4644-9FA4-8310D1A15B4A" Directory="wwwJSDir" Win64="$(var.IsWin64)">
+        <File Id="explorer.js" Source="$(var.APIDir)\wwwroot\js\explorer.js" />
+      </Component>
+      <Component Id="C_main.js" Guid="6092300E-6CF4-49E5-83E0-9CB16062D861" Directory="wwwJSDir" Win64="$(var.IsWin64)">
+        <File Id="main.js" Source="$(var.APIDir)\wwwroot\js\main.js" />
+      </Component>
+      <Component Id="C_jquery_min.js" Guid="431f482c-d320-4744-b96c-31168cd33009" Directory="wwwjquery320Dir" Win64="$(var.IsWin64)">
+        <File Id="jquery.min.js" Source="$(var.APIDir)\wwwroot\lib\jquery-3.2.0.min\jquery.min.js" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+</Wix>

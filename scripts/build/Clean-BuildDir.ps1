@@ -7,7 +7,7 @@ param(
     $solutionDir = [System.IO.Path]::Combine($PSScriptRoot, "..", ".."),
 
     [string]
-    $manifestDir = [System.IO.Path]::Combine($solutionDir, ".build")
+    $manifestDir = [System.IO.Path]::Combine($solutionDir, ".builds")
 )
 
 function Move-SymbolsFiles {

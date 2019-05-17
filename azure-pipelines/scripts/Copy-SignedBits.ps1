@@ -22,7 +22,7 @@ if (!$buildDir -or !$publishDir) {
     }
 
     if (!$buildDir) {
-        $buildDir = Join-Path $projectRoot ".build"
+        $buildDir = Join-Path $projectRoot ".builds"
     }
 
     if (!$publishDir) {

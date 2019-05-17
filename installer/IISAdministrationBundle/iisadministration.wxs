@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<?define MsiProj = "IISAdministrationSetup" ?>
+
+<?include ..\shared\common.wxi ?>
+<?include include.wxi ?>
+
+<?define UpgradeCode = "BAAD43D4-CFD2-4082-AD7C-BA9EF673CCEB" ?>
+
+<Wix RequiredVersion="3.5.1405.0" xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
+  <Bundle
+      Name="Microsoft IIS Administration $(var.MsiVersion)"
+      Manufacturer="Microsoft Corporation"
+      Version="$(var.MsiVersion)"
+      UpgradeCode="$(var.UpgradeCode)"
+      Compressed="yes">
+
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense">
+      <bal:WixStandardBootstrapperApplication LicenseFile="..\shared\assets\license.rtf"
+                                              ThemeFile="resources\Theme.xml"
+                                              LocalizationFile="resources\Theme.wxl"
+                                              SuppressOptionsUI="yes" />
+    </BootstrapperApplicationRef>
+
+    <Chain DisableRollback="yes">
+      <PackageGroupRef Id="dotnet_core_pkg" />
+      <PackageGroupRef Id="aspnetcore_pkg" />
+      <PackageGroupRef Id="iis_administration_pkg" />
+    </Chain>
+  </Bundle>
+
+  <Fragment>
+    <util:RegistrySearch Id="DOTNET_RUNTIME_SEARCH"
+                         Root="HKLM"
+                         Key="SOFTWARE\dotnet\Setup\InstalledVersions\$(var.Platform)\sharedhost"
+                         Value="Version"
+                         Result="value"
+                         Variable="DOTNET_RUNTIME_VERSION"
+                         Win64="$(var.IsWin64)" />
+    <Variable Name="DOTNET_RUNTIME_VERSION_MINIMAL" Type="version" Value='2.1.0' />
+    <PackageGroup Id="dotnet_core_pkg">
+      <ExePackage Id="dotnet_core_exe"
+                  Name="dotnet-runtime-2.1.9-win-x64.exe"
+                  Permanent="yes"
+                  Compressed="no"
+                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/b9cefae4-7f05-4dea-9fb0-3328aaddb2ee/545e5c4e0eeff6366523209935376002/dotnet-runtime-2.1.9-win-x64.exe"
+                  DetectCondition="(DOTNET_RUNTIME_VERSION) AND (DOTNET_RUNTIME_VERSION &gt;= DOTNET_RUNTIME_VERSION_MINIMAL)"
+                  InstallCommand="/q /norestart">
+        <RemotePayload CertificatePublicKey="7EA0E648275A9E1DC9FC58FA8C64B8FD6F4C46EB"
+                       CertificateThumbprint="C3A3D43788E7ABCD287CB4F5B6583043774F99D2"
+                       Description="Microsoft .NET Core Runtime - 2.1.9 (x64)"
+                       Hash="48DC6D5E57A3AA554F61F11BA9072A7C7F43CECE"
+                       ProductName="Microsoft .NET Core Runtime - 2.1.9 (x64)"
+                       Size="24805976" Version="2.1.9.27415" />
+      </ExePackage>
+    </PackageGroup>
+  </Fragment>
+
+  <Fragment>
+    <util:RegistrySearch Id="ASPNET_CORE_21_SHARED_FRAMEWORK_SEARCH"
+                         Root="HKLM"
+                         Key="SOFTWARE\Microsoft\ASP.NET Core\Shared Framework\v2.1"
+                         Result="exists"
+                         Variable="ASPNET_CORE_21_SHARED_FRAMEWORK_EXISTS"
+                         Win64="$(var.IsWin64)" />
+    <PackageGroup Id="aspnetcore_pkg">
+      <ExePackage Id="aspnetcore_exe"
+                  Name="aspnetcore-runtime-2.1.9-win-x64.exe"
+                  Permanent="yes"
+                  Compressed="no"
+                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/ece6ec5c-4bdb-494b-994b-3ece386e404a/436e42bf7c68b8455953d2d3285c27ed/aspnetcore-runtime-2.1.9-win-x64.exe"
+                  DetectCondition="(ASPNET_CORE_21_SHARED_FRAMEWORK_EXISTS)"
+                  InstallCommand="/q /norestart">
+
+        <!-- Information retrieved with the Heat tool of the WiX toolset -->
+        <!-- heat payload aspnetcore-runtime-2.1.9-win-x64.exe -o aspnetcore-runtime-2.1.9-win-x64.wxs -->
+        <RemotePayload CertificatePublicKey="7EA0E648275A9E1DC9FC58FA8C64B8FD6F4C46EB"
+                       CertificateThumbprint="C3A3D43788E7ABCD287CB4F5B6583043774F99D2"
+                       Description="Microsoft ASP.NET Core 2.1.9 - Shared Framework"
+                       Hash="A7BD33596DD48C45FDA1AB3EF23C91D74F59E258"
+                       ProductName="Microsoft ASP.NET Core 2.1.9 - Shared Framework"
+                       Size="26242728" Version="2.1.9.0" />
+      </ExePackage>
+    </PackageGroup>
+  </Fragment>
+
+  <!-- IIS Administration API MSI -->
+  <Fragment>
+    <Variable Name="DefaultCors" Type="string" Value="true" bal:Overridable="yes" />
+    <PackageGroup Id="iis_administration_pkg">
+      <MsiPackage
+        Id="iis_administration_msi"
+        SourceFile="$(var.SourceFilePath)\IISAdministrationSetup.msi"
+        Name="packages\iis_administration.msi"
+        Compressed="yes"
+        Vital="yes"
+        Cache="yes"
+        DisplayInternalUI="no"
+        InstallCondition="VersionNT64 AND VersionNT >= v6.1">
+        <MsiProperty Name='INSTALLFOLDER' Value='[InstallFolder]' />
+        <MsiProperty Name="VSEXTUI" Value="1"/>
+        <MsiProperty Name="DEFAULT_CORS" Value='[DefaultCors]'/>
+      </MsiPackage>
+    </PackageGroup>
+  </Fragment>
+</Wix>
