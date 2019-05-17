@@ -463,40 +463,6 @@
       <Component Id="C_Microsoft.Web.Administration.dll" Guid="01549DD9-37DF-48A1-A966-242FE51018E6" Win64="$(var.IsWin64)">
         <File Id="Microsoft.Web.Administration.dll" Source="$(var.APIDir)\plugins\Microsoft.Web.Administration.dll" />
       </Component>
-      <Component Id="C_Microsoft.Win32.Registry.dll" Guid="F11AE8DC-6A01-4494-9C57-190D490BB345" Win64="$(var.IsWin64)">
-        <File Id="Microsoft.Win32.Registry.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\Microsoft.Win32.Registry.dll" />
-      </Component>
-      <Component Id="C_System.Security.AccessControl.dll" Guid="C2341F69-8C82-441B-9BB1-5B27B1D267B5" Win64="$(var.IsWin64)">
-        <File Id="System.Security.AccessControl.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\System.Security.AccessControl.dll" />
-      </Component>
-      <Component Id="C_System.Security.Cryptography.Cng.dll" Guid="AE687B55-FADA-487E-AC8C-A796456470C8" Win64="$(var.IsWin64)">
-        <File Id="System.Security.Cryptography.Cng.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\System.Security.Cryptography.Cng.dll" />
-      </Component>
-      <Component Id="C_System.Security.Principal.Windows.dll" Guid="0E46FA82-3193-495C-B843-D3691A45747E" Win64="$(var.IsWin64)">
-        <File Id="System.Security.Principal.Windows.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\System.Security.Principal.Windows.dll" />
-      </Component>
-    </ComponentGroup>
-  </Fragment>
-
-  <Fragment>
-    <ComponentGroup Id="PWinRuntimesLib_Collection">
-      <!-- NetCoreApp 2.0 -->
-      <Component Id="C_NetCoreApp20_System.Security.AccessControl.dll" Guid="24DBE019-5D24-4044-8D23-3B93FE0A7D3E" Directory="Plugins_Runtimes_Win_Lib_NetCoreApp20" Win64="$(var.IsWin64)">
-        <File Id="NetCoreApp20_System.Security.AccessControl.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\runtimes\win\lib\netcoreapp2.0\System.Security.AccessControl.dll" />
-      </Component>
-      <Component Id="C_NetCoreApp20_System.Security.Principal.Windows.dll" Guid="6679AEC0-6E0A-44E4-BF04-6D0CD3614579" Directory="Plugins_Runtimes_Win_Lib_NetCoreApp20" Win64="$(var.IsWin64)">
-        <File Id="NetCoreApp20_System.Security.Principal.Windows.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\runtimes\win\lib\netcoreapp2.0\System.Security.Principal.Windows.dll" />
-      </Component>
-
-      <!-- NetCoreApp 2.1 -->
-      <Component Id="C_NetCoreApp21_System.Security.Cryptography.Cng.dll" Guid="436E84B5-FC36-4213-9F8B-463B5451058B" Directory="Plugins_Runtimes_Win_Lib_NetCoreApp21" Win64="$(var.IsWin64)">
-        <File Id="NetCoreApp21_System.Security.Cryptography.Cng.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\runtimes\win\lib\netcoreapp2.1\System.Security.Cryptography.Cng.dll" />
-      </Component>
-
-      <!-- NetStandard 2.0 -->
-      <Component Id="C_NetStandard20_Microsoft.Win32.Registry.dll" Guid="F9F415BF-4A5A-4A20-9B06-7B3389EA990B" Directory="Plugins_Runtimes_Win_Lib_NetStandard20" Win64="$(var.IsWin64)">
-        <File Id="NetStandard20_Microsoft.Win32.Registry.dll" KeyPath="yes" Source="$(var.APIDir)\plugins\runtimes\win\lib\netstandard2.0\Microsoft.Win32.Registry.dll" />
-      </Component>
     </ComponentGroup>
   </Fragment>
 

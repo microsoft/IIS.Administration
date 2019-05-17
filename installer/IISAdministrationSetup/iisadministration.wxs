@@ -79,7 +79,6 @@
       <ComponentGroupRef Id="Microsoft_IIS_Administration_Collection" />
       <ComponentGroupRef Id="WinRuntimesLib_Collection" />
       <ComponentGroupRef Id="Plugins_Collection" />
-      <ComponentGroupRef Id="PWinRuntimesLib_Collection" />
       <ComponentGroupRef Id="Refs_Collection" />
       <ComponentGroupRef Id="Scripts_Collection" />
       <ComponentGroupRef Id="Views_Collection" />
