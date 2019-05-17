@@ -1,1 +1,0 @@
-*.dll, strong name signing not needed
