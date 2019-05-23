@@ -19,8 +19,11 @@ namespace Microsoft.IIS.Administration {
             var configHelper = new ConfigurationHelper(args);
             IConfiguration config = configHelper.Build();
 
+            //
+            // Initialize runAsAService local variable
             string serviceName = config.GetValue<string>("serviceName")?.Trim();
             bool runAsAService = !string.IsNullOrEmpty(serviceName);
+
             //
             // Host
             using (var host = new WebHostBuilder()
