@@ -40,7 +40,7 @@ namespace Microsoft.IIS.Administration {
                 {
                     using (var log = new EventLog("Application"))
                     {
-                        log.Source = "Microsoft IIS Administration API";
+                        log.Source = Program.EventSourceName;
                         log.WriteEntry($"Microsoft IIS Administration API encountered an unexpected error: {e.ToString()}", EventLogEntryType.Error);
                     }
                 }
