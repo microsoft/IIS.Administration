@@ -10,6 +10,7 @@ namespace Microsoft.IIS.Administration {
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Logging.EventLog;
     using Serilog;
 
     public class Program {
@@ -29,13 +30,18 @@ namespace Microsoft.IIS.Administration {
             using (var host = new WebHostBuilder()
                 .UseContentRoot(configHelper.RootPath)
                 .ConfigureLogging((hostingContext, logging) => {
+                    logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+
                     //
                     // Console log is not available in running as a Service
                     if (!runAsAService) {
-                        logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
                         logging.AddConsole();
-                        logging.AddDebug();
                     }
+
+                    logging.AddDebug();
+                    logging.AddEventLog(new EventLogSettings() {
+                        SourceName = "IIS.Administration"
+                    });
                 })
                 .UseUrls("https://*:55539") // Config can override it. Use "urls":"https://*:55539"
                 .UseConfiguration(config)
