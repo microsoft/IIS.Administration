@@ -14,6 +14,8 @@ namespace Microsoft.IIS.Administration {
     using Serilog;
 
     public class Program {
+        public const string EventSourceName = "Microsoft IIS Administration API";
+
         public static void Main(string[] args) {
             //
             // Build Config
@@ -40,7 +42,7 @@ namespace Microsoft.IIS.Administration {
 
                     logging.AddDebug();
                     logging.AddEventLog(new EventLogSettings() {
-                        SourceName = "Microsoft IIS Administration API"
+                        SourceName = EventSourceName
                     });
                 })
                 .UseUrls("https://*:55539") // Config can override it. Use "urls":"https://*:55539"
