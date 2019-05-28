@@ -40,7 +40,7 @@ namespace Microsoft.IIS.Administration {
 
                     logging.AddDebug();
                     logging.AddEventLog(new EventLogSettings() {
-                        SourceName = "IIS.Administration"
+                        SourceName = "Microsoft IIS Administration API"
                     });
                 })
                 .UseUrls("https://*:55539") // Config can override it. Use "urls":"https://*:55539"
