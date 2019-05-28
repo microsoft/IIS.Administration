@@ -123,11 +123,22 @@ function Ensure-IncludesIisAdminApiOwners($settings) {
     $groupDescription = .\globals.ps1 'IIS_ADMIN_API_OWNERS_DESCRIPTION'
     $currentAdUser = .\security.ps1 CurrentAdUser
     .\security.ps1 EnsureLocalGroupMember -AdPath $currentAdUser -Name $groupName -Description $groupDescription
-    if (!$settings.security.users.administrators.Contains($groupName)) {
-        $settings.security.users.administrators += $groupName
+
+    ## NOTES for supporting powershell version < 2.0.0
+    ## Do not use $settings.security.users.administrators.Contains method
+    ## Do not use `+=` to append $groupName; i.e: `$settings.security.users.administrators += $groupName`
+    ## because we use `System.Web.Script.Serialization.JavaScriptSerializer` to serialize the config
+    ## any value computed with `+=` operator would cause the serializer to determine it as circular dependency
+    if (!($settings.security.users.administrators | Where-Object { $_ -eq $groupName })) {
+        $arr = [System.Collections.ArrayList]$settings.security.users.administrators
+        $arr.Add($groupName)
+        $settings.security.users.administrators = $arr
     }
-    if (!$settings.security.users.owners.Contains($groupName)) {
-        $settings.security.users.owners += $groupName
+
+    if (!($settings.security.users.owners | Where-Object { $_ -eq $groupName })) {
+        $arr = [System.Collections.ArrayList]$settings.security.users.owners
+        $arr.Add($groupName)
+        $settings.security.users.owners = $arr
     }
 }
 
