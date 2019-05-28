@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="en-us" xmlns="http://schemas.microsoft.com/wix/2006/localization">
+  <String Id="AdminRequired" Overridable="yes">Administrator privilege is required to install [ProductName].</String>
+  <String Id="Language">1033</String>
+  <String Id="LaunchCondition_32BIT">The 64-bit version of [ProductName] cannot be installed on a 32-bit edition of Microsoft Windows.</String>
+  <String Id="LaunchCondition_64BIT">The 32-bit version of [ProductName] cannot be installed on a 64-bit edition of Microsoft Windows.</String>
+  <String Id="Localization">en-us</String>
+  <String Id="Manufacturer" Overridable="yes">Microsoft Corporation</String>
+  <String Id="NewerVersionFound" Overridable="yes">A newer version of [ProductName] was found on this machine.</String>
+</WixLocalization>

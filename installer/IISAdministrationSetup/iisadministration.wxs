@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!--
+    IIS Administration setup
+-->
+
+<?include ..\shared\common.wxi ?>
+
+<!-- NB: *Must* update the ProductCode GUID on each release! -->
+<?define ProductCode = "*" ?>
+<?if $(var.IsWin64)=no ?>
+<?define UpgradeCode = "75B8A409-8EFF-4DA2-B047-37AB6AA75A36" ?>
+<?else?>
+<?define UpgradeCode = "BEAF108A-E45E-4AA6-8347-272A0EB3B90E" ?>
+<?endif?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:dep="http://schemas.microsoft.com/wix/DependencyExtension">
+  <Product Id="$(var.ProductCode)"
+        Name="$(var.ProductName)"
+        Manufacturer="!(loc.Manufacturer)"
+        Version="$(var.MsiVersion)"
+        Language="!(loc.Language)"
+        UpgradeCode="$(var.UpgradeCode)">
+    <Package Id="*"
+             Description="$(var.ProductName)"
+             Manufacturer="!(loc.Manufacturer)"
+             Compressed="yes"
+             InstallPrivileges="elevated"
+             InstallerVersion="400"
+             Platform="$(var.Platform)" />
+
+    <Media Id="1" Cabinet="iisadmin.cab" EmbedCab="yes" CompressionLevel="high"/>
+
+    <PropertyRef Id="DEFAULT_CORS" />
+
+    <Property Id="ARPCONTACT">Microsoft Corporation</Property>
+    <Property Id="ARPPRODUCTICON" Value="icon.ico" />
+    <Icon Id="icon.ico" SourceFile="..\shared\assets\bitmaps\icon.ico" />
+
+    <WixVariable Id="WixUILicenseRtf" Value="..\shared\assets\license.rtf" />
+
+    <Upgrade Id="$(var.UpgradeCode)">
+      <UpgradeVersion OnlyDetect="no" Property="OLDERVERSIONFOUND" Maximum="$(var.MsiVersion)" IncludeMaximum="no" MigrateFeatures="yes" />
+      <UpgradeVersion OnlyDetect="yes" Property="NEWERVERSIONFOUND" Minimum="$(var.MsiVersion)" IncludeMinimum="no" />
+    </Upgrade>
+
+    <!-- Require Administrator -->
+    <Condition Message="!(loc.AdminRequired)">Privileged</Condition>
+
+    <!-- Require Windows 7 or higher.  -->
+    <Condition Message="[ProductName] requires Microsoft Windows 7 or newer.">(VersionNT &gt;= 601) OR BYPASSOSCHECK OR Installed</Condition>
+
+    <Condition Message="!(loc.NewerVersionFound)">(NOT NEWERVERSIONFOUND) OR Installed</Condition>
+    <!--<Condition Message="$(loc.DuplicateVersionFound)">(NOT DUPLICATEVERSIONFOUND) OR Installed</Condition>-->
+
+    <?if "$(var.Platform)"="x86" ?>
+    <!-- Prevent install of 64-bit product on 32-bit machine -->
+    <Condition Message="!(loc.LaunchCondition_32BIT)">
+      <![CDATA[Installed Or NOT VersionNT64]]>
+    </Condition>
+    <?endif ?>
+
+    <?if "$(var.Platform)"="x64" ?>
+    <!-- Prevent install of 32-bit product on 64-bit machine -->
+    <Condition Message="!(loc.LaunchCondition_64BIT)">
+      <![CDATA[Installed Or VersionNT64]]>
+    </Condition>
+    <?endif ?>
+
+    <!-- Per machine only ALLUSERS=2 - on vista and lh UAC will show up and require admin.
+        on downlevel (xp, win2k3), we already check that user is admin, so we'll always install per machine and not fall back to per-user -->
+    <Property Id="ALLUSERS">2</Property>
+
+    <!-- Feature Definition -->
+    <Feature Id="IISAdministrationFeature" Title="$(var.ProductName)" Description="$(var.ProductName)" Level="1">
+      <ComponentRef Id="C_EmptyLogsDir" />
+      <ComponentRef Id="C_ThirdPartyNotice.txt" />
+      <ComponentGroupRef Id="Config_Collection" />
+      <ComponentGroupRef Id="Microsoft_IIS_Administration_Collection" />
+      <ComponentGroupRef Id="WinRuntimesLib_Collection" />
+      <ComponentGroupRef Id="Plugins_Collection" />
+      <ComponentGroupRef Id="Refs_Collection" />
+      <ComponentGroupRef Id="Scripts_Collection" />
+      <ComponentGroupRef Id="Views_Collection" />
+      <ComponentGroupRef Id="wwwRoot_Collection" />
+    </Feature>
+
+    <!-- User Interface -->
+    <UIRef Id="WixUI_Minimal"/>
+    <UIRef Id="WixUI_ErrorProgressText"/>
+
+    <UI>
+      <DialogRef Id="WelcomeEulaDlg"/>
+    </UI>
+
+    <!-- CA's to invoke powershell script -->
+    <CustomAction Id="CA_PSINSTALL_PROPERTY"
+                      Property="CA_PSINSTALL"
+                      Value="&quot;PowerShell.exe&quot; -NonInteractive -NoLogo -InputFormat None -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; &apos;[SetupDir]msi-setup.ps1&apos; Install -Verbose -Path &apos;[INSTALLDIR]&apos; -Version &apos;$(var.MsiVersion)&apos;&quot; -IncludeDefaultCors:$[DEFAULT_CORS]" />
+    <CustomAction Id="CA_PSINSTALL" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="deferred" Impersonate="yes"/>
+
+    <CustomAction Id="CA_PSUPGRADE_PROPERTY"
+                      Property="CA_PSUPGRADE"
+                      Value="&quot;PowerShell.exe&quot; -NonInteractive -NoLogo -InputFormat None -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; &apos;[SetupDir]msi-setup.ps1&apos; Upgrade -Verbose -Path &apos;[INSTALLDIR]&apos; -Version &apos;$(var.MsiVersion)&apos;&quot;"/>
+    <CustomAction Id="CA_PSUPGRADE" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="deferred" Impersonate="yes"/>
+
+    <CustomAction Id="CA_PSUNINSTALL_PROPERTY"
+                      Property="CA_PSUNINSTALL"
+                      Value="&quot;PowerShell.exe&quot; -NonInteractive -NoLogo -InputFormat None -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; &apos;[SetupDir]msi-setup.ps1&apos; Uninstall -Verbose -Path &apos;[INSTALLDIR]&apos; -Version &apos;$(var.MsiVersion)&apos;&quot;"/>
+    <CustomAction Id="CA_PSUNINSTALL" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="deferred" Impersonate="yes"/>
+
+    <!-- CA's to check launch condition -->
+    <CustomAction Id="CA_LaunchCondition" Error="To install this product, please run the installer EXE." />
+    <InstallExecuteSequence>
+      <Custom Action="CA_LaunchCondition" Before="CostInitialize">NOT( (ADDEPLOY = 1 OR VSEXTUI = 1 OR ADVERTISED = 1 OR ProductState &gt;= 1) )</Custom>
+    </InstallExecuteSequence>
+    <InstallUISequence>
+      <Custom Action="CA_LaunchCondition" Before="CostInitialize">NOT( (ADDEPLOY = 1 OR VSEXTUI = 1 OR ADVERTISED = 1 OR ProductState &gt;= 1) )</Custom>
+    </InstallUISequence>
+
+    <InstallExecuteSequence>
+      <AppSearch Before="LaunchConditions" />
+      <LaunchConditions After="FindRelatedProducts" />
+      <MigrateFeatureStates />
+      <Custom Action="CA_PSINSTALL_PROPERTY" After="InstallFiles"><![CDATA[(NOT REMOVE AND NOT OLDERVERSIONFOUND)]]></Custom>
+      <Custom Action="CA_PSINSTALL" After="CA_PSINSTALL_PROPERTY"><![CDATA[(NOT REMOVE AND NOT OLDERVERSIONFOUND)]]></Custom>
+      <Custom Action="CA_PSUPGRADE_PROPERTY" After="InstallFiles"><![CDATA[(NOT REMOVE AND OLDERVERSIONFOUND)]]></Custom>
+      <Custom Action="CA_PSUPGRADE" After="CA_PSUPGRADE_PROPERTY"><![CDATA[(NOT REMOVE AND OLDERVERSIONFOUND)]]></Custom>
+      <Custom Action="CA_PSUNINSTALL_PROPERTY" Before="CA_PSUNINSTALL"><![CDATA[(REMOVE~="ALL" AND NOT UPGRADINGPRODUCTCODE)]]></Custom>
+      <Custom Action="CA_PSUNINSTALL" Before="RemoveFiles"><![CDATA[(REMOVE~="ALL" AND NOT UPGRADINGPRODUCTCODE)]]></Custom>
+      <RemoveExistingProducts After="InstallFinalize"/>
+    </InstallExecuteSequence>
+  </Product>
+</Wix>
+

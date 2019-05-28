@@ -20,6 +20,7 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
+[Ll]og/
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -41,6 +42,7 @@ dlldata.c
 
 # DNX
 project.lock.json
+project.fragment.lock.json
 artifacts/
 
 *_i.c
@@ -75,14 +77,18 @@ _Chutzpah*
 ipch/
 *.aps
 *.ncb
+*.opendb
 *.opensdf
 *.sdf
 *.cachefile
+*.VC.db
+*.VC.VC.opendb
 
 # Visual Studio profiler
 *.psess
 *.vsp
 *.vspx
+*.sap
 
 # TFS 2012 Local Workspace
 $tf/
@@ -103,6 +109,10 @@ _TeamCity*
 
 # DotCover is a Code Coverage Tool
 *.dotCover
+
+# Visual Studio code coverage results
+*.coverage
+*.coveragexml
 
 # NCrunch
 _NCrunch_*
@@ -145,13 +155,23 @@ DocProject/Help/html
 !**/packages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/packages/repositories.config
+# NuGet v3's project.json files produces more ignoreable files
+*.nuget.props
+*.nuget.targets
 
-# Windows Azure Build Output
+# Microsoft Azure Build Output
 csx/
 *.build.csdef
 
-# Windows Store app package directory
+# Microsoft Azure Emulator
+ecf/
+rcf/
+
+# Windows Store app package directories and files
 AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+_pkginfo.txt
 
 # Visual Studio cache files
 # files ending in .cache can be ignored
@@ -166,10 +186,15 @@ ClientBin/
 *~
 *.dbmdl
 *.dbproj.schemaview
+*.jfm
 *.pfx
 *.publishsettings
 node_modules/
 orleans.codegen.cs
+
+# Since there are multiple workflows, uncomment next line to ignore bower_components
+# (https://github.com/github/gitignore/pull/1529#issuecomment-104372622)
+#bower_components/
 
 # RIA/Silverlight projects
 Generated_Code/
@@ -194,6 +219,8 @@ UpgradeLog*.htm
 # Microsoft Fakes
 FakesAssemblies/
 
+# GhostDoc plugin setting file
+*.GhostDoc.xml
 # Node.js Tools for Visual Studio
 .ntvs_analysis.dat
 
@@ -211,6 +238,24 @@ FakesAssemblies/
 **/*.Server/ModelManifest.xml
 _Pvt_Extensions
 
+# Paket dependency manager
+.paket/paket.exe
+paket-files/
+
+# FAKE - F# Make
+.fake/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# CodeRush
+.cr/
+
+# Python Tools for Visual Studio (PTVS)
+__pycache__/
+*.pyc
+
 **logs/
 **/api-keys.json
 **/appsettings.json
@@ -220,10 +265,13 @@ _Pvt_Extensions
 src/*/wwwroot/lib
 PublishProfiles
 
-.build
 scripts/publish/version.txt
 src/Microsoft.IIS.Administration/wwwroot/static/Microsoft.IIS.Administration.WebServer.HttpRequestTracing/freb.xsl
-dist
+
 .test
 test\Microsoft.IIS.Administration.Tests\test.config.json
 test\appsettings.test.json
+
+target
+signed
+dist

@@ -1,12 +1,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project=".\Microsoft.IIS.Administration.props" />
-  <!-- Used only in Visual Studio Launch: Bring in dependencies to plugin directory during simple build -->
-  <PropertyGroup Condition="$(PublishDir) == ''">
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-  </PropertyGroup>
-
   <PropertyGroup>
-    <OutputPath>$(AppOutputRoot)\plugins</OutputPath>
+    <OutDir>$(AppOutputRoot)\plugins</OutDir>
     <PublishDir>$(AppPublishRoot)\plugins</PublishDir>
   </PropertyGroup>
 </Project>

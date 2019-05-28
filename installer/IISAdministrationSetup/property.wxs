@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<?include ..\shared\common.wxi ?>
+
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <Property Id="DEFAULT_CORS" Value="true"></Property>
+  </Fragment>
+</Wix>

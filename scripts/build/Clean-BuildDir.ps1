@@ -1,16 +1,19 @@
-## This script would need to manually called after msbuild publish beause there is not "PostPublish" task in msbuild
+## This script is used to finalize build/dist directory for publish. It does the following
+## * Dedupe depenciece from root dir and plugin dir
+## * Move symbol files
+## * Copy 3rd Party notice
 param(
     [string]
     $solutionDir = [System.IO.Path]::Combine($PSScriptRoot, "..", ".."),
 
     [string]
-    $publishDir = [System.IO.Path]::Combine($solutionDir, "dist")
+    $manifestDir = [System.IO.Path]::Combine($solutionDir, ".builds")
 )
 
 function Move-SymbolsFiles {
-    $symbolsDir = Join-Path $publishDir symbols
+    $symbolsDir = Join-Path $manifestDir symbols
     if (!(Test-Path $symbolsDir)) {
-        mkdir $symbolsDir
+        mkdir $symbolsDir | Out-Null
     }
     Get-ChildItem -Path "*.pdb" -Recurse -File | ForEach-Object { Move-Item  $_.FullName $symbolsDir -Force }
 }
@@ -43,10 +46,10 @@ function Remove-NonWindowsRuntime {
 }
 
 function Copy-3rdPartyNotice {
-    Copy-Item (Join-Path $solutionDir ThirdPartyNotices.txt) $publishDir
+    Copy-Item (Join-Path $solutionDir ThirdPartyNotices.txt) $manifestDir
 }
 
-Push-Location (Join-Path $publishDir "Microsoft.IIS.Administration")
+Push-Location (Join-Path $manifestDir "Microsoft.IIS.Administration")
 try {
     Move-SymbolsFiles
     Remove-DuplicateDlls
@@ -56,4 +59,3 @@ try {
 } finally {
     Pop-Location
 }
-

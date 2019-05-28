@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\build\sign.props" />
-  <Import Project="..\..\build\version.props" />
-  <Import Project="..\..\build\plugins.props" />
+  <Import Project="$(SolutionDir)\build\sign.props" />
+  <Import Project="$(SolutionDir)\build\version.props" />
+  <Import Project="$(SolutionDir)\build\plugins.props" />
 
   <PropertyGroup>
     <Description>Microsoft.IIS.Administration.WebServer.Monitoring Class Library</Description>
@@ -16,6 +16,14 @@
     <ProjectReference Include="..\Microsoft.IIS.Administration.WebServer.Sites\Microsoft.IIS.Administration.WebServer.Sites.csproj" />
     <ProjectReference Include="..\Microsoft.IIS.Administration.WebServer\Microsoft.IIS.Administration.WebServer.csproj" />
     <ProjectReference Include="..\Microsoft.IIS.Administration.Core\Microsoft.IIS.Administration.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="System.Diagnostics.Process" Version="$(SystemDiagnosticsProcessVersion)" />
   </ItemGroup>
 
 </Project>
