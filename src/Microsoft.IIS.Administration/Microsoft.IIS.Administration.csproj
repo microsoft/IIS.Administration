@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\build\sign.props" />
-  <Import Project="..\..\build\version.props" />
-  <Import Project="..\..\build\Microsoft.IIS.Administration.props" />
+  <Import Project="$(SolutionDir)\build\sign.props" />
+  <Import Project="$(SolutionDir)\build\version.props" />
+  <Import Project="$(SolutionDir)\build\Microsoft.IIS.Administration.props" />
 
   <PropertyGroup>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
@@ -103,11 +103,11 @@
   </ItemGroup>
 
   <Target Name="CreatConfigs" BeforeTargets="PrepareForBuild">
-    <Exec Command="powershell -NonInteractive -executionpolicy Unrestricted -command &quot;&amp;'..\..\scripts\build\Copy-Configs.ps1' '$(MSBuildProjectDirectory)'&quot;" />
+    <Exec Command="powershell -NonInteractive -executionpolicy Unrestricted -command &quot;&amp;'$(SolutionDir)\scripts\build\Copy-Configs.ps1' '$(MSBuildProjectDirectory)'&quot;" />
   </Target>
 
   <Target Name="CleanBuildDir" Condition="$(CleanBuildDir) != ''" AfterTargets="Build">
-    <Exec Command="powershell -NonInteractive -executionpolicy Unrestricted -command &quot;&amp;..\..\scripts\build\Clean-BuildDir.ps1&quot;" />
+    <Exec Command="powershell -NonInteractive -executionpolicy Unrestricted -command &quot;&amp;$(SolutionDir)\scripts\build\Clean-BuildDir.ps1&quot;" />
   </Target>
 
   <!-- Workaround for: Files generated during build are not copying to publish directory on first publish https://github.com/dotnet/cli/issues/5498#issuecomment-275932671 -->

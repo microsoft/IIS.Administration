@@ -1,5 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\build\version.props" />
+  <Import Project="$(SolutionDir)\build\version.props" />
 
   <PropertyGroup>
     <Description>Tests Class Library</Description>
@@ -18,11 +18,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.IIS.Administration.Core\Microsoft.IIS.Administration.Core.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.IIS.Administration.Files.Core\Microsoft.IIS.Administration.Files.Core.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.IIS.Administration.Files\Microsoft.IIS.Administration.Files.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.IIS.Administration.WebServer.Files\Microsoft.IIS.Administration.WebServer.Files.csproj" />
-    <ProjectReference Include="..\..\src\Microsoft.IIS.Administration.WebServer\Microsoft.IIS.Administration.WebServer.csproj" />
+    <ProjectReference Include="$(SolutionDir)\src\Microsoft.IIS.Administration.Core\Microsoft.IIS.Administration.Core.csproj" />
+    <ProjectReference Include="$(SolutionDir)\src\Microsoft.IIS.Administration.Files.Core\Microsoft.IIS.Administration.Files.Core.csproj" />
+    <ProjectReference Include="$(SolutionDir)\src\Microsoft.IIS.Administration.Files\Microsoft.IIS.Administration.Files.csproj" />
+    <ProjectReference Include="$(SolutionDir)\src\Microsoft.IIS.Administration.WebServer.Files\Microsoft.IIS.Administration.WebServer.Files.csproj" />
+    <ProjectReference Include="$(SolutionDir)\src\Microsoft.IIS.Administration.WebServer\Microsoft.IIS.Administration.WebServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
