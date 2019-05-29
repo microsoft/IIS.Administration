@@ -46,12 +46,12 @@ namespace Microsoft.IIS.Administration.Tests
 
                 if (!installed) {
                     _logger.WriteLine("Installing " + feature);
-                    Assert.True(client.Post(Configuration.TEST_SERVER_URL + feature, "", out result));
+                    Assert.True(client.Post(Configuration.Instance().TEST_SERVER_URL + feature, "", out result));
                     Assert.True(IsInstalled(feature, client));
                 }
 
                 _logger.WriteLine("retrieving settings for " + feature);
-                var settings = client.Get(Configuration.TEST_SERVER_URL + feature + "?scope=");
+                var settings = client.Get(Configuration.Instance().TEST_SERVER_URL + feature + "?scope=");
 
                 _logger.WriteLine("Uninstalling " + feature);
                 Assert.True(client.Delete(Utils.Self(settings)));
@@ -59,7 +59,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 if (installed) {
                     _logger.WriteLine("Reinstalling " + feature);
-                    Assert.True(client.Post(Configuration.TEST_SERVER_URL + feature, "", out result));
+                    Assert.True(client.Post(Configuration.Instance().TEST_SERVER_URL + feature, "", out result));
                     Assert.True(IsInstalled(feature, client));
                 }
             }
@@ -67,7 +67,7 @@ namespace Microsoft.IIS.Administration.Tests
 
         private bool IsInstalled(string feature, HttpClient client)
         {
-            var res = client.GetAsync(Configuration.TEST_SERVER_URL + feature + "?scope=").Result;
+            var res = client.GetAsync(Configuration.Instance().TEST_SERVER_URL + feature + "?scope=").Result;
             return res.StatusCode != HttpStatusCode.NotFound; 
         }
     }

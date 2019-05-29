@@ -10,14 +10,22 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Linq;
     using System.Net.Http;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class Handlers
     {
         public const string TEST_SITE_NAME = "handlers_test_site";
-        public static readonly string HANDLERS_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/http-handlers";
+        public static readonly string HANDLERS_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/http-handlers";
 
         private const string allowedAccessProperty = "allowed_access";
         private const string removePreventionProperty = "remote_access_prevention";
+
+        private ITestOutputHelper _output;
+
+        public Handlers(ITestOutputHelper output)
+        {
+            _output = output;
+        }
 
         [Fact]
         public void ChangeAllFeatureProperties()
@@ -31,7 +39,7 @@ namespace Microsoft.IIS.Administration.Tests
                 TestScopedFeature(client, webserverFeature);
                 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                var site = Sites.CreateSite(client, TEST_SITE_NAME, Utils.GetAvailablePort(), Sites.TEST_SITE_PATH);
+                var site = Sites.CreateSite(_output, client, TEST_SITE_NAME, Utils.GetAvailablePort(), Sites.TEST_SITE_PATH);
                 Assert.NotNull(site);
                 try {
                     var siteFeature = Utils.GetFeature(client, HANDLERS_URL, site.Value<string>("name"), "/");

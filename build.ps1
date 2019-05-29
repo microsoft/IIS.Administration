@@ -2,6 +2,9 @@
 [CmdletBinding()]
 param(
     [switch]
+    $publish,
+
+    [switch]
     $devSetup,
 
     [switch]
@@ -9,9 +12,6 @@ param(
 
     [switch]
     $test,
-
-    [string]
-    $publishPath = (Join-Path $PSScriptRoot "dist"),
 
     [string]
     $installPath = (Join-Path $env:ProgramFiles "IIS Administration"),
@@ -39,7 +39,16 @@ function DevEnvSetup() {
 }
 
 function Publish() {
-    & ([System.IO.Path]::Combine($scriptDir, "publish", "publish.ps1")) -OutputPath $publishPath -SkipPrompt
+    if (!(Where.exe msbuild)) {
+        throw "msbuild command is required for publish option"
+    }
+    dotnet restore
+    & msbuild /t:Publish
+}
+
+function PrepareForTestSetup() {
+    & ([System.IO.Path]::Combine($projectRoot, "scripts", "build", "Clean-BuildDir.ps1")) `
+        -manifestDir ([System.IO.Path]::Combine($projectRoot, "dist"))
     if ($test) {
         Write-Host "$(BuildHeader) Overwriting published config file with test configurations..."
         $testConfig = [System.IO.Path]::Combine($projectRoot, "test", "appsettings.test.json")
@@ -135,7 +144,7 @@ try {
 }
 $scriptDir = Join-Path $projectRoot "scripts"
 # publish script only takes full path
-$publishPath = ForceResolvePath "$publishPath"
+$publishPath = Join-Path $projectRoot "dist"
 $installPath = ForceResolvePath "$installPath"
 $serviceName = GetGlobalVariable DEFAULT_SERVICE_NAME
 
@@ -151,7 +160,10 @@ try {
     }
     
     Write-Host "$(BuildHeader) Publishing..."
-    Publish
+    if ($publish) {
+        Publish
+    }
+    PrepareForTestSetup
     
     if ($install) {
         Write-Host "$(BuildHeader) Installing service..."

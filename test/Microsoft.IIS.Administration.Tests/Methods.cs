@@ -16,7 +16,7 @@ namespace Microsoft.IIS.Administration.Tests
         {
             using (HttpClient client = ApiHttpClient.Create()) {
 
-                var req = new HttpRequestMessage(new HttpMethod("GET"), $"{Configuration.TEST_SERVER_URL}{resourceEndpoint}");
+                var req = new HttpRequestMessage(new HttpMethod("GET"), $"{Configuration.Instance().TEST_SERVER_URL}{resourceEndpoint}");
 
                 var res = client.SendAsync(req).Result;
 
@@ -24,7 +24,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 Assert.NotEqual(getContent, string.Empty);
 
-                req = new HttpRequestMessage(new HttpMethod("HEAD"), $"{Configuration.TEST_SERVER_URL}{resourceEndpoint}");
+                req = new HttpRequestMessage(new HttpMethod("HEAD"), $"{Configuration.Instance().TEST_SERVER_URL}{resourceEndpoint}");
 
                 res = client.SendAsync(req).Result;
 

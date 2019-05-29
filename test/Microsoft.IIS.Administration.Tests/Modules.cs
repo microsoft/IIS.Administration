@@ -14,8 +14,8 @@ namespace Microsoft.IIS.Administration.Tests
 
     public class Modules
     {
-        public static readonly string GLOBAL_MODULES_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/global-modules";
-        public static readonly string MODULES_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/http-modules";
+        public static readonly string GLOBAL_MODULES_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/global-modules";
+        public static readonly string MODULES_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/http-modules";
 
         [Fact]
         public void AddRemoveManagedModuleEntry()

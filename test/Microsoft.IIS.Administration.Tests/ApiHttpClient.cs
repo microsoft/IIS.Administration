@@ -14,7 +14,7 @@ namespace Microsoft.IIS.Administration.Tests
 
         public static HttpClient Create()
         {
-            return Create(Configuration.TEST_SERVER_URL);
+            return Create(Configuration.Instance().TEST_SERVER_URL);
         }
 
         public static HttpClient Create(string serverUri)

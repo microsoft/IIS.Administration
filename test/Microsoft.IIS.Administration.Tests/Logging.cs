@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.Tests
 
     public class Logging
     {
-        public static readonly string LOGGING_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/logging";
+        public static readonly string LOGGING_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/logging";
 
         [Fact]
         public void TestCustomFields()
