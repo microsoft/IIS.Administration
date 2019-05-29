@@ -20,8 +20,6 @@ jobs:
   pool:
     name: 'Hosted VS2017'  # name of the pool to run this job in
     demands:
-      - MSBuild_15.0_x64
-      - MSBuild_15.0
       - msbuild
       - vstest
   steps:
