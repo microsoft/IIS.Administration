@@ -11,13 +11,28 @@ param(
     $install,
 
     [switch]
+    $keepInstalledApp,
+
+    [switch]
     $test,
 
     [string]
     $installPath = (Join-Path $env:ProgramFiles "IIS Administration"),
 
     [int]
-    $testPort = 44326
+    $testPort = 44326,
+
+    [int]
+    $pingRetryCount = 20,
+
+    [int]
+    $pingRetryPeriod = 10,
+
+    [ValidateSet('debug','release')]
+    [string]
+    $buildType = 'release',
+
+    $appName = "Microsoft IIS Administration"
 )
 
 $ErrorActionPreference = "Stop"
@@ -43,17 +58,22 @@ function Publish() {
         throw "msbuild command is required for publish option"
     }
     dotnet restore
-    & msbuild /t:Publish
+    msbuild /t:publish /p:Configuration=$buildType
 }
 
-function PrepareForTestSetup() {
-    & ([System.IO.Path]::Combine($projectRoot, "scripts", "build", "Clean-BuildDir.ps1")) `
-        -manifestDir ([System.IO.Path]::Combine($projectRoot, "dist"))
-    if ($test) {
-        Write-Host "$(BuildHeader) Overwriting published config file with test configurations..."
-        $testConfig = [System.IO.Path]::Combine($projectRoot, "test", "appsettings.test.json")
-        $publishConfig = [System.IO.Path]::Combine($publishPath, "Microsoft.IIS.Administration", "config", "appsettings.json")
-        Copy-Item -Path $testconfig -Destination $publishConfig -Force
+function BuildSetupExe() {
+    if (!(Where.exe msbuild)) {
+        throw "msbuild command is required to build installer"
+    }
+    if (!(Where.exe nuget)) {
+        throw "nuget command is required to build installer"
+    }
+    Push-Location installer
+    try {
+        nuget restore
+        msbuild /p:Configuration=$buildType
+    } finally {
+        Pop-Location
     }
 }
 
@@ -64,11 +84,13 @@ function EnsureIISFeatures() {
 }
 
 function InstallTestService() {
-    & ([System.IO.Path]::Combine($scriptDir, "setup", "setup.ps1")) Install -DistributablePath $publishPath -Path $installPath -Verbose -Port $testPort
+    & ([System.IO.Path]::Combine($projectRoot, "installer", "IISAdministrationBundle", "bin", "x64", "Release", "IISAdministrationSetup.exe")) /s /w
 }
 
-function UninistallTestService() {
-    & ([System.IO.Path]::Combine($scriptDir, "setup", "setup.ps1")) Uninstall -Path $installPath -ErrorAction SilentlyContinue | Out-Null
+function UninstallTestService() {
+    $app = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -match $appName }
+    $app.Uninstall() | Out-Null
+    Write-Verbose "Uninstalled $appName"
 }
 
 function CleanUp() {
@@ -82,23 +104,34 @@ function CleanUp() {
             throw
         }
     }
-    try {
-        UninistallTestService
-    } catch {
-        Write-Warning $_
-        Write-Warning "Failed to uninistall $serviceName"
+    if (!$keepInstalledApp) {
+        try {
+            UninstallTestService
+        } catch {
+            Write-Warning $_
+            Write-Warning "Failed to uninistall $serviceName"
+        }
     }
 }
 
 function StartTestService($hold) {
-    $group = GetGlobalVariable IIS_ADMIN_API_OWNERS
-    $member = & ([System.IO.Path]::Combine($scriptDir, "setup", "security.ps1")) CurrentAdUser
-
     Write-Host "$(BuildHeader) Sanity tests..."
     $pingEndpoint = "https://localhost:$testPort"
-    try {
-        Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint | Out-Null
-    } catch {
+    $pingSucceeded = $false
+    while (!$pingSucceeded -and ($pingRetryCount -ge 0)) {
+        try {
+            Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint | Out-Null
+            $pingSucceeded = $true
+        } catch {
+            Write-Verbose "Failed to ping with status $($_.Exception.Status)"
+            $pingRetryCount--;
+            if ($pingRetryCount -ge 0) {
+                Start-Sleep $pingRetryPeriod
+            }
+        }
+    }
+
+    if (!$pingSucceeded) {
         Write-Error "Failed to ping test server $pingEndpoint, did you forget to start it manually?"
         Exit 1
     }
@@ -134,7 +167,6 @@ function GetGlobalVariable($name) {
 
 ########################################################### Main Script ##################################################################
 $debug = $PSBoundParameters['debug']
-$user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 
 try {
     $projectRoot = git rev-parse --show-toplevel
@@ -162,9 +194,13 @@ try {
     Write-Host "$(BuildHeader) Publishing..."
     if ($publish) {
         Publish
+        & ([System.IO.Path]::Combine($scriptDir, "build", "Clean-BuildDir.ps1")) -manifestDir $publishPath
+        if ($test) {
+            & ([System.IO.Path]::Combine($scriptDir, "tests", "Copy-TestConfig.ps1"))
+        }
+        BuildSetupExe
     }
-    PrepareForTestSetup
-    
+
     if ($install) {
         Write-Host "$(BuildHeader) Installing service..."
         InstallTestService
