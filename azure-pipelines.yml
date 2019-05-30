@@ -27,6 +27,11 @@ jobs:
       clean: true
       submodules: true
 
+    - task: NuGetToolInstaller@0
+      inputs:
+        versionSpec: '>=4.7.1' 
+        checkLatest: false # Optional
+
     - task: DotNetCoreInstaller@0
       displayName: 'Use .NET Core sdk 2.1.505'
       inputs:
