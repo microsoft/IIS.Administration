@@ -24,16 +24,18 @@ jobs:
       - vstest
   steps:
     - checkout: self
-      clean: all
-      submodules: "true"
+      clean: true
+      submodules: true
 
     - task: DotNetCoreInstaller@0
       displayName: 'Use .NET Core sdk 2.1.505'
       inputs:
         version: 2.1.505
+        packageType: runtime
 
     - task: NuGetCommand@2
       displayName: 'NuGet Restore'
+      inputs:
         command: restore
         feedsToUse: config
         nugetConfigPath: NuGet.Config
