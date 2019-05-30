@@ -24,8 +24,8 @@ jobs:
       - vstest
   steps:
     - checkout: self
-      clean: all
-      submodules: "true"
+      clean: true
+      submodules: true
 
     - task: DotNetCoreInstaller@0
       displayName: 'Use .NET Core sdk 2.1.505'
@@ -33,7 +33,7 @@ jobs:
         version: 2.1.505
 
     - task: DotNetCoreCLI@2
-      displayName: 'dotnet restore'
+      displayName: 'Restore'
       inputs:
         command: restore
         feedsToUse: config
