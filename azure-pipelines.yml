@@ -32,13 +32,6 @@ jobs:
       inputs:
         version: 2.1.505
 
-    - task: DotNetCoreCLI@2
-      displayName: 'Restore'
-      inputs:
-        command: restore
-        feedsToUse: config
-        nugetConfigPath: NuGet.Config
-
     - task: MSBuild@1
       displayName: 'Build IIS Administration'
       inputs:
