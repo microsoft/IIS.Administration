@@ -39,7 +39,7 @@ jobs:
       displayName: 'Restore Dependencies'
       inputs:
         command: restore
-        restoreSolution: '*.sln'
+        restoreSolution: '**\*.sln'
 
     - task: MSBuild@1
       displayName: 'Build IIS Administration'
@@ -49,6 +49,27 @@ jobs:
         msbuildArchitecture: x64
         configuration: 'release'
         msbuildArguments: '/t:publish'
+
+    - task: PowerShell@2
+      displayName: 'Post-publish script'
+      inputs:
+        targetType: filePath
+        filePath: ./scripts/build/Clean-BuildDir.ps1
+        arguments: '-manifestDir $(Build.SourcesDirectory)/dist'
+
+    - task: PowerShell@2
+      displayName: 'Replace config file with test configs'
+      inputs:
+        targetType: filePath
+        filePath: ./scripts/tests/Copy-TestConfig.ps1
+
+    - task: MSBuild@1
+      displayName: 'Build Setup File'
+      inputs:
+        solution: installer\IISAdministrationSetup.sln
+        msbuildVersion: "15.0"
+        msbuildArchitecture: x64
+        configuration: 'release'
 
     - task: PowerShell@2
       displayName: 'PowerShell Script build.ps1'

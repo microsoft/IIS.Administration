@@ -7,7 +7,7 @@ try {
 
 $publishPath = Join-Path $projectRoot "dist"
 
-Write-Host "$(BuildHeader) Overwriting published config file with test configurations..."
+Write-Host "Overwriting published config file with test configurations..."
 $testConfig = [System.IO.Path]::Combine($projectRoot, "test", "appsettings.test.json")
 $publishConfig = [System.IO.Path]::Combine($publishPath, "Microsoft.IIS.Administration", "config", "appsettings.json")
 Copy-Item -Path $testconfig -Destination $publishConfig -Force
