@@ -36,7 +36,7 @@ namespace Microsoft.IIS.Administration.Tests
 
         public static string CcsTestUsername {
             get {
-                return Configuration.Instance().CCSUser;//.Raw.Value<string>("ccs_user") ?? "IisAdminCcsTestR";
+                return Configuration.Instance().CCSUser;
             }
         }
 
