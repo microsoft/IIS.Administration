@@ -32,9 +32,8 @@ jobs:
       inputs:
         version: 2.1.505
 
-    - task: DotNetCoreCLI@2
-      displayName: 'dotnet restore'
-      inputs:
+    - task: NuGetCommand@2
+      displayName: 'NuGet Restore'
         command: restore
         feedsToUse: config
         nugetConfigPath: NuGet.Config
