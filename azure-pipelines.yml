@@ -31,7 +31,6 @@ jobs:
       displayName: 'Use .NET Core sdk 2.1.505'
       inputs:
         version: 2.1.505
-        packageType: runtime
 
     - task: NuGetCommand@2
       displayName: 'NuGet Restore'
