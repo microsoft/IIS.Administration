@@ -37,6 +37,7 @@ jobs:
       inputs:
         command: restore
         feedsToUse: config
+        nugetConfigPath: NuGet.Config
 
     - task: MSBuild@1
       displayName: 'Build IIS Administration'
