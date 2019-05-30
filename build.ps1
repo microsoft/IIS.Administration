@@ -1,4 +1,43 @@
 #Requires -RunAsAdministrator
+<#
+.SYNOPSIS
+  Entry point for building/testing the project, common usage:
+  .\build.ps1 -devSetup -publish -install -test -verbose
+    What the command does
+        * Ensure local machine is properly setup for build and test the repo
+        * Build and publish application in `dist` directory
+        * Build and run installer
+        * Run functional tests
+
+.PARAMETER publish
+  build and publish the manifests in dist directory.
+  Include this switch to build and test the project in a single step. However, its required that msbuild and nuget needs to be in the path when `publish` is set to true
+
+.PARAMETER devSetup
+  Ensure local machine is properly setup for build and test the repo
+
+.PARAMETER install
+  Install the built manifest for testing
+
+.PARAMETER keepInstalledApp
+  Do not uninstall the application after steps are run
+
+.PARAMETER test
+  Run the functional tests
+
+.PARAMETER testPort
+  The port to use for service
+
+.PARAMETER pingRetryCount
+.PARAMETER pingRetryPeriod
+  When waiting for the service to come up, these properties defines the fequency and number of time to retry pinging the endpoint
+
+.PARAMETER buildType
+  Build the binaries in debug or release mode, default: release
+
+.PARAMETER appName
+  Do not change: the name of the application
+#>
 [CmdletBinding()]
 param(
     [switch]
@@ -15,9 +54,6 @@ param(
 
     [switch]
     $test,
-
-    [string]
-    $installPath = (Join-Path $env:ProgramFiles "IIS Administration"),
 
     [int]
     $testPort = 44326,
@@ -177,7 +213,6 @@ try {
 $scriptDir = Join-Path $projectRoot "scripts"
 # publish script only takes full path
 $publishPath = Join-Path $projectRoot "dist"
-$installPath = ForceResolvePath "$installPath"
 $serviceName = GetGlobalVariable DEFAULT_SERVICE_NAME
 
 Write-Host "$(BuildHeader) Starting clean up..."
