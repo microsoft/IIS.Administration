@@ -1,7 +1,7 @@
 {
   "host_id": "",
   "host_name": "IIS Administration API",
-  "urls": "https://*:44326",
+  "urls": "%test_url%",
   "security": {
     "require_windows_authentication": true,
     "users": {

@@ -25,8 +25,8 @@
 .PARAMETER test
   Run the functional tests
 
-.PARAMETER testPort
-  The port to use for service
+.PARAMETER testEndpoint
+  The endpoint use to deploy test server, currently limited to localhost of a specific unused port
 
 .PARAMETER installCheckRetryCount
 .PARAMETER installCheckRetryPeriod
@@ -55,8 +55,8 @@ param(
     [switch]
     $test,
 
-    [int]
-    $testPort = 44326,
+    [uri]
+    $testEndpoint = "https://localhost:43326",
 
     [int]
     $installCheckRetryCount = 20,
@@ -86,7 +86,14 @@ function ForceResolvePath($path) {
 }
 
 function DevEnvSetup() {
-    & ([System.IO.Path]::Combine($scriptDir, "Configure-DevEnvironment.ps1")) -ConfigureTestEnvironment
+    & ([System.IO.Path]::Combine($scriptDir, "Configure-DevEnvironment.ps1")) -ConfigureTestEnvironment:$test -TestEndpoint:$testEndpoint
+    if ($test) {
+        $configPath = [System.IO.Path]::Combine($projectRoot, "test", "Microsoft.IIS.Administration.Tests", "test.config.json")
+        $config = ConvertFrom-Json (Get-Content -Raw $configPath)
+        $config.test_server = "$($testEndpoint.Scheme)://$($testEndpoint.Host)"
+        $config.test_port = $testEndpoint.Port
+        ConvertTo-Json $config -Depth 100 | Out-File $configPath -Force
+    }
 }
 
 function Publish() {
@@ -129,8 +136,7 @@ function InstallTestService() {
     }
     Write-Host "$appName installed"
     Write-Host "Sanity test:"
-    $pingEndpoint = "https://localhost:$testPort"
-    Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint
+    Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $testEndpoint
     Write-Host "Ping Successful"
 }
 

@@ -3,7 +3,10 @@
 
 Param(
     [switch]
-    $ConfigureTestEnvironment
+    $ConfigureTestEnvironment,
+
+    [string]
+    $TestEndpoint = "https://localhost:43326"
 )
 
 #Requires -RunAsAdministrator
@@ -68,7 +71,8 @@ try {
 
         $env = @{
             "iis_admin_test_dir" = (ConvertTo-Json $testRoot).Trim('"');
-            "project_dir" = $projectRoot
+            "project_dir" = $projectRoot;
+            "test_url" = $TestEndpoint
         }
         ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "appsettings.test.json.template")) $env
         ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "Microsoft.IIS.Administration.Tests", "test.config.json.template")) $env

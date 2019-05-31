@@ -3,5 +3,5 @@
   "project_path":  "%project_dir%",
   "test_server": "https://localhost",
   "test_port": "44326",
-  "test_root_path": "%iis_admin_test_dir%",
+  "test_root_path": "%iis_admin_test_dir%"
 }
