@@ -128,7 +128,8 @@ function InstallTestService() {
         }
     }
     Write-Host "$appName installed"
-    Write-Host "Pinging service endpoint:"
+    Write-Host "Sanity test:"
+    $pingEndpoint = "https://localhost:$testPort"
     Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint
     Write-Host "Ping Successful"
 }
