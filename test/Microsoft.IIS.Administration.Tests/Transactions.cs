@@ -9,12 +9,20 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using System.Text;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class Transactions
     {
         private const string TRANSACTION_SITE_NAME = "trans_site";
         public const string TRANSACTION_HEADER = "Transaction-Id";
-        public static readonly string TRANSACTIONS_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/transactions";
+        public static readonly string TRANSACTIONS_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/transactions";
+
+        private ITestOutputHelper _output;
+
+        public Transactions(ITestOutputHelper output)
+        {
+            _output = output;
+        }
 
         [Fact]
         public void UseTransactionManipulateSite()
@@ -25,7 +33,7 @@ namespace Microsoft.IIS.Administration.Tests
                 Sites.EnsureNoSite(client, TRANSACTION_SITE_NAME);
 
                 // Create the site we will be manipulating to test transactions
-                JObject site = Sites.CreateSite(client, TRANSACTION_SITE_NAME, 50000, Sites.TEST_SITE_PATH);
+                JObject site = Sites.CreateSite(_output, client, TRANSACTION_SITE_NAME, 50000, Sites.TEST_SITE_PATH);
                 Assert.NotNull(site);
 
                 // Cache the value of the property we will be manipulating through a transaciton
@@ -110,7 +118,7 @@ namespace Microsoft.IIS.Administration.Tests
                 Sites.EnsureNoSite(client, TRANSACTION_SITE_NAME);
 
                 // Create the site we will be manipulating to test transactions
-                JObject site = Sites.CreateSite(client, TRANSACTION_SITE_NAME, 50000, Sites.TEST_SITE_PATH);
+                JObject site = Sites.CreateSite(_output, client, TRANSACTION_SITE_NAME, 50000, Sites.TEST_SITE_PATH);
                 Assert.NotNull(site);
                 
                 // Create a transaction

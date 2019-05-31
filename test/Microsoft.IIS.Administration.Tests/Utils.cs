@@ -83,7 +83,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
 
             string content;
-            if (!client.Get($"{Configuration.TEST_SERVER_URL}{ href }", out content)) {
+            if (!client.Get($"{Configuration.Instance().TEST_SERVER_URL}{ href }", out content)) {
                 return null;
             }
 
@@ -97,7 +97,7 @@ namespace Microsoft.IIS.Administration.Tests
 
         public static string GetLink(JObject obj, string linkName)
         {
-            string link = $"{Configuration.TEST_SERVER_URL}{ obj["_links"][linkName].Value<string>("href") }";
+            string link = $"{Configuration.Instance().TEST_SERVER_URL}{ obj["_links"][linkName].Value<string>("href") }";
 
             if (link == null) {
                 throw new Exception();

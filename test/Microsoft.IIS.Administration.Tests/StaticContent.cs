@@ -12,7 +12,7 @@ namespace Microsoft.IIS.Administration.Tests
 
     public class StaticContent
     {
-        public static readonly string STATIC_CONTENT_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/static-content";
+        public static readonly string STATIC_CONTENT_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/static-content";
 
         [Fact]
         public void ChangeAllProperties()

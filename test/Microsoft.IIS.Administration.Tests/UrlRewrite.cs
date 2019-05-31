@@ -11,11 +11,19 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class UrlRewrite
     {
         private const string TEST_SITE_NAME = "Rewrite Test Site";
-        private static readonly string REWRITE_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/url-rewrite";
+        private static readonly string REWRITE_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/url-rewrite";
+
+        private ITestOutputHelper _output;
+
+        public UrlRewrite(ITestOutputHelper output)
+        {
+            _output = output;
+        }
 
         [Fact]
         public async Task CreateAndUpdateInboundRule()
@@ -25,7 +33,7 @@ namespace Microsoft.IIS.Administration.Tests
                 await EnsureEnabled(client);
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                var site = Sites.CreateSite(client, TEST_SITE_NAME, Utils.GetAvailablePort(), Sites.TEST_SITE_PATH);
+                var site = Sites.CreateSite(_output, client, TEST_SITE_NAME, Utils.GetAvailablePort(), Sites.TEST_SITE_PATH);
                 Assert.NotNull(site);
 
                 try {
@@ -738,7 +746,7 @@ namespace Microsoft.IIS.Administration.Tests
                 await EnsureEnabled(client);
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                var site = Sites.CreateSite(client, TEST_SITE_NAME, Utils.GetAvailablePort(), Sites.TEST_SITE_PATH);
+                var site = Sites.CreateSite(_output, client, TEST_SITE_NAME, Utils.GetAvailablePort(), Sites.TEST_SITE_PATH);
                 Assert.NotNull(site);
 
                 try {
@@ -869,7 +877,7 @@ namespace Microsoft.IIS.Administration.Tests
                 await EnsureEnabled(client);
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                var site = Sites.CreateSite(client, TEST_SITE_NAME, Utils.GetAvailablePort(), Sites.TEST_SITE_PATH);
+                var site = Sites.CreateSite(_output, client, TEST_SITE_NAME, Utils.GetAvailablePort(), Sites.TEST_SITE_PATH);
                 Assert.NotNull(site);
 
                 try {

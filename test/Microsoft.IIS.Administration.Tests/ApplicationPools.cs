@@ -21,7 +21,7 @@ namespace Microsoft.IIS.Administration.Tests
         public const string TEST_APP_POOL_NAME = "test_app_pool";
         public static readonly string TEST_APP_POOL = $"{{\"name\": \"{TEST_APP_POOL_NAME}\"}}";
 
-        public static readonly string APP_POOLS_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/application-pools";
+        public static readonly string APP_POOLS_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/application-pools";
 
         [Fact]
         public void CreateAndCleanup()

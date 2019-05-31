@@ -233,8 +233,20 @@
       <Component Id="C_Microsoft.Extensions.Logging.Abstractions.dll" Guid="2D7A75AE-6D68-484B-8033-4F9FDDA7E7BF" Win64="$(var.IsWin64)">
         <File Id="Microsoft.Extensions.Logging.Abstractions.dll" Source="$(var.APIDir)\Microsoft.Extensions.Logging.Abstractions.dll" />
       </Component>
+      <Component Id="C_Microsoft.Extensions.Logging.Configuration.dll" Guid="90F16829-785B-42CD-9368-B3081B2AA048" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Logging.Configuration.dll" Source="$(var.APIDir)\Microsoft.Extensions.Logging.Configuration.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Logging.Console.dll" Guid="A2BB4797-3E9D-4A42-9648-F71195FF607E" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Logging.Console.dll" Source="$(var.APIDir)\Microsoft.Extensions.Logging.Console.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Logging.Debug.dll" Guid="89C6C2B7-990F-4C8B-807D-328BCFD29D2E" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Logging.Debug.dll" Source="$(var.APIDir)\Microsoft.Extensions.Logging.Debug.dll" />
+      </Component>
       <Component Id="C_Microsoft.Extensions.Logging.dll" Guid="A29F4FA6-04EF-41A1-B24B-16901667FB1C" Win64="$(var.IsWin64)">
         <File Id="Microsoft.Extensions.Logging.dll" Source="$(var.APIDir)\Microsoft.Extensions.Logging.dll" />
+      </Component>
+      <Component Id="C_Microsoft.Extensions.Logging.EventLog.dll" Guid="F3B5C312-8DFC-460C-AB46-4A6E6532D9A1" Win64="$(var.IsWin64)">
+        <File Id="Microsoft.Extensions.Logging.EventLog.dll" Source="$(var.APIDir)\Microsoft.Extensions.Logging.EventLog.dll" />
       </Component>
       <Component Id="C_Microsoft.Extensions.ObjectPool.dll" Guid="081C6DBA-8FE3-48FD-A2E7-53536FA656FB" Win64="$(var.IsWin64)">
         <File Id="Microsoft.Extensions.ObjectPool.dll" Source="$(var.APIDir)\Microsoft.Extensions.ObjectPool.dll" />

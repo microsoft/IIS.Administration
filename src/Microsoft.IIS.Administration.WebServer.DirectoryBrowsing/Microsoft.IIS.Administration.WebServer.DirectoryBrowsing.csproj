@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(SolutionDir)\build\sign.props" />
-  <Import Project="$(SolutionDir)\build\version.props" />
-  <Import Project="$(SolutionDir)\build\plugins.props" />
+  <Import Project="..\..\build\sign.props" />
+  <Import Project="..\..\build\version.props" />
+  <Import Project="..\..\build\plugins.props" />
 
   <PropertyGroup>
     <Description>Microsoft.IIS.Administration.WebServer.DirectoryBrowsing Class Library</Description>

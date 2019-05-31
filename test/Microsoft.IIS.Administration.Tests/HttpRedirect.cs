@@ -10,7 +10,7 @@ namespace Microsoft.IIS.Administration.Tests
 
     public class HttpRedirect
     {
-        private static readonly string ENDPOINT = Configuration.TEST_SERVER_URL + "/api/webserver/http-redirect";
+        private static readonly string ENDPOINT = Configuration.Instance().TEST_SERVER_URL + "/api/webserver/http-redirect";
 
         [Fact]
         public void ChangeAllProperties()

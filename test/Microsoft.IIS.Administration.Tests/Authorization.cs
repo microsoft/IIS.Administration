@@ -11,12 +11,20 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using System.Text;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class Authorization
     {
         private const string TEST_SITE_NAME = "authorization_test_site";
 
-        public static readonly string AUTHORIZATION_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/authorization";
+        public static readonly string AUTHORIZATION_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/authorization";
+
+        private ITestOutputHelper _output;
+
+        public Authorization(ITestOutputHelper output)
+        {
+            _output = output;
+        }
 
         [Fact]
         public void ChangeAllProperties()
@@ -25,7 +33,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
 
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50310, Sites.TEST_SITE_PATH);
+                JObject site = Sites.CreateSite(_output, client, TEST_SITE_NAME, 50310, Sites.TEST_SITE_PATH);
                 JObject feature = GetAuthorizationFeature(client, site.Value<string>("name"), null);
                 Assert.NotNull(feature);
 
@@ -51,7 +59,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
 
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50310, Sites.TEST_SITE_PATH);
+                JObject site = Sites.CreateSite(_output, client, TEST_SITE_NAME, 50310, Sites.TEST_SITE_PATH);
                 JObject feature = GetAuthorizationFeature(client, site.Value<string>("name"), null);
                 Assert.NotNull(feature);
 

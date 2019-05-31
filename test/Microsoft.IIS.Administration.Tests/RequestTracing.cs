@@ -14,7 +14,7 @@ namespace Microsoft.IIS.Administration.Tests
 
     public class RequestTracing
     {
-        public static readonly string REQUEST_TRACING_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/http-request-tracing";
+        public static readonly string REQUEST_TRACING_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/http-request-tracing";
 
         [Fact]
         public void CreatePatchRemoveRule()

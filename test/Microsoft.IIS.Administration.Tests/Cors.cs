@@ -16,7 +16,7 @@ namespace Microsoft.IIS.Administration.Tests
         {
             using (HttpClient client = ApiHttpClient.Create()) {
 
-                HttpRequestMessage message = new HttpRequestMessage(new HttpMethod("OPTIONS"), $"{Configuration.TEST_SERVER_URL}/api");
+                HttpRequestMessage message = new HttpRequestMessage(new HttpMethod("OPTIONS"), $"{Configuration.Instance().TEST_SERVER_URL}/api");
 
                 message.Headers.Add("Access-Control-Request-Headers", "X-PINGOTHER");
                 message.Headers.Add("Access-Control-Request-Method", "GET");

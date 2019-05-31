@@ -7,7 +7,7 @@ trigger:
       - releases/*
 
 pr:
-  autoCancel: false
+  autoCancel: "false"
   branches:
     include:
       - dev
@@ -25,8 +25,30 @@ jobs:
       - vstest
   steps:
     - checkout: self
-      clean: false
-      submodules: true
+
+    - task: NuGetToolInstaller@0
+      inputs:
+        versionSpec: '>=4.7.1'
+
+    - task: DotNetCoreInstaller@0
+      displayName: 'Use .NET Core sdk 2.1.505'
+      inputs:
+        version: 2.1.505
+
+    - task: NuGetCommand@2
+      displayName: 'Restore Dependencies'
+      inputs:
+        command: restore
+        restoreSolution: '*.sln'
+
+    - task: MSBuild@1
+      displayName: 'Build IIS Administration'
+      inputs:
+        solution: Microsoft.IIS.Administration.sln
+        msbuildVersion: "15.0"
+        msbuildArchitecture: x64
+        configuration: 'release'
+        msbuildArguments: '/t:publish'
 
     - task: PowerShell@2
       displayName: 'PowerShell Script build.ps1'

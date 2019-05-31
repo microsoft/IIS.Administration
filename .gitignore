@@ -275,3 +275,6 @@ test\appsettings.test.json
 target
 signed
 dist
+
+test/Microsoft.IIS.Administration.Tests/test.config.json
+test/appsettings.test.json

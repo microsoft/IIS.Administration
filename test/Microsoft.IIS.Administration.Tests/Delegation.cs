@@ -10,12 +10,20 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Collections.Generic;
     using System.Net.Http;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class Delegation
     {
-        public static readonly string DelegationSectionsUri = $"{Configuration.TEST_SERVER_URL}/api/webserver/feature-delegation";
+        public static readonly string DelegationSectionsUri = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/feature-delegation";
 
         private const string TEST_SITE_NAME = "delegation_test_site";
+
+        private ITestOutputHelper _output;
+
+        public Delegation(ITestOutputHelper output)
+        {
+            _output = output;
+        }
 
         [Fact]
         public void SectionLocked()
@@ -106,7 +114,7 @@ namespace Microsoft.IIS.Administration.Tests
             using (HttpClient client = ApiHttpClient.Create()) {
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50310, Sites.TEST_SITE_PATH);
+                JObject site = Sites.CreateSite(_output, client, TEST_SITE_NAME, 50310, Sites.TEST_SITE_PATH);
 
                 foreach (DelegatableFeature f in features) {
 
@@ -143,7 +151,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                     // Try to get the feature at site level, this should result in a feature locked error because the override mode at server
                     // level is deny
-                    var response = client.GetAsync($"{Configuration.TEST_SERVER_URL}{f.Path}?scope={TEST_SITE_NAME}").Result;
+                    var response = client.GetAsync($"{Configuration.Instance().TEST_SERVER_URL}{f.Path}?scope={TEST_SITE_NAME}").Result;
 
                     // Check for proper status code for feature locked error
                     Assert.True(response.StatusCode == System.Net.HttpStatusCode.Forbidden);
@@ -243,7 +251,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
 
             string content;
-            if (!client.Get($"{Configuration.TEST_SERVER_URL}" + feature.Path + "?scope=" + siteName + path, out content)) {
+            if (!client.Get($"{Configuration.Instance().TEST_SERVER_URL}" + feature.Path + "?scope=" + siteName + path, out content)) {
                 return null;
             }
 
