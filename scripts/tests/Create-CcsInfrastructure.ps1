@@ -13,9 +13,11 @@ function New-CcsSelfSignedCertificate($certName) {
 
     # Private key should be exportable
     if ($command.Parameters.Keys.Contains("KeyExportPolicy")) {
+        Write-Host "Calling New-SelfSignedCertificate and create an exportable cert..."
         $cert = New-SelfSignedCertificate -KeyExportPolicy Exportable -DnsName $certName
     }
     else {
+        Write-Host "Calling New-SelfSignedCertificate and saving cert to Cert:\LocalMachine\My..."
         $cert = New-SelfSignedCertificate -DnsName $certName -CertStoreLocation Cert:\LocalMachine\My
     }
     $cert
@@ -30,14 +32,17 @@ if (-not(Test-Path $ccsPath)) {
 $cert = New-CcsSelfSignedCertificate -certName $CERTIFICATE_NAME
 Get-ChildItem Cert:\LocalMachine\My\ | Where-Object {$_.Subject -eq "CN=$CERTIFICATE_NAME"} | Remove-Item
 $bytes = $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pfx, $CERTIFICATE_PASS)
-[System.IO.File]::WriteAllBytes([System.IO.Path]::Combine($ccsPath, $CERTIFICATE_NAME + ".pfx"), $bytes)
+$pfxPath = [System.IO.Path]::Combine($ccsPath, $CERTIFICATE_NAME + ".pfx")
+[System.IO.File]::WriteAllBytes($pfxPath, $bytes)
+
+Write-Host "Exported cert to $pfxPath"
 
 # Check for ccs entry in hosts file to allow local testing of ccs binding
 $hostFile = "C:\Windows\System32\drivers\etc\hosts"
 $lines = [System.IO.File]::ReadAllLines($hostFile)
 $containsCertHostName = $false
-$lines | ForEach-Object {
-    if ($_ -match $CERTIFICATE_NAME) { 
+foreach ($line in $lines) {
+    if ($_ -match $CERTIFICATE_NAME) {
         $containsCertHostName = $true
     }
 }
