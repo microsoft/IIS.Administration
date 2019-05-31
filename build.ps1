@@ -157,22 +157,6 @@ function CleanUp() {
     }
 }
 
-function StartTestService($hold) {
-    Write-Host "$(BuildHeader) Sanity tests..."
-    $pingEndpoint = "https://localhost:$testPort"
-    
-    try {
-        Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint | Out-Null
-    } catch {
-        Write-Verbose "Failed to ping with status $($_.Exception.Status)"
-        throw "Failed to ping test server $pingEndpoint, did you forget to start it manually?"
-    }
-
-    if ($hold) {
-        Read-Host "Press enter to continue..."
-    }
-}
-
 function StartTest() {
     Write-Host "$(BuildHeader) Functional tests..."
     dotnet test ([System.IO.Path]::Combine($projectRoot, "test", "Microsoft.IIS.Administration.Tests", "Microsoft.IIS.Administration.Tests.csproj"))
@@ -245,19 +229,8 @@ try {
         Write-Host "$(BuildHeader) Installing service..."
         InstallTestService
     }
-    
+
     if ($test) {
-        Write-Host "$(BuildHeader) Starting service..."
-        StartTestService (!$test)
-
-        if ($debug) {
-            $proceed = Read-Host "$(BuildHeader) Pausing for debug, continue? (Y/n)..."
-            if ($proceed -NotLike "y*") {
-                Write-Host "$(BuildHeader) Aborting..."
-                Exit 1
-            }
-        }
-
         Write-Host "$(BuildHeader) Starting test..."
         StartTest
     }
