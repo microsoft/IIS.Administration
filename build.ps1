@@ -128,6 +128,9 @@ function InstallTestService() {
         }
     }
     Write-Host "$appName installed"
+    Write-Host "Pinging service endpoint:"
+    Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint
+    Write-Host "Ping Successful"
 }
 
 function UninstallTestService() {
