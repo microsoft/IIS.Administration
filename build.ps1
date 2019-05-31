@@ -28,9 +28,9 @@
 .PARAMETER testPort
   The port to use for service
 
-.PARAMETER pingRetryCount
-.PARAMETER pingRetryPeriod
-  When waiting for the service to come up, these properties defines the fequency and number of time to retry pinging the endpoint
+.PARAMETER installCheckRetryCount
+.PARAMETER installCheckRetryPeriod
+  When waiting for the service to be installed, the retry count/wait period
 
 .PARAMETER buildType
   Build the binaries in debug or release mode, default: release
@@ -59,10 +59,10 @@ param(
     $testPort = 44326,
 
     [int]
-    $pingRetryCount = 20,
+    $installCheckRetryCount = 20,
 
     [int]
-    $pingRetryPeriod = 10,
+    $installCheckRetryPeriod = 10,
 
     [ValidateSet('debug','release')]
     [string]
@@ -90,20 +90,11 @@ function DevEnvSetup() {
 }
 
 function Publish() {
-    if (!(Where.exe msbuild)) {
-        throw "msbuild command is required for publish option"
-    }
     dotnet restore
     msbuild /t:publish /p:Configuration=$buildType
 }
 
 function BuildSetupExe() {
-    if (!(Where.exe msbuild)) {
-        throw "msbuild command is required to build installer"
-    }
-    if (!(Where.exe nuget)) {
-        throw "nuget command is required to build installer"
-    }
     Push-Location installer
     try {
         nuget restore
@@ -119,14 +110,30 @@ function EnsureIISFeatures() {
         | ForEach-Object {Enable-WindowsOptionalFeature -Online -FeatureName $_.FeatureName}
 }
 
+function GetApp($appName) {
+    try {
+        return Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -match $appName }
+    } catch {
+        Write-Verbose "Error getting application ${appName}: $($_.Exception.Message)"
+    }
+}
+
 function InstallTestService() {
     & ([System.IO.Path]::Combine($projectRoot, "installer", "IISAdministrationBundle", "bin", "x64", "Release", "IISAdministrationSetup.exe")) /s /w
+    # This is needed because /w didn't seem to wait until installer is completed
+    while (($installCheckRetryCount -gt 0) -and !(GetApp $appName)) {
+        $installCheckRetryCount--
+        if ($installCheckRetryCount -gt 0) {
+            Start-Sleep $installCheckRetryPeriod
+        }
+    }
+    Write-Host "$appName installed"
 }
 
 function UninstallTestService() {
-    $app = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -match $appName }
+    $app = GetApp $appName
     $app.Uninstall() | Out-Null
-    Write-Verbose "Uninstalled $appName"
+    Write-Host "$appName uninstalled"
 }
 
 function CleanUp() {
@@ -153,23 +160,12 @@ function CleanUp() {
 function StartTestService($hold) {
     Write-Host "$(BuildHeader) Sanity tests..."
     $pingEndpoint = "https://localhost:$testPort"
-    $pingSucceeded = $false
-    while (!$pingSucceeded -and ($pingRetryCount -ge 0)) {
-        try {
-            Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint | Out-Null
-            $pingSucceeded = $true
-        } catch {
-            Write-Verbose "Failed to ping with status $($_.Exception.Status)"
-            $pingRetryCount--;
-            if ($pingRetryCount -ge 0) {
-                Start-Sleep $pingRetryPeriod
-            }
-        }
-    }
-
-    if (!$pingSucceeded) {
-        Write-Error "Failed to ping test server $pingEndpoint, did you forget to start it manually?"
-        Exit 1
+    
+    try {
+        Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint | Out-Null
+    } catch {
+        Write-Verbose "Failed to ping with status $($_.Exception.Status)"
+        throw "Failed to ping test server $pingEndpoint, did you forget to start it manually?"
     }
 
     if ($hold) {
@@ -203,6 +199,15 @@ function GetGlobalVariable($name) {
 
 ########################################################### Main Script ##################################################################
 $debug = $PSBoundParameters['debug']
+
+if ($publish) {
+    if (!(Where.exe msbuild)) {
+        throw "msbuild command is required to publish application"
+    }
+    if (!(Where.exe nuget)) {
+        throw "nuget command is required to build application installer"
+    }
+}
 
 try {
     $projectRoot = git rev-parse --show-toplevel
