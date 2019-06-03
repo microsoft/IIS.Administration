@@ -18,7 +18,7 @@ namespace Microsoft.IIS.Administration.Tests
         private const string TEST_SITE_NAME = "test_vdir_site";
         ITestOutputHelper _output;
 
-        public static readonly string VDIR_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/virtual-directories";
+        public static readonly string VDIR_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/virtual-directories";
         public static readonly string TEST_VDIR_PATH = "/test_vdir";
         public static readonly string TEST_VDIR_PHYSICAL_PATH = Path.Combine(Sites.TEST_SITE_PATH, "test_vdir");
 
@@ -35,7 +35,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
 
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50308, Sites.TEST_SITE_PATH);
+                JObject site = Sites.CreateSite(_output, client, TEST_SITE_NAME, 50308, Sites.TEST_SITE_PATH);
 
                 if (site != null) {
 

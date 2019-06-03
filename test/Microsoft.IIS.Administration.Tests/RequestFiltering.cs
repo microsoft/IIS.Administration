@@ -15,7 +15,7 @@ namespace Microsoft.IIS.Administration.Tests
 
     public class RequestFiltering
     {
-        public static readonly string REQUEST_FILTERING_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/http-request-filtering";
+        public static readonly string REQUEST_FILTERING_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/http-request-filtering";
 
 
         [Fact]

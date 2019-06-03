@@ -18,7 +18,7 @@ namespace Microsoft.IIS.Administration.Tests
         private const string TEST_APPLICATION_SITE_NAME = "test_application_site";
         ITestOutputHelper _output;
 
-        public static readonly string APPLICATION_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/webapps";
+        public static readonly string APPLICATION_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/webapps";
         public static readonly string TEST_APPLICATION_PHYSICAL_PATH = Path.Combine(Sites.TEST_SITE_PATH, "test_application");
 
 
@@ -35,7 +35,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject site = null;
 
                 Sites.EnsureNoSite(client, TEST_APPLICATION_SITE_NAME);
-                site = Sites.CreateSite(client, TEST_APPLICATION_SITE_NAME, 50307, Sites.TEST_SITE_PATH);
+                site = Sites.CreateSite(_output, client, TEST_APPLICATION_SITE_NAME, 50307, Sites.TEST_SITE_PATH);
 
                 if (site != null) {
                     JObject testApp = CreateApplication(client, "/test_application", TEST_APPLICATION_PHYSICAL_PATH, site);

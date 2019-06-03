@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="$(SolutionDir)\build\sign.props" />
-  <Import Project="$(SolutionDir)\build\version.props" />
+  <Import Project="..\..\build\sign.props" />
+  <Import Project="..\..\build\version.props" />
 
   <PropertyGroup>
     <Description>Microsoft.IIS.Administration.Core Class Library</Description>

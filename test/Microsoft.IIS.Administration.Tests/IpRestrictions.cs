@@ -11,7 +11,7 @@ namespace Microsoft.IIS.Administration.Tests
     using Xunit;
     public class IpRestrictions
     {
-        public static readonly string IP_RESTRICTIONS_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/ip-restrictions";
+        public static readonly string IP_RESTRICTIONS_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/ip-restrictions";
 
         [Fact]
         public void ChangeAllProperties()

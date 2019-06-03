@@ -19,7 +19,7 @@ namespace Microsoft.IIS.Administration.Tests
     public class Monitoring
     {
         private const string SiteName = "ServerMonitorTestSite";
-        private static readonly string SitePath = Path.Combine(Configuration.TEST_ROOT_PATH, SiteName);
+        private static readonly string SitePath = Path.Combine(Configuration.Instance().TEST_ROOT_PATH, SiteName);
 
         private ITestOutputHelper _output;
 
@@ -36,7 +36,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 int port = Utils.GetAvailablePort();
 
-                JObject site = Sites.CreateSite(client, SiteName, port, SitePath);
+                JObject site = Sites.CreateSite(_output, client, SiteName, port, SitePath);
 
                 try {
                     using (var stresser = new SiteStresser($"http://localhost:{port}"))
@@ -95,7 +95,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 int port = Utils.GetAvailablePort();
 
-                JObject site = Sites.CreateSite(client, SiteName, port, SitePath);
+                JObject site = Sites.CreateSite(_output, client, SiteName, port, SitePath);
 
                 try {
                     using (var stresser = new SiteStresser($"http://localhost:{port}"))
@@ -187,7 +187,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                     if (site == null) {
 
-                        site = Sites.CreateSite(client, name, Utils.GetAvailablePort(), SitePath, true, pools[i]);
+                        site = Sites.CreateSite(_output, client, name, Utils.GetAvailablePort(), SitePath, true, pools[i]);
                     }
 
                     sites[i] = site;
@@ -277,7 +277,7 @@ namespace Microsoft.IIS.Administration.Tests
                 JObject site = Sites.GetSite(client, name);
 
                 if (site == null) {
-                    site = Sites.CreateSite(client, name, Utils.GetAvailablePort(), SitePath, true, pool);
+                    site = Sites.CreateSite(_output, client, name, Utils.GetAvailablePort(), SitePath, true, pool);
                 }
 
                 int port = site["bindings"].ToObject<IEnumerable<JObject>>().First().Value<int>("port");
@@ -333,7 +333,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 int port = Utils.GetAvailablePort();
 
-                JObject site = Sites.CreateSite(client, SiteName, port, SitePath);
+                JObject site = Sites.CreateSite(_output, client, SiteName, port, SitePath);
 
                 try {
                     JObject appPool = client.Get(Utils.Self((JObject)site["application_pool"]));
@@ -388,7 +388,7 @@ namespace Microsoft.IIS.Administration.Tests
         private bool _stop = false;
         private Task _t;
         private JObject _snapshot;
-        private string _url = $"{Configuration.TEST_SERVER_URL}/api/webserver/monitoring";
+        private string _url = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/monitoring";
 
         public ServerMonitor(string url = null)
         {

@@ -12,11 +12,19 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using Web.Administration;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class Compression
     {
         public const string TEST_SITE_NAME = "compression_test_site";
-        public static readonly string COMPRESSION_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/http-response-compression";
+        public static readonly string COMPRESSION_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/http-response-compression";
+
+        private ITestOutputHelper _output;
+
+        public Compression(ITestOutputHelper output)
+        {
+            _output = output;
+        }
 
         [Fact]
         public void ChangeAllProperties()
@@ -31,7 +39,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 // Site Scope
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 53010, Sites.TEST_SITE_PATH);
+                JObject site = Sites.CreateSite(_output, client, TEST_SITE_NAME, 53010, Sites.TEST_SITE_PATH);
                 JObject siteFeature = GetCompressionFeature(client, site.Value<string>("name"), null);
                 SetCompressionOverrideMode(client, siteFeature, OverrideMode.Allow);
 

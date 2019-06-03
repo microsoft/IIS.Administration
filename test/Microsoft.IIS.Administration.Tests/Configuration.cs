@@ -7,36 +7,47 @@ namespace Microsoft.IIS.Administration.Tests {
     using System;
     using System.IO;
 
-    public static class Configuration {
-        private static JObject _config;
+    public class Configuration {
+        private static Configuration _instance;
 
-        static Configuration() {
-            Initialize();
+        public static Configuration Instance()
+        {
+            return _instance ?? (_instance = new Configuration());
         }
 
-        public static string TEST_SERVER {
+        private JObject _config;
+
+        public Configuration()
+        {
+            var content = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "test.config.json"));
+            _config = JObject.Parse(content);
+        }
+
+        public string TEST_SERVER {
             get {
                 return _config.Value<string>("test_server");
             }
         }
 
-        public static string TEST_PORT {
+        public string TEST_PORT {
             get {
                 return _config.Value<string>("test_port");
             }
         }
 
-        public static string TEST_SERVER_URL {
+        public string TEST_SERVER_URL {
             get {
                 return $"{TEST_SERVER}:{TEST_PORT}";
             }
         }
 
-        public static string TEST_ROOT_PATH {
-            get {
+        public string TEST_ROOT_PATH {
+            get
+            {
                 var val = _config.Value<string>("test_root_path");
 
-                if (string.IsNullOrEmpty(val)) {
+                if (string.IsNullOrEmpty(val))
+                {
                     val = AppContext.BaseDirectory;
                 }
 
@@ -44,7 +55,7 @@ namespace Microsoft.IIS.Administration.Tests {
             }
         }
 
-        public static string PROJECT_PATH
+        public string PROJECT_PATH
         {
             get
             {
@@ -59,17 +70,12 @@ namespace Microsoft.IIS.Administration.Tests {
             }
         }
 
-        public static JObject Raw {
-            get {
-                return _config;
+        public string CCSUser
+        {
+            get
+            {
+                return _config.Value<string>("ccs_user") ?? "IisAdminCcsTestR";
             }
-        }
-
-
-
-        private static void Initialize() {
-            var content = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "test.config.json"));
-            _config = JObject.Parse(content);
         }
     }
 }

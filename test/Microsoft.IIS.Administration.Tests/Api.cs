@@ -9,7 +9,7 @@ namespace Microsoft.IIS.Administration.Tests
 
     public class Api
     {
-        public static readonly string API_URL = $"{Configuration.TEST_SERVER_URL}/api";
+        public static readonly string API_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api";
 
         [Theory]
         [InlineData(1)]

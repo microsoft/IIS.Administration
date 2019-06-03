@@ -11,12 +11,20 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Linq;
     using System.Net.Http;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class DefaultDocument
     {
         private const string TEST_SITE_NAME = "def_doc_test_site";
         
-        public static readonly string DEFAULT_DOCUMENT_URL = $"{Configuration.TEST_SERVER_URL}/api/webserver/default-documents";
+        public static readonly string DEFAULT_DOCUMENT_URL = $"{Configuration.Instance().TEST_SERVER_URL}/api/webserver/default-documents";
+
+        private ITestOutputHelper _output;
+
+        public DefaultDocument(ITestOutputHelper output)
+        {
+            _output = output;
+        }
 
         [Fact]
         public void Scope()
@@ -24,7 +32,7 @@ namespace Microsoft.IIS.Administration.Tests
             using (HttpClient client = ApiHttpClient.Create()) {
 
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50311, Sites.TEST_SITE_PATH);
+                JObject site = Sites.CreateSite(_output, client, TEST_SITE_NAME, 50311, Sites.TEST_SITE_PATH);
 
                 JObject serverDoc = GetDefaultDocumentFeature(client, null, null);
                 JObject siteDoc = GetDefaultDocumentFeature(client, site.Value<string>("name"), null);
@@ -63,7 +71,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 // Site Scope
                 Sites.EnsureNoSite(client, TEST_SITE_NAME);
-                JObject site = Sites.CreateSite(client, TEST_SITE_NAME, 50311, Sites.TEST_SITE_PATH);
+                JObject site = Sites.CreateSite(_output, client, TEST_SITE_NAME, 50311, Sites.TEST_SITE_PATH);
                 JObject siteFeature = GetDefaultDocumentFeature(client, site.Value<string>("name"), null);
                 Assert.NotNull(siteFeature);
 
@@ -149,7 +157,7 @@ namespace Microsoft.IIS.Administration.Tests
                 throw new ArgumentException("docFeature");
             }
 
-            string filesLink = $"{Configuration.TEST_SERVER_URL}{ docFeature["_links"]["files"].Value<string>("href") }";
+            string filesLink = $"{Configuration.Instance().TEST_SERVER_URL}{ docFeature["_links"]["files"].Value<string>("href") }";
 
             dynamic feature = new JObject();
             feature.id = featureUuid;
