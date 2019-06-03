@@ -19,7 +19,7 @@
 .PARAMETER install
   Install the built manifest for testing
 
-.PARAMETER keepInstalledApp
+.PARAMETER keep
   Do not uninstall the application after steps are run
 
 .PARAMETER test
@@ -50,7 +50,7 @@ param(
     $install,
 
     [switch]
-    $keepInstalledApp,
+    $keep,
 
     [switch]
     $test,
@@ -130,17 +130,18 @@ function UninstallTestService() {
 }
 
 function CleanUp() {
-    try {
-        Stop-Service $serviceName
-    } catch {
-        if ($_.exception -and
-            $_.exception -is [Microsoft.PowerShell.Commands.ServiceCommandException]) {
-            Write-Host "$serviceName was not installed"
-        } else {
-            throw
+    if (!$keep) {
+        try {
+            Stop-Service $serviceName
+        } catch {
+            if ($_.exception -and
+                $_.exception -is [Microsoft.PowerShell.Commands.ServiceCommandException]) {
+                Write-Host "$serviceName was not installed"
+            } else {
+                throw
+            }
         }
-    }
-    if (!$keepInstalledApp) {
+
         try {
             UninstallTestService
         } catch {
