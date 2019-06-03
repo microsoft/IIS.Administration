@@ -158,6 +158,14 @@ function AddToTrusted($cert)
 # FriendlyName: The friendly name for the certificate
 # AlternativeNames: A list of alternative names used to identify the certificate
 function Create-SelfSignedCertificate($_subject, $_friendlyName, $_alternativeNames) {
+    if (Get-Command "New-SelfSignedCertificate" -errorAction SilentlyContinue) {
+        New-SelfSignedCertificate -Subject $_subject -FriendlyName $_friendlyName -DnsName $_alternativeNames -CertStoreLocation "Cert:\CurrentUser\My"
+    } else {
+        Create-SelfSignedCertificateOld $_subject $_friendlyName $_alternativeNames
+    }
+}
+
+function Create-SelfSignedCertificateOld($_subject, $_friendlyName, $_alternativeNames) {
     if ($_subject -eq $null) {
         throw "Subject required."
     }
@@ -252,6 +260,7 @@ function Create-SelfSignedCertificate($_subject, $_friendlyName, $_alternativeNa
 
     return $CACertificate 
 }
+
 
 function Get-IISAdminCerts {
     $certName = .\globals.ps1 CERT_NAME
