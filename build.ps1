@@ -129,6 +129,12 @@ function InstallTestService() {
     }
     Write-Host "$appName installed"
     Write-Host "Sanity test:"
+    $certStore = "Cert:\LocalMachine\My"
+    $certName = & ([System.IO.Path]::Combine($scriptDir, "setup", "globals.ps1")) CERT_NAME
+    $cert = Get-ChildItem $certStore | Where-Object { $_.FriendlyName -eq $certName }
+    if (!$cert) {
+        throw "Cert $certName not found in $certStore"
+    }
     $pingEndpoint = "https://localhost:$testPort"
     Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint
     Write-Host "Ping Successful"
