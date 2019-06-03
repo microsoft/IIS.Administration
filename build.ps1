@@ -136,6 +136,7 @@ function InstallTestService() {
         throw "Cert $certName not found in $certStore"
     }
     Write-Host "Cert $certName found in $certStore"
+    Write-Host $cert
     $pingEndpoint = "https://localhost:$testPort"
     Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint
     Write-Host "Ping Successful"
