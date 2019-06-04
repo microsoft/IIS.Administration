@@ -241,6 +241,10 @@ function rollback() {
         try {
             Write-Host "Restarting service $($rollbackStore.stoppedOldService)"
             Start-Service $rollbackStore.stoppedOldService
+            #
+            # Delay 1 second to make sure the service is completely started
+            Start-Sleep 1
+            Get-Service $rollbackStore.stoppedOldService
         }
         catch {
             write-warning "Could not restart service $($rollbackStore.stoppedOldService): $($_.Exception.Message)"
@@ -456,6 +460,10 @@ function Install
 
 	try {
 		Start-Service "$ServiceName" -ErrorAction Stop
+                #
+                # Delay 1 second to make sure the service is completely started
+                Start-Sleep 1
+                Get-Service "$ServiceName"
 		Write-Host "Service started"
 	}
     catch {
