@@ -48,8 +48,7 @@ function Retry-Command
     [Parameter(Mandatory=$true)][string]$command,
     [Parameter(Mandatory=$true)][hashtable]$args,
     [Parameter(Mandatory=$false)][int]$retries = 2,
-    [Parameter(Mandatory=$false)][int]$secondsDelay = 1,
-    [Parameter(Mandatory=$false)][switch]$throwError
+    [Parameter(Mandatory=$false)][int]$secondsDelay = 1
     )
 
     # Setting ErrorAction to Stop is important. This ensures any errors that occur in the command are
@@ -67,16 +66,10 @@ function Retry-Command
 
         } catch {
             if ($retrycount -ge $retries) {
-                Write-Warning ("Command {0} failed the maximum number of {1} times. throwError:{2}" -f $command, $retrycount, $throwError)
-                if ($throwError) {
-                    throw
-                }
-                else
-                {
-                    break;
-                }
+                Write-Warning ("Command {0} failed the maximum number of {1} times. Error: {2}" -f $command, $retrycount, $($_.Exception.Message))
+                throw
             } else {
-                Write-Verbose ("Command {0} failed. Retrying in {1} seconds." -f $command, $secondsDelay)
+                Write-Verbose ("Command {0} failed. Retrying in {1} seconds. Error: {2}" -f $command, $secondsDelay, $($_.Exception.Message))
                 Start-Sleep $secondsDelay
                 $retrycount++
             }
@@ -279,7 +272,13 @@ function rollback() {
     #
     # Restart the existing service if we stopped it
     if ($rollbackStore.stoppedOldService -ne $null) {    
-        Retry-Command -Command 'Start-Service' -Args @{ Name = $rollbackStore.stoppedOldService } -Verbose -throwError:$false
+        try {
+            Write-Host "Restarting service $($rollbackStore.stoppedOldService)"	
+            Retry-Command -Command 'Start-Service' -Args @{ Name = $rollbackStore.stoppedOldService } -Verbose
+        }
+        catch {
+            write-warning "Could not restart service $($rollbackStore.stoppedOldService): $($_.Exception.Message)"
+        }
     }
 
     #
@@ -488,7 +487,7 @@ function Install
     # Register the Self Host exe as a service
     .\services.ps1 Create-IisAdministration -Name $ServiceName -Path $adminRoot
     $rollbackStore.createdService = $ServiceName
-    Retry-Command -Command 'Start-Service' -Args @{ Name = "$ServiceName" } -Verbose -throwError:$true
+    Retry-Command -Command 'Start-Service' -Args @{ Name = "$ServiceName" } -Verbose
 
     $svc = Get-Service "$ServiceName" -ErrorAction SilentlyContinue
     if ($svc -eq $null) {
