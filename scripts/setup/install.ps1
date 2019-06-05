@@ -78,11 +78,9 @@ function StartService
         } catch {
             if ($retrycount -ge $retries) {
                 Write-Warning ("StartService failed the maximum number of {0} times. Error: {1}" -f $retrycount, $($_.Exception.Message))
-                Write-Warning ($_.Exception)
                 throw
             } else {
                 Write-Verbose ("StartService failed. Retrying in {0} seconds. Error: {1}" -f $secondsDelay, $($_.Exception.Message))
-                Write-Verbose ($_.Exception)
                 Start-Sleep $secondsDelay
                 $retrycount++
             }
