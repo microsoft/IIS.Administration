@@ -61,14 +61,13 @@ function Retry-Command
 
     while (-not $completed) {
         try {
-            throw
             & $command @args
-            Write-Verbose ("Command [{0}] succeeded." -f $command)
+            Write-Verbose ("Command {0} succeeded." -f $command)
             $completed = $true
 
         } catch {
             if ($retrycount -ge $retries) {
-                Write-Warning ("Command [{0}] failed the maximum number of {1} times. throwError:{2}" -f $command, $retrycount, $throwError)
+                Write-Warning ("Command {0} failed the maximum number of {1} times. throwError:{2}" -f $command, $retrycount, $throwError)
                 if ($throwError) {
                     throw
                 }
@@ -77,7 +76,7 @@ function Retry-Command
                     break;
                 }
             } else {
-                Write-Verbose ("Command [{0}] failed. Retrying in {1} seconds." -f $command, $secondsDelay)
+                Write-Verbose ("Command {0} failed. Retrying in {1} seconds." -f $command, $secondsDelay)
                 Start-Sleep $secondsDelay
                 $retrycount++
             }
