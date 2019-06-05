@@ -116,6 +116,7 @@ function Uninstall() {
     .\uninstall.ps1 -Path $adminRoot -KeepFiles
 }
 
+$env:DOTNET_CLI_TELEMETRY_OPTOUT = 1
 Require-Script "acl-util"
 Require-Script "cache"
 Require-Script "cert"
