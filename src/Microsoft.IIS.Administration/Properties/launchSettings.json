@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "Microsoft.IIS.Administration": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "Key": "Value",
+        "DOTNET_CLI_TELEMETRY_OPTOUT": "1"
+      }
+    }
+  }
+}
