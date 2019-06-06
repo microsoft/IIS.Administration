@@ -10,16 +10,26 @@ namespace Microsoft.IIS.Administration.Security.Authorization {
     using Headers = Net.Http.Headers;
     using Microsoft.IIS.Administration.Core.Http;
     using Newtonsoft.Json;
-
-
+    using System.Security.Principal;
 
     sealed class NtlmAuthorizationPolicy : IAssertAuthorizationRequirement, IAuthorizationPolicy {
+        private static readonly SecurityIdentifier s_adminSid = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
 
         public NtlmAuthorizationPolicy(string[] roles, RoleMapping mapping) {
             Assert = (ctx) => {
                 foreach (var role in roles) {
                     if (!string.IsNullOrEmpty(role) && mapping.IsUserInRole(ctx.User, role)) {
                         return true;
+                    }
+                }
+                // Administrators are granted all access
+                foreach (var identity in ctx.User.Identities) {
+                    var wi = identity as WindowsIdentity;
+                    if (wi != null) {
+                        var wp = new WindowsPrincipal(wi);
+                        if (wp.IsInRole(s_adminSid)) {
+                            return true;
+                        }
                     }
                 }
                 return false;

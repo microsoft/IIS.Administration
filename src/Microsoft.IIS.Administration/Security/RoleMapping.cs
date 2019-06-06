@@ -3,15 +3,15 @@
 
 
 namespace Microsoft.IIS.Administration.Security {
-    using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
     using System.Security.Claims;
     using System.Security.Principal;
+    using Microsoft.Extensions.Configuration;
 
 
     sealed class RoleMapping {
-        private static readonly SecurityIdentifier s_adminSid = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
+
         private IConfiguration _config;
         private Dictionary<string, IEnumerable<string>> _roles = new Dictionary<string, IEnumerable<string>>();
 
@@ -45,7 +45,7 @@ namespace Microsoft.IIS.Administration.Security {
                     var wi = identity as WindowsIdentity;
                     if (wi != null) {
                         var wp = new WindowsPrincipal(wi);
-                        if (wp.IsInRole(entry) || wp.IsInRole(s_adminSid)) {
+                        if (wp.IsInRole(entry)) {
                             return true;
                         }
                     }
