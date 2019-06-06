@@ -6,5 +6,4 @@
 *\attachedcontainer\packages\iis_administration.msidir\iisadmin.cab.cab, unsigned wix bit
 *\ux\*.xml, unsigned wix bit
 *\ux\wixstdba.dll, unsigned wix bit
-*\iisadministrationsetup.wixpdb, unsigned wix bit
-*\ux\iisadministrationsetup.wixpdbdir\*, unsigned wix bit
+*\iisadministrationsetup.wixpdb*, unsigned wix bit
