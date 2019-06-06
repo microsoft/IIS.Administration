@@ -62,9 +62,11 @@ function StartService
             $status = (Get-Service -name $name).Status
 
             Write-Verbose ("Checking the current status. Status: {0}" -f $status)
-            if ($status -ne "Running") {
+            if ($status -ne [System.ServiceProcess.ServiceControllerStatus]::Running) {
                 Write-Warning ("Get-Service does not return Running. Status: {0}" -f $status)
-                if (($retrycount -eq 0) -and ($status -eq "Stopped")) {
+
+                # AspNetCore based app service is slow to start and Start-Service fails occasionally. We need to retry in that case.
+                if (($retrycount -eq 0) -and ($status -eq [System.ServiceProcess.ServiceControllerStatus]::Stopped)) {
                     Write-Verbose ("Retrying to call Start-Service for {0}." -f $name)
                     Start-Sleep $secondsDelay
                     Start-Service -name $name
