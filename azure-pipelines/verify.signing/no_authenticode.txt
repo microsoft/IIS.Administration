@@ -1,3 +1,9 @@
 *\newtonsoft.json.*dll, oss newtonsoft
 *\serilog.*dll, oss serilog
 *\*.js, skip javascript signing
+*\attachedcontainer\packages\iis_administration.msidir\binary.wixca.dll, unsigned wix bit
+*\attachedcontainer\packages\iis_administration.msidir\binary.wixuiwixca.dll, unsigned wix bit
+*\attachedcontainer\packages\iis_administration.msidir\iisadmin.cab.cab, unsigned wix bit
+*\ux\*.xml, unsigned wix bit
+*\ux\wixstdba.dll, unsigned wix bit
+*\iisadministrationsetup.wixpdb*, unsigned wix bit
