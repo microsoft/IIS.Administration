@@ -11,6 +11,7 @@ namespace Microsoft.IIS.Administration.Security {
 
 
     sealed class RoleMapping {
+        private static readonly SecurityIdentifier s_adminSid = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
         private IConfiguration _config;
         private Dictionary<string, IEnumerable<string>> _roles = new Dictionary<string, IEnumerable<string>>();
 
@@ -26,9 +27,6 @@ namespace Microsoft.IIS.Administration.Security {
             IEnumerable<string> roleMappings = GetRoleMappings(role.ToLower());
 
             foreach (var identity in user.Identities) {
-                WindowsIdentity wi = identity as WindowsIdentity;
-                WindowsPrincipal wp = null;
-
                 foreach (var entry in roleMappings) {
                     //
                     // Check Identity
@@ -44,12 +42,12 @@ namespace Microsoft.IIS.Administration.Security {
 
                     //
                     // Check Windows Principal
-                    if (wp == null && wi != null) {
-                        wp = new WindowsPrincipal(wi);
-                    }
-
-                    if (wp != null && wp.IsInRole(entry)) {
-                        return true;
+                    var wi = identity as WindowsIdentity;
+                    if (wi != null) {
+                        var wp = new WindowsPrincipal(wi);
+                        if (wp.IsInRole(entry) || wp.IsInRole(s_adminSid)) {
+                            return true;
+                        }
                     }
                 }
             }

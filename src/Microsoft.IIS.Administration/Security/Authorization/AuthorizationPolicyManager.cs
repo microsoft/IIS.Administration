@@ -4,6 +4,7 @@
 
 namespace Microsoft.IIS.Administration.Security.Authorization {
     using System;
+    using System.Linq;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.Extensions.Configuration;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -105,7 +106,12 @@ namespace Microsoft.IIS.Administration.Security.Authorization {
             if (!policy.Users.Equals("Everyone", StringComparison.OrdinalIgnoreCase)) {
                 builder.Combine(GetPolicyRequirement(WINDOWS_USER, options));
 
-                builder.AddRequirements(new NtlmAuthorizationPolicy(policy.Users, _roleMapping));
+                builder.AddRequirements(new NtlmAuthorizationPolicy(
+                    policy.Users
+                        .Split(',')
+                        .Select(s => s.Trim())
+                        .ToArray(),
+                    _roleMapping));
             }
             else {
                 builder.Combine(GetPolicyRequirement(AUTHENTICATED_USER, options));
