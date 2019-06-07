@@ -6,7 +6,7 @@ Param(
     $ConfigureTestEnvironment,
 
     [int]
-    $TestPort = 44326
+    $TestPort = 55539
 )
 
 #Requires -RunAsAdministrator
