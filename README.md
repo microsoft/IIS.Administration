@@ -41,7 +41,7 @@ C:\src\repos\IIS.Administration\scripts\publish\bin\setup\setup.ps1 Install -Ver
 * Run PowerShell as an Administrator
 * Run Configure-DevEnvironment.ps1 script in the scripts dir
 * From the visual studio run profile menu select option Microsoft.IIS.Administration and run the application.
-* If you are not able to browse the site or your getting generic brwser error, most like SSL certificate is not configured for that. IIS   express installs SSL certificates on   port 44300-44399. Try changing the port to one of these in appsettings.json 
+* If you are not able to browse the site or your getting generic browser error, most like SSL certificate is not configured for that. IIS   express installs SSL certificates on   port 44300-44399. Try changing the port to one of these in appsettings.json
   **ex: "urls":"https://*:44326"**
 
 ### Using the new API ###

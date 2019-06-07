@@ -2,12 +2,17 @@
 <#
 .SYNOPSIS
   Entry point for building/testing the project, common usage:
+
   .\build.ps1 -devSetup -publish -install -test -verbose
     What the command does
         * Ensure local machine is properly setup for build and test the repo
         * Build and publish application in `dist` directory
         * Build and run installer
         * Run functional tests
+
+
+  .\build.ps1 -devSetup -test -verbose
+   Run test on a machine with IIS Administration API already installed
 
 .PARAMETER publish
   build and publish the manifests in dist directory.
@@ -56,7 +61,7 @@ param(
     $test,
 
     [int]
-    $testPort = 44326,
+    $testPort = 55539,
 
     [int]
     $pingRetryCount = 20,
@@ -86,14 +91,13 @@ function ForceResolvePath($path) {
 }
 
 function DevEnvSetup() {
-    & ([System.IO.Path]::Combine($scriptDir, "Configure-DevEnvironment.ps1")) -ConfigureTestEnvironment
+    & ([System.IO.Path]::Combine($scriptDir, "Configure-DevEnvironment.ps1")) -ConfigureTestEnvironment -TestPort $testPort
 }
 
 function Publish() {
     if (!(Where.exe msbuild)) {
         throw "msbuild command is required for publish option"
     }
-    dotnet restore
     msbuild /t:publish /p:Configuration=$buildType
 }
 
@@ -120,38 +124,42 @@ function EnsureIISFeatures() {
 }
 
 function InstallTestService() {
-    & ([System.IO.Path]::Combine($projectRoot, "installer", "IISAdministrationBundle", "bin", "x64", "Release", "IISAdministrationSetup.exe")) /s /w
+    Start-Process CMD -NoNewWindow -Wait @("/C", $script:installerLocation, "-q")
+    $script:installed = $true
 }
 
 function UninstallTestService() {
-    $app = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -match $appName }
-    $app.Uninstall() | Out-Null
+    Start-Process CMD -NoNewWindow -Wait @("/C", $script:installerLocation, "-q", "-uninstall")
     Write-Verbose "Uninstalled $appName"
 }
 
 function CleanUp() {
-    if (!$keep) {
+    if (!$script:installed -or $keep) {
+        Write-Verbose "Skipping clean up"
+    } else {
         try {
+            Write-Verbose "$serviceName is being stopped"
             Stop-Service $serviceName
+            Write-Verbose "$serviceName stopped"
         } catch {
-            if ($_.exception -and
-                $_.exception -is [Microsoft.PowerShell.Commands.ServiceCommandException]) {
+            Write-Warning "Exception while trying to stop service $($_.Exception.Message)"
+            if ($_.Exception -and
+                $_.Exception -is [Microsoft.PowerShell.Commands.ServiceCommandException]) {
                 Write-Host "$serviceName was not installed"
-            } else {
-                throw
             }
         }
 
         try {
+            Write-Verbose "$serviceName is being uninstalled"
             UninstallTestService
+            Write-Verbose "$serviceName is uninstalled"
         } catch {
-            Write-Warning $_
-            Write-Warning "Failed to uninistall $serviceName"
+            Write-Warning "Failed to uninistall ${serviceName}: $($_.Exception.Message)"
         }
     }
 }
 
-function StartTestService($hold) {
+function EnsureTestService($hold) {
     Write-Host "$(BuildHeader) Sanity tests..."
     $pingEndpoint = "https://localhost:$testPort"
     $pingSucceeded = $false
@@ -160,10 +168,13 @@ function StartTestService($hold) {
             Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint | Out-Null
             $pingSucceeded = $true
         } catch {
-            Write-Verbose "Failed to ping with status $($_.Exception.Status)"
-            $pingRetryCount--;
-            if ($pingRetryCount -ge 0) {
-                Start-Sleep $pingRetryPeriod
+            Write-Verbose "Failed to ping with status $($_.Exception.Status): $($_.Exception.Message)"
+            if ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::ConnectFailure) {
+                $pingRetryCount--;
+                if ($pingRetryCount -ge 0) {
+                    Write-Verbose "Wait $pingRetryPeriod seconds to retry, numbers of attempts left: ${pingRetryCount}..."
+                    Start-Sleep $pingRetryPeriod
+                }
             }
         }
     }
@@ -204,7 +215,7 @@ function GetGlobalVariable($name) {
 
 ########################################################### Main Script ##################################################################
 $debug = $PSBoundParameters['debug']
-
+$script:installed = $false
 try {
     $projectRoot = git rev-parse --show-toplevel
 } catch {
@@ -226,25 +237,24 @@ try {
         Write-Host "$(BuildHeader) Ensure IIS Features..."
         EnsureIISFeatures
     }
-    
-    Write-Host "$(BuildHeader) Publishing..."
+
+    dotnet restore
     if ($publish) {
+        Write-Host "$(BuildHeader) Publishing..."
         Publish
         & ([System.IO.Path]::Combine($scriptDir, "build", "Clean-BuildDir.ps1")) -manifestDir $publishPath
         if ($test) {
             & ([System.IO.Path]::Combine($scriptDir, "tests", "Copy-TestConfig.ps1"))
         }
         BuildSetupExe
+        $script:installerLocation = [System.IO.Path]::Combine($projectRoot, "installer", "IISAdministrationBundle", "bin", "x64", "Release", "IISAdministrationSetup.exe")
     }
 
     if ($install) {
         Write-Host "$(BuildHeader) Installing service..."
         InstallTestService
-    }
-    
-    if ($test) {
         Write-Host "$(BuildHeader) Starting service..."
-        StartTestService (!$test)
+        EnsureTestService (!$test)
 
         if ($debug) {
             $proceed = Read-Host "$(BuildHeader) Pausing for debug, continue? (Y/n)..."
@@ -253,7 +263,9 @@ try {
                 Exit 1
             }
         }
+    }
 
+    if ($test) {
         Write-Host "$(BuildHeader) Starting test..."
         StartTest
     }
