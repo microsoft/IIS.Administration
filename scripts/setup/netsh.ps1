@@ -297,7 +297,7 @@ function setSslConfiguration($_ipEndpoint, $_certificate, $_appId) {
                       [System.IntPtr]::Zero)  
         }   
         else {
-            #Delete binding
+            Write-Verbose "Deleting Ssl Cert Configuration"
             $result = [Microsoft.IIS.Administration.Setup.Http]::HttpDeleteServiceConfiguration([System.IntPtr]::Zero, 
                       [Microsoft.IIS.Administration.Setup.Http]::HTTP_SERVICE_CONFIG_SSLCERT_INFO,
                       [ref]$sslSet,
