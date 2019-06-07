@@ -86,7 +86,7 @@ function ForceResolvePath($path) {
 }
 
 function DevEnvSetup() {
-    & ([System.IO.Path]::Combine($scriptDir, "Configure-DevEnvironment.ps1")) -ConfigureTestEnvironment
+    & ([System.IO.Path]::Combine($scriptDir, "Configure-DevEnvironment.ps1")) -ConfigureTestEnvironment -TestPort $testPort
 }
 
 function Publish() {
@@ -151,7 +151,7 @@ function CleanUp() {
     }
 }
 
-function StartTestService($hold) {
+function EnsureTestService($hold) {
     Write-Host "$(BuildHeader) Sanity tests..."
     $pingEndpoint = "https://localhost:$testPort"
     $pingSucceeded = $false
@@ -240,11 +240,8 @@ try {
     if ($install) {
         Write-Host "$(BuildHeader) Installing service..."
         InstallTestService
-    }
-    
-    if ($test) {
         Write-Host "$(BuildHeader) Starting service..."
-        StartTestService (!$test)
+        EnsureTestService (!$test)
 
         if ($debug) {
             $proceed = Read-Host "$(BuildHeader) Pausing for debug, continue? (Y/n)..."
@@ -253,7 +250,9 @@ try {
                 Exit 1
             }
         }
+    }
 
+    if ($test) {
         Write-Host "$(BuildHeader) Starting test..."
         StartTest
     }

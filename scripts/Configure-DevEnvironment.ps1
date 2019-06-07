@@ -3,7 +3,10 @@
 
 Param(
     [switch]
-    $ConfigureTestEnvironment
+    $ConfigureTestEnvironment,
+
+    [int]
+    $TestPort = 44326
 )
 
 #Requires -RunAsAdministrator
@@ -68,6 +71,7 @@ try {
 
         $env = @{
             "iis_admin_test_dir" = (ConvertTo-Json $testRoot).Trim('"');
+            "iis_admin_test_port" = $TestPort;
             "project_dir" = $projectRoot
         }
         ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "appsettings.test.json.template")) $env
