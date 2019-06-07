@@ -112,8 +112,7 @@ function Upgrade() {
 
 function Uninstall() {
     $adminRoot = Join-Path $Path $Version
-
-    .\uninstall.ps1 -Path $adminRoot -KeepFiles
+    .\uninstall.ps1 -Path $adminRoot -KeepFiles -DeleteCert -DeleteBinding
 }
 
 
