@@ -11,7 +11,7 @@
         * Run functional tests
 
 
-  .\build.ps1 -devSetup -test -verbose
+  .\build.ps1 -devSetup -test -testRoot "C:\inetpub" -verbose
    Run test on a machine with IIS Administration API already installed
 
 .PARAMETER publish
@@ -32,6 +32,9 @@
 
 .PARAMETER testPort
   The port to use for service
+
+.PARAMETER testRoot
+  The root directory for tests to create web sites. Note that the directory must be granted both read and write permission via IIS Administration API's config file
 
 .PARAMETER pingRetryCount
 .PARAMETER pingRetryPeriod
@@ -61,7 +64,10 @@ param(
     $test,
 
     [int]
-    $testPort = 55539,
+    $testPort,
+
+    [string]
+    $testRoot,
 
     [int]
     $pingRetryCount = 20,
@@ -73,6 +79,7 @@ param(
     [string]
     $buildType = 'release',
 
+    [string]
     $appName = "Microsoft IIS Administration"
 )
 
@@ -91,7 +98,16 @@ function ForceResolvePath($path) {
 }
 
 function DevEnvSetup() {
-    & ([System.IO.Path]::Combine($scriptDir, "Configure-DevEnvironment.ps1")) -ConfigureTestEnvironment -TestPort $testPort
+    $configArgs = @{}
+    $configArgs.ConfigureTestEnvironment = $true
+    if ($testPort) {
+        $configArgs.TestPort = $testPort
+    }
+    if ($testRoot) {
+        Write-Verbose "Test port $testPort"
+        $configArgs.TestRoot = $testRoot
+    }
+    & ([System.IO.Path]::Combine($scriptDir, "Configure-DevEnvironment.ps1")) @configArgs
 }
 
 function Publish() {
