@@ -22,6 +22,7 @@ namespace Microsoft.IIS.Administration.Tests
 
     public class Sites
     {
+        private const string OIDServerAuth = "1.3.6.1.5.5.7.3.1";
         private const string TEST_SITE_NAME = "test_site";
         private const int TEST_PORT = 50306;
         private ITestOutputHelper _output;
@@ -557,7 +558,7 @@ namespace Microsoft.IIS.Administration.Tests
         private static JObject GetCertificate(HttpClient client)
         {
             string result;
-            if (!client.Get(CertificatesUrl + "?intended_purpose=server authentication", out result)) {
+            if (!client.Get(CertificatesUrl + $"?intended_purpose={OIDServerAuth}", out result)) {
                 return null;
             }
 

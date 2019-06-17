@@ -12,8 +12,8 @@ namespace Microsoft.IIS.Administration.Certificates
 
     public class Certificate : ICertificate
     {
-        private const string s_OIDEnhancedKeyUsage = "2.5.29.37";
-        private const string s_OIDSubjectAlternativeName = "2.5.29.17";
+        private const string OIDEnhancedKeyUsage = "2.5.29.37";
+        private const string OIDSubjectAlternativeName = "2.5.29.17";
 
         private ICertificateStore _store;
         private string _id;
@@ -45,7 +45,7 @@ namespace Microsoft.IIS.Administration.Certificates
             _hasPrivateKey = certificate.HasPrivateKey;
 
             foreach (X509Extension extension in certificate.Extensions) {
-                if (extension.Oid.Value == s_OIDEnhancedKeyUsage) {
+                if (extension.Oid.Value == OIDEnhancedKeyUsage) {
                     X509EnhancedKeyUsageExtension ext = (X509EnhancedKeyUsageExtension)extension;
                     OidCollection oids = ext.EnhancedKeyUsages;
                     foreach (Oid oid in oids)
@@ -55,7 +55,7 @@ namespace Microsoft.IIS.Administration.Certificates
                     }
                 }
 
-                if (extension.Oid.Value == s_OIDSubjectAlternativeName) {
+                if (extension.Oid.Value == OIDSubjectAlternativeName) {
                     _subjectAlternativeNames.AddRange(extension.Format(true).Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries));
                 }
             }
