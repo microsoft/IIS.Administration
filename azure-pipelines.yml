@@ -45,7 +45,8 @@ jobs:
       displayName: 'Prep build and test'
       inputs:
         targetType: filePath
-        filePath: ./scripts/Configure-DevEnvironment.ps1 -ConfigureTestEnvironment
+        filePath: ./scripts/Configure-DevEnvironment.ps1
+        arguments: '-ConfigureTestEnvironment'
 
     - task: MSBuild@1
       displayName: 'Build IIS Administration'
