@@ -64,7 +64,7 @@ param(
     $test,
 
     [int]
-    $testPort,
+    $testPort = 55539,
 
     [string]
     $testRoot,
