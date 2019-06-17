@@ -175,36 +175,6 @@ function CleanUp() {
     }
 }
 
-function EnsureTestService($hold) {
-    Write-Host "$(BuildHeader) Sanity tests..."
-    $pingEndpoint = "https://localhost:$testPort"
-    $pingSucceeded = $false
-    while (!$pingSucceeded -and ($pingRetryCount -ge 0)) {
-        try {
-            Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint | Out-Null
-            $pingSucceeded = $true
-        } catch {
-            Write-Verbose "Failed to ping with status $($_.Exception.Status): $($_.Exception.Message)"
-            if ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::ConnectFailure) {
-                $pingRetryCount--;
-                if ($pingRetryCount -ge 0) {
-                    Write-Verbose "Wait $pingRetryPeriod seconds to retry, numbers of attempts left: ${pingRetryCount}..."
-                    Start-Sleep $pingRetryPeriod
-                }
-            }
-        }
-    }
-
-    if (!$pingSucceeded) {
-        Write-Error "Failed to ping test server $pingEndpoint, did you forget to start it manually?"
-        Exit 1
-    }
-
-    if ($hold) {
-        Read-Host "Press enter to continue..."
-    }
-}
-
 function StartTest() {
     Write-Host "$(BuildHeader) Functional tests..."
     dotnet test ([System.IO.Path]::Combine($projectRoot, "test", "Microsoft.IIS.Administration.Tests", "Microsoft.IIS.Administration.Tests.csproj"))
@@ -227,6 +197,15 @@ function VerifyPrecondition() {
 
 function GetGlobalVariable($name) {
     & ([System.IO.Path]::Combine($scriptDir, "setup", "globals.ps1")) $name
+}
+
+# TODO: DO NOT CHECK IN
+function ListCerts() {
+    Write-Host "Listing from cert:LocalMachine\My"
+    Get-ChildItem cert:LocalMachine\My | Where-Object { $_.FriendlyName -eq "Microsoft IIS Administration Server Certificate" }
+    Write-Host "Listing from cert:LocalMachine\Root"
+    Get-ChildItem cert:LocalMachine\Root | Where-Object { $_.FriendlyName -eq "Microsoft IIS Administration Server Certificate" }
+    Write-Host "Done listing certs"
 }
 
 ########################################################### Main Script ##################################################################
@@ -271,9 +250,6 @@ try {
         }
         Write-Host "$(BuildHeader) Installing service..."
         InstallTestService
-        Write-Host "$(BuildHeader) Starting service..."
-        EnsureTestService (!$test)
-
         if ($debug) {
             $proceed = Read-Host "$(BuildHeader) Pausing for debug, continue? (Y/n)..."
             if ($proceed -NotLike "y*") {
@@ -281,6 +257,7 @@ try {
                 Exit 1
             }
         }
+        ListCerts
     }
 
     if ($test) {
