@@ -262,11 +262,13 @@ try {
         if ($test) {
             & ([System.IO.Path]::Combine($scriptDir, "tests", "Copy-TestConfig.ps1"))
         }
-        BuildSetupExe
-        $script:installerLocation = [System.IO.Path]::Combine($projectRoot, "installer", "IISAdministrationBundle", "bin", "x64", "Release", "IISAdministrationSetup.exe")
     }
 
     if ($install) {
+        $script:installerLocation = [System.IO.Path]::Combine($projectRoot, "installer", "IISAdministrationBundle", "bin", "x64", "Release", "IISAdministrationSetup.exe")
+        if (!(Test-Path $script:installerLocation)) {
+            BuildSetupExe
+        }
         Write-Host "$(BuildHeader) Installing service..."
         InstallTestService
         Write-Host "$(BuildHeader) Starting service..."
