@@ -199,6 +199,22 @@ function GetGlobalVariable($name) {
     & ([System.IO.Path]::Combine($scriptDir, "setup", "globals.ps1")) $name
 }
 
+function SanityTest() {
+    Write-Host "Sanity tests..."
+    ListCerts
+    TouchUrl "https://localhost:${testPort}"
+    TouchUrl "https://localhost:${testPort}/security/tokens"
+}
+
+function TouchUrl($url) {
+    try {
+        Invoke-WebRequest -UseDefaultCredentials $url
+    } catch {
+        Write-Error (ConvertTo-Json $_.Exception)
+        throw
+    }
+}
+
 # TODO: DO NOT CHECK IN
 function ListCerts() {
     Write-Host "Listing from cert:LocalMachine\My"
@@ -257,11 +273,12 @@ try {
                 Exit 1
             }
         }
-        ListCerts
     }
 
     if ($test) {
         Write-Host "$(BuildHeader) Starting test..."
+        SanityTest
+        Write-Host "$(BuildHeader) Starting functional test..."
         StartTest
     }
 } catch {
