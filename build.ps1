@@ -210,7 +210,8 @@ function TouchUrl($url) {
     try {
         Invoke-WebRequest -UseDefaultCredentials $url
     } catch {
-        Write-Error (ConvertTo-Json $_.Exception)
+        Write-Host $_
+        Write-Host (ConvertTo-Json $_.Exception)
         throw
     }
 }
