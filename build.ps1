@@ -145,7 +145,7 @@ function InstallTestService() {
     ## Working around a windows group policy issue
     ## Installer just added the current user to "IIS Adminstration API Owners" group and the group policy may not have been updated without re-logon
     $queryAddUser = '.security.users.administrators |= . + [\"' + $(whoami) + '\"]'
-    & ([System.IO.Path]::Combine($scriptDir, "Edit-Config.ps1")) -wait -query $queryAddUser
+    & ([System.IO.Path]::Combine($scriptDir, "Edit-Config.ps1")) -quiet -wait -query $queryAddUser
 
     $script:installed = $true
 }
