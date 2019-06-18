@@ -81,6 +81,7 @@ param(
 
     [string]
     $appName = "Microsoft IIS Administration"
+)
 
 $ErrorActionPreference = "Stop"
 
