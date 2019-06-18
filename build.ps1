@@ -81,7 +81,6 @@ param(
 
     [string]
     $appName = "Microsoft IIS Administration"
-)
 
 $ErrorActionPreference = "Stop"
 
@@ -141,6 +140,12 @@ function EnsureIISFeatures() {
 
 function InstallTestService() {
     Start-Process CMD -NoNewWindow -Wait @("/C", $script:installerLocation, "-q")
+
+    ## Working around a windows group policy issue
+    ## Installer just added the current user to "IIS Adminstration API Owners" group and the group policy may not have been updated without re-logon
+    $queryAddUser = '.security.users.administrators |= . + [\"' + $(whoami) + '\"]'
+    & [System.IO.Combine]::($scriptDir, "Edit-Config.ps1") -wait -query $queryAddUser
+
     $script:installed = $true
 }
 
