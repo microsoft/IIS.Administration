@@ -45,6 +45,9 @@
 
 .PARAMETER appName
   Do not change: the name of the application
+
+.PARAMETER installedCertName
+  Do not change: the name of the self host certed installed
 #>
 [CmdletBinding()]
 param(
@@ -80,7 +83,10 @@ param(
     $buildType = 'release',
 
     [string]
-    $appName = "Microsoft IIS Administration"
+    $appName = "Microsoft IIS Administration",
+
+    [string]
+    $installedCertName = "Microsoft IIS Administration Server Certificate"
 )
 
 $ErrorActionPreference = "Stop"
@@ -207,7 +213,9 @@ function GetGlobalVariable($name) {
 
 function SanityTest() {
     Write-Host "Sanity tests..."
-    ListCerts
+    if ($PSBoundParameters['Verbose']) {
+        ListCerts
+    }
     TouchUrl "https://localhost:${testPort}"
     TouchUrl "https://localhost:${testPort}/security/tokens"
 }
@@ -222,13 +230,12 @@ function TouchUrl($url) {
     }
 }
 
-# TODO: DO NOT CHECK IN
 function ListCerts() {
-    Write-Host "Listing from cert:LocalMachine\My"
-    Get-ChildItem cert:LocalMachine\My | Where-Object { $_.FriendlyName -eq "Microsoft IIS Administration Server Certificate" }
-    Write-Host "Listing from cert:LocalMachine\Root"
-    Get-ChildItem cert:LocalMachine\Root | Where-Object { $_.FriendlyName -eq "Microsoft IIS Administration Server Certificate" }
-    Write-Host "Done listing certs"
+    Write-Verbose "Listing from cert:LocalMachine\My"
+    Get-ChildItem cert:LocalMachine\My | Where-Object { $_.FriendlyName -eq $installedCertName }
+    Write-Verbose "Listing from cert:LocalMachine\Root"
+    Get-ChildItem cert:LocalMachine\Root | Where-Object { $_.FriendlyName -eq $installedCertName }
+    Write-Verbose "Done listing certs"
 }
 
 ########################################################### Main Script ##################################################################
