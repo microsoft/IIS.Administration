@@ -40,7 +40,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public async Task CanEnable()
         {
             RequireCcsTestInfrastructure();
@@ -50,7 +50,7 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.True(Enable(FOLDER_PATH, user.Username, user.Password, PVK_PASS));
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public async Task PathMustBeAllowed()
         {
             RequireCcsTestInfrastructure();
@@ -79,7 +79,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public void CredentialsMustBeValid()
         {
             RequireCcsTestInfrastructure();
@@ -107,7 +107,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public async Task DynamicallyAddsToStores()
         {
             RequireCcsTestInfrastructure();
@@ -121,7 +121,7 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.False(GetStores().Any(store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase)));
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public async Task CcsCertificatesShown()
         {
             RequireCcsTestInfrastructure();
@@ -134,7 +134,7 @@ namespace Microsoft.IIS.Administration.Tests
             }));
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public async Task CanCreateCcsBinding()
         {
             RequireCcsTestInfrastructure();

@@ -563,7 +563,10 @@ namespace Microsoft.IIS.Administration.Tests
             }
 
             var certsObj = JObject.Parse(result);
-            var cert = certsObj.Value<JArray>("certificates").FirstOrDefault();
+            var cert = certsObj.Value<JArray>("certificates").FirstOrDefault(c =>
+            {
+                return c["alias"].Value<string>() == "IISAdminLocalTest.pfx";
+            });
 
             return cert != null ? cert.ToObject<JObject>() : null;
         }
