@@ -79,10 +79,28 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             }
         }
 
+        public IEnumerable<string> PurposesOID
+        {
+            get
+            {
+                EnsureInit();
+                return _cert.PurposesOID;
+            }
+        }
+
         public string SignatureAlgorithm {
             get {
                 EnsureInit();
                 return _cert.SignatureAlgorithm;
+            }
+        }
+
+        public string SignatureAlgorithmOID
+        {
+            get
+            {
+                EnsureInit();
+                return _cert.SignatureAlgorithmOID;
             }
         }
 

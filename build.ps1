@@ -150,9 +150,13 @@ function InstallTestService() {
 
     ## Working around a windows group policy issue
     ## Installer just added the current user to "IIS Adminstration API Owners" group and the group policy may not have been updated without re-logon
-    $queryAddUser = '.security.users.administrators |= . + [\"' + $(whoami) + '\"]'
-    & ([System.IO.Path]::Combine($scriptDir, "Edit-Config.ps1")) -quiet -wait -query $queryAddUser
-
+    $roles = @('administrators', 'owners')
+    $userJson = (ConvertTo-Json $(whoami)).Trim('"')
+    foreach ($role in $roles) {
+        $queryAddUser = '.security.users.' + $role + ' |= . + [\"' + $userJson + '\"]'
+        Write-Verbose "Running query $queryAddUser to config file"
+        & ([System.IO.Path]::Combine($scriptDir, "Edit-AppSettings.ps1")) -quiet -wait -query $queryAddUser
+    }
     $script:installed = $true
 }
 
@@ -263,9 +267,9 @@ try {
         EnsureIISFeatures
     }
 
-    dotnet restore
     if ($publish) {
         Write-Host "$(BuildHeader) Publishing..."
+        dotnet restore
         Publish
         & ([System.IO.Path]::Combine($scriptDir, "build", "Clean-BuildDir.ps1")) -manifestDir $publishPath
         if ($test) {
@@ -274,8 +278,11 @@ try {
     }
 
     if ($install) {
+        # Note: assume 64 bits and release built
         $script:installerLocation = [System.IO.Path]::Combine($projectRoot, "installer", "IISAdministrationBundle", "bin", "x64", "Release", "IISAdministrationSetup.exe")
-        if (!(Test-Path $script:installerLocation)) {
+        if (!$publish -and (Test-Path $script:installerLocation)) {
+            Write-Host "Skipping building setup exe because it exists..."
+        } else {
             BuildSetupExe
         }
         Write-Host "$(BuildHeader) Installing service..."
