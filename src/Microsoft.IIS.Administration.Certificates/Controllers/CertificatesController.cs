@@ -110,10 +110,10 @@ namespace Microsoft.IIS.Administration.Certificates
         private IEnumerable<ICertificate> Filter(IEnumerable<ICertificate> certs)
         {
             // Filter for selecting certificates with specific purpose.
-            string intended_purpose = Context.Request.Query["intended_purpose"];
+            string intendedPurpose = Context.Request.Query["intended_purpose"];
 
-            if (intended_purpose != null) {
-                certs = certs.Where(cert => cert.Purposes.Any(s => s.Equals(intended_purpose, StringComparison.OrdinalIgnoreCase)));
+            if (intendedPurpose != null) {
+                certs = certs.Where(cert => cert.PurposesOID.Contains(intendedPurpose) || cert.Purposes.Contains(intendedPurpose, StringComparer.CurrentCultureIgnoreCase));
             }
 
             return certs;

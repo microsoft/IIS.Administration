@@ -15,11 +15,13 @@ namespace Microsoft.IIS.Administration.Certificates
         string Issuer { get; }
         string Subject { get; }
         string SignatureAlgorithm { get; }
+        string SignatureAlgorithmOID { get; }
         IEnumerable<string> SubjectAlternativeNames { get; }
         DateTime Expires { get; }
         DateTime ValidFrom { get; }
         int Version { get; }
         IEnumerable<string> Purposes { get; }
+        IEnumerable<string> PurposesOID { get; }
         ICertificateStore Store { get; }
         bool HasPrivateKey { get; }
         bool IsPrivateKeyExportable { get; }

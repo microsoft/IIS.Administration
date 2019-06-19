@@ -24,6 +24,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
     public static class SiteHelper
     {
+        private const string OIDServerAuth = "1.3.6.1.5.5.7.3.1";
         private const string SCOPE_KEY = "scope";
         private static readonly Fields RefFields =  new Fields("name", "id", "status");
         private const string sslFlagsAttribute = "sslFlags";
@@ -606,7 +607,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                         throw new NotFoundException("binding.certificate");
                     }
 
-                    if (!cert.Purposes.Contains("Server Authentication", StringComparer.OrdinalIgnoreCase)) {
+                    if (!cert.PurposesOID.Contains(OIDServerAuth)) {
                         throw new ApiArgumentException("binding.certificate", "Certificate does not support server authentication");
                     }
 

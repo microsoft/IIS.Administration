@@ -6,7 +6,10 @@ Param(
     $ConfigureTestEnvironment,
 
     [int]
-    $TestPort = 55539
+    $TestPort = 55539,
+
+    [string]
+    $TestRoot
 )
 
 #Requires -RunAsAdministrator
@@ -57,7 +60,9 @@ try {
         Write-Warning "Unable to determine git root, using parent directory as solution root: $_"
         $solutionRoot = Join-Path $PSScriptRoot ".."
     }
-    $testRoot = Join-Path $solutionRoot ".test"
+    if (!$testRoot) {
+        $testRoot = Join-Path $solutionRoot ".test"
+    }
     if ($ConfigureTestEnvironment) {
         Write-Host "Configuring test environment"
         .\tests\Create-CcsInfrastructure.ps1 -TestRoot $testRoot
@@ -70,10 +75,11 @@ try {
         }
 
         $env = @{
-            "iis_admin_test_dir" = (ConvertTo-Json $testRoot).Trim('"');
+            "iis_admin_test_dir" = ($TestRoot | ConvertTo-Json).Trim('"');
             "iis_admin_test_port" = $TestPort;
-            "project_dir" = $projectRoot
+            "project_dir" = ($projectRoot | ConvertTo-Json).Trim('"');
         }
+        (Get-ChildItem Env:) | ForEach-Object { $env[$_.Name] = $_.Value }
         ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "appsettings.test.json.template")) $env
         ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "Microsoft.IIS.Administration.Tests", "test.config.json.template")) $env
     }

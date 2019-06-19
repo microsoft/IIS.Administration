@@ -11,7 +11,7 @@
         * Run functional tests
 
 
-  .\build.ps1 -devSetup -test -verbose
+  .\build.ps1 -devSetup -test -testRoot "C:\inetpub" -verbose
    Run test on a machine with IIS Administration API already installed
 
 .PARAMETER publish
@@ -33,6 +33,9 @@
 .PARAMETER testPort
   The port to use for service
 
+.PARAMETER testRoot
+  The root directory for tests to create web sites. Note that the directory must be granted both read and write permission via IIS Administration API's config file
+
 .PARAMETER pingRetryCount
 .PARAMETER pingRetryPeriod
   When waiting for the service to come up, these properties defines the fequency and number of time to retry pinging the endpoint
@@ -42,6 +45,9 @@
 
 .PARAMETER appName
   Do not change: the name of the application
+
+.PARAMETER installedCertName
+  Do not change: the name of the self host certed installed
 #>
 [CmdletBinding()]
 param(
@@ -63,6 +69,9 @@ param(
     [int]
     $testPort = 55539,
 
+    [string]
+    $testRoot,
+
     [int]
     $pingRetryCount = 20,
 
@@ -73,7 +82,11 @@ param(
     [string]
     $buildType = 'release',
 
-    $appName = "Microsoft IIS Administration"
+    [string]
+    $appName = "Microsoft IIS Administration",
+
+    [string]
+    $installedCertName = "Microsoft IIS Administration Server Certificate"
 )
 
 $ErrorActionPreference = "Stop"
@@ -91,7 +104,16 @@ function ForceResolvePath($path) {
 }
 
 function DevEnvSetup() {
-    & ([System.IO.Path]::Combine($scriptDir, "Configure-DevEnvironment.ps1")) -ConfigureTestEnvironment -TestPort $testPort
+    $configArgs = @{}
+    $configArgs.ConfigureTestEnvironment = $true
+    if ($testPort) {
+        $configArgs.TestPort = $testPort
+    }
+    if ($testRoot) {
+        Write-Verbose "Test port $testPort"
+        $configArgs.TestRoot = $testRoot
+    }
+    & ([System.IO.Path]::Combine($scriptDir, "Configure-DevEnvironment.ps1")) @configArgs
 }
 
 function Publish() {
@@ -125,6 +147,16 @@ function EnsureIISFeatures() {
 
 function InstallTestService() {
     Start-Process CMD -NoNewWindow -Wait @("/C", $script:installerLocation, "-q")
+
+    ## Working around a windows group policy issue
+    ## Installer just added the current user to "IIS Adminstration API Owners" group and the group policy may not have been updated without re-logon
+    $roles = @('administrators', 'owners')
+    $userJson = (ConvertTo-Json $(whoami)).Trim('"')
+    foreach ($role in $roles) {
+        $queryAddUser = '.security.users.' + $role + ' |= . + [\"' + $userJson + '\"]'
+        Write-Verbose "Running query $queryAddUser to config file"
+        & ([System.IO.Path]::Combine($scriptDir, "Edit-AppSettings.ps1")) -quiet -wait -query $queryAddUser
+    }
     $script:installed = $true
 }
 
@@ -159,36 +191,6 @@ function CleanUp() {
     }
 }
 
-function EnsureTestService($hold) {
-    Write-Host "$(BuildHeader) Sanity tests..."
-    $pingEndpoint = "https://localhost:$testPort"
-    $pingSucceeded = $false
-    while (!$pingSucceeded -and ($pingRetryCount -ge 0)) {
-        try {
-            Invoke-WebRequest -UseDefaultCredentials -UseBasicParsing $pingEndpoint | Out-Null
-            $pingSucceeded = $true
-        } catch {
-            Write-Verbose "Failed to ping with status $($_.Exception.Status): $($_.Exception.Message)"
-            if ($_.Exception.Status -eq [System.Net.WebExceptionStatus]::ConnectFailure) {
-                $pingRetryCount--;
-                if ($pingRetryCount -ge 0) {
-                    Write-Verbose "Wait $pingRetryPeriod seconds to retry, numbers of attempts left: ${pingRetryCount}..."
-                    Start-Sleep $pingRetryPeriod
-                }
-            }
-        }
-    }
-
-    if (!$pingSucceeded) {
-        Write-Error "Failed to ping test server $pingEndpoint, did you forget to start it manually?"
-        Exit 1
-    }
-
-    if ($hold) {
-        Read-Host "Press enter to continue..."
-    }
-}
-
 function StartTest() {
     Write-Host "$(BuildHeader) Functional tests..."
     dotnet test ([System.IO.Path]::Combine($projectRoot, "test", "Microsoft.IIS.Administration.Tests", "Microsoft.IIS.Administration.Tests.csproj"))
@@ -211,6 +213,33 @@ function VerifyPrecondition() {
 
 function GetGlobalVariable($name) {
     & ([System.IO.Path]::Combine($scriptDir, "setup", "globals.ps1")) $name
+}
+
+function SanityTest() {
+    Write-Host "Sanity tests..."
+    if ($PSBoundParameters['Verbose']) {
+        ListCerts
+    }
+    TouchUrl "https://localhost:${testPort}"
+    TouchUrl "https://localhost:${testPort}/security/tokens"
+}
+
+function TouchUrl($url) {
+    try {
+        Invoke-WebRequest -UseDefaultCredentials $url
+    } catch {
+        Write-Host $_
+        Write-Host (ConvertTo-Json $_.Exception)
+        throw
+    }
+}
+
+function ListCerts() {
+    Write-Verbose "Listing from cert:LocalMachine\My"
+    Get-ChildItem cert:LocalMachine\My | Where-Object { $_.FriendlyName -eq $installedCertName }
+    Write-Verbose "Listing from cert:LocalMachine\Root"
+    Get-ChildItem cert:LocalMachine\Root | Where-Object { $_.FriendlyName -eq $installedCertName }
+    Write-Verbose "Done listing certs"
 }
 
 ########################################################### Main Script ##################################################################
@@ -238,24 +267,26 @@ try {
         EnsureIISFeatures
     }
 
-    dotnet restore
     if ($publish) {
         Write-Host "$(BuildHeader) Publishing..."
+        dotnet restore
         Publish
         & ([System.IO.Path]::Combine($scriptDir, "build", "Clean-BuildDir.ps1")) -manifestDir $publishPath
         if ($test) {
             & ([System.IO.Path]::Combine($scriptDir, "tests", "Copy-TestConfig.ps1"))
         }
-        BuildSetupExe
-        $script:installerLocation = [System.IO.Path]::Combine($projectRoot, "installer", "IISAdministrationBundle", "bin", "x64", "Release", "IISAdministrationSetup.exe")
     }
 
     if ($install) {
+        # Note: assume 64 bits and release built
+        $script:installerLocation = [System.IO.Path]::Combine($projectRoot, "installer", "IISAdministrationBundle", "bin", "x64", "Release", "IISAdministrationSetup.exe")
+        if (!$publish -and (Test-Path $script:installerLocation)) {
+            Write-Host "Skipping building setup exe because it exists..."
+        } else {
+            BuildSetupExe
+        }
         Write-Host "$(BuildHeader) Installing service..."
         InstallTestService
-        Write-Host "$(BuildHeader) Starting service..."
-        EnsureTestService (!$test)
-
         if ($debug) {
             $proceed = Read-Host "$(BuildHeader) Pausing for debug, continue? (Y/n)..."
             if ($proceed -NotLike "y*") {
@@ -267,6 +298,8 @@ try {
 
     if ($test) {
         Write-Host "$(BuildHeader) Starting test..."
+        SanityTest
+        Write-Host "$(BuildHeader) Starting functional test..."
         StartTest
     }
 } catch {
