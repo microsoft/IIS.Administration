@@ -607,7 +607,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                         throw new NotFoundException("binding.certificate");
                     }
 
-                    if (!cert.Purposes.Contains(OIDServerAuth)) {
+                    if (!cert.PurposesOID.Contains(OIDServerAuth)) {
                         throw new ApiArgumentException("binding.certificate", "Certificate does not support server authentication");
                     }
 

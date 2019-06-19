@@ -79,6 +79,7 @@ try {
             "iis_admin_test_port" = $TestPort;
             "project_dir" = ($projectRoot | ConvertTo-Json).Trim('"');
         }
+        (Get-ChildItem Env:) | ForEach-Object { $map[$_.Name] = $_.Value }
         ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "appsettings.test.json.template")) $env
         ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "Microsoft.IIS.Administration.Tests", "test.config.json.template")) $env
     }
