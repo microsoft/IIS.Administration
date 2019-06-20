@@ -18,6 +18,7 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Diagnostics;
     using System.Threading.Tasks;
 
+    // NOTE: This test intermittently fails because it tries to disable/enable Windows Features. Details: https://github.com/Microsoft/IIS.Administration/issues/236
     public class CentralCertificates
     {
         private static readonly string CERTIFICATES_API_PATH = $"{Configuration.Instance().TEST_SERVER_URL}/api/certificates";
