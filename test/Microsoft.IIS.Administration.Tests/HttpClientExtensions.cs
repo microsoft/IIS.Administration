@@ -4,8 +4,10 @@
 
 namespace Microsoft.IIS.Administration.Tests
 {
+    using Microsoft.IIS.Administration.Tests.Asserts;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System;
     using System.Net.Http;
     using System.Text;
 
@@ -77,6 +79,25 @@ namespace Microsoft.IIS.Administration.Tests
             var response = PatchRaw(client, uri, body);
             result = response.Content.ReadAsStringAsync().Result;
             return Globals.Success(response);
+        }
+
+        public static string AssertPatch(
+            this HttpClient client,
+            string uri,
+            string body)
+        {
+            return AssertPatch(client, uri, body, Assertions.All(HttpAssertions.Success));
+        }
+
+        public static string AssertPatch(
+            this HttpClient client,
+            string uri,
+            string body,
+            Action<HttpResponseMessage> assert)
+        {
+            var response = PatchRaw(client, uri, body);
+            assert(response);
+            return response.Content.ReadAsStringAsync().Result;
         }
 
         public static HttpResponseMessage PatchRaw(this HttpClient client, string uri, string body)

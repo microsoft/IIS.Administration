@@ -105,13 +105,9 @@ namespace Microsoft.IIS.Administration.Tests
                     certificate = GetCertificate(client)
                 }));
 
-                string result;
                 string body = JsonConvert.SerializeObject(site);
-
-                Assert.True(client.Patch(Utils.Self(site), body, out result));
-
+                var result = client.AssertPatch(Utils.Self(site), body);
                 JObject newSite = JsonConvert.DeserializeObject<JObject>(result);
-
                 WaitForStatus(client, ref newSite);
 
                 Assert.True(Utils.JEquals<bool>(site, newSite, "server_auto_start"));
