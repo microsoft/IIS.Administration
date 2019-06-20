@@ -46,11 +46,11 @@ namespace Microsoft.IIS.Administration.WebServer {
             };
         }
 
-        public static dynamic DismError(int exitCode, string featureName)
+        public static dynamic DismError(int exitCode, string featureName, string errors, string outputs)
         {
             return new {
                 title = "Server Error",
-                detail = "Dism Error",
+                detail = $"Dism Outputs: {outputs}\n\nError: {errors}",
                 feature = featureName,
                 exit_code = exitCode.ToString("X"),
                 status = (int)HttpStatusCode.InternalServerError

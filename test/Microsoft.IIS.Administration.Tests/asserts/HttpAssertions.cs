@@ -8,8 +8,20 @@ namespace Microsoft.IIS.Administration.Tests.Asserts {
     {
         public static Action<HttpResponseMessage> Success
             = (HttpResponseMessage msg) => {
-                Assert.True((int)msg.StatusCode >= 200, $"{msg.ToString()}");
-                Assert.True((int)msg.StatusCode < 300, $"{msg.ToString()}");
+                Assert.True((int)msg.StatusCode >= 200, $"{Format(msg)}");
+                Assert.True((int)msg.StatusCode < 300, $"{Format(msg)}");
             };
+
+        private static string Format(HttpResponseMessage msg)
+        {
+            try
+            {
+                string content = msg.Content.ReadAsStringAsync().Result;
+                return msg.ToString() + "\nContent:" + content;
+            } catch (Exception e)
+            {
+                return msg.ToString() + "\nError parsing content:" + e.ToString();
+            }
+        }
     }
 }

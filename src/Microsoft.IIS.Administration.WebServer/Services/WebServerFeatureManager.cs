@@ -5,6 +5,7 @@
 namespace Microsoft.IIS.Administration.WebServer
 {
     using System.Diagnostics;
+    using System.Text;
     using System.Threading.Tasks;
 
     class WebServerFeatureManager : IWebServerFeatureManager
@@ -36,10 +37,24 @@ namespace Microsoft.IIS.Administration.WebServer
             };
 
             var tcs = new TaskCompletionSource<int>();
-
+            var errorStream = new StringBuilder();
+            var outputStream = new StringBuilder();
+            p.ErrorDataReceived += (sender, e) =>
+            {
+                errorStream.AppendLine(e.Data);
+            };
+            p.OutputDataReceived += (sender, e) =>
+            {
+                outputStream.AppendLine(e.Data);
+            };
             p.Exited += (sender, args) => {
                 if (p.ExitCode != 0) {
-                    tcs.SetException(new DismException(p.ExitCode, string.Join(", ", features)));
+                    // 3010 status code: https://github.com/microsoft/IIS.Administration/issues/236
+                    tcs.SetException(new DismException(
+                        p.ExitCode,
+                        string.Join(", ", features),
+                        errorStream.ToString(),
+                        outputStream.ToString()));
                 }
                 else {
                     tcs.SetResult(p.ExitCode);
