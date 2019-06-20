@@ -28,7 +28,8 @@
   Do not uninstall the application after steps are run
 
 .PARAMETER test
-  Run the functional tests
+.PARAMETER testFilter
+  Run the functional tests, use testFilter to filter to tests to be performed
 
 .PARAMETER testPort
   The port to use for service
@@ -65,6 +66,9 @@ param(
 
     [switch]
     $test,
+
+    [string]
+    $testFilter,
 
     [int]
     $testPort = 55539,
@@ -193,7 +197,13 @@ function CleanUp() {
 
 function StartTest() {
     Write-Host "$(BuildHeader) Functional tests..."
-    dotnet test ([System.IO.Path]::Combine($projectRoot, "test", "Microsoft.IIS.Administration.Tests", "Microsoft.IIS.Administration.Tests.csproj"))
+    $testProj = [System.IO.Path]::Combine($projectRoot, "test", "Microsoft.IIS.Administration.Tests", "Microsoft.IIS.Administration.Tests.csproj")
+
+    if ($testFilter) {
+        dotnet test $testProj --filter $testFilter
+    } else {
+        dotnet test $testProj
+    }
 }
 
 function VerifyPath($path) {
@@ -255,6 +265,9 @@ $scriptDir = Join-Path $projectRoot "scripts"
 # publish script only takes full path
 $publishPath = Join-Path $projectRoot "dist"
 $serviceName = GetGlobalVariable DEFAULT_SERVICE_NAME
+if ($testFilter) {
+    $test = $true
+}
 
 Write-Host "$(BuildHeader) Starting clean up..."
 CleanUp

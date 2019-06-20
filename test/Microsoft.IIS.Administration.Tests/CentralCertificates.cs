@@ -18,6 +18,7 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Diagnostics;
     using System.Threading.Tasks;
 
+    // NOTE: This test intermittently fails because it tries to disable/enable Windows Features. Details: https://github.com/Microsoft/IIS.Administration/issues/236
     public class CentralCertificates
     {
         private static readonly string CERTIFICATES_API_PATH = $"{Configuration.Instance().TEST_SERVER_URL}/api/certificates";
@@ -40,7 +41,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public async Task CanEnable()
         {
             RequireCcsTestInfrastructure();
@@ -50,7 +51,7 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.True(Enable(FOLDER_PATH, user.Username, user.Password, PVK_PASS));
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public async Task PathMustBeAllowed()
         {
             RequireCcsTestInfrastructure();
@@ -79,7 +80,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public void CredentialsMustBeValid()
         {
             RequireCcsTestInfrastructure();
@@ -107,7 +108,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public async Task DynamicallyAddsToStores()
         {
             RequireCcsTestInfrastructure();
@@ -121,7 +122,7 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.False(GetStores().Any(store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase)));
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public async Task CcsCertificatesShown()
         {
             RequireCcsTestInfrastructure();
@@ -134,7 +135,7 @@ namespace Microsoft.IIS.Administration.Tests
             }));
         }
 
-        [Fact(Skip = "Pending https://github.com/Microsoft/IIS.Administration/issues/236")]
+        [Fact]
         public async Task CanCreateCcsBinding()
         {
             RequireCcsTestInfrastructure();
