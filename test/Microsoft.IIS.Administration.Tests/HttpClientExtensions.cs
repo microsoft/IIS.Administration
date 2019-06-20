@@ -20,6 +20,19 @@ namespace Microsoft.IIS.Administration.Tests
             return Globals.Success(responseMessage);
         }
 
+        public static string AssertGet(this HttpClient client, string uri)
+        {
+            return AssertGet(client, uri, HttpAssertions.Success);
+        }
+
+        public static string AssertGet(this HttpClient client, string uri, Action<HttpResponseMessage> assert)
+        {
+            var responseMessage = client.GetAsync(uri).Result;
+            assert(responseMessage);
+            var result = responseMessage.Content.ReadAsStringAsync().Result;
+            return result;
+        }
+
         public static JObject Get(this HttpClient client, string uri)
         {
             string result = null;
@@ -86,7 +99,7 @@ namespace Microsoft.IIS.Administration.Tests
             string uri,
             string body)
         {
-            return AssertPatch(client, uri, body, Assertions.All(HttpAssertions.Success));
+            return AssertPatch(client, uri, body, HttpAssertions.Success);
         }
 
         public static string AssertPatch(

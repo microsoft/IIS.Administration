@@ -551,20 +551,22 @@ namespace Microsoft.IIS.Administration.Tests
             }
         }
 
-        private static JObject GetCertificate(HttpClient client)
+        private JObject GetCertificate(HttpClient client)
         {
-            string result;
-            if (!client.Get(CertificatesUrl + $"?intended_purpose={OIDServerAuth}", out result)) {
-                return null;
-            }
-
+            string result = client.AssertGet(CertificatesUrl + $"?intended_purpose={OIDServerAuth}");
             var certsObj = JObject.Parse(result);
-            var cert = certsObj.Value<JArray>("certificates").FirstOrDefault(c =>
+            var allCerts = certsObj.Value<JArray>("certificates");
+            Assert.NotEmpty(allCerts);
+            var localCerts = allCerts.Where(c => c["subject"].Value<string>() == "CN=localhost");
+            Assert.NotEmpty(localCerts);
+            var defaultCertName = "Microsoft IIS Administration Server Certificate";
+            var cert = localCerts.FirstOrDefault(c => c["alias"].Value<string>() == defaultCertName);
+            if (cert == null)
             {
-                return c["alias"].Value<string>() == "IISAdminLocalTest.pfx";
-            });
-
-            return cert != null ? cert.ToObject<JObject>() : null;
+                cert = localCerts.First();
+                _output.WriteLine($"[WARNING]: unable to find {defaultCertName}, using {cert["alias"].Value<string>()} for tests instead.");
+            }
+            return cert.ToObject<JObject>();
         }
     }
 }
