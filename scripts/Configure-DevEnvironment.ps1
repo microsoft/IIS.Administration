@@ -67,21 +67,22 @@ try {
         Write-Host "Configuring test environment"
         .\tests\Create-CcsInfrastructure.ps1 -TestRoot $testRoot
 
-        try {
-            $projectRoot = git rev-parse --show-toplevel
-        } catch {
-            Write-Verbose "Error looking for project root $_, using scrpt location as reference point"
-            $projectRoot = (Join-Path $PSScriptRoot "..")
-        }
-
         $env = @{
             "iis_admin_test_dir" = ($TestRoot | ConvertTo-Json).Trim('"');
             "iis_admin_test_port" = $TestPort;
-            "project_dir" = ($projectRoot | ConvertTo-Json).Trim('"');
+            "project_dir" = ($solutionRoot | ConvertTo-Json).Trim('"');
         }
         (Get-ChildItem Env:) | ForEach-Object { $env[$_.Name] = $_.Value }
         ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "appsettings.test.json.template")) $env
         ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "Microsoft.IIS.Administration.Tests", "test.config.json.template")) $env
+    }
+
+    Push-Location ([System.IO.Path]::Combine($solutionRoot, "scripts", "setup"))
+    try {
+        Write-Host "Installing ssl cert and binding"
+        .\ensure-cert.ps1 -Port $TestPort
+    } finally {
+        Pop-Location
     }
 }
 finally {
