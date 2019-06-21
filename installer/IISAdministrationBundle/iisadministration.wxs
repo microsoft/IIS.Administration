@@ -43,7 +43,7 @@
                   Name="dotnet-runtime-2.1.9-win-x64.exe"
                   Permanent="yes"
                   Compressed="no"
-                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/b9cefae4-7f05-4dea-9fb0-3328aaddb2ee/545e5c4e0eeff6366523209935376002/dotnet-runtime-2.1.9-win-x64.exe"
+                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/0a2dd531-45b5-4d59-9b8f-be5ac2d2e1de/5549783adc792b37ffd1d39c59ee44e2/dotnet-runtime-2.1.11-win-x64.exe"
                   DetectCondition="(DOTNET_RUNTIME_VERSION) AND (DOTNET_RUNTIME_VERSION &gt;= DOTNET_RUNTIME_VERSION_MINIMAL)"
                   InstallCommand="/q /norestart">
         <RemotePayload CertificatePublicKey="7EA0E648275A9E1DC9FC58FA8C64B8FD6F4C46EB"
@@ -68,7 +68,7 @@
                   Name="aspnetcore-runtime-2.1.9-win-x64.exe"
                   Permanent="yes"
                   Compressed="no"
-                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/ece6ec5c-4bdb-494b-994b-3ece386e404a/436e42bf7c68b8455953d2d3285c27ed/aspnetcore-runtime-2.1.9-win-x64.exe"
+                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/d5fcdd67-2037-4b72-99cc-af2c8149dd50/0efc18d67e67ef7d9866af97c04b7ff1/aspnetcore-runtime-2.1.11-win-x64.exe"
                   DetectCondition="(ASPNET_CORE_21_SHARED_FRAMEWORK_EXISTS)"
                   InstallCommand="/q /norestart">
 
