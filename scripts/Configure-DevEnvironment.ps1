@@ -9,7 +9,10 @@ Param(
     $TestPort = 55539,
 
     [string]
-    $TestRoot
+    $TestRoot,
+
+    [switch]
+    $CertSetup
 )
 
 #Requires -RunAsAdministrator
@@ -77,12 +80,14 @@ try {
         ReplaceTemplate ([System.IO.Path]::Combine($solutionRoot, "test", "Microsoft.IIS.Administration.Tests", "test.config.json.template")) $env
     }
 
-    Push-Location ([System.IO.Path]::Combine($solutionRoot, "scripts", "setup"))
-    try {
-        Write-Host "Installing ssl cert and binding"
-        .\ensure-cert.ps1 -Port $TestPort
-    } finally {
-        Pop-Location
+    if ($CertSetup) {
+        Push-Location ([System.IO.Path]::Combine($solutionRoot, "scripts", "setup"))
+        try {
+            Write-Host "Installing ssl cert and binding"
+            .\ensure-cert.ps1 -Port $TestPort
+        } finally {
+            Pop-Location
+        }
     }
 }
 finally {

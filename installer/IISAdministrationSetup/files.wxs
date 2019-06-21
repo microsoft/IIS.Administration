@@ -950,6 +950,9 @@
       <Component Id="C_globals.ps1" Guid="8FE4306D-E976-4599-9242-547342F9E2BA" Win64="$(var.IsWin64)">
         <File Id="globals.ps1" Source="$(var.SetupDir)\globals.ps1" />
       </Component>
+      <Component Id="C_ensure_cert.ps1" Guid="F18443E2-59FE-4296-8028-9431B2687104" Win64="$(var.IsWin64)">
+        <File Id="ensure_cert.ps1" Source="$(var.SetupDir)\ensure-cert.ps1" />
+      </Component>
       <Component Id="C_install.ps1" Guid="AFAE59DA-884A-4C7C-9940-A7EC1C1449AB" Win64="$(var.IsWin64)">
         <File Id="install.ps1" Source="$(var.SetupDir)\install.ps1" />
       </Component>
