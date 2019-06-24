@@ -23,6 +23,7 @@
     <None Remove="setup\dependencies.ps1" />
     <None Remove="setup\files.ps1" />
     <None Remove="setup\globals.ps1" />
+    <None Remove="setup\ensure-cert.ps1" />
     <None Remove="setup\install.ps1" />
     <None Remove="setup\json.ps1" />
     <None Remove="setup\migrate.ps1" />
@@ -62,6 +63,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="setup\install.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="setup\ensure-cert.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="setup\json.ps1">
