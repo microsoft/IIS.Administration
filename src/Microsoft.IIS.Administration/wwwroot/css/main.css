@@ -103,14 +103,14 @@ button:focus {
     display: block;
     position: fixed;
     left: 0;
-    top:0;
-    margin:0;
-    padding:0;
+    top: 0;
+    margin: 0;
+    padding: 0;
     padding-left: 10px;
-    width:100%;
+    width: 100%;
     background: #fff;
     line-height: 50px;
-    background-color: #0094ff;
+    background-color: #0077ce;
     color: #fff;
     overflow: hidden;
     z-index: 100;
@@ -221,7 +221,7 @@ fieldset {
 
 .btn {
     background: none;
-    border: 1px solid #0094ff;
+    border: 1px solid #0077ce;
     cursor: pointer;
     font-family: 'Century Gothic', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 35px;
@@ -232,13 +232,13 @@ fieldset {
 
 .btn-default,
 .btn:hover {
-    background: #0094ff;
+    background: #0077ce;
     color: #fff;
 }
 
 .border,
 input[type="text"] {
-    border: 1px solid #0094ff;
+    border: 1px solid #0077ce;
     padding: 8px;
 }
 
@@ -251,7 +251,7 @@ input[type="text"] {
 
 .radio-row li.selected,
 .radio-row li:hover {
-    background: #0094ff;
+    background: #0077ce;
     color: #fff;
     cursor: pointer;
 }
@@ -289,7 +289,7 @@ input[type=radio]:not(old) + label > span {
     width            : 1.3em;
     height           : 1.3em;
     margin-right     : 0.3em;
-    border           : 0.0625em solid #0094ff;
+    border           : 0.0625em solid #0077ce;
     vertical-align   : bottom;
 }
 
@@ -298,7 +298,7 @@ input[type=checkbox]:not(old):checked + label > span:before {
     content     : '✓';
     display     : block;
     width       : 1em;
-    color       : #0094ff;
+    color       : #0077ce;
     font-size   : 1.2em;
     line-height : 1em;
     text-align  : center;
@@ -318,8 +318,8 @@ input[type=radio]:not(old):checked + label > span > span {
     width: 0.85em;
     height: 0.85em;
     margin: 0.17em;
-    border: 0.0625em solid #0094ff;
-    background-color: #0094ff;
+    border: 0.0625em solid #0077ce;
+    background-color: #0077ce;
 }
 
 
