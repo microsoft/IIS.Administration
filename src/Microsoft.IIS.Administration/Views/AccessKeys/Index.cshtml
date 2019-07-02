@@ -83,14 +83,15 @@
         <fieldset>
             <h1>@newToken?.Purpose</h1>
             <label>Access Token</label>
-            <p id="key" class="note">@newToken?.Value</p>
+            <input autofocus readonly id="key" class="note" type="text" value="@newToken?.Value" title="Access Token" />
             <p class="small">
-                Keep the access token above secured! You will not be able to see it here once you dimiss this window.<br />
-                <span class="red">If lost or compromised, refresh it immediately!</span>
+                Keep the access token above secured!<br />
+                You will not be able to see the access token once you dimiss this window.<br />
+                <span class="red">If lost or compromised, refresh the access token immediately!</span>
             </p>
         </fieldset>
         <p class="right">
-            <input class="btn" id="clipboardCopy" type="button" value="Copy" />
+            <input class="btn" id="clipboardCopy" type="button" value="Copy"/>
             <input class="btn btn-default" id="ok" type="button" href="/security/tokens" value="Close" />
         </p>
     </section>

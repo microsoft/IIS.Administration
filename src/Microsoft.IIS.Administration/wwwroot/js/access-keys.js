@@ -45,7 +45,7 @@ $(document).ready(function () {
         }
     })
 
-    if ($("#key").html() != "") {
+    if ($("#key").val() != "") {
         $("#newTokenForm").hide();
         $("#modal, #tokenForm").show();
         $("#tokenForm #ok").focus();
@@ -70,23 +70,15 @@ $(document).ready(function () {
     })
 
     $("#key").ready(function () {
-        // select the newly generated token
-        var range = document.createRange();
-        var selection = window.getSelection();
-        range.selectNodeContents(document.getElementById('key'));
-        selection.removeAllRanges();
-        selection.addRange(range);
-
-        // set input-focus to the first control of the tokenGenerator
-        $("#clipboardCopy").focus(); 
+        var copyText = document.getElementById("key");
+        copyText.select();
     })
 
     $("#clipboardCopy").click(function () {
-        var range = document.createRange();
-        var selection = window.getSelection();
-        range.selectNodeContents(document.getElementById('key'));
-        selection.removeAllRanges();
-        selection.addRange(range);     
+        var copyText = document.getElementById("key");
+        copyText.select();
+
+        /* Copy to clipboard */
         document.execCommand('copy');
     })
 
