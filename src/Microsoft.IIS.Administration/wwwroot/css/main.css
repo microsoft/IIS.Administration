@@ -370,4 +370,3 @@ input[type=radio]:not(old):checked + label > span > span {
         width: 100%;
     }
 }
-
