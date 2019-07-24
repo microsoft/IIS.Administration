@@ -147,7 +147,17 @@ function CreateLocalGroup($_name, $desc, $skipIfExists = $false) {
         $group = $localAd.Children.Add($_name, 'group')
         $group.Properties["Description"].Value = $desc
     
-        $group.CommitChanges()
+        try {
+            $group.CommitChanges()
+        } catch {
+            if ($_.Exception -and
+                $_.Exception.InnerException -is [System.Runtime.InteropServices.COMException] -and
+                $_.Exception.InnerException.ErrorCode -eq -2147023517) {
+                Write-Verbose "Group already exists, skipping commit..."
+            } else {
+                throw $_
+            }
+        }
     }
     else {
         $group = New-LocalGroup -Name $_name
