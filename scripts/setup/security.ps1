@@ -101,6 +101,12 @@ function GetLocalGroup($groupName) {
         $group = Get-LocalGroup -Name $groupName -ErrorAction SilentlyContinue
     }
 
+    if ($group) {
+        Write-Verbose "Group $groupName exists."
+    } else {
+        Write-Verbose "Group $groupName does not exist"
+    }
+
     return $group;
 }
 
@@ -134,8 +140,9 @@ function CreateLocalGroup($_name, $desc, $skipIfExists = $false) {
 
     $group = GetLocalGroup $_name;
 
-    if($group -ne $null) {
+    if($group) {
         if ($skipIfExists) {
+            Write-Verbose "Group $_name already exists, returning..."
             return $group
         }
         throw "Group $_name already exists"
@@ -147,13 +154,19 @@ function CreateLocalGroup($_name, $desc, $skipIfExists = $false) {
         $group = $localAd.Children.Add($_name, 'group')
         $group.Properties["Description"].Value = $desc
     
-        $group.CommitChanges()
+        $group.CommitChanges() | Out-Null
     }
     else {
         $group = New-LocalGroup -Name $_name
+        if (!$group) {
+            Write-Warning "New-LocalGroup returned null"
+        }
         net localgroup $_name /comment:$desc | Out-Null
     }
 
+    if (!$group) {
+        Write-Warning "CreateLocalGroup is returnning null..."
+    }
     return $group
 }
 
@@ -193,7 +206,7 @@ function AddUserToGroup($userPath, $_group) {
 		throw "User path cannot be null"
 	}
 
-	if ($_group -eq $null) {
+	if ($_group) {
 		throw "Group cannot be null"
 	}
 
@@ -206,7 +219,7 @@ function AddUserToGroup($userPath, $_group) {
         catch {
             # HRESULT -2147023518
             # The specified account name is already a member of the group.
-            if($_.Exception.InnerException -eq $null -or ($_.Exception.InnerException.HResult -ne -2147023518 -and $_.Exception.InnerException.ErrorCode -ne -2147023518)) {
+            if($_.Exception.InnerException -or ($_.Exception.InnerException.HResult -ne -2147023518 -and $_.Exception.InnerException.ErrorCode -ne -2147023518)) {
                 throw $_.Exception
             }
         }
@@ -214,7 +227,7 @@ function AddUserToGroup($userPath, $_group) {
     else {
         $existingMember = Get-LocalGroupMember -Group $_group.name | where {$_.Name -eq $userPath}
 
-        if ($existingMember -eq $null) {
+        if ($existingMember) {
             Add-LocalGroupMember -Name $($_group.name) -Member $($userPath)
         }
     }
