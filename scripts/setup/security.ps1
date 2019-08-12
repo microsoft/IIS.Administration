@@ -232,10 +232,11 @@ function AddUserToGroup($userPath, $_group, $groupName) {
     else {
         $existingMember = Get-LocalGroupMember -Group $groupName | Where {$_.Name -eq $userPath}
         if (!$existingMember) {
+            Write-Verbose "Adding member $userPath to group $groupName"
             Add-LocalGroupMember -Name $($groupName) -Member $($userPath)
         } else {
-			Write-Verbose "Member $userPath already exists in $groupName"
-		}
+            Write-Verbose "Member $userPath already exists in $groupName"
+        }
     }
 }
 
