@@ -83,7 +83,8 @@ namespace Microsoft.IIS.Administration {
                         host.Run();
                     }
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 using (var shutdownLog = new EventLog("Application"))
                 {
