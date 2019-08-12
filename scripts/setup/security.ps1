@@ -157,15 +157,21 @@ function CreateLocalGroup($_name, $desc, $skipIfExists = $false) {
         $group.CommitChanges() | Out-Null
     }
     else {
-        $group = New-LocalGroup -Name $_name
-        if (!$group) {
-            Write-Warning "New-LocalGroup returned null"
+        ## https://github.com/microsoft/IIS.Administration/issues/275
+        ## Either
+        ## 1. Something was creating the local group between line 141 and here
+        ## 2. Something created the local group but the group policy is not updated
+        ## causing $group object being null when checked, but New-LocalGroup actually failed
+        try {
+            $group = New-LocalGroup -Name $_name
+        } catch {
+            Write-Warning "New-LocalGroup -Name $_name threw exception $_, ignoring because group name would be used to add local group member"
         }
         net localgroup $_name /comment:$desc | Out-Null
     }
 
     if (!$group) {
-        Write-Warning "CreateLocalGroup is returnning null..."
+        Write-Warning "CreateLocalGroup is returnning null, the group might not exist."
     }
     return $group
 }
@@ -200,17 +206,16 @@ function CurrentAdUser {
 # Adds a user to a local group.
 # AdPath: the representation of the current user. Provided by CurrentAdUser.
 # Group: The group to add the user to.
-function AddUserToGroup($userPath, $_group) {
+function AddUserToGroup($userPath, $_group, $groupName) {
 
 	if ([System.String]::IsNullOrEmpty($userPath)) {
 		throw "User path cannot be null"
 	}
 
-	if ($_group) {
-		throw "Group cannot be null"
-	}
-
     if (-not($(GroupCommandletsAvailable))) {
+        if (!$_group) {
+            throw "Group cannot be null"
+        }
         $userPath = 'WinNT://' + $userPath.Replace("\", "/")
 
         try {
@@ -225,11 +230,12 @@ function AddUserToGroup($userPath, $_group) {
         }
     }
     else {
-        $existingMember = Get-LocalGroupMember -Group $_group.name | where {$_.Name -eq $userPath}
-
-        if ($existingMember) {
-            Add-LocalGroupMember -Name $($_group.name) -Member $($userPath)
-        }
+        $existingMember = Get-LocalGroupMember -Group $groupName | Where {$_.Name -eq $userPath}
+        if (!$existingMember) {
+            Add-LocalGroupMember -Name $($groupName) -Member $($userPath)
+        } else {
+			Write-Verbose "Member $userPath already exists in $groupName"
+		}
     }
 }
 
@@ -445,7 +451,7 @@ function Add-FullControl($_path, $_identity, $_recurse) {
 ## ensure the member/group exists in the specified group
 function EnsureLocalGroupMember($groupName, $description, $AdPath) {
     $group = CreateLocalGroup $groupName $description $true
-    return AddUserToGroup $AdPath $group
+    return AddUserToGroup $AdPath $group $groupName
 }
 
 switch($Command)
@@ -472,7 +478,7 @@ switch($Command)
     }
     "AddUserToGroup"
     {
-        return AddUserToGroup $AdPath $Group
+        return AddUserToGroup $AdPath $Group $Group.Name
     }
     "GroupEquals"
     {
