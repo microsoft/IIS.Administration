@@ -39,7 +39,11 @@ Param(
 
     [parameter()]
     [boolean]
-    $IncludeDefaultCors = $true
+    $IncludeDefaultCors = $true,
+
+    [parameter()]
+    [boolean]
+    $skipServiceStartupCheck = $false
 )
 
 Set-StrictMode -Off
@@ -96,7 +100,7 @@ function Install() {
     }
     else {
         $ServiceName = .\globals.ps1 DEFAULT_SERVICE_NAME
-        .\install.ps1 -Path $adminRoot -Port $Port -SkipVerification:$SkipVerification -DistributablePath $DistributablePath -CertHash $CertHash -Version $Version -ServiceName $ServiceName -IncludeDefaultCors:$IncludeDefaultCors
+        .\install.ps1 -Path $adminRoot -Port $Port -SkipVerification:$SkipVerification -DistributablePath $DistributablePath -CertHash $CertHash -Version $Version -ServiceName $ServiceName -IncludeDefaultCors:$IncludeDefaultCors -skipServiceStartupCheck:$skipServiceStartupCheck
     }
 }
 
@@ -124,7 +128,7 @@ function Upgrade() {
 
     $installed = $false
     try {
-        .\install.ps1 -Path $adminRoot -Version $Version -SkipVerification:$SkipVerification -ServiceName $ServiceName -Port 0 -DistributablePath $DistributablePath -CertHash $CertHash -IncludeDefaultCors:$IncludeDefaultCors
+        .\install.ps1 -Path $adminRoot -Version $Version -SkipVerification:$SkipVerification -ServiceName $ServiceName -Port 0 -DistributablePath $DistributablePath -CertHash $CertHash -IncludeDefaultCors:$IncludeDefaultCors -skipServiceStartupCheck:$skipServiceStartupCheck
         $installed = $true
         .\migrate.ps1 -Source $latest -Destination $(Join-Path $adminRoot $Version)
     }

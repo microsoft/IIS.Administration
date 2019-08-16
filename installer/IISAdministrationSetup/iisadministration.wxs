@@ -32,6 +32,7 @@
     <Media Id="1" Cabinet="iisadmin.cab" EmbedCab="yes" CompressionLevel="high"/>
 
     <PropertyRef Id="DEFAULT_CORS" />
+    <PropertyRef Id="SKIP_STARTUP_CHECK" />
 
     <Property Id="ARPCONTACT">Microsoft Corporation</Property>
     <Property Id="ARPPRODUCTICON" Value="icon.ico" />
@@ -96,7 +97,7 @@
     <!-- CA's to invoke powershell script -->
     <CustomAction Id="CA_PSINSTALL_PROPERTY"
                       Property="CA_PSINSTALL"
-                      Value="&quot;PowerShell.exe&quot; -NonInteractive -NoLogo -InputFormat None -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; &apos;[SetupDir]msi-setup.ps1&apos; Install -Verbose -Path &apos;[INSTALLDIR]&apos; -Version &apos;$(var.MsiVersion)&apos;&quot; -IncludeDefaultCors:$[DEFAULT_CORS]" />
+                      Value="&quot;PowerShell.exe&quot; -NonInteractive -NoLogo -InputFormat None -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; &apos;[SetupDir]msi-setup.ps1&apos; Install -Verbose -Path &apos;[INSTALLDIR]&apos; -Version &apos;$(var.MsiVersion)&apos;&quot; -IncludeDefaultCors:$[DEFAULT_CORS] -skipServiceStartupCheck:$[SKIP_STARTUP_CHECK]" />
     <CustomAction Id="CA_PSINSTALL" BinaryKey="WixCA" DllEntry="CAQuietExec64" Execute="deferred" Impersonate="yes"/>
 
     <CustomAction Id="CA_PSUPGRADE_PROPERTY"

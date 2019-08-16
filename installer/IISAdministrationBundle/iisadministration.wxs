@@ -87,6 +87,7 @@
   <!-- IIS Administration API MSI -->
   <Fragment>
     <Variable Name="DefaultCors" Type="string" Value="true" bal:Overridable="yes" />
+    <Variable Name="SkipStartupCheck" Type="string" Value="false" bal:Overridable="yes" />
     <PackageGroup Id="iis_administration_pkg">
       <MsiPackage
         Id="iis_administration_msi"
@@ -100,6 +101,7 @@
         <MsiProperty Name='INSTALLFOLDER' Value='[InstallFolder]' />
         <MsiProperty Name="VSEXTUI" Value="1"/>
         <MsiProperty Name="DEFAULT_CORS" Value='[DefaultCors]'/>
+        <MsiProperty Name="SKIP_STARTUP_CHECK" Value='[SkipStartupCheck]'/>
       </MsiPackage>
     </PackageGroup>
   </Fragment>
