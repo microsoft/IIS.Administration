@@ -1,0 +1,6 @@
+{
+    "solidity-va.codelens.enable": true,
+    "solidity-va.preview.markdown": true,
+    "solidity-va.uml.actors.enable": true,
+    "solidity-va.hover": true
+}
