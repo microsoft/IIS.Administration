@@ -6,7 +6,7 @@
     <Description>Microsoft.IIS.Administration.Core Class Library</Description>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>Microsoft.IIS.Administration.Core</AssemblyName>
     <PackageId>Microsoft.IIS.Administration.Core</PackageId>
   </PropertyGroup>

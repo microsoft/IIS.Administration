@@ -5,7 +5,7 @@
 
   <PropertyGroup>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>Microsoft.IIS.Administration</AssemblyName>
     <OutputType>Exe</OutputType>

@@ -7,7 +7,7 @@
     <Description>Microsoft.IIS.Administration.WebServer.Authorization Class Library</Description>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>Microsoft.IIS.Administration.WebServer.Authorization</AssemblyName>
     <PackageId>Microsoft.IIS.Administration.WebServer.Authorization</PackageId>
   </PropertyGroup>
