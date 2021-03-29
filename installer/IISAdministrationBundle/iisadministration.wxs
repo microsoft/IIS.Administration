@@ -37,49 +37,49 @@
                          Result="value"
                          Variable="DOTNET_RUNTIME_VERSION"
                          Win64="$(var.IsWin64)" />
-    <Variable Name="DOTNET_RUNTIME_VERSION_MINIMAL" Type="version" Value='2.1.0' />
+    <Variable Name="DOTNET_RUNTIME_VERSION_MINIMAL" Type="version" Value='3.1.0' />
     <PackageGroup Id="dotnet_core_pkg">
       <ExePackage Id="dotnet_core_exe"
-                  Name="dotnet-runtime-2.1.9-win-x64.exe"
+                  Name="dotnet-runtime-3.1.9-win-x64.exe"
                   Permanent="yes"
                   Compressed="no"
-                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/b9cefae4-7f05-4dea-9fb0-3328aaddb2ee/545e5c4e0eeff6366523209935376002/dotnet-runtime-2.1.9-win-x64.exe"
+                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/ceff8b33-6f27-425f-957d-91039cf01a9c/312410f11691fae3272f4274f787eb12/dotnet-runtime-3.1.9-win-x64.exe"
                   DetectCondition="(DOTNET_RUNTIME_VERSION) AND (DOTNET_RUNTIME_VERSION &gt;= DOTNET_RUNTIME_VERSION_MINIMAL)"
                   InstallCommand="/q /norestart">
-        <RemotePayload CertificatePublicKey="7EA0E648275A9E1DC9FC58FA8C64B8FD6F4C46EB"
-                       CertificateThumbprint="C3A3D43788E7ABCD287CB4F5B6583043774F99D2"
-                       Description="Microsoft .NET Core Runtime - 2.1.9 (x64)"
-                       Hash="48DC6D5E57A3AA554F61F11BA9072A7C7F43CECE"
-                       ProductName="Microsoft .NET Core Runtime - 2.1.9 (x64)"
-                       Size="24805976" Version="2.1.9.27415" />
+        <RemotePayload CertificatePublicKey="F7E39D0BEF5615C1D09E695629E32600EE79639C"
+                       CertificateThumbprint="A5BCE29A2944105E0E25B626120264BB03499052"
+                       Description="Microsoft .NET Core Runtime - 3.1.9 (x64)"
+                       Hash="A09322D4EACCDDF97EC50E416C18E1A962F44E03"
+                       ProductName="Microsoft .NET Core Runtime - 3.1.9 (x64)"
+                       Size="26119432" Version="3.1.9.29323" />
       </ExePackage>
     </PackageGroup>
   </Fragment>
 
   <Fragment>
-    <util:RegistrySearch Id="ASPNET_CORE_21_SHARED_FRAMEWORK_SEARCH"
+    <util:RegistrySearch Id="ASPNET_CORE_31_SHARED_FRAMEWORK_SEARCH"
                          Root="HKLM"
-                         Key="SOFTWARE\Microsoft\ASP.NET Core\Shared Framework\v2.1"
+                         Key="SOFTWARE\Microsoft\ASP.NET Core\Shared Framework\v3.1"
                          Result="exists"
-                         Variable="ASPNET_CORE_21_SHARED_FRAMEWORK_EXISTS"
+                         Variable="ASPNET_CORE_31_SHARED_FRAMEWORK_EXISTS"
                          Win64="$(var.IsWin64)" />
     <PackageGroup Id="aspnetcore_pkg">
       <ExePackage Id="aspnetcore_exe"
-                  Name="aspnetcore-runtime-2.1.9-win-x64.exe"
+                  Name="aspnetcore-runtime-3.1.9-win-x64.exe"
                   Permanent="yes"
                   Compressed="no"
-                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/ece6ec5c-4bdb-494b-994b-3ece386e404a/436e42bf7c68b8455953d2d3285c27ed/aspnetcore-runtime-2.1.9-win-x64.exe"
-                  DetectCondition="(ASPNET_CORE_21_SHARED_FRAMEWORK_EXISTS)"
+                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/87bcc889-4afa-4c88-839c-d72497b84407/42105fc6c95feb5faa64b2be1b76a830/aspnetcore-runtime-3.1.9-win-x64.exe"
+                  DetectCondition="(ASPNET_CORE_31_SHARED_FRAMEWORK_EXISTS)"
                   InstallCommand="/q /norestart">
 
         <!-- Information retrieved with the Heat tool of the WiX toolset -->
-        <!-- heat payload aspnetcore-runtime-2.1.9-win-x64.exe -o aspnetcore-runtime-2.1.9-win-x64.wxs -->
-        <RemotePayload CertificatePublicKey="7EA0E648275A9E1DC9FC58FA8C64B8FD6F4C46EB"
-                       CertificateThumbprint="C3A3D43788E7ABCD287CB4F5B6583043774F99D2"
-                       Description="Microsoft ASP.NET Core 2.1.9 - Shared Framework"
-                       Hash="A7BD33596DD48C45FDA1AB3EF23C91D74F59E258"
-                       ProductName="Microsoft ASP.NET Core 2.1.9 - Shared Framework"
-                       Size="26242728" Version="2.1.9.0" />
+        <!-- heat payload aspnetcore-runtime-3.1.9-win-x64.exe -o aspnetcore-runtime-3.1.9-win-x64.wxs -->
+        <RemotePayload CertificatePublicKey="3756E9BBF4461DCD0AA68E0D1FCFFA9CEA47AC18"
+                       CertificateThumbprint="2485A7AFA98E178CB8F30C9838346B514AEA4769"
+                       Description="Microsoft ASP.NET Core 3.1.9 - Shared Framework"
+                       Hash="FCD8063955B20C07B6207F58FAC6E45CDAF43387"
+                       ProductName="Microsoft ASP.NET Core 3.1.9 - Shared Framework"
+                       Size="7875480" Version="3.1.9.20473" />
       </ExePackage>
     </PackageGroup>
   </Fragment>
