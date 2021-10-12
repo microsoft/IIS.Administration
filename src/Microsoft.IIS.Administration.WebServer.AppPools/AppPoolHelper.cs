@@ -147,6 +147,12 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             }
 
             //
+            // start_mode
+            if (fields.Exists("start_mode")) {
+                obj.start_mode = Enum.GetName(typeof(StartMode), pool.StartMode);
+            }
+
+            //
             // cpu
             if (fields.Exists("cpu")) {
                 obj.cpu = new {
@@ -272,6 +278,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             pool.Enable32BitAppOnWin64 = defaults.Enable32BitAppOnWin64;
             pool.QueueLength = defaults.QueueLength;
             pool.AutoStart = defaults.AutoStart;
+            pool.StartMode = defaults.StartMode;
 
             pool.Cpu.Limit = defaults.Cpu.Limit;
             pool.Cpu.ResetInterval = defaults.Cpu.ResetInterval;
@@ -313,6 +320,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             appPool.Enable32BitAppOnWin64 = DynamicHelper.To<bool>(model.enable_32bit_win64) ?? appPool.Enable32BitAppOnWin64;
             appPool.QueueLength = DynamicHelper.To(model.queue_length, 10, 65535) ?? appPool.QueueLength;
             appPool.AutoStart = DynamicHelper.To<bool>(model.auto_start) ?? appPool.AutoStart;
+            appPool.StartMode = DynamicHelper.To<StartMode>(model.start_mode) ?? appPool.StartMode;
 
             // CPU
             if (model.cpu != null) {
