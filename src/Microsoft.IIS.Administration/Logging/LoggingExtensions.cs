@@ -20,7 +20,7 @@ namespace Microsoft.IIS.Administration.Logging
             IServiceProvider sp = services.BuildServiceProvider();
 
             var configuration = sp.GetRequiredService<IConfiguration>();
-            var env = sp.GetRequiredService<IHostingEnvironment>();
+            var env = sp.GetRequiredService<IWebHostEnvironment>();
 
             var loggingConfiguration = new LoggingConfiguration(configuration);
             var logsRoot = loggingConfiguration.LogsRoot;
@@ -47,7 +47,7 @@ namespace Microsoft.IIS.Administration.Logging
             //
             // Wire up logging as soon as possible
             ILoggerFactory loggerFactory = services.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
-            loggerFactory.AddSerilog();
+            _ = loggerFactory.AddSerilog();
 
             return services;
         }
@@ -57,7 +57,7 @@ namespace Microsoft.IIS.Administration.Logging
             IServiceProvider sp = services.BuildServiceProvider();
 
             var configuration = sp.GetRequiredService<IConfiguration>();
-            var env = sp.GetRequiredService<IHostingEnvironment>();
+            var env = sp.GetRequiredService<IWebHostEnvironment>();
 
             var auditingConfiguration = new AuditingConfiguration(configuration);
             var auditRoot = auditingConfiguration.AuditingRoot;
@@ -81,7 +81,7 @@ namespace Microsoft.IIS.Administration.Logging
                 .RollingFile(Path.Combine(auditRoot, auditingConfiguration.FileName), retainedFileCountLimit: auditingConfiguration.MaxFiles)
                 .CreateLogger();
 
-            services.AddSingleton<INonsensitiveAuditingFields>(new NonsensitiveAuditingFields());
+            _ = services.AddSingleton<INonsensitiveAuditingFields>(new NonsensitiveAuditingFields());
 
             return services;
         }

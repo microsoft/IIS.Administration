@@ -107,11 +107,7 @@ namespace Microsoft.IIS.Administration.Monitoring
 
             result = Pdh.PdhLookupPerfNameByIndexW(null, index, buffer, ref bufSize);
 
-            if (result != 0) {
-                throw new Win32Exception((int)result);
-            }
-
-            return buffer.ToString();
+            return result != 0 ? throw new Win32Exception((int)result) : buffer.ToString();
         }
     }
 }

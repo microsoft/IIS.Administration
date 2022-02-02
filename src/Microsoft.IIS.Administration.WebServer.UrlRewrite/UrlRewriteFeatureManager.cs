@@ -46,7 +46,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             string fileName = "rewrite_amd64.msi";
 
             if (!Directory.Exists(tempPath)) {
-                Directory.CreateDirectory(tempPath);
+                _ = Directory.CreateDirectory(tempPath);
             }
 
             string downloadPath = Path.Combine(tempPath, fileName);
@@ -72,7 +72,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 //
                 // Run installer
                 ProcessStartInfo info = new ProcessStartInfo("msiexec.exe", $"/i {downloadPath} /quiet /norestart");
-                await RunInstaller(info);
+                _ = await RunInstaller(info);
             }
             finally {
                 Directory.Delete(tempPath, true);
@@ -88,7 +88,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             }
 
             ProcessStartInfo info = new ProcessStartInfo("msiexec.exe", $"/x {productGuid} /quiet /norestart");
-            await RunInstaller(info);
+            _ = await RunInstaller(info);
         }
 
         private string GetProductGuid()
@@ -147,7 +147,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
                 p.Dispose();
             };
 
-            p.Start();
+            _ = p.Start();
             return tcs.Task;
         }
     }

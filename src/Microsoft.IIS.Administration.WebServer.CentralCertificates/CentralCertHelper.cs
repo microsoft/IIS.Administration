@@ -27,7 +27,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                     if (key != null) {
                         int featureInstalled = (int)key.GetValue("CertProvider", -1);
 
-                        return (featureInstalled == 1);
+                        return featureInstalled == 1;
                     }
 
                     return false;
@@ -182,9 +182,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
             try {
                 using (SafeAccessTokenHandle ccsUser = CentralCertificateStore.LogonUser(username ?? ccs.UserName, password ?? ccs.Password)) {
-                    WindowsIdentity.RunImpersonated(ccsUser, () => {
-                        Directory.GetFiles(path);
-                    });
+                    WindowsIdentity.RunImpersonated(ccsUser, () => Directory.GetFiles(path));
                 }
             }
             catch {

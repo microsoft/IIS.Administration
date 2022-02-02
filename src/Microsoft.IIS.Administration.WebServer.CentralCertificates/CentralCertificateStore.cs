@@ -229,7 +229,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             }
 
             var certs = await GetCertificatesInternal(null);
-            _cache.Set(CERTS_KEY, certs, TimeSpan.FromSeconds(DEFAULT_POLLING_INTERVAL));
+            _ = _cache.Set(CERTS_KEY, certs, TimeSpan.FromSeconds(DEFAULT_POLLING_INTERVAL));
             return certs;
         }
 
@@ -237,9 +237,9 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         {
             var pswd = PrivateKeyPassword;
             var certs = new List<ICertificate>();
-            IEnumerable<IFileInfo> files = null;
-
-            try {
+            IEnumerable<IFileInfo> files;
+            try
+            {
                 files = await GetFiles(name);
 
             }
@@ -260,13 +260,11 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         {
             var ccs = Startup.CentralCertificateStore;
 
-            if (!string.IsNullOrEmpty(filter) && !PathUtil.IsValidFileName(filter)) {
-                throw new ArgumentException(nameof(filter));
-            }
-
-            return await Task.Run(() => {
+            return !string.IsNullOrEmpty(filter) && !PathUtil.IsValidFileName(filter)
+                ? throw new ArgumentException(nameof(filter))
+                : await Task.Run(() => {
                 IFileInfo ccsDir = _fileProvider.GetDirectory(ccs.PhysicalPath);
-                return _fileProvider.GetFiles(ccsDir, string.IsNullOrEmpty(filter) ? ("*.pfx") : (filter + ".pfx"), SearchOption.TopDirectoryOnly);
+                return _fileProvider.GetFiles(ccsDir, string.IsNullOrEmpty(filter) ? "*.pfx" : (filter + ".pfx"), SearchOption.TopDirectoryOnly);
             });
         }
 
@@ -277,11 +275,8 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
         internal static SafeAccessTokenHandle LogonUser(string username, string password)
         {
-            SafeAccessTokenHandle token = null;
-
             string[] parts = username.Split('\\');
-            string domain = null;
-
+            string domain;
             if (parts.Length > 1) {
                 domain = parts[0];
                 username = parts[1];
@@ -291,6 +286,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                 username = parts[0];
             }
 
+            SafeAccessTokenHandle token;
             bool loggedOn = Interop.LogonUserExExW(username,
                 domain,
                 password,
@@ -303,19 +299,15 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                 IntPtr.Zero,
                 IntPtr.Zero);
 
-            if (!loggedOn) {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
-
-            return token;
+            return !loggedOn ? throw new Win32Exception(Marshal.GetLastWin32Error()) : token;
         }
 
         private bool IsAccessAllowed(CertificateAccess access)
         {
-            return ((!access.HasFlag(CertificateAccess.Read) || _claims.Contains("Read", StringComparer.OrdinalIgnoreCase))
+            return (!access.HasFlag(CertificateAccess.Read) || _claims.Contains("Read", StringComparer.OrdinalIgnoreCase))
                         && (!access.HasFlag(CertificateAccess.Delete) || _claims.Contains("Delete", StringComparer.OrdinalIgnoreCase))
                         && (!access.HasFlag(CertificateAccess.Create) || _claims.Contains("Create", StringComparer.OrdinalIgnoreCase))
-                        && (!access.HasFlag(CertificateAccess.Export) || _claims.Contains("Export", StringComparer.OrdinalIgnoreCase)));
+                        && (!access.HasFlag(CertificateAccess.Export) || _claims.Contains("Export", StringComparer.OrdinalIgnoreCase));
         }
 
         private void EnsureAccess(CertificateAccess access)
@@ -345,7 +337,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
                     _encryptedPrivateKeyPassword = null;
                 }
                 else {
-                    _enabled = (int)(key.GetValue(REGVAL_ENABLED, 0)) != 0;
+                    _enabled = (int)key.GetValue(REGVAL_ENABLED, 0) != 0;
                     _physicalPath = key.GetValue(REGVAL_CERT_STORE_LOCATION, null) as string;
                     _username = key.GetValue(REGVAL_USERNAME, null) as string;
                     _pollingInterval = (int)key.GetValue(REGVAL_POLLING_INTERVAL, DEFAULT_POLLING_INTERVAL);

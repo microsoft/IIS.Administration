@@ -16,7 +16,7 @@ namespace Microsoft.IIS.Administration
 
     class ModuleLoader
     {
-        private IHostingEnvironment _env;
+        private IWebHostEnvironment _env;
         private AssemblyLoadContext _loader;
         private List<Assembly> _loadedAssemblies;
         private AdminHost _moduleHolder;
@@ -24,7 +24,7 @@ namespace Microsoft.IIS.Administration
 
         private const string PLUGINS_FOLDER_NAME = "plugins";
 
-        public ModuleLoader(IHostingEnvironment env)
+        public ModuleLoader(IWebHostEnvironment env)
         {
             this._env = env;
             this._moduleLoadBasePath = Path.Combine(env.ContentRootPath, PLUGINS_FOLDER_NAME);

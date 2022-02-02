@@ -27,7 +27,7 @@ namespace Microsoft.IIS.Administration.Logging
             MaxFiles = configuration.GetValue("auditing:max_files", 100);
         }
 
-        public string GetDefaultAuditRoot(IHostingEnvironment env)
+        public string GetDefaultAuditRoot(IWebHostEnvironment env)
         {
             return Path.GetFullPath(Path.Combine(env.ContentRootPath, "../../logs"));
         }

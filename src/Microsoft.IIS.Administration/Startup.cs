@@ -3,7 +3,6 @@
 
 
 namespace Microsoft.IIS.Administration {
-    using AspNetCore.Antiforgery.Internal;
     using AspNetCore.Builder;
     using AspNetCore.Hosting;
     using AspNetCore.Http;
@@ -17,6 +16,7 @@ namespace Microsoft.IIS.Administration {
     using Extensions.Configuration;
     using Extensions.DependencyInjection;
     using Extensions.DependencyInjection.Extensions;
+    using Extensions.Hosting;
     using Files;
     using Logging;
     using Microsoft.IIS.Administration.Core.Utils;
@@ -25,14 +25,14 @@ namespace Microsoft.IIS.Administration {
     using Serilog;
     using System;
     using System.Collections.Generic;
-    using System.IO;
+    using System.IO;    
 
 
     public class Startup : BaseModule {
-        private IHostingEnvironment _hostingEnv;
+        private IWebHostEnvironment _hostingEnv;
         private IConfiguration _config;
 
-        public Startup(IHostingEnvironment env, IConfiguration config) {
+        public Startup(IWebHostEnvironment env, IConfiguration config) {
             _hostingEnv = env ?? throw new ArgumentNullException(nameof(env));
             _config = config ?? throw new ArgumentNullException(nameof(config));
 
@@ -45,19 +45,19 @@ namespace Microsoft.IIS.Administration {
         public void ConfigureServices(IServiceCollection services) {
             //
             // IHttpContextAccessor
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            _ = services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             //
             // Logging
-            services.AddApiLogging();
+            _ = services.AddApiLogging();
 
             //
             // Auditing
-            services.AddApiAuditing();
+            _ = services.AddApiAuditing();
 
             //
             // Files
-            services.AddFileProvider();
+            _ = services.AddFileProvider();
 
             //
             // Load plugins
@@ -68,64 +68,52 @@ namespace Microsoft.IIS.Administration {
 
             //
             // CORS
-            services.AddCors();
+            _ = services.AddCors();
 
             //
             // Authentication
-            services.AddBearerAuthentication();
+            _ = services.AddBearerAuthentication();
 
             //
             // Authorization
-            services.AddAuthorizationPolicy();
+            _ = services.AddAuthorizationPolicy();
 
             services.AddConfigurationWriter(_hostingEnv);
 
             //
-            // Antiforgery
-            services.TryAddSingleton<IAntiforgeryTokenStore, AntiForgeryTokenStore>();
-            services.AddAntiforgery(o => {
-                o.RequireSsl = true;
-                o.CookieName = o.FormFieldName = HeaderNames.XSRF_TOKEN;
-            });
+            // Antiforgery. The original Interface IAntiforgeryTokenStore and some related classes
+            // are not accessible anymore. Need to test this
+            _ = services.AddAntiforgery(o => o.Cookie.Name = o.FormFieldName = HeaderNames.XSRF_TOKEN);
 
             //
             // Caching
-            services.AddMemoryCache();
+            _ = services.AddMemoryCache();
             
             //
             // MVC
             IMvcBuilder builder = services.AddMvc(o => {
 
-                // Replace default json output formatter
-                o.OutputFormatters.RemoveType<AspNetCore.Mvc.Formatters.JsonOutputFormatter>();
+                // Default json output formatter is not replaced since AspNetCore.Mvc.Formatters.JsonOutputFormatter
+                // does not exist anymore. Need test this
+                _ = o.Filters.Add(typeof(ActionFoundFilter));
 
-                var settings = JsonSerializerSettingsProvider.CreateSerializerSettings();
-                o.OutputFormatters.Add(new JsonOutputFormatter(settings, System.Buffers.ArrayPool<char>.Shared));
-
-                // TODO
-                // Workaround filter to fix Object Results returned from controllers
-                // Remove when https://github.com/aspnet/Mvc/issues/4960 is resolved
-                o.Filters.Add(typeof(Fix4960ActionFilter));
-
-                o.Filters.Add(typeof(ActionFoundFilter));
-
-                o.Filters.Add(typeof(ResourceInfoFilter));
+                _ = o.Filters.Add(typeof(ResourceInfoFilter));
 
                 RemoveFilter<UnsupportedContentTypeFilter>(o);
             });
 
             foreach (var asm in loader.GetAllLoadedAssemblies()) {
-                builder.AddApplicationPart(asm);
+                _ = builder.AddApplicationPart(asm);
             }
 
-            builder.AddControllersAsServices();
-            builder.AddWebApiConventions();
+            _ = builder.AddControllersAsServices();
+            _ = builder.AddWebApiConventions();
         }
 
         // Configure is called after ConfigureServices is called.
         public void Configure(IApplicationBuilder app,
             IHttpContextAccessor contextAccessor,
-            IApplicationLifetime applicationLifeTime) {
+            IHostApplicationLifetime applicationLifeTime) {
             //
             // Initialize the Environment
             //
@@ -140,37 +128,37 @@ namespace Microsoft.IIS.Administration {
             //
             // Error handling
             //
-            app.UseErrorHandler();
+            _ = app.UseErrorHandler();
 
 
             //
             // Static files
             //
-            app.UseStaticFiles();
+            _ = app.UseStaticFiles();
 
 
             //
             // CORS
             //
-            app.UseCrossOrigin("/" + Globals.API_PATH);
+            _ = app.UseCrossOrigin("/" + Globals.API_PATH);
 
 
             //
             // Authentication
             //
-            app.UseWindowsAuthentication();
+            _ = app.UseWindowsAuthentication();
 
 
             //
             // Authorization
             // 
-            app.UseAuthorizationPolicy();
+            _ = app.UseAuthorizationPolicy();
 
 
             //
             // Disable client cache
             //
-            app.Use(async (context, next) => {
+            _ = app.Use(async (context, next) => {
                 context.Response.Headers[Net.Http.Headers.HeaderNames.CacheControl] = "public, max-age=0";
                 await next.Invoke();
             });
@@ -178,13 +166,13 @@ namespace Microsoft.IIS.Administration {
 
             //
             // Allow HEAD requests as GET
-            app.UseMiddleware<HeadTransform>();
+            _ = app.UseMiddleware<HeadTransform>();
 
 
             //
             // Add MVC
             // 
-            app.UseMvc(routes => {
+            _ = app.UseMvc(routes => {
                 AdminHost.Instance.StartModules(routes, app);
                 InitiateFeatures(routes);
 
@@ -194,7 +182,7 @@ namespace Microsoft.IIS.Administration {
 
             //
             // Register for application shutdown
-            applicationLifeTime.ApplicationStopped.Register(() => AdminHost.Instance.StopModules());
+            _ = applicationLifeTime.ApplicationStopped.Register(() => AdminHost.Instance.StopModules());
         }
 
 
@@ -202,25 +190,25 @@ namespace Microsoft.IIS.Administration {
         private static void InitiateFeatures(IRouteBuilder routes) {
             //
             // Ping
-            routes.MapWebApiRoute("Microsoft.IIS.Administration.Ping",
+            _ = routes.MapWebApiRoute("Microsoft.IIS.Administration.Ping",
                                   Globals.PING_PATH,
                                   new { controller = "ping" });
 
             //
             // Api Root
-            routes.MapWebApiRoute(Globals.ApiResource.Guid,
+            _ = routes.MapWebApiRoute(Globals.ApiResource.Guid,
                                   Globals.API_PATH,
                                   new { controller = "ApiRoot" });
 
             //
             // Access Keys
-            routes.MapRoute("Microsoft.IIS.Administration.AccessKeys",
+            _ = routes.MapRoute("Microsoft.IIS.Administration.AccessKeys",
                              $"{Globals.SECURITY_PATH}/tokens/{{action}}",
                              new { controller = "AccessKeys", action = "Index" });
 
             //
             // MVC
-            routes.MapRoute(
+            _ = routes.MapRoute(
                     name: "default",
                     template: "{controller=Explorer}/{action=Index}");
         }
@@ -229,7 +217,7 @@ namespace Microsoft.IIS.Administration {
         {
             foreach (string assemblyName in assemblyNames) {
                 try {
-                    loader.LoadModule(assemblyName);
+                    _ = loader.LoadModule(assemblyName);
                 }
                 catch (FileNotFoundException e) {
 
@@ -262,10 +250,7 @@ namespace Microsoft.IIS.Administration {
             }
 
 
-            routePairs.Sort((kvp1, kvp2) =>
-            {
-                return CompareSegments(kvp1.Value, kvp2.Value);
-            });
+            routePairs.Sort((kvp1, kvp2) => CompareSegments(kvp1.Value, kvp2.Value));
 
 
             routes.Routes.Clear();
