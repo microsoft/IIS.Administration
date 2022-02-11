@@ -11,8 +11,6 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
     using Sites;
     using Web.Administration;
 
-
-
     public class Startup : BaseModule
     {
         public Startup() { }
@@ -27,7 +25,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
         private void ConfigureGlobalModules()
         {
             // Establish MVC route for controller
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.GlobalModulesResource.Guid, $"{Defines.GLOBAL_MODULES_PATH}/{{id?}}", new { controller = "globalmodules" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.GlobalModulesResource.Guid, $"{Defines.GLOBAL_MODULES_PATH}/{{id?}}", new { controller = "globalmodules" });
 
             // Self links for resources
             Environment.Hal.ProvideLink(Defines.GlobalModulesResource.Guid, "self", gMod => new { href = ModuleHelper.GetGlobalModuleLocation(gMod.id) });
@@ -40,7 +38,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
         private void ConfigureModules()
         {
 
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ModulesResource.Guid, $"{Defines.MODULES_PATH}/{{id?}}", new { controller = "ModulesGeneral" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ModulesResource.Guid, $"{Defines.MODULES_PATH}/{{id?}}", new { controller = "ModulesGeneral" });
 
             Environment.Hal.ProvideLink(Defines.ModulesResource.Guid, "self", module => new { href = ModuleHelper.GetModuleFeatureLocation(module.id) });
 
@@ -70,7 +68,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
         private void ConfigureModuleEntries()
         {
             // Top level resource routes for plugin
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ModuleEntriesResource.Guid, $"{ Defines.MODULE_ENTRIES_PATH}/{{id?}}", new { controller = "modules" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ModuleEntriesResource.Guid, $"{ Defines.MODULE_ENTRIES_PATH}/{{id?}}", new { controller = "modules" });
 
             Environment.Hal.ProvideLink(Defines.ModuleEntriesResource.Guid, "self", entry => new { href = ModuleHelper.GetModuleEntryLocation(entry.id) });
 

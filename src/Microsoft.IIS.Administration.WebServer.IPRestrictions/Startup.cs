@@ -24,7 +24,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
         private void ConfigureIPRestrictions()
         {
             // Register controller routes in mvc framework
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "iprestriction" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "iprestriction" });
 
             // Self
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", ipRes => new { href = IPRestrictionsHelper.GetLocation(ipRes.id) });
@@ -54,7 +54,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
 
         private void ConfigureRules()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RulesResource.Guid, $"{Defines.RULES_PATH}/{{id?}}", new { controller = "iprestrictionrules" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RulesResource.Guid, $"{Defines.RULES_PATH}/{{id?}}", new { controller = "iprestrictionrules" });
 
             // Provide self links for plugin resources
             Environment.Hal.ProvideLink(Defines.RulesResource.Guid, "self", rule => new { href = IPRestrictionsHelper.GetRuleLocation(rule.id) });

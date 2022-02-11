@@ -36,7 +36,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
         private void ConfigureCentralCerts()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "CentralCerts" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "CentralCerts" });
 
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", cc => new { href = $"/{Defines.PATH}/{ new CentralCertConfigId().Uuid}" });
             Environment.Hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => new { href = CentralCertHelper.GetLocation() });

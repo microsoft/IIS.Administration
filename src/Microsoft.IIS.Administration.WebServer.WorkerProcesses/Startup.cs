@@ -7,7 +7,6 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
     using Core;
     using Core.Http;
 
-
     public class Startup : BaseModule {
 
         public override void Start() {
@@ -17,7 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
         private void ConfigureWorkerProcesses() {
             //
             // Controller
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "WorkerProcesses" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "WorkerProcesses" });
 
 
             //
@@ -28,14 +27,10 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
             hal.ProvideLink(Defines.Resource.Guid, "self", wp => new { href = $"/{Defines.PATH}/{wp.id}" });
 
             // AppPool
-            hal.ProvideLink(AppPools.Defines.Resource.Guid, Defines.Resource.Name, pool => {
-                return new { href = $"/{Defines.PATH}?{AppPools.Defines.IDENTIFIER}={pool.id}" };
-            });
+            hal.ProvideLink(AppPools.Defines.Resource.Guid, Defines.Resource.Name, pool => new { href = $"/{Defines.PATH}?{AppPools.Defines.IDENTIFIER}={pool.id}" });
 
             // Webserver
-            hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => {
-                return new { href = $"/{Defines.PATH}" };
-            });
+            hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}" });
         }
     }
 }

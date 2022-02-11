@@ -19,7 +19,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRedirect
         {
             var host = Environment.Host;
             // Register all controller routes in mvc framework
-            host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "HttpRedirect" });
+            _ = host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "HttpRedirect" });
 
             // Self
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", doc => new { href = RedirectHelper.GetLocation(doc.id) });

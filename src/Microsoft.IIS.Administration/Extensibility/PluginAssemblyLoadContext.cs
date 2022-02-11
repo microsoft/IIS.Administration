@@ -102,17 +102,19 @@ namespace Microsoft.IIS.Administration.Extensibility
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
-            Assembly asm = LoadFromCurrentDomain(assemblyName);
-            if (asm != null)
+            Assembly asm;
+            try
             {
-                return asm;
+                asm = LoadFromCurrentDomain(assemblyName);               
             }
-            asm = LoadFromPluginDir(assemblyName);
-            if (asm != null)
+            catch (Exception)
             {
-                return asm;
+                // LoadFromCurrentDomain throws an exception if the assembly does not exist.
+                // Ignore it and try again below
+                asm = null;
             }
-            return LoadFromCurrentDomain(assemblyName);
+
+            return asm ?? LoadFromPluginDir(assemblyName) ?? LoadFromCurrentDomain(assemblyName);
         }
     }
 }

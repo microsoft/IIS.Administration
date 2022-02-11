@@ -17,26 +17,15 @@ namespace Microsoft.IIS.Administration.Certificates
 
     public class WindowsCertificateStore : ICertificateStore, IWindowsCertificateStore
     {
-        private string _name;
-        private IEnumerable<string> _claims;
-
         public WindowsCertificateStore(string name, IEnumerable<string> claims)
         {
-            _name = name;
-            _claims = claims;
+            Name = name;
+            Claims = claims;
         }
 
-        public string Name {
-            get {
-                return _name;
-            }
-        }
+        public string Name { get; }
 
-        public IEnumerable<string> Claims {
-            get {
-                return _claims;
-            }
-        }
+        public IEnumerable<string> Claims { get; }
 
         public static bool Exists(string name)
         {
@@ -95,10 +84,10 @@ namespace Microsoft.IIS.Administration.Certificates
 
         private bool IsAccessAllowed(CertificateAccess access)
         {
-            return ((!access.HasFlag(CertificateAccess.Read) || _claims.Contains("Read", StringComparer.OrdinalIgnoreCase))
-                        && (!access.HasFlag(CertificateAccess.Delete) || _claims.Contains("Delete", StringComparer.OrdinalIgnoreCase))
-                        && (!access.HasFlag(CertificateAccess.Create) || _claims.Contains("Create", StringComparer.OrdinalIgnoreCase))
-                        && (!access.HasFlag(CertificateAccess.Export) || _claims.Contains("Export", StringComparer.OrdinalIgnoreCase)));
+            return (!access.HasFlag(CertificateAccess.Read) || Claims.Contains("Read", StringComparer.OrdinalIgnoreCase))
+                        && (!access.HasFlag(CertificateAccess.Delete) || Claims.Contains("Delete", StringComparer.OrdinalIgnoreCase))
+                        && (!access.HasFlag(CertificateAccess.Create) || Claims.Contains("Create", StringComparer.OrdinalIgnoreCase))
+                        && (!access.HasFlag(CertificateAccess.Export) || Claims.Contains("Export", StringComparer.OrdinalIgnoreCase));
         }
 
         private void EnsureAccess(CertificateAccess access)

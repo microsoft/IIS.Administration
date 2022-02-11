@@ -37,7 +37,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
         [HttpGet]
         [ResourceInfo(Name = Defines.ApiKeysName)]
         public async Task<object> Get() {
-            SetAntiForgeryTokens();
+            _ = SetAntiForgeryTokens();
 
             IEnumerable<ApiKey> keys = await _keyProvider.GetAllKeys();
 
@@ -58,7 +58,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
                 return NotFound();
             }
 
-            SetAntiForgeryTokens();
+            _ = SetAntiForgeryTokens();
 
             return ApiKeyHelper.ToJsonModel(key);
         }

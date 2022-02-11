@@ -19,8 +19,8 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
         {
             var host = Environment.Host;
             // Register all controller routes in mvc framework
-            host.RouteBuilder.MapWebApiRoute(Defines.FilesResource.Guid, $"{Defines.FILES_PATH}/{{id?}}", new { controller = "defaultdocumentfiles" });
-            host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "defaultdocument" });
+            _ = host.RouteBuilder.MapWebApiRoute(Defines.FilesResource.Guid, $"{Defines.FILES_PATH}/{{id?}}", new { controller = "defaultdocumentfiles" });
+            _ = host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "defaultdocument" });
 
             //
             // Provide HAL 

@@ -26,7 +26,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             var host = Environment.Host;
             var hal = Environment.Hal;
 
-            host.RouteBuilder.MapWebApiRoute(Defines.AuthorizationResource.Guid, $"{Defines.AUTHORIZATION_PATH}/{{id?}}", new { controller = "authorization" });
+            _ = host.RouteBuilder.MapWebApiRoute(Defines.AuthorizationResource.Guid, $"{Defines.AUTHORIZATION_PATH}/{{id?}}", new { controller = "authorization" });
 
             // Self
             hal.ProvideLink(Defines.AuthorizationResource.Guid, "self", authorization => new { href = $"/{Defines.AUTHORIZATION_PATH}/{authorization.id}" });
@@ -60,7 +60,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             var hal = Environment.Hal;
 
             // Top level resource routes for plugin
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RulesResource.Guid, $"{ Defines.RULES_PATH}/{{id?}}", new { controller = "rules" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RulesResource.Guid, $"{ Defines.RULES_PATH}/{{id?}}", new { controller = "rules" });
 
             Environment.Hal.ProvideLink(Defines.RulesResource.Guid, "self", rule => new { href = $"/{Defines.RULES_PATH}/{rule.id}" });
 

@@ -8,14 +8,13 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
     using Core;
     using Core.Http;
 
-
     public class Startup : BaseModule
     {
         public Startup() { }
 
         public override void Start()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "virtualdirectories" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "virtualdirectories" });
 
             // Self
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", vdir => new { href = VDirHelper.GetLocation(vdir.id) });

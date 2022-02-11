@@ -102,33 +102,26 @@ namespace Microsoft.IIS.Administration
 
         public IModule GetModuleByAssemblyName(string assemblyName)
         {
-            if(string.IsNullOrEmpty(assemblyName)) {
-                throw new ArgumentException(nameof(assemblyName));
-            }
-            if(!_modulesLookup.Contains(assemblyName)) {
-                return null;
-            }
-
-            return _modulesLookup[assemblyName].FirstOrDefault();
+            return string.IsNullOrEmpty(assemblyName)
+                ? throw new ArgumentException(nameof(assemblyName))
+                : !_modulesLookup.Contains(assemblyName) ? null : _modulesLookup[assemblyName].FirstOrDefault();
         }
 
         public IApplicationBuilder ApplicationBuilder
         {
             get
             {
-                if (_applicationBuilder == null) {
-                    throw new Exception("Can't register middleware until AdminHost ApplicationBuilder has been initialized.");
-                }
-                return _applicationBuilder;
+                return _applicationBuilder == null
+                    ? throw new Exception("Can't register middleware until AdminHost ApplicationBuilder has been initialized.")
+                    : _applicationBuilder;
             }
         }
 
         public IRouteBuilder RouteBuilder {
             get {
-                if (_routeBuilder == null) {
-                    throw new Exception("Can't register routes until AdminHost RouteBuilder has been initialized.");
-                }
-                return _routeBuilder;
+                return _routeBuilder == null
+                    ? throw new Exception("Can't register routes until AdminHost RouteBuilder has been initialized.")
+                    : _routeBuilder;
             }
         }
 
@@ -152,9 +145,10 @@ namespace Microsoft.IIS.Administration
 
                 if (resourceId != null && controller != null)
                 {
-                    _routeBuilder.MapWebApiRoute(route.Name + "-edge",
+                    _ = _routeBuilder.MapWebApiRoute(route.Name + "-edge",
                                 route.RouteTemplate + "/{edge}",
-                                new {
+                                new
+                                {
                                     controller = controller,
                                     action = "Edge",
                                     resourceId = resourceId

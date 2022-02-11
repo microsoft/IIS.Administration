@@ -11,12 +11,11 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
     using Sites;
     using Web.Administration;
 
-
     public class Startup : BaseModule
     {
         public override void Start()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "directorybrowsing" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "directorybrowsing" });
 
             // Self
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", dirb => new { href = DirectoryBrowsingHelper.GetLocation(dirb.id) });

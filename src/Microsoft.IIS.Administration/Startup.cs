@@ -100,6 +100,8 @@ namespace Microsoft.IIS.Administration {
                 _ = o.Filters.Add(typeof(ResourceInfoFilter));
 
                 RemoveFilter<UnsupportedContentTypeFilter>(o);
+
+                o.EnableEndpointRouting = false;
             });
 
             foreach (var asm in loader.GetAllLoadedAssemblies()) {
@@ -171,7 +173,7 @@ namespace Microsoft.IIS.Administration {
 
             //
             // Add MVC
-            // 
+            //             
             _ = app.UseMvc(routes => {
                 AdminHost.Instance.StartModules(routes, app);
                 InitiateFeatures(routes);

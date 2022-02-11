@@ -26,10 +26,10 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             var webserverMonitor = new WebServerMonitor(_provider);
             var siteMonitor = new WebSiteMonitor(_provider);
 
-            services.AddSingleton<ICounterProvider>(_provider);
-            services.AddSingleton<IAppPoolMonitor>(appPoolMonitor);
-            services.AddSingleton<IWebServerMonitor>(webserverMonitor);
-            services.AddSingleton<IWebSiteMonitor>(siteMonitor);
+            _ = services.AddSingleton<ICounterProvider>(_provider);
+            _ = services.AddSingleton<IAppPoolMonitor>(appPoolMonitor);
+            _ = services.AddSingleton<IWebServerMonitor>(webserverMonitor);
+            _ = services.AddSingleton<IWebSiteMonitor>(siteMonitor);
         }
 
         public override void Start()
@@ -41,7 +41,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         private void ConfigureWebServerMonitoring()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.WebServerMonitoringResource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "WebServerMonitoring" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.WebServerMonitoringResource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "WebServerMonitoring" });
 
             Environment.Hal.ProvideLink(Defines.WebServerMonitoringResource.Guid, "self", self => new { href = $"/{Defines.PATH}/{self.id}" });
             Environment.Hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.WebServerMonitoringResource.Name, webserver => new { href = $"/{Defines.PATH}/{webserver.id}" });
@@ -49,7 +49,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         private void ConfigureWebSiteMonitoring()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.WebSiteMonitoringResource.Guid, $"{Defines.WEBSITE_MONITORING_PATH}/{{id?}}", new { controller = "WebSiteMonitoring" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.WebSiteMonitoringResource.Guid, $"{Defines.WEBSITE_MONITORING_PATH}/{{id?}}", new { controller = "WebSiteMonitoring" });
 
             Environment.Hal.ProvideLink(Defines.WebSiteMonitoringResource.Guid, "self", self => new { href = $"/{Defines.WEBSITE_MONITORING_PATH}/{self.id}" });
             Environment.Hal.ProvideLink(Sites.Defines.Resource.Guid, Defines.WebSiteMonitoringResource.Name, site => new { href = $"/{Defines.WEBSITE_MONITORING_PATH}/{site.id}" });
@@ -57,7 +57,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
 
         private void ConfigureAppPoolMonitoring()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.AppPoolMonitoringResource.Guid, $"{Defines.APP_POOL_MONITORING_PATH}/{{id?}}", new { controller = "AppPoolMonitoring" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.AppPoolMonitoringResource.Guid, $"{Defines.APP_POOL_MONITORING_PATH}/{{id?}}", new { controller = "AppPoolMonitoring" });
 
             Environment.Hal.ProvideLink(Defines.AppPoolMonitoringResource.Guid, "self", self => new { href = $"/{Defines.APP_POOL_MONITORING_PATH}/{self.id}" });
             Environment.Hal.ProvideLink(AppPools.Defines.Resource.Guid, Defines.AppPoolMonitoringResource.Name, pool => new { href = $"/{Defines.APP_POOL_MONITORING_PATH}/{pool.id}" });

@@ -16,9 +16,9 @@ namespace Microsoft.IIS.Administration.Files
 
         public void Use(IServiceCollection services)
         {
-            services.AddSingleton<IDownloadService>(sp => new DownloadService((IMemoryCache)sp.GetService(typeof(IMemoryCache))));
+            _ = services.AddSingleton<IDownloadService>(sp => new DownloadService((IMemoryCache)sp.GetService(typeof(IMemoryCache))));
 
-            services.AddSingleton<IFileRedirectService>(sp => new FileRedirectService());
+            _ = services.AddSingleton<IFileRedirectService>(sp => new FileRedirectService());
         }
 
         public override void Start()
@@ -38,15 +38,15 @@ namespace Microsoft.IIS.Administration.Files
         {
             var router = Environment.Host.RouteBuilder;
 
-            router.MapWebApiRoute(Defines.DownloadResource.Guid, $"{Defines.DOWNLOAD_PATH}/{{id?}}", new { controller = "downloads" });
+            _ = router.MapWebApiRoute(Defines.DownloadResource.Guid, $"{Defines.DOWNLOAD_PATH}/{{id?}}", new { controller = "downloads" });
         }
 
         private void ConfigureFiles()
         {
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
-            
-            router.MapWebApiRoute(Defines.FilesResource.Guid, $"{Defines.FILES_PATH}/{{id?}}", new { controller = "files" });
+
+            _ = router.MapWebApiRoute(Defines.FilesResource.Guid, $"{Defines.FILES_PATH}/{{id?}}", new { controller = "files" });
 
             hal.ProvideLink(Globals.ApiResource.Guid, Defines.FilesResource.Name, _ => new { href = $"/{Defines.FILES_PATH}" });
 
@@ -65,7 +65,7 @@ namespace Microsoft.IIS.Administration.Files
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.ContentResource.Guid, $"{Defines.CONTENT_PATH}/{{id?}}", new { controller = "content" });
+            _ = router.MapWebApiRoute(Defines.ContentResource.Guid, $"{Defines.CONTENT_PATH}/{{id?}}", new { controller = "content" });
 
             // Files
             hal.ProvideLink(Defines.FilesResource.Guid, Defines.ContentResource.Name, file => new { href = $"/{Defines.CONTENT_PATH}/{file.id}" });
@@ -76,7 +76,7 @@ namespace Microsoft.IIS.Administration.Files
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.ApiDownloadResource.Guid, $"{Defines.API_DOWNLOAD_PATH}/{{id?}}", new { controller = "FileDownloads" });
+            _ = router.MapWebApiRoute(Defines.ApiDownloadResource.Guid, $"{Defines.API_DOWNLOAD_PATH}/{{id?}}", new { controller = "FileDownloads" });
 
             hal.ProvideLink(Defines.FilesResource.Guid, Defines.ApiDownloadResource.Name, file => new { href = $"/{Defines.API_DOWNLOAD_PATH}" });
         }
@@ -86,7 +86,7 @@ namespace Microsoft.IIS.Administration.Files
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.CopyResource.Guid, $"{Defines.COPY_PATH}/{{id?}}", new { controller = "copy" });
+            _ = router.MapWebApiRoute(Defines.CopyResource.Guid, $"{Defines.COPY_PATH}/{{id?}}", new { controller = "copy" });
 
             // Self
             hal.ProvideLink(Defines.CopyResource.Guid, "self", copy => new { href = MoveHelper.GetLocation(copy.id, true) });
@@ -101,7 +101,7 @@ namespace Microsoft.IIS.Administration.Files
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.MoveResource.Guid, $"{Defines.MOVE_PATH}/{{id?}}", new { controller = "move" });
+            _ = router.MapWebApiRoute(Defines.MoveResource.Guid, $"{Defines.MOVE_PATH}/{{id?}}", new { controller = "move" });
 
             // Self
             hal.ProvideLink(Defines.MoveResource.Guid, "self", move => new { href = MoveHelper.GetLocation(move.id, false) });
@@ -116,7 +116,7 @@ namespace Microsoft.IIS.Administration.Files
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.LocationsResource.Guid, $"{Defines.LOCATIONS_PATH}/{{id?}}", new { controller = "locations" });
+            _ = router.MapWebApiRoute(Defines.LocationsResource.Guid, $"{Defines.LOCATIONS_PATH}/{{id?}}", new { controller = "locations" });
 
             // Self (Files)
             hal.ProvideLink(Defines.LocationsResource.Guid, "self", location => new { href = $"/{Defines.LOCATIONS_PATH}/{location.id}" });

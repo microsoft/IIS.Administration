@@ -13,9 +13,9 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         public Startup() { }
 
         public override void Start()
-        {   
+        {
             // Provide mvc with route for sites requests
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "sites" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "sites" });
 
             //
             // Hal

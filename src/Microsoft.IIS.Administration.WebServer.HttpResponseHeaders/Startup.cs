@@ -11,7 +11,6 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
     using Sites;
     using Web.Administration;
 
-
     public class Startup : BaseModule
     {
         public Startup() { }
@@ -26,7 +25,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
         private void ConfigureCustomHeaders()
         {
             // Register all controller routes in mvc framework
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.CustomHeadersResource.Guid, $"{Defines.CUSTOM_HEADERS_PATH}/{{id?}}", new { controller = "customheaders" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.CustomHeadersResource.Guid, $"{Defines.CUSTOM_HEADERS_PATH}/{{id?}}", new { controller = "customheaders" });
 
             // Provide self links for all plugin resources
             Environment.Hal.ProvideLink(Defines.CustomHeadersResource.Guid, "self", custHeader => new { href = CustomHeadersHelper.GetLocation(custHeader.id) });
@@ -37,7 +36,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
 
         private void ConfigureRedirectHeaders()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RedirectHeadersResource.Guid, $"{Defines.REDIRECT_HEADERS_PATH}/{{id?}}", new { controller = "redirectheaders" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RedirectHeadersResource.Guid, $"{Defines.REDIRECT_HEADERS_PATH}/{{id?}}", new { controller = "redirectheaders" });
 
             Environment.Hal.ProvideLink(Defines.RedirectHeadersResource.Guid, "self", redHeader => new { href = RedirectHeadersHelper.GetLocation(redHeader.id) });
 
@@ -46,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
 
         private void ConfigureHttpResponseHeaders()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{ Defines.PATH}/{{id?}}", new { controller = "HttpResponseHeaders" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{ Defines.PATH}/{{id?}}", new { controller = "HttpResponseHeaders" });
 
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", respHeader => new { href = HttpResponseHeadersHelper.GetLocation(respHeader.id) });
 

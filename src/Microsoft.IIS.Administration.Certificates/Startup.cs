@@ -16,8 +16,8 @@ namespace Microsoft.IIS.Administration.Certificates
 
         public void Use(IServiceCollection services)
         {
-            services.AddSingleton<ICertificateOptions>(sp => CertificateOptions.FromConfiguration(sp.GetRequiredService<IConfiguration>()));
-            services.AddSingleton<ICertificateStoreProvider>(sp => new CertificateStoreProvider());
+            _ = services.AddSingleton<ICertificateOptions>(sp => CertificateOptions.FromConfiguration(sp.GetRequiredService<IConfiguration>()));
+            _ = services.AddSingleton<ICertificateStoreProvider>(sp => new CertificateStoreProvider());
         }
 
         public override void Start()
@@ -32,7 +32,7 @@ namespace Microsoft.IIS.Administration.Certificates
             var builder = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            builder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "Certificates" });
+            _ = builder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "Certificates" });
 
             //
             // Self
@@ -52,7 +52,7 @@ namespace Microsoft.IIS.Administration.Certificates
             var builder = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            builder.MapWebApiRoute(Defines.StoresResource.Guid, $"{Defines.STORES_PATH}/{{id?}}", new { controller = "CertificateStores" });
+            _ = builder.MapWebApiRoute(Defines.StoresResource.Guid, $"{Defines.STORES_PATH}/{{id?}}", new { controller = "CertificateStores" });
 
             hal.ProvideLink(Defines.StoresResource.Guid, "self", store => new { href = $"/{Defines.STORES_PATH}/{store.id}" });
         }

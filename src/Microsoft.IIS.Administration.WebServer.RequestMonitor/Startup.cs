@@ -18,7 +18,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
         {
             //
             // Controller
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "RequestMonitoring" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "RequestMonitoring" });
 
             //
             // Hal
@@ -28,15 +28,13 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
             hal.ProvideLink(Defines.Resource.Guid, "self", r => new { href = $"/{Defines.PATH}/{r.id}" });
 
             // Webserver
-            hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => {
-                return new { href = RequestHelper.GetLocation() };
-            });
+            hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => new { href = RequestHelper.GetLocation() });
         }
 
         private void ConfigureRequests() {
             //
             // Controller
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RequestsResource.Guid, $"{Defines.REQUESTS_PATH}/{{id?}}", new { controller = "RmRequests" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RequestsResource.Guid, $"{Defines.REQUESTS_PATH}/{{id?}}", new { controller = "RmRequests" });
 
             //
             // Hal
@@ -46,14 +44,10 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
             hal.ProvideLink(Defines.RequestsResource.Guid, "self", r => new { href = $"/{Defines.REQUESTS_PATH}/{r.id}" });
 
             // WorkerProcess
-            hal.ProvideLink(WorkerProcesses.Defines.Resource.Guid, Defines.RequestsResource.Name, wp => {
-                return new { href = $"/{Defines.REQUESTS_PATH}?{Defines.WP_IDENTIFIER}={wp.id}" };
-            });
+            hal.ProvideLink(WorkerProcesses.Defines.Resource.Guid, Defines.RequestsResource.Name, wp => new { href = $"/{Defines.REQUESTS_PATH}?{Defines.WP_IDENTIFIER}={wp.id}" });
 
             // Site
-            hal.ProvideLink(Sites.Defines.Resource.Guid, Defines.RequestsResource.Name, site => {
-                return new { href = $"/{Defines.REQUESTS_PATH}?{Sites.Defines.IDENTIFIER}={site.id}" };
-            });
+            hal.ProvideLink(Sites.Defines.Resource.Guid, Defines.RequestsResource.Name, site => new { href = $"/{Defines.REQUESTS_PATH}?{Sites.Defines.IDENTIFIER}={site.id}" });
 
             // Feature
             hal.ProvideLink(Defines.Resource.Guid, Defines.RequestsResource.Name, _ => new { href = $"/{Defines.REQUESTS_PATH}" });

@@ -14,7 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
 
         public override void Start()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "AppPools" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "AppPools" });
 
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", pool => new { href = AppPoolHelper.GetLocation(pool.id) });
             Environment.Hal.ProvideLink(WebServer.Defines.Resource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}" });
