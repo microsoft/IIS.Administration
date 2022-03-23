@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.6
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32207.57
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}"
 EndProject
@@ -133,6 +133,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{E05E8FAA-90EE-43C7-911F-4543FB491159}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.PsSetup", "scripts\Microsoft.IIS.Administration.PsSetup.csproj", "{C5FA05E9-0A3E-4C00-B261-CE35A568659D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.AspNetCore.Mvc.WebApiCompatShim", "src\Microsoft.AspNetCore.Mvc.WebApiCompatShim\Microsoft.AspNetCore.Mvc.WebApiCompatShim.csproj", "{E21322FC-0ABA-49BC-B2C0-AF28650B4E58}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -287,11 +289,16 @@ Global
 		{C5FA05E9-0A3E-4C00-B261-CE35A568659D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5FA05E9-0A3E-4C00-B261-CE35A568659D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5FA05E9-0A3E-4C00-B261-CE35A568659D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E21322FC-0ABA-49BC-B2C0-AF28650B4E58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E21322FC-0ABA-49BC-B2C0-AF28650B4E58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E21322FC-0ABA-49BC-B2C0-AF28650B4E58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E21322FC-0ABA-49BC-B2C0-AF28650B4E58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{BC25CF2F-4139-4D3F-9DC5-279FD380D0F2} = {361F8099-C420-4274-A6EB-45BFD232E1CE}
 		{9C2ED81D-E4BF-4BF1-A9A0-278654B89313} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{46906A4C-6A49-4D1D-B556-DBBD6F744976} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{E4C27952-D7E9-4914-8DCE-1F55008E1F6D} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
@@ -329,6 +336,7 @@ Global
 		{6FDC4BDA-91D3-4269-B89B-043EDC7768F7} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{F1AEBED1-CE86-48D2-8389-6559A088B6F8} = {5504DA5E-BCF3-409E-A285-E59EDBBBB8B8}
 		{C5FA05E9-0A3E-4C00-B261-CE35A568659D} = {E05E8FAA-90EE-43C7-911F-4543FB491159}
+		{E21322FC-0ABA-49BC-B2C0-AF28650B4E58} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F5961521-6D78-4B19-9B46-BC648CC42DB1}

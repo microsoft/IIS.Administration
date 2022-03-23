@@ -110,6 +110,7 @@ namespace Microsoft.IIS.Administration {
 
             _ = builder.AddControllersAsServices();
             _ = builder.AddWebApiConventions();
+            _ = builder.AddRazorRuntimeCompilation();
         }
 
         // Configure is called after ConfigureServices is called.

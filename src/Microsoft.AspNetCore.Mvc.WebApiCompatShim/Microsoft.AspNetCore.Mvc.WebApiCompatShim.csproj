@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="..\..\build\sign.props" />
+	<Import Project="..\..\build\version.props" />
+	<Import Project="..\..\build\plugins.props" />
+
+  <PropertyGroup>
+    <Description>Microsoft.AspNetCore.Mvc.WebApiCompatShim Class Library</Description>
+	<TargetFramework>$(IISAdministrationTargetFramework)</TargetFramework>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageTags>aspnetcore;aspnetcoremvc;aspnetwebapi</PackageTags>
+    <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
+	<Authors>Microsoft</Authors>
+    <AssemblyName>Microsoft.AspNetCore.Mvc.WebApiCompatShim</AssemblyName>
+	<PackageId>Microsoft.AspNetCore.Mvc.WebApiCompatShim</PackageId>		
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
+  </ItemGroup>
+
+</Project>

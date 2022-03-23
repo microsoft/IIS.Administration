@@ -76,6 +76,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.AspNetCore.Hosting.WindowsServices" Version="6.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.3" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(SignType)' != '' ">
