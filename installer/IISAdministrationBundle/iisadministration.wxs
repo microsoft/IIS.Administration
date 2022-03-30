@@ -5,7 +5,7 @@
 <?include ..\shared\common.wxi ?>
 <?include include.wxi ?>
 
-<?define UpgradeCode = "BAAD43D4-CFD2-4082-AD7C-BA9EF673CCEB" ?>
+<?define UpgradeCode = "c6622fb5-da07-4c40-8bbb-66b327e6e729" ?>
 
 <Wix RequiredVersion="3.5.1405.0" xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" xmlns:bal="http://schemas.microsoft.com/wix/BalExtension">
   <Bundle
@@ -37,49 +37,50 @@
                          Result="value"
                          Variable="DOTNET_RUNTIME_VERSION"
                          Win64="$(var.IsWin64)" />
-    <Variable Name="DOTNET_RUNTIME_VERSION_MINIMAL" Type="version" Value='2.1.0' />
+    <Variable Name="DOTNET_RUNTIME_VERSION_MINIMAL" Type="version" Value='6.0.1' />
     <PackageGroup Id="dotnet_core_pkg">
       <ExePackage Id="dotnet_core_exe"
-                  Name="dotnet-runtime-2.1.9-win-x64.exe"
+                  Name="dotnet-runtime-6.0.1-win-x64.exe"
                   Permanent="yes"
                   Compressed="no"
-                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/b9cefae4-7f05-4dea-9fb0-3328aaddb2ee/545e5c4e0eeff6366523209935376002/dotnet-runtime-2.1.9-win-x64.exe"
+                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/df4372ca-82c8-4bfa-acf9-c49e27279e7e/6bddefd26964017ff520dc1443029e04/dotnet-runtime-6.0.1-win-x64.exe"
                   DetectCondition="(DOTNET_RUNTIME_VERSION) AND (DOTNET_RUNTIME_VERSION &gt;= DOTNET_RUNTIME_VERSION_MINIMAL)"
                   InstallCommand="/q /norestart">
-        <RemotePayload CertificatePublicKey="7EA0E648275A9E1DC9FC58FA8C64B8FD6F4C46EB"
-                       CertificateThumbprint="C3A3D43788E7ABCD287CB4F5B6583043774F99D2"
-                       Description="Microsoft .NET Core Runtime - 2.1.9 (x64)"
-                       Hash="48DC6D5E57A3AA554F61F11BA9072A7C7F43CECE"
-                       ProductName="Microsoft .NET Core Runtime - 2.1.9 (x64)"
-                       Size="24805976" Version="2.1.9.27415" />
+          <!-- Information retrieved with the Heat tool of the WiX toolset -->
+          <!-- installer\packages\WiX.3.11.1\tools\heat.exe payload dotnet-runtime-6.0.1-win-x64.exe -o dotnet-runtime-6.0.1-win-x64.wxs -->
+          <RemotePayload CertificatePublicKey="82114C41DDD3E62FB432F3CFEE5D44FDB02C1471" 
+                  CertificateThumbprint="60FF375E5669B98D43EA0E2328E618CF73C0F91D"
+                  Description="Microsoft .NET Runtime - 6.0.1 (x64)" 
+                  Hash="5C53CF49B2F58CB8D05C29A865B80690C816975C" 
+                  ProductName="Microsoft .NET Runtime - 6.0.1 (x64)" Size="28383304" Version="6.0.1.30717" /> 
       </ExePackage>
     </PackageGroup>
   </Fragment>
 
   <Fragment>
-    <util:RegistrySearch Id="ASPNET_CORE_21_SHARED_FRAMEWORK_SEARCH"
+    <!--This would not work when only 6.0 preview is installed. Must manually uninstall 6.0 preview-->
+    <util:RegistrySearch Id="ASPNET_CORE_60_SHARED_FRAMEWORK_SEARCH"
                          Root="HKLM"
-                         Key="SOFTWARE\Microsoft\ASP.NET Core\Shared Framework\v2.1"
+                         Key="SOFTWARE\Microsoft\ASP.NET Core\Shared Framework\v6.0"
                          Result="exists"
-                         Variable="ASPNET_CORE_21_SHARED_FRAMEWORK_EXISTS"
+                         Variable="ASPNET_CORE_60_SHARED_FRAMEWORK_EXISTS"
                          Win64="$(var.IsWin64)" />
     <PackageGroup Id="aspnetcore_pkg">
       <ExePackage Id="aspnetcore_exe"
-                  Name="aspnetcore-runtime-2.1.9-win-x64.exe"
+                  Name="aspnetcore-runtime-6.0.1-win-x64.exe"
                   Permanent="yes"
                   Compressed="no"
-                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/ece6ec5c-4bdb-494b-994b-3ece386e404a/436e42bf7c68b8455953d2d3285c27ed/aspnetcore-runtime-2.1.9-win-x64.exe"
-                  DetectCondition="(ASPNET_CORE_21_SHARED_FRAMEWORK_EXISTS)"
+                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/d526db30-5bfe-4c24-808c-4d8f5d2ba479/ae90c40bdefb2f1775d812ede8e84309/aspnetcore-runtime-6.0.1-win-x64.exe"
+                  DetectCondition="(ASPNET_CORE_60_SHARED_FRAMEWORK_EXISTS)"
                   InstallCommand="/q /norestart">
 
         <!-- Information retrieved with the Heat tool of the WiX toolset -->
-        <!-- heat payload aspnetcore-runtime-2.1.9-win-x64.exe -o aspnetcore-runtime-2.1.9-win-x64.wxs -->
-        <RemotePayload CertificatePublicKey="7EA0E648275A9E1DC9FC58FA8C64B8FD6F4C46EB"
-                       CertificateThumbprint="C3A3D43788E7ABCD287CB4F5B6583043774F99D2"
-                       Description="Microsoft ASP.NET Core 2.1.9 - Shared Framework"
-                       Hash="A7BD33596DD48C45FDA1AB3EF23C91D74F59E258"
-                       ProductName="Microsoft ASP.NET Core 2.1.9 - Shared Framework"
-                       Size="26242728" Version="2.1.9.0" />
+        <!-- installer\packages\WiX.3.11.1\tools\heat.exe payload aspnetcore-runtime-2.1.9-win-x64.exe -o aspnetcore-runtime-2.1.9-win-x64.wxs -->
+        <RemotePayload CertificatePublicKey="82114C41DDD3E62FB432F3CFEE5D44FDB02C1471" 
+                  CertificateThumbprint="60FF375E5669B98D43EA0E2328E618CF73C0F91D" 
+                  Description="Microsoft ASP.NET Core 6.0.1 - Shared Framework (x64)" 
+                  Hash="9AFB2F6265FF780E077089C8294F9FFBA7BC049D" 
+                  ProductName="Microsoft ASP.NET Core 6.0.1 - Shared Framework (x64)" Size="8896496" Version="6.0.1.21567" />
       </ExePackage>
     </PackageGroup>
   </Fragment>

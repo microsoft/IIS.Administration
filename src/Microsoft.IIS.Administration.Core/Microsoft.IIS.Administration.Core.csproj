@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.AspNetCore.Mvc.WebApiCompatShim\Microsoft.AspNetCore.Mvc.WebApiCompatShim.csproj" />
+    <ProjectReference Include="..\Microsoft.IIS.Administration.WebApiCompatShim\Microsoft.IIS.Administration.WebApiCompatShim.csproj" />
   </ItemGroup>
 
 </Project>

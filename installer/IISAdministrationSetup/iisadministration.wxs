@@ -9,9 +9,9 @@
 <!-- NB: *Must* update the ProductCode GUID on each release! -->
 <?define ProductCode = "*" ?>
 <?if $(var.IsWin64)=no ?>
-<?define UpgradeCode = "75B8A409-8EFF-4DA2-B047-37AB6AA75A36" ?>
+<?define UpgradeCode = "47906ef7-59ab-4307-b0aa-f00b33e3d276" ?>
 <?else?>
-<?define UpgradeCode = "BEAF108A-E45E-4AA6-8347-272A0EB3B90E" ?>
+<?define UpgradeCode = "af32e7e9-1ab6-45af-a7a3-16f2d4b16ce7" ?>
 <?endif?>
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:dep="http://schemas.microsoft.com/wix/DependencyExtension">

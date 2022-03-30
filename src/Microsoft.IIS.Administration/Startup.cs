@@ -81,8 +81,7 @@ namespace Microsoft.IIS.Administration {
             services.AddConfigurationWriter(_hostingEnv);
 
             //
-            // Antiforgery. The original Interface IAntiforgeryTokenStore and some related classes
-            // are not accessible anymore. Need to test this
+            // Antiforgery
             _ = services.AddAntiforgery(o => o.Cookie.Name = o.FormFieldName = HeaderNames.XSRF_TOKEN);
 
             //
@@ -93,8 +92,6 @@ namespace Microsoft.IIS.Administration {
             // MVC
             IMvcBuilder builder = services.AddMvc(o => {
 
-                // Default json output formatter is not replaced since AspNetCore.Mvc.Formatters.JsonOutputFormatter
-                // does not exist anymore. Need test this
                 _ = o.Filters.Add(typeof(ActionFoundFilter));
 
                 _ = o.Filters.Add(typeof(ResourceInfoFilter));

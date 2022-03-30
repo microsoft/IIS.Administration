@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\build\sign.props" />
+  <Import Project="..\..\build\version.props" />
+  <Import Project="..\..\build\Microsoft.IIS.Administration.props" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2735D370-CA41-47D5-9CE3-3E05EC3E82C0}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Microsoft.Web.Administration.Refs</RootNamespace>
+    <AssemblyName>Microsoft.Web.Administration.Refs</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <RuntimeIdentifier>win</RuntimeIdentifier>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+      <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      </PackageReference>
+      <!-- Previous versions of .Net packages referenced by Microsoft.Web.Administration 11.1.0 
+	     Need to ship them because they are different from the newest .Net versions -->
+    <PackageReference Include="Microsoft.Win32.Primitives" Version="4.0.1" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.0.0" />
+    <PackageReference Include="System.Collections" Version="4.0.10" />
+    <PackageReference Include="System.Diagnostics.Debug" Version="4.0.10" />
+    <PackageReference Include="System.Diagnostics.Tools" Version="4.0.0" />
+    <PackageReference Include="System.Diagnostics.TraceSource" Version="4.0.0" />
+    <PackageReference Include="System.Globalization" Version="4.0.10" />
+    <PackageReference Include="System.Net.Primitives" Version="4.0.10" />
+    <PackageReference Include="System.Reflection" Version="4.1.0" />
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="4.1.0" />
+    <PackageReference Include="System.Resources.ResourceManager" Version="4.0.0" />
+    <PackageReference Include="System.Runtime" Version="4.1.0" />
+    <PackageReference Include="System.Runtime.Extensions" Version="4.1.0" />
+    <PackageReference Include="System.Runtime.Handles" Version="4.0.0" />
+    <PackageReference Include="System.Runtime.InteropServices" Version="4.1.0" />
+    <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.1.0" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="4.0.0" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="4.1.0" />
+    <PackageReference Include="System.Threading" Version="4.0.10" />
+  </ItemGroup>
+  <PropertyGroup>
+    <CopyNuGet>xcopy /Y /I $(USERPROFILE)\.nuget\packages</CopyNuGet>
+    <WebAdminRefPath>runtimes\ms.web.admin.refs\</WebAdminRefPath>
+  </PropertyGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <!-- used by package Microsoft.Web.Administration, Version="11.1.0" -->
+    <Exec Command="$(CopyNuGet)\microsoft.win32.primitives\4.0.1\lib\net46\Microsoft.Win32.Primitives.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\microsoft.win32.registry\4.0.0\lib\net46\Microsoft.Win32.Registry.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.collections\4.0.10\lib\netcore50\System.Collections.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.diagnostics.debug\4.0.10\lib\netcore50\System.Diagnostics.Debug.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.diagnostics.tools\4.0.0\lib\netcore50\System.Diagnostics.Tools.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.diagnostics.tracesource\4.0.0\lib\net46\System.Diagnostics.TraceSource.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.globalization\4.0.10\lib\netcore50\System.Globalization.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.net.primitives\4.0.10\lib\netcore50\System.Net.Primitives.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.reflection\4.1.0\lib\net462\System.Reflection.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.reflection.typeextensions\4.1.0\lib\net462\System.Reflection.TypeExtensions.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.resources.resourcemanager\4.0.0\lib\netcore50\System.Resources.ResourceManager.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.runtime\4.1.0\lib\net462\System.Runtime.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.runtime.extensions\4.1.0\lib\net462\System.Runtime.Extensions.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.runtime.handles\4.0.0\lib\netcore50\System.Runtime.Handles.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.runtime.interopservices\4.1.0\lib\net462\System.Runtime.InteropServices.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.security.cryptography.x509certificates\4.1.0\lib\net461\System.Security.Cryptography.X509Certificates.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.security.principal.windows\4.0.0\lib\net46\System.Security.Principal.Windows.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.serviceprocess.servicecontroller\4.1.0\lib\net461\System.ServiceProcess.ServiceController.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.threading\4.0.10\lib\netcore50\System.Threading.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+  </Target>
+  <Target Name="PostPublish" AfterTargets="Publish">
+    <!-- used by package Microsoft.Web.Administration, Version="11.1.0" -->
+    <Exec Command="$(CopyNuGet)\microsoft.win32.primitives\4.0.1\lib\net46\Microsoft.Win32.Primitives.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\microsoft.win32.registry\4.0.0\lib\net46\Microsoft.Win32.Registry.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.collections\4.0.10\lib\netcore50\System.Collections.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.diagnostics.debug\4.0.10\lib\netcore50\System.Diagnostics.Debug.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.diagnostics.tools\4.0.0\lib\netcore50\System.Diagnostics.Tools.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.diagnostics.tracesource\4.0.0\lib\net46\System.Diagnostics.TraceSource.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.globalization\4.0.10\lib\netcore50\System.Globalization.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.net.primitives\4.0.10\lib\netcore50\System.Net.Primitives.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.reflection\4.1.0\lib\net462\System.Reflection.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.reflection.typeextensions\4.1.0\lib\net462\System.Reflection.TypeExtensions.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.resources.resourcemanager\4.0.0\lib\netcore50\System.Resources.ResourceManager.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.runtime\4.1.0\lib\net462\System.Runtime.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.runtime.extensions\4.1.0\lib\net462\System.Runtime.Extensions.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.runtime.handles\4.0.0\lib\netcore50\System.Runtime.Handles.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.runtime.interopservices\4.1.0\lib\net462\System.Runtime.InteropServices.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.security.cryptography.x509certificates\4.1.0\lib\net461\System.Security.Cryptography.X509Certificates.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.security.principal.windows\4.0.0\lib\net46\System.Security.Principal.Windows.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.serviceprocess.servicecontroller\4.1.0\lib\net461\System.ServiceProcess.ServiceController.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.threading\4.0.10\lib\netcore50\System.Threading.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+  </Target>
+</Project>

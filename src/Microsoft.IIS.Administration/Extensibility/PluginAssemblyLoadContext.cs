@@ -62,6 +62,8 @@ namespace Microsoft.IIS.Administration.Extensibility
             var rootPaths = new List<string>();
             rootPaths.Add(Path.Combine(_pluginDir, $"{assemblyName.Name}.{assemblyName.Version}"));
             rootPaths.Add(_pluginDir);
+            // drop Microsoft.Web.Administration v10 (package v11.1) referenced assemblies here
+            rootPaths.Add(Path.Combine(_pluginDir, @"runtimes\ms.web.admin.refs")); 
 
             foreach (var path in rootPaths)
             {
@@ -71,8 +73,6 @@ namespace Microsoft.IIS.Administration.Extensibility
                 {
                     // If LoadFromAssemblyPath's argument does not point to a valid assembly a fatal error will occur that will not throw an exception
                     // The process will terminate ungracefully
-                    // Currently, this is only hit by "\plugins\System.Runtime.4.1.0.0\System.Runtime.dll" used by
-                    // Microsoft.Web.Administration.dll v10.x built for .Net standard 1.5
                     return LoadFromAssemblyPath(asmPath);
                 }
             }
