@@ -7,6 +7,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System;
     using System.Linq;
@@ -68,6 +69,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [Audit]
         public object Patch([FromBody]dynamic model, string id)
         {
+            model = DynamicHelper.ToJObject(model);
             var outboundRuleId = new OutboundRuleId(id);
 
             Site site = outboundRuleId.SiteId == null ? null : SiteHelper.GetSite(outboundRuleId.SiteId.Value);
@@ -101,6 +103,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [Audit]
         public object Post([FromBody]dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }

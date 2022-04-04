@@ -54,6 +54,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
         [ResourceInfo(Name = Defines.ModulesName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             ModulesId modulesId = new ModulesId(id);
 
             Site site = modulesId.SiteId == null ? null : SiteHelper.GetSite(modulesId.SiteId.Value);

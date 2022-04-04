@@ -12,7 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Core.Http;
     using Core;
     using System.Threading.Tasks;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
     public class BasicAuthController : ApiBaseController
@@ -49,6 +49,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
         [RequireGlobalModule(BasicAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             BasicAuthId basicAuthId = new BasicAuthId(id);
 
             Site site = basicAuthId.SiteId == null ? null : SiteHelper.GetSite(basicAuthId.SiteId.Value);

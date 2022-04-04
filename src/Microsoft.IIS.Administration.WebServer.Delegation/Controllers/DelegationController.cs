@@ -11,7 +11,7 @@ namespace Microsoft.IIS.Administration.WebServer.Delegation
     using Web.Administration;
     using Core.Http;
     using Core;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
     public class DelegationController : ApiBaseController
@@ -53,6 +53,7 @@ namespace Microsoft.IIS.Administration.WebServer.Delegation
         [ResourceInfo(Name = Defines.DelegationName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             SectionId sectionId = new SectionId(id);
             Site site = sectionId.SiteId == null ? null : SiteHelper.GetSite(sectionId.SiteId.Value);
 

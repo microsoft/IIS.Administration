@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
     using Core;
     using Core.Http;
     using Files;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using System.Threading.Tasks;
@@ -63,6 +64,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
         [RequireGlobalModule(LoggingHelper.HTTP_LOGGING_MODULE, DISPLAY_NAME)]
         public object Patch(string id, dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             LoggingId logId = new LoggingId(id);
 
             Site site = logId.SiteId == null ? null : SiteHelper.GetSite(logId.SiteId.Value);

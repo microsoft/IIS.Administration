@@ -70,6 +70,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
         [ResourceInfo(Name = Defines.RuleName)]
         public object Post(dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             TraceRule rule = null;
             Site site = null;
             HttpRequestTracingId hrtId = null;
@@ -110,6 +111,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
         [ResourceInfo(Name = Defines.RuleName)]
         public object Patch(string id, dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             RuleId ruleId = new RuleId(id);
 
             Site site = ruleId.SiteId == null ? null : SiteHelper.GetSite(ruleId.SiteId.Value);

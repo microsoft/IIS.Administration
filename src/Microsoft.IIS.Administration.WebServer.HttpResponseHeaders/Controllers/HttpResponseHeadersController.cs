@@ -11,7 +11,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
     using Web.Administration;
     using Core.Http;
     using Core;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
     public class HttpResponseHeadersController : ApiBaseController
@@ -51,6 +51,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
         [ResourceInfo(Name = Defines.ResponseHeadersName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             HttpResponseHeadersId headerId = new HttpResponseHeadersId(id);
 
             Site site = headerId.SiteId == null ? null : SiteHelper.GetSite(headerId.SiteId.Value);

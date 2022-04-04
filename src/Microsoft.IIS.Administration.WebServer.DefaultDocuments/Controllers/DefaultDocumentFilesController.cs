@@ -69,6 +69,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
         [ResourceInfo(Name = Defines.EntryName)]
         public object Patch([FromBody] dynamic model, string id)
         {
+            model = DynamicHelper.ToJObject(model);
             FileId fileId = new FileId(id);
 
             Site site = fileId.SiteId == null ? null : SiteHelper.GetSite(fileId.SiteId.Value);
@@ -108,6 +109,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
         [ResourceInfo(Name = Defines.EntryName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             File file = null;            
             DefaultDocumentId docId = null;
             Site site = null;

@@ -38,6 +38,7 @@ namespace Microsoft.IIS.Administration.Files
         [Audit]
         public IActionResult Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (_downloadService == null) {
                 throw new NotFoundException(typeof(IDownloadService).GetTypeInfo().Assembly.FullName);
             }

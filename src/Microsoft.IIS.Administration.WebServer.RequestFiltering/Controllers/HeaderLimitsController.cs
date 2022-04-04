@@ -66,6 +66,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [ResourceInfo(Name = Defines.HeaderLimitName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             HeaderLimit headerLimit = null;
             Site site = null;
             RequestFilteringId reqId = null;
@@ -106,6 +107,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [ResourceInfo(Name = Defines.HeaderLimitName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             HeaderLimitId headerLimitId = new HeaderLimitId(id);
 
             Site site = headerLimitId.SiteId == null ? null : SiteHelper.GetSite(headerLimitId.SiteId.Value);

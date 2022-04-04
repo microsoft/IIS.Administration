@@ -9,6 +9,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using Core;
     using Core.Http;
     using Files;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using System.Threading.Tasks;
@@ -61,6 +62,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
         [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
         public object Patch(string id, dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             var hrtId = new HttpRequestTracingId(id);
 
             Site site = hrtId.SiteId == null ? null : SiteHelper.GetSite(hrtId.SiteId.Value);

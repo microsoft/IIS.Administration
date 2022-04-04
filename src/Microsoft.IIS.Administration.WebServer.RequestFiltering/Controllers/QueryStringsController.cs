@@ -62,6 +62,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [ResourceInfo(Name = Defines.QueryStringName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             QueryStringRule queryString = null;
             Site site = null;
             RequestFilteringId reqId = null;
@@ -105,6 +106,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [ResourceInfo(Name = Defines.QueryStringName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             QueryStringId queryStringId = new QueryStringId(id);
 
             Site site = queryStringId.SiteId == null ? null : SiteHelper.GetSite(queryStringId.SiteId.Value);

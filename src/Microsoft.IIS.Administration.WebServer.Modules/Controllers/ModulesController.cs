@@ -70,6 +70,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
         [Audit]
         [ResourceInfo(Name = Defines.ModuleEntryName)]
         public object Post([FromBody] dynamic model) {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -147,6 +148,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
         [ResourceInfo(Name = Defines.ModuleEntryName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             EntryId entryId = new EntryId(id);
 
             Site site = entryId.SiteId == null ? null : SiteHelper.GetSite(entryId.SiteId.Value);

@@ -134,6 +134,7 @@ namespace Microsoft.IIS.Administration.Files
         [ResourceInfo(Name = Defines.FileName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -199,6 +200,7 @@ namespace Microsoft.IIS.Administration.Files
         [ResourceInfo(Name = Defines.FileName)]
         public object Patch([FromBody] dynamic model, string id)
         {
+            model = DynamicHelper.ToJObject(model);
             FileId fileId = FileId.FromUuid(id);
 
             IFileInfo info = _helper.GetExistingFileInfo(fileId.PhysicalPath);

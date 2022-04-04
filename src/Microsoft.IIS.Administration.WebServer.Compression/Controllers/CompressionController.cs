@@ -9,6 +9,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
     using Core;
     using Core.Http;
     using Files;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using System.Threading.Tasks;
@@ -63,6 +64,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
         [RequireGlobalModule(CompressionHelper.DYNAMIC_MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             CompressionId compId = new CompressionId(id);
 
             Site site = compId.SiteId == null ? null : SiteHelper.GetSite(compId.SiteId.Value);

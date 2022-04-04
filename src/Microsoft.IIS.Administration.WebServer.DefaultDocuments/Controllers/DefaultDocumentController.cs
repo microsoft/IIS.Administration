@@ -12,7 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
     using Applications;
     using Core.Http;
     using System.Threading.Tasks;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
     public class DefaultDocumentController : ApiBaseController
@@ -55,6 +55,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
         [RequireGlobalModule(DefaultDocumentHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }

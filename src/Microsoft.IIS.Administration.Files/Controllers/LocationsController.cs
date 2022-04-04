@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.Files
     using Core;
     using Core.Http;
     using Microsoft.AspNetCore.Authorization;
+    using Microsoft.IIS.Administration.Core.Utils;
     using System;
     using System.Linq;
     using System.Net;
@@ -52,6 +53,7 @@ namespace Microsoft.IIS.Administration.Files
         [Audit(AuditAttribute.ALL)]
         public async Task<object> Patch([FromBody] dynamic model, string id)
         {
+            model = DynamicHelper.ToJObject(model);
             FileId fileId = FileId.FromUuid(id);
 
             ILocation location = _helper.Options.Locations.FirstOrDefault(l => l.Path.Equals(fileId.PhysicalPath, StringComparison.OrdinalIgnoreCase));
@@ -76,6 +78,7 @@ namespace Microsoft.IIS.Administration.Files
         [Audit(AuditAttribute.ALL)]
         public async Task<object> Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             ILocation location = _helper.CreateLocation(model);
 
             //

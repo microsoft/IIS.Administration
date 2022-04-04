@@ -93,7 +93,8 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
         [ResourceInfo(Name = Defines.WebAppName)]
         public object Post([FromBody] dynamic model)
         {
-            if(model == null) {
+            model = DynamicHelper.ToJObject(model);
+            if (model == null) {
                 throw new ApiArgumentException("model");
             }
 
@@ -127,6 +128,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
         [ResourceInfo(Name = Defines.WebAppName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             // Cut off the notion of uuid from beginning of request
             ApplicationId appId = new ApplicationId(id);
 

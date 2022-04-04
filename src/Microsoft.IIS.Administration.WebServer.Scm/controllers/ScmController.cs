@@ -28,6 +28,7 @@ namespace Microsoft.IIS.Administration.WebServer.Scm
         [ResourceInfo(Name = Defines.ServiceControllerName)]
         public object Patch(dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (!ScmHelper.IsInstalled())
             {
                 return NotFound();

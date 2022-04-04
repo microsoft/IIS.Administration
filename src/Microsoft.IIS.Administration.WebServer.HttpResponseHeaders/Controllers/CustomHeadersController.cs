@@ -70,6 +70,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
         [ResourceInfo(Name = Defines.CustomHeaderName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -110,6 +111,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
         [ResourceInfo(Name = Defines.CustomHeaderName)]
         public object Patch(string id, dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             CustomHeaderId headerId = new CustomHeaderId(id);
 
             Site site = headerId.SiteId == null ? null : SiteHelper.GetSite(headerId.SiteId.Value);

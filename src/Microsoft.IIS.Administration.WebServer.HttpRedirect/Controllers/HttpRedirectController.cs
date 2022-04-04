@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRedirect
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using System.Threading.Tasks;
@@ -53,6 +54,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRedirect
         [RequireGlobalModule(RedirectHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }

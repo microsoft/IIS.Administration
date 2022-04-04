@@ -12,7 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
     using Core.Http;
     using Core;
     using System.Threading.Tasks;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
     public class DirectoryBrowsingController : ApiBaseController
@@ -53,6 +53,7 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
         [RequireGlobalModule(DirectoryBrowsingHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             DirectoryBrowsingId dirbId = new DirectoryBrowsingId(id);
 
             Site site = dirbId.SiteId == null ? null : SiteHelper.GetSite(dirbId.SiteId.Value);

@@ -82,7 +82,12 @@ namespace Microsoft.IIS.Administration {
 
             //
             // Antiforgery
-            _ = services.AddAntiforgery(o => o.Cookie.Name = o.FormFieldName = HeaderNames.XSRF_TOKEN);
+            _ = services.AddAntiforgery(o => 
+                {
+                    o.Cookie.Name =  HeaderNames.XSRF_TOKEN;
+                    o.FormFieldName = HeaderNames.XSRF_TOKEN;
+                    o.HeaderName = HeaderNames.XSRF_TOKEN;  // must set header name. It is read from DefaultAntiforgeryTokenStore.cs
+                });
 
             //
             // Caching

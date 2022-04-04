@@ -65,6 +65,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
         [HttpPost]
         [ResourceInfo(Name = Defines.AccessTokenName)]
         public async Task<object> Post([FromBody] dynamic model) {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }

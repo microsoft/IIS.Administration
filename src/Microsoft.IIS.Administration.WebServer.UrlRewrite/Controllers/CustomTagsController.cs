@@ -7,6 +7,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.IIS.Administration.Core;
     using Microsoft.IIS.Administration.Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Microsoft.IIS.Administration.WebServer.Sites;
     using Microsoft.Web.Administration;
     using System;
@@ -69,6 +70,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [Audit]
         public object Patch([FromBody]dynamic model, string id)
         {
+            model = DynamicHelper.ToJObject(model);
             var customTagsId = new CustomTagsId(id);
 
             Site site = customTagsId.SiteId == null ? null : SiteHelper.GetSite(customTagsId.SiteId.Value);
@@ -105,6 +107,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [Audit]
         public object Post([FromBody]dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null)
             {
                 throw new ApiArgumentException("model");

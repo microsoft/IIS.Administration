@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.Core.Utils {
     using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
+    using System.Text.Json;
 
     /// <summary>
     /// Helper class to aid in the conversion from simple dynamic objects (ex: JSON representations) to desired primitive types
@@ -213,6 +214,14 @@ namespace Microsoft.IIS.Administration.Core.Utils {
             }
 
             return value;
+        }
+
+        public static dynamic ToJObject(dynamic model)
+        {
+            // convert JsonElement to JObject. model was JObject in previous ASP.Net
+            // now it is JsonElement (through  [FromBody]).
+            // To avoid massive code changes, convert it to JObject
+            return model is JsonElement ? JObject.Parse(model.GetRawText()) : model;
         }
     }
 }

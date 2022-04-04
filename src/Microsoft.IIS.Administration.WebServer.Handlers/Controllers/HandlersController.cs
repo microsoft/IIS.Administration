@@ -11,7 +11,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
     using System.Net;
     using Web.Administration;
     using Core.Http;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
     public class HandlersController : ApiBaseController
@@ -51,6 +51,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
         [ResourceInfo(Name = Defines.HandlersName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             HandlersId handlersId = new HandlersId(id);
 
             Site site = handlersId.SiteId == null ? null : SiteHelper.GetSite(handlersId.SiteId.Value);

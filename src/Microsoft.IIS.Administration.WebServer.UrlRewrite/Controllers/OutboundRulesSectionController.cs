@@ -7,6 +7,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Core;
     using Core.Http;
     using Microsoft.AspNetCore.Mvc;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Microsoft.Web.Administration;
     using Sites;
     using System.Net;
@@ -48,6 +49,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [ResourceInfo(Name = Defines.OutboundRulesSectionName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }

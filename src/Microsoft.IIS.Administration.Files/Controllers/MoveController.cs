@@ -7,6 +7,7 @@ namespace Microsoft.IIS.Administration.Files
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using System;
     using System.Collections.Concurrent;
     using System.IO;
@@ -35,6 +36,7 @@ namespace Microsoft.IIS.Administration.Files
         [Audit]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             string name;
             IFileInfo src;
             FileId fileId, parentId;

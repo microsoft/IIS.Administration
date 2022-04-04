@@ -12,7 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
     using Core.Http;
     using Core;
     using System.Threading.Tasks;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
     public class StaticContentController : ApiBaseController
@@ -55,6 +55,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
         [RequireGlobalModule(StaticContentHelper.MODULE, StaticContentHelper.DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             StaticContentId staticContentId = new StaticContentId(id);
 
             Site site = staticContentId.SiteId == null ? null : SiteHelper.GetSite(staticContentId.SiteId.Value);

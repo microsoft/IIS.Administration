@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.WebServer.SslSettings
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using Web.Administration;
@@ -53,6 +54,7 @@ namespace Microsoft.IIS.Administration.WebServer.SslSettings
         [ResourceInfo(Name = Defines.SslSettingsName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             SslSettingId settingsId = new SslSettingId(id);
 
             Site site = settingsId.SiteId == null ? null : SiteHelper.GetSite(settingsId.SiteId.Value);

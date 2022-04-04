@@ -66,6 +66,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
         [ResourceInfo(Name = Defines.AppPoolName)]
         public async Task<object> Post([FromBody]dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             // Create AppPool
             ApplicationPool pool = AppPoolHelper.CreateAppPool(model);
 
@@ -114,6 +115,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
         [ResourceInfo(Name = Defines.AppPoolName)]
         public async Task<object> Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             // Cut off the notion of uuid from beginning of request
             string name = AppPoolId.CreateFromUuid(id).Name;
 

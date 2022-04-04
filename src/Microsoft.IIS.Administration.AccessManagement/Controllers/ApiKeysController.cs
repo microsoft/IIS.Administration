@@ -68,6 +68,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
         [HttpPost]
         [ResourceInfo(Name = Defines.ApiKeyName)]
         public async Task<object> Post([FromBody] dynamic model) {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -96,6 +97,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
         [HttpPatch]
         [ResourceInfo(Name = Defines.ApiKeyName)]
         public async Task<object> Patch(string id, [FromBody] dynamic model) {
+            model = DynamicHelper.ToJObject(model);
             ApiKey key = _keyProvider.GetKey(id);
 
             if (key == null) {

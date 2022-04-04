@@ -71,6 +71,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [ResourceInfo(Name = Defines.FilteringRuleName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             Rule rule = null;
             Site site = null;
             RequestFilteringId reqId = null;
@@ -119,6 +120,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [ResourceInfo(Name = Defines.FilteringRuleName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             RuleId ruleId = new RuleId(id);
 
             Site site = ruleId.SiteId == null ? null : SiteHelper.GetSite(ruleId.SiteId.Value);

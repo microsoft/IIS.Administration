@@ -12,7 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
     using Core.Http;
     using Core;
     using System.Threading.Tasks;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
     public class IPRestrictionController : ApiBaseController
@@ -54,6 +54,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
         [RequireGlobalModule(IPRestrictionsHelper.MODULE, DISPLAY_NAME)]
         public object Patch([FromBody] dynamic model, string id)
         {
+            model = DynamicHelper.ToJObject(model);
             IPRestrictionId ipId = new IPRestrictionId(id);
 
             Site site = ipId.SiteId == null ? null : SiteHelper.GetSite(ipId.SiteId.Value);

@@ -12,6 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Core.Http;
     using Core;
     using System.Threading.Tasks;
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
     public class WinAuthController : ApiBaseController
@@ -48,6 +49,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
         [RequireGlobalModule(WindowsAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             WinAuthId winAuthId = new WinAuthId(id);
 
             Site site = winAuthId.SiteId == null ? null : SiteHelper.GetSite(winAuthId.SiteId.Value);

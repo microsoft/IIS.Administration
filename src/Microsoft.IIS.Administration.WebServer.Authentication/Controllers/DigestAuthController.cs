@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using System.Threading.Tasks;
@@ -49,6 +50,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
         [RequireGlobalModule(DigestAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             DigestAuthId digestAuthId = new DigestAuthId(id);
 
             Site site = digestAuthId.SiteId == null ? null : SiteHelper.GetSite(digestAuthId.SiteId.Value);

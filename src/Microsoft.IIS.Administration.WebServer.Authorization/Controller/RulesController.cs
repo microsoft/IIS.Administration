@@ -66,6 +66,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
         [ResourceInfo(Name = Defines.RuleName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -109,6 +110,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
         [ResourceInfo(Name = Defines.RuleName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             RuleId ruleId = new RuleId(id);
 
             Site site = ruleId.SiteId == null ? null : SiteHelper.GetSite(ruleId.SiteId.Value);

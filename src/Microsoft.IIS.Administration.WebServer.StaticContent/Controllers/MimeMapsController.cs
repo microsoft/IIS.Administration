@@ -71,6 +71,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
         [ResourceInfo(Name = Defines.MimeMapName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -112,6 +113,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
         [ResourceInfo(Name = Defines.MimeMapName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             var mimeMapId = new MimeMapId(id);
 
             Site site = mimeMapId.SiteId == null ? null : SiteHelper.GetSite(mimeMapId.SiteId.Value);

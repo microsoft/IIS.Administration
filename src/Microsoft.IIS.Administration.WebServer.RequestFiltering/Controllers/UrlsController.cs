@@ -65,7 +65,8 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [Audit]
         [ResourceInfo(Name = Defines.UrlName)]
         public object Post([FromBody] dynamic model)
-        {            
+        {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -106,6 +107,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [ResourceInfo(Name = Defines.UrlName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             UrlId urlId = new UrlId(id);
 
             Site site = urlId.SiteId == null ? null : SiteHelper.GetSite(urlId.SiteId.Value);

@@ -61,6 +61,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
         [ResourceInfo(Name = Defines.GlobalModuleName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             GlobalModule module = null;
 
             // Create a global module
@@ -82,6 +83,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
         [ResourceInfo(Name = Defines.GlobalModuleName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             GlobalModuleId moduleId = GlobalModuleId.CreateFromUuid(id);
 
             GlobalModule module = ModuleHelper.GetGlobalModules().FirstOrDefault(m => m.Name.Equals(moduleId.Name));
@@ -101,6 +103,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
         [Audit]
         public void Delete(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             GlobalModuleId moduleId = GlobalModuleId.CreateFromUuid(id);
 
             GlobalModule module = ModuleHelper.GetGlobalModules().FirstOrDefault(m => m.Name.Equals(moduleId.Name));

@@ -32,7 +32,7 @@ namespace Microsoft.IIS.Administration.Tests
             }
 
             var body = new {
-                expires_on = DateTime.UtcNow.AddMinutes(15)
+                expires_on = DateTime.UtcNow.AddMinutes(60)
             };
 
             string value = values.First();

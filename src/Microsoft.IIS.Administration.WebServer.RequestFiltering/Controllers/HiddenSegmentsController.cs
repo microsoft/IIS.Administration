@@ -65,6 +65,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [ResourceInfo(Name = Defines.HiddenSegmentName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             HiddenSegment segment = null;
             Site site = null;
             RequestFilteringId reqId = null;

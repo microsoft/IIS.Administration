@@ -7,6 +7,8 @@ namespace Microsoft.IIS.Administration.WebServer
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -66,8 +68,9 @@ namespace Microsoft.IIS.Administration.WebServer
 
         [HttpPatch]
         [Audit]
-        public object Patch(string id, [FromBody] PatchModel model)
+        public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             Transaction activeTransaction = Store.Transaction;
             if (activeTransaction == null || id != activeTransaction.Id) {
                 return NotFound();
@@ -76,7 +79,9 @@ namespace Microsoft.IIS.Administration.WebServer
             if (model == null || model.state == null) {
                 return TransactionHelper.ToJsonObject(activeTransaction);
             }
-            switch (model.state) {
+
+            _ = Enum.TryParse(model.state.Value as string, true, out TransactionState state);
+            switch (state) {
                 case TransactionState.Committed:
                     Store.CommitTransaction();
                     activeTransaction.State = TransactionState.Committed;

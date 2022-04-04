@@ -70,6 +70,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
         [ResourceInfo(Name = Defines.ProviderName)]
         public object Post(dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             TraceProviderDefinition provider = null;
             Site site = null;
             HttpRequestTracingId hrtId = null;
@@ -110,6 +111,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
         [ResourceInfo(Name = Defines.ProviderName)]
         public object Patch(string id, dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             ProviderId providerId = new ProviderId(id);
 
             Site site = providerId.SiteId == null ? null : SiteHelper.GetSite(providerId.SiteId.Value);

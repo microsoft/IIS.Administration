@@ -21,6 +21,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
     using System.Dynamic;
     using Files;
     using CentralCertificates;
+    using System.Reflection;
 
     public static class SiteHelper
     {
@@ -687,11 +688,22 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 string ipAddress = null;
                 int? port = null;
 
-                if (binding.EndPoint != null && binding.EndPoint.Address != null) {
+                // When referencing binding.EndPoint, MissingMethodException
+                // 'System.Net.IPEndPoint Microsoft.Web.Administration.Binding.get_EndPoint()'.
+                // It is due to .Net version conflicts. This can be resolved
+                // when Microsoft.Web.Administration.dll moves to .Net 6.0 or later
+                dynamic endPoint = GetBindingEndPoint(binding);
 
-                    port = binding.EndPoint.Port;
-                    if (binding.EndPoint.Address != null) {
-                        ipAddress = binding.EndPoint.Address.Equals(IPAddress.Any) ? "*" : binding.EndPoint.Address.ToString();
+                if (endPoint != null && endPoint.Address != null)
+                {
+                    port = endPoint.Port;
+                    if (endPoint.Address != null)
+                    {
+                        // endPoint.Address.Equals(IPAddress.Any) does not work in most cases since it is dynamic type
+                        ipAddress = endPoint.Address.Equals(IPAddress.Any) ||
+                            string.Compare(endPoint.Address.ToString(), IPAddress.Any.ToString(), StringComparison.OrdinalIgnoreCase) == 0
+                            ? "*"
+                            : (string)endPoint.Address.ToString();
                     }
                 }
 
@@ -739,6 +751,12 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             }
 
             return obj;
+        }
+
+        private static dynamic GetBindingEndPoint(Binding binding)
+        {
+            PropertyInfo propInfo = typeof(Binding).GetProperty("EndPoint");
+            return binding == null ? null : propInfo?.GetValue(binding);
         }
 
         private static long FirstAvailableId()

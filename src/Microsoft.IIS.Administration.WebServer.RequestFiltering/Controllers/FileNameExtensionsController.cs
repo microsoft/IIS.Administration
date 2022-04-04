@@ -66,6 +66,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [ResourceInfo(Name = Defines.FileExtensionName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             Extension extension = null;
             Site site = null;
 
@@ -111,6 +112,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [ResourceInfo(Name = Defines.FileExtensionName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             ExtensionId extId = new ExtensionId(id);
 
             Site site = extId.SiteId == null ? null : SiteHelper.GetSite(extId.SiteId.Value);

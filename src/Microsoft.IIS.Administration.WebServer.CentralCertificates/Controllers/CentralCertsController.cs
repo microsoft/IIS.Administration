@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
     using Core;
     using Core.Http;
     using Files;
+    using Microsoft.IIS.Administration.Core.Utils;
     using System.Net;
     using System.Threading.Tasks;
 
@@ -52,6 +53,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             RequireEnabled();
 
             if (!id.Equals(new CentralCertConfigId().Uuid)) {
@@ -68,6 +70,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public async Task<object> Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             await CentralCertHelper.Enable(model, _fileProvider);
 
             return CentralCertHelper.ToJsonModel();

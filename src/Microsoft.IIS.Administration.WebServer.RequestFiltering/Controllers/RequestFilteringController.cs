@@ -12,7 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core.Http;
     using Core;
     using System.Threading.Tasks;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
     public class RequestFilteringController : ApiBaseController
@@ -56,6 +56,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             RequestFilteringId reqId = new RequestFilteringId(id);
 
             Site site = reqId.SiteId == null ? null : SiteHelper.GetSite(reqId.SiteId.Value);

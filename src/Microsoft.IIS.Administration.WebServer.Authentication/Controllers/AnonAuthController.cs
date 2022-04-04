@@ -11,6 +11,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Web.Administration;
     using Core.Http;
     using Core;
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireGlobalModule("AnonymousAuthenticationModule", "Anonymous Authentication")]
     public class AnonAuthController : ApiBaseController
@@ -44,6 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
         [ResourceInfo(Name = Defines.AnonAuthenticationName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             AnonAuthId authId = new AnonAuthId(id);
 
             Site site = authId.SiteId == null ? null : SiteHelper.GetSite(authId.SiteId.Value);

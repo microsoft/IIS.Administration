@@ -125,6 +125,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
         [ResourceInfo(Name = Defines.VirtualDirectoryName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             Site site = ApplicationHelper.ResolveSite(model);
             string path = ApplicationHelper.ResolvePath(model);
 
@@ -160,6 +161,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
         [ResourceInfo(Name = Defines.VirtualDirectoryName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             // Cut off the notion of uuid from beginning of request
             VDirId vdirId = new VDirId(id);
 
