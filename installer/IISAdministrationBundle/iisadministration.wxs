@@ -43,6 +43,7 @@
                   Name="dotnet-runtime-6.0.1-win-x64.exe"
                   Permanent="yes"
                   Compressed="no"
+                  Vital="no"
                   DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/df4372ca-82c8-4bfa-acf9-c49e27279e7e/6bddefd26964017ff520dc1443029e04/dotnet-runtime-6.0.1-win-x64.exe"
                   DetectCondition="(DOTNET_RUNTIME_VERSION) AND (DOTNET_RUNTIME_VERSION &gt;= DOTNET_RUNTIME_VERSION_MINIMAL)"
                   InstallCommand="/q /norestart">
@@ -70,6 +71,7 @@
                   Name="aspnetcore-runtime-6.0.1-win-x64.exe"
                   Permanent="yes"
                   Compressed="no"
+                  Vital="no"
                   DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/d526db30-5bfe-4c24-808c-4d8f5d2ba479/ae90c40bdefb2f1775d812ede8e84309/aspnetcore-runtime-6.0.1-win-x64.exe"
                   DetectCondition="(ASPNET_CORE_60_SHARED_FRAMEWORK_EXISTS)"
                   InstallCommand="/q /norestart">
