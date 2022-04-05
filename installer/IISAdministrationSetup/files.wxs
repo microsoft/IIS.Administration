@@ -121,63 +121,66 @@
       <Component Id="C_NetStandard60_System.ServiceProcess.ServiceController.dll" Guid="A3EF6C12-347B-44FF-A7BD-8C366FBFE004" Directory="Runtimes_Win_Lib_Net60" Win64="$(var.IsWin64)">
         <File Id="NetStandard60_System.ServiceProcess.ServiceController.dll" KeyPath="yes" Source="$(var.APIDir)\runtimes\win\lib\net6.0\System.ServiceProcess.ServiceController.dll" />
       </Component>
-
+      <!-- Reference files for Microsoft.Web.Administration.dll -->
       <Component Id="C_PrevMicrosoft.Win32.Primitives.dll" Guid="2d6cad3e-5d1d-40e2-929c-02e9534f5053" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevMicrosoft.Win32.Primitives.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\Microsoft.Win32.Primitives.dll" />
+        <File Id="PrevMicrosoft.Win32.Primitives.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\Microsoft.Win32.Primitives.dll" />
       </Component>
       <Component Id="C_PrevMicrosoft.Win32.Registry.dll" Guid="b49567e6-8f51-477a-b6a6-3f512dd4ffba" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevMicrosoft.Win32.Registry.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\Microsoft.Win32.Registry.dll" />
+        <File Id="PrevMicrosoft.Win32.Registry.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\Microsoft.Win32.Registry.dll" />
       </Component>
       <Component Id="C_PrevSystem.Collections.dll" Guid="df64ee97-9cc2-4a7f-8c55-1274c7d20043" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Collections.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Collections.dll" />
+        <File Id="PrevSystem.Collections.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Collections.dll" />
       </Component>
       <Component Id="C_PrevSystem.Diagnostics.Debug.dll" Guid="740a51be-d57d-42f0-8a90-7b88a575d8b8" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Diagnostics.Debug.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Diagnostics.Debug.dll" />
+        <File Id="PrevSystem.Diagnostics.Debug.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Diagnostics.Debug.dll" />
       </Component>
       <Component Id="C_PrevSystem.Diagnostics.Tools.dll" Guid="fd53e7f8-77bb-47ed-aa3a-169c4f84f867" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Diagnostics.Tools.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Diagnostics.Tools.dll" />
+        <File Id="PrevSystem.Diagnostics.Tools.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Diagnostics.Tools.dll" />
       </Component>
       <Component Id="C_PrevSystem.Diagnostics.TraceSource.dll" Guid="7c5cd2f6-6110-45cb-9c59-86e2449496fb" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Diagnostics.TraceSource.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Diagnostics.TraceSource.dll" />
+        <File Id="PrevSystem.Diagnostics.TraceSource.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Diagnostics.TraceSource.dll" />
       </Component>
       <Component Id="C_PrevSystem.Globalization.dll" Guid="20e1250f-3d5c-4bd1-b151-3ee284be9088" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Globalization.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Globalization.dll" />
+        <File Id="PrevSystem.Globalization.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Globalization.dll" />
       </Component>
       <Component Id="C_PrevSystem.Net.Primitives.dll" Guid="e27eefba-23cb-4f59-adca-b9d166d250f8" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Net.Primitives.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Net.Primitives.dll" />
+        <File Id="PrevSystem.Net.Primitives.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Net.Primitives.dll" />
       </Component>
       <Component Id="C_PrevSystem.Reflection.dll" Guid="8ab6828e-75f5-403d-b10a-1f682ba4fcd5" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Reflection.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Reflection.dll" />
+        <File Id="PrevSystem.Reflection.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Reflection.dll" />
       </Component>
       <Component Id="C_PrevSystem.Reflection.TypeExtensions.dll" Guid="e5ed761e-5bc4-41f7-8c5e-650680d2b146" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Reflection.TypeExtensions.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Reflection.TypeExtensions.dll" />
+        <File Id="PrevSystem.Reflection.TypeExtensions.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Reflection.TypeExtensions.dll" />
       </Component>
       <Component Id="C_PrevSystem.Resources.ResourceManager.dll" Guid="096ed756-441f-4f92-b901-5e1c1ec440bb" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Resources.ResourceManager.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Resources.ResourceManager.dll" />
+        <File Id="PrevSystem.Resources.ResourceManager.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Resources.ResourceManager.dll" />
       </Component>
       <Component Id="C_PrevSystem.Runtime.dll" Guid="650da56e-d463-4cd3-8ff0-d393c2e8dfb5" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Runtime.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Runtime.dll" />
+        <File Id="PrevSystem.Runtime.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Runtime.dll" />
       </Component>
       <Component Id="C_PrevSystem.Runtime.Extensions.dll" Guid="9ae7aba2-0a4c-4dc9-bc93-cd7721e28ce5" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Runtime.Extensions.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Runtime.Extensions.dll" />
+        <File Id="PrevSystem.Runtime.Extensions.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Runtime.Extensions.dll" />
       </Component>
       <Component Id="C_PrevSystem.Runtime.Handles.dll" Guid="a1d8748a-957e-4fae-b5df-474e2098f5dc" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Runtime.Handles.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Runtime.Handles.dll" />
+        <File Id="PrevSystem.Runtime.Handles.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Runtime.Handles.dll" />
       </Component>
       <Component Id="C_PrevSystem.Runtime.InteropServices.dll" Guid="e08058ef-3fda-4a49-a93e-4bce5d03b62e" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Runtime.InteropServices.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Runtime.InteropServices.dll" />
+        <File Id="PrevSystem.Runtime.InteropServices.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Runtime.InteropServices.dll" />
       </Component>
       <Component Id="C_PrevSystem.Security.Cryptography.X509Certificates.dll" Guid="69972955-9dd8-412d-887a-52fe7e40ed0a" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Security.Cryptography.X509Certificates.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Security.Cryptography.X509Certificates.dll" />
+        <File Id="PrevSystem.Security.Cryptography.X509Certificates.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Security.Cryptography.X509Certificates.dll" />
       </Component>
       <Component Id="C_PrevSystem.Security.Principal.Windows.dll" Guid="87a877cc-37be-48ed-a715-9d7afc7b3a4f" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Security.Principal.Windows.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Security.Principal.Windows.dll" />
+        <File Id="PrevSystem.Security.Principal.Windows.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Security.Principal.Windows.dll" />
       </Component>
       <Component Id="C_PrevSystem.ServiceProcess.ServiceController.dll" Guid="5332ca12-f630-4219-9c08-443f7e02430e" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.ServiceProcess.ServiceController.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.ServiceProcess.ServiceController.dll" />
+        <File Id="PrevSystem.ServiceProcess.ServiceController.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.ServiceProcess.ServiceController.dll" />
       </Component>
       <Component Id="C_PrevSystem.Threading.dll" Guid="b59b0558-6aa4-47da-aa51-77ec70b21015" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Threading.dll" Source="$(var.APIDir)\plugins\runtimes\ms.web.admin.refs\System.Threading.dll" />
+        <File Id="PrevSystem.Threading.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Threading.dll" />
+      </Component>      
+      <Component Id="C_PrevSystem.Private.Networking.dll" Guid="97c03fdb-d9f2-41e6-b480-75bcdc60253a" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
+        <File Id="PrevSystem.Private.Networking.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Private.Networking.dll" />
       </Component>      
     </ComponentGroup>
   </Fragment>

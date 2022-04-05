@@ -54,8 +54,8 @@
 
   <Fragment>
     <DirectoryRef Id="PluginsDir">
+      <Directory Id="PRTDirNet46" Name="ms.web.admin.refs" />
       <Directory Id="PRTDir" Name="runtimes">
-        <Directory Id="PRTDirNet46" Name="ms.web.admin.refs" />
         <Directory Id="PRTWinDir" Name="win">
           <Directory Id="PRTWinLibDir" Name="lib">
           </Directory>

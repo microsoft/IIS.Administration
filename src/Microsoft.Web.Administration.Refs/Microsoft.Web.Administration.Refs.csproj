@@ -84,7 +84,7 @@
   </ItemGroup>
   <PropertyGroup>
     <CopyNuGet>xcopy /Y /I $(USERPROFILE)\.nuget\packages</CopyNuGet>
-    <WebAdminRefPath>runtimes\ms.web.admin.refs\</WebAdminRefPath>
+    <WebAdminRefPath>ms.web.admin.refs\</WebAdminRefPath>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <!-- used by package Microsoft.Web.Administration, Version="11.1.0" -->
