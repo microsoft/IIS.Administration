@@ -62,7 +62,7 @@ namespace Microsoft.IIS.Administration.Extensibility
             var rootPaths = new List<string>();
             rootPaths.Add(Path.Combine(_pluginDir, $"{assemblyName.Name}.{assemblyName.Version}"));
             rootPaths.Add(_pluginDir);
-            // drop Microsoft.Web.Administration v10 (package v11.1) referenced assemblies here
+            // Load Microsoft.Web.Administration v10 (package v11.1) referenced assemblies here
             rootPaths.Add(Path.Combine(_pluginDir, @"ms.web.admin.refs")); 
 
             foreach (var path in rootPaths)

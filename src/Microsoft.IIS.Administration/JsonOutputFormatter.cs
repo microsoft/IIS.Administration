@@ -12,7 +12,7 @@ namespace Microsoft.IIS.Administration
     /****
        This class is not being used.
        AspNetCore.Mvc.Formatters.JsonOutputFormatter does not exist anymore. The closest 
-       alternative is NewtonsoftJsonOutputFormatter. There is need to override it since it 
+       alternative is NewtonsoftJsonOutputFormatter. There is no need to override it since it 
        does not have a CanWriteResult method
     ****/
     class JsonOutputFormatter : AspNetCore.Mvc.Formatters.JsonOutputFormatter

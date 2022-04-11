@@ -86,8 +86,9 @@ namespace Microsoft.IIS.Administration {
                 {
                     o.Cookie.Name =  HeaderNames.XSRF_TOKEN;
                     o.FormFieldName = HeaderNames.XSRF_TOKEN;
-                    // must set header name. The server reads the XSRF token from httpContext.Request.Headers[_options.HeaderName] instead of 
-                    // FormFieldName in GetRequestTokensAsync(), DefaultAntiforgeryTokenStore.cs (ASP.Net Core)
+                    // must set o.HeaderName to XSRF_TOKEN. ASP.Net reads the XSRF token from 
+                    // Context.Request.Headers[o.HeaderName] instead of o.FormFieldName in GetRequestTokensAsync()
+                    // as in the previous local implementation of AntiForgeryTokenStore.
                     o.HeaderName = HeaderNames.XSRF_TOKEN;
                 });
 

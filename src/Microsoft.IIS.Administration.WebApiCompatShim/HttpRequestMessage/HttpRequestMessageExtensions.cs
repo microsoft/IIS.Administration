@@ -507,7 +507,6 @@ namespace System.Net.Http
         {
             try
             {
-                //_ = request.Properties.TryGetValue(key, out value);
                 _ = request.Options.TryGetValue<T>(new HttpRequestOptionsKey<T>(key), out T value);
                 return value;
             }

@@ -56,7 +56,6 @@ namespace Microsoft.IIS.Administration.WebApiCompatShim
 
             // This allows us to pass the message through APIs defined in legacy code and then
             // operate on the HttpContext inside.
-            //message.Properties[nameof(HttpContext)] = httpContext;
             message.Options.Set<HttpContext>(new HttpRequestOptionsKey<HttpContext>(nameof(HttpContext)),
                 httpContext);
 

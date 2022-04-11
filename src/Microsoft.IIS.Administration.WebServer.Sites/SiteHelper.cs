@@ -688,10 +688,11 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
                 string ipAddress = null;
                 int? port = null;
 
-                // When referencing binding.EndPoint, MissingMethodException
+                // When referencing binding.EndPoint, MissingMethodException is raised for
                 // 'System.Net.IPEndPoint Microsoft.Web.Administration.Binding.get_EndPoint()'.
                 // It is due to .Net version conflicts. This can be resolved
                 // when Microsoft.Web.Administration.dll moves to .Net 6.0 or later
+                // Now, use reflection to get the property as dynamic type
                 dynamic endPoint = GetBindingEndPoint(binding);
 
                 if (endPoint != null && endPoint.Address != null)
