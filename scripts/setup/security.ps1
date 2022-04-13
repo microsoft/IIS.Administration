@@ -221,6 +221,9 @@ function AddUserToGroup($userPath, $_group, $groupName) {
         try {
             $_group.Invoke('Add', @($userPath))
         }
+        catch [System.Management.Automation.MethodInvocationException] {
+            # For older OS, when The specified account name is already a member, generic exceptions can occur. Ignore it            
+        }
         catch {
             # HRESULT -2147023518
             # The specified account name is already a member of the group.
