@@ -87,6 +87,8 @@
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <!-- used by package Microsoft.Web.Administration, Version="11.1.0" -->
+    <!-- download System.Private.Networking 4.0.0 manually since it is not compatible with the project -->
+    <Exec Command="..\..\build\nuget.exe install System.Private.Networking -Version 4.0.0 -Source https://api.nuget.org/v3/index.json -OutputDirectory $(USERPROFILE)\.nuget\packages" />
     <Exec Command="$(CopyNuGet)\microsoft.win32.primitives\4.0.1\lib\net46\Microsoft.Win32.Primitives.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
     <Exec Command="$(CopyNuGet)\microsoft.win32.registry\4.0.0\lib\net46\Microsoft.Win32.Registry.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
     <Exec Command="$(CopyNuGet)\system.collections\4.0.10\lib\DNXCore50\System.Collections.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
@@ -105,7 +107,7 @@
     <Exec Command="$(CopyNuGet)\system.security.principal.windows\4.0.0\lib\net46\System.Security.Principal.Windows.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
     <Exec Command="$(CopyNuGet)\system.serviceprocess.servicecontroller\4.1.0\lib\net461\System.ServiceProcess.ServiceController.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
     <Exec Command="$(CopyNuGet)\system.threading\4.0.10\lib\DNXCore50\System.Threading.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
-    <Exec Command="$(CopyNuGet)\system.private.networking\4.0.0\lib\DNXCore50\System.Private.Networking.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.private.networking.4.0.0\lib\DNXCore50\System.Private.Networking.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
   </Target>
   <Target Name="PostPublish" AfterTargets="Publish">
     <!-- used by package Microsoft.Web.Administration, Version="11.1.0" -->
@@ -127,6 +129,6 @@
     <Exec Command="$(CopyNuGet)\system.security.principal.windows\4.0.0\lib\net46\System.Security.Principal.Windows.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
     <Exec Command="$(CopyNuGet)\system.serviceprocess.servicecontroller\4.1.0\lib\net461\System.ServiceProcess.ServiceController.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
     <Exec Command="$(CopyNuGet)\system.threading\4.0.10\lib\DNXCore50\System.Threading.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
-    <Exec Command="$(CopyNuGet)\system.private.networking\4.0.0\lib\DNXCore50\System.Private.Networking.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="$(CopyNuGet)\system.private.networking.4.0.0\lib\DNXCore50\System.Private.Networking.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
   </Target>
 </Project>
