@@ -167,9 +167,6 @@
       <Component Id="C_PrevSystem.Runtime.InteropServices.dll" Guid="e08058ef-3fda-4a49-a93e-4bce5d03b62e" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
         <File Id="PrevSystem.Runtime.InteropServices.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Runtime.InteropServices.dll" />
       </Component>
-      <Component Id="C_PrevSystem.Security.Cryptography.X509Certificates.dll" Guid="69972955-9dd8-412d-887a-52fe7e40ed0a" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
-        <File Id="PrevSystem.Security.Cryptography.X509Certificates.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Security.Cryptography.X509Certificates.dll" />
-      </Component>
       <Component Id="C_PrevSystem.Security.Principal.Windows.dll" Guid="87a877cc-37be-48ed-a715-9d7afc7b3a4f" Directory="PRTDirNet46"  Win64="$(var.IsWin64)">
         <File Id="PrevSystem.Security.Principal.Windows.dll" Source="$(var.APIDir)\plugins\ms.web.admin.refs\System.Security.Principal.Windows.dll" />
       </Component>
