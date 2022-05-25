@@ -19,6 +19,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
 
 
     [RequireWebServer]
+    [Route("api/webserver/files")]
     public class WsFilesController : ApiBaseController
     {
         private const string _units = "files";
@@ -112,7 +113,7 @@ namespace Microsoft.IIS.Administration.WebServer.Files
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.FileName)]
         public object Get(string id)
         {

@@ -16,7 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
         private string _physicalPath;
         private IApplicationHostConfigProvider _configProvider;
 
-        public FrebXslLocator(IHostingEnvironment env, IApplicationHostConfigProvider configProvider)
+        public FrebXslLocator(IWebHostEnvironment env, IApplicationHostConfigProvider configProvider)
         {
             _configProvider = configProvider;
         }

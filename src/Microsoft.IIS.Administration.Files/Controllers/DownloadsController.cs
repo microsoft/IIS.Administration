@@ -11,7 +11,7 @@ namespace Microsoft.IIS.Administration.Files
     using System.IO;
     using System.Threading.Tasks;
 
-
+    [Route("downloads")]
     [AllowAnonymous]
     public class DownloadsController : ApiBaseController
     {
@@ -28,7 +28,7 @@ namespace Microsoft.IIS.Administration.Files
             _redirectService = redirectService;
         }
 
-        [HttpHead]
+        [HttpHead("{id}")]
         public IActionResult Head(string id)
         {
             var dl = _downloadService.Get(id);
@@ -47,7 +47,7 @@ namespace Microsoft.IIS.Administration.Files
             return new EmptyResult();
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
             //
@@ -80,7 +80,7 @@ namespace Microsoft.IIS.Administration.Files
             return new EmptyResult();
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public IActionResult Delete(string id)
         {
             _downloadService.Remove(id);

@@ -72,7 +72,7 @@ namespace Microsoft.IIS.Administration {
 
     static class ConfigurationExtensions
     {
-        public static void AddConfigurationWriter(this IServiceCollection services, IHostingEnvironment hostingEnvironment)
+        public static void AddConfigurationWriter(this IServiceCollection services, IWebHostEnvironment hostingEnvironment)
         {
             var writer = new ConfigurationWriter(hostingEnvironment.GetConfigPath(ConfigurationHelper.APPSETTINGS_NAME));
             services.TryAddSingleton<IConfigurationWriter>(writer);

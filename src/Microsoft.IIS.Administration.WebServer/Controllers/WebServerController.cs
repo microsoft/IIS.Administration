@@ -10,6 +10,7 @@ namespace Microsoft.IIS.Administration.WebServer {
 
 
     [ResourceInfo(Name=Defines.ResourceName)]
+    [Route("api/webserver")]
     public class WebServerController : ApiBaseController
     {
         [HttpGet]
@@ -18,7 +19,7 @@ namespace Microsoft.IIS.Administration.WebServer {
             return WebServerHelper.WebServerJsonModel();
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [RequireWebServer]
         public object Get(string id) {
             if(id != WebServerId.Create().Uuid) {
@@ -41,7 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer {
             return Created(WebServerHelper.GetLocation(srv.id), srv);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id) {
             if (id == WebServerId.CreateFromPath(ManagementUnit.Current.ApplicationHostConfigPath).Uuid) {

@@ -29,7 +29,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         private void ConfigureUrlRewrite()
         {
             // MVC routing
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "UrlRewrite" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "UrlRewrite" });
 
             // Self
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", rf => new { href = RewriteHelper.GetLocation(rf.id) });
@@ -60,7 +60,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
 
         private void ConfigureServerVariables()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ServerVariablesResource.Guid, $"{Defines.SERVER_VARIABLES_PATH}/{{id?}}", new { controller = "ServerVariables" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ServerVariablesResource.Guid, $"{Defines.SERVER_VARIABLES_PATH}/{{id?}}", new { controller = "ServerVariables" });
 
             // Server Variables -> Self
             Environment.Hal.ProvideLink(Defines.ServerVariablesResource.Guid, "self", sv => new { href = ServerVariablesHelper.GetLocation(sv.id) });
@@ -74,8 +74,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             var builder = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            builder.MapWebApiRoute(Defines.RewriteMapsSectionResource.Guid, $"{Defines.REWRITE_MAPS_SECTION_PATH}/{{id?}}", new { controller = "RewriteMapsSection" });
-            builder.MapWebApiRoute(Defines.RewriteMapsResource.Guid, $"{Defines.REWRITE_MAPS_PATH}/{{id?}}", new { controller = "RewriteMaps" });
+            _ = builder.MapWebApiRoute(Defines.RewriteMapsSectionResource.Guid, $"{Defines.REWRITE_MAPS_SECTION_PATH}/{{id?}}", new { controller = "RewriteMapsSection" });
+            _ = builder.MapWebApiRoute(Defines.RewriteMapsResource.Guid, $"{Defines.REWRITE_MAPS_PATH}/{{id?}}", new { controller = "RewriteMaps" });
 
             // () -> Self
             hal.ProvideLink(Defines.RewriteMapsSectionResource.Guid, "self", sv => new { href = RewriteMapsHelper.GetSectionLocation(sv.id) });
@@ -93,8 +93,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             var builder = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            builder.MapWebApiRoute(Defines.ProvidersSectionResource.Guid, $"{Defines.PROVIDERS_SECTION_PATH}/{{id?}}", new { controller = "ProvidersSection" });
-            builder.MapWebApiRoute(Defines.ProvidersResource.Guid, $"{Defines.PROVIDERS_PATH}/{{id?}}", new { controller = "Providers" });
+            _ = builder.MapWebApiRoute(Defines.ProvidersSectionResource.Guid, $"{Defines.PROVIDERS_SECTION_PATH}/{{id?}}", new { controller = "ProvidersSection" });
+            _ = builder.MapWebApiRoute(Defines.ProvidersResource.Guid, $"{Defines.PROVIDERS_PATH}/{{id?}}", new { controller = "Providers" });
 
             hal.ProvideLink(Defines.ProvidersSectionResource.Guid, "self", p => new { href = ProvidersHelper.GetSectionLocation(p.id) });
             hal.ProvideLink(Defines.ProvidersResource.Guid, "self", p => new { href = ProvidersHelper.GetProviderLocation(p.id) });
@@ -114,8 +114,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             // Use conditional hal to provide global rules only at webserver level
             var hal = Environment.Hal as IConditionalHalService;
 
-            builder.MapWebApiRoute(Defines.GlobalRulesSectionResource.Guid, $"{Defines.GLOBAL_RULES_SECTION_PATH}/{{id?}}", new { controller = "GlobalRulesSection" });
-            builder.MapWebApiRoute(Defines.GlobalRulesResource.Guid, $"{Defines.GLOBAL_RULES_PATH}/{{id?}}", new { controller = "GlobalRules" });
+            _ = builder.MapWebApiRoute(Defines.GlobalRulesSectionResource.Guid, $"{Defines.GLOBAL_RULES_SECTION_PATH}/{{id?}}", new { controller = "GlobalRulesSection" });
+            _ = builder.MapWebApiRoute(Defines.GlobalRulesResource.Guid, $"{Defines.GLOBAL_RULES_PATH}/{{id?}}", new { controller = "GlobalRules" });
 
             if (hal != null) {
                 hal.ProvideLink(Defines.GlobalRulesSectionResource.Guid, "self", ir => new { href = GlobalRulesHelper.GetSectionLocation(ir.id) });
@@ -138,8 +138,8 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             var builder = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            builder.MapWebApiRoute(Defines.InboundRulesSectionResource.Guid, $"{Defines.INBOUND_RULES_SECTION_PATH}/{{id?}}", new { controller = "InboundRulesSection" });
-            builder.MapWebApiRoute(Defines.InboundRulesResource.Guid, $"{Defines.INBOUND_RULES_PATH}/{{id?}}", new { controller = "InboundRules" });
+            _ = builder.MapWebApiRoute(Defines.InboundRulesSectionResource.Guid, $"{Defines.INBOUND_RULES_SECTION_PATH}/{{id?}}", new { controller = "InboundRulesSection" });
+            _ = builder.MapWebApiRoute(Defines.InboundRulesResource.Guid, $"{Defines.INBOUND_RULES_PATH}/{{id?}}", new { controller = "InboundRules" });
 
             hal.ProvideLink(Defines.InboundRulesSectionResource.Guid, "self", ir => new { href = InboundRulesHelper.GetSectionLocation(ir.id) });
             hal.ProvideLink(Defines.InboundRulesResource.Guid, "self", ir => new { href = InboundRulesHelper.GetRuleLocation(ir.id) });
@@ -156,10 +156,10 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             var builder = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            builder.MapWebApiRoute(Defines.OutboundRulesSectionResource.Guid, $"{Defines.OUTBOUND_RULES_SECTION_PATH}/{{id?}}", new { controller = "OutboundRulesSection" });
-            builder.MapWebApiRoute(Defines.OutboundRulesResource.Guid, $"{Defines.OUTBOUND_RULES_PATH}/{{id?}}", new { controller = "OutboundRules" });
-            builder.MapWebApiRoute(Defines.PreConditionsResource.Guid, $"{Defines.PRECONDITIONS_PATH}/{{id?}}", new { controller = "PreConditions" });
-            builder.MapWebApiRoute(Defines.CustomTagsResource.Guid, $"{Defines.CUSTOM_TAGS_PATH}/{{id?}}", new { controller = "CustomTags" });
+            _ = builder.MapWebApiRoute(Defines.OutboundRulesSectionResource.Guid, $"{Defines.OUTBOUND_RULES_SECTION_PATH}/{{id?}}", new { controller = "OutboundRulesSection" });
+            _ = builder.MapWebApiRoute(Defines.OutboundRulesResource.Guid, $"{Defines.OUTBOUND_RULES_PATH}/{{id?}}", new { controller = "OutboundRules" });
+            _ = builder.MapWebApiRoute(Defines.PreConditionsResource.Guid, $"{Defines.PRECONDITIONS_PATH}/{{id?}}", new { controller = "PreConditions" });
+            _ = builder.MapWebApiRoute(Defines.CustomTagsResource.Guid, $"{Defines.CUSTOM_TAGS_PATH}/{{id?}}", new { controller = "CustomTags" });
 
             // () -> Self
             hal.ProvideLink(Defines.OutboundRulesSectionResource.Guid, "self", ir => new { href = OutboundRulesHelper.GetSectionLocation(ir.id) });

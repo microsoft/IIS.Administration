@@ -8,11 +8,13 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
     using Core;
     using Core.Http;
     using Files;
+    using Microsoft.IIS.Administration.Core.Utils;
     using System.Net;
     using System.Threading.Tasks;
 
 
     [RequireWebServer]
+    [Route("api/webserver/centralized-certificates")]
     public class CentralCertsController : ApiBaseController
     {
         private const string HIDDEN_FIELDS = "model.identity.password,model.private_key_password";
@@ -34,7 +36,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             return LocationChanged(CentralCertHelper.GetLocation(), CentralCertHelper.ToJsonModel());
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.CentralCertsName)]
         public object Get(string id)
         {
@@ -47,11 +49,12 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             return CentralCertHelper.ToJsonModel();
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ResourceInfo(Name = Defines.CentralCertsName)]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             RequireEnabled();
 
             if (!id.Equals(new CentralCertConfigId().Uuid)) {
@@ -64,16 +67,18 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         }
 
         [HttpPost]
+        [HttpPost("{id}")]
         [ResourceInfo(Name = Defines.CentralCertsName)]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public async Task<object> Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             await CentralCertHelper.Enable(model, _fileProvider);
 
             return CentralCertHelper.ToJsonModel();
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public async Task Delete(string id)
         {

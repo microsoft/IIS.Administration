@@ -5,7 +5,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
-    <ProductVersion>3.10</ProductVersion>
+    <ProductVersion>6.0</ProductVersion>
     <ProjectGuid>0d0fef6d-6479-4505-b416-8e36c65a06a5</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
     <OutputName>IISAdministrationSetup</OutputName>

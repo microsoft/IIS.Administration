@@ -11,7 +11,6 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Sites;
     using Web.Administration;
 
-
     public class Startup : BaseModule
     {
         public Startup() { }
@@ -29,10 +28,10 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
         {
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
-            
+
             //
             // Route
-            router.MapWebApiRoute(Defines.AuthenticationResource.Guid, $"{Defines.AUTHENTICATION_PATH}/{{id}}", new { controller = "authentication" });
+            _ = router.MapWebApiRoute(Defines.AuthenticationResource.Guid, $"{Defines.AUTHENTICATION_PATH}/{{id}}", new { controller = "authentication" });
             
             //
             // Hal
@@ -60,7 +59,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.AnonAuthResource.Guid, $"{Defines.ANON_AUTH_PATH}/{{id?}}", new { controller = "anonauth" });
+            _ = router.MapWebApiRoute(Defines.AnonAuthResource.Guid, $"{Defines.ANON_AUTH_PATH}/{{id?}}", new { controller = "anonauth" });
 
             hal.ProvideLink(Defines.AnonAuthResource.Guid, "self", anonAuth => new { href = $"/{Defines.ANON_AUTH_PATH}/{anonAuth.id}" });
 
@@ -77,7 +76,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.BasicAuthResource.Guid, $"{Defines.BASIC_AUTH_PATH}/{{id?}}", new { controller = "BasicAuth" });
+            _ = router.MapWebApiRoute(Defines.BasicAuthResource.Guid, $"{Defines.BASIC_AUTH_PATH}/{{id?}}", new { controller = "BasicAuth" });
 
             hal.ProvideLink(Defines.BasicAuthResource.Guid, "self", basicAuth => new { href = $"/{Defines.BASIC_AUTH_PATH}/{basicAuth.id}" });
 
@@ -94,7 +93,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.DigestAuthResource.Guid, $"{Defines.DIGEST_AUTH_PATH}/{{id?}}", new { controller = "DigestAuth" });
+            _ = router.MapWebApiRoute(Defines.DigestAuthResource.Guid, $"{Defines.DIGEST_AUTH_PATH}/{{id?}}", new { controller = "DigestAuth" });
 
             hal.ProvideLink(Defines.DigestAuthResource.Guid, "self", digestAuth => new { href = $"/{Defines.DIGEST_AUTH_PATH}/{digestAuth.id}" });
 
@@ -111,7 +110,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.WinAuthResource.Guid, $"{Defines.WIN_AUTH_PATH}/{{id?}}", new { controller = "winauth" });
+            _ = router.MapWebApiRoute(Defines.WinAuthResource.Guid, $"{Defines.WIN_AUTH_PATH}/{{id?}}", new { controller = "winauth" });
 
             hal.ProvideLink(Defines.WinAuthResource.Guid, "self", winAuth => new { href = $"/{Defines.WIN_AUTH_PATH}/{winAuth.id}" });
 

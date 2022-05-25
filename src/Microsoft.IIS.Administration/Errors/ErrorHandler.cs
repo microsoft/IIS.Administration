@@ -81,9 +81,7 @@ namespace Microsoft.IIS.Administration {
         private static void LogError(string errorContent)
         {
             if (Log.Logger.IsEnabled(LogEventLevel.Information)) {
-                Task.Run(() => {
-                    Log.Logger.Information($"{errorContent}{System.Environment.NewLine}{System.Environment.NewLine}");
-                });
+                _ = Task.Run(() => Log.Logger.Information($"{errorContent}{System.Environment.NewLine}{System.Environment.NewLine}"));
             }
         }
     }

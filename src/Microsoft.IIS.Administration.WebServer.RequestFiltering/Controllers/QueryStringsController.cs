@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core.Http;
 
     [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
+    [Route("api/webserver/http-request-filtering/query-strings")]
     public class QueryStringsController : ApiBaseController
     {
         [HttpGet]
@@ -36,7 +37,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.QueryStringName)]
         public object Get(string id)
         {
@@ -62,6 +63,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         [ResourceInfo(Name = Defines.QueryStringName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             QueryStringRule queryString = null;
             Site site = null;
             RequestFilteringId reqId = null;
@@ -100,11 +102,12 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return Created(QueryStringsHelper.GetLocation(qs.id), qs);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.QueryStringName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             QueryStringId queryStringId = new QueryStringId(id);
 
             Site site = queryStringId.SiteId == null ? null : SiteHelper.GetSite(queryStringId.SiteId.Value);
@@ -133,7 +136,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return qs;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

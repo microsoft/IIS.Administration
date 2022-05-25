@@ -1,9 +1,9 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <OutputRoot>$(SolutionDir).builds</OutputRoot>
-    <AppOutputRoot>$(SolutionDir).builds\Microsoft.IIS.Administration</AppOutputRoot>
-    <PluginsOutputRoot>$(SolutionDir).builds\Microsoft.IIS.Administration\plugins</PluginsOutputRoot>
+    <OutputRoot>$(SolutionDir)bin</OutputRoot>
+    <AppOutputRoot>$(SolutionDir)bin\Microsoft.IIS.Administration</AppOutputRoot>
+    <PluginsOutputRoot>$(SolutionDir)bin\Microsoft.IIS.Administration\plugins</PluginsOutputRoot>
     <PublishRoot>$(SolutionDir)dist</PublishRoot>
     <AppPublishRoot>$(SolutionDir)dist\Microsoft.IIS.Administration</AppPublishRoot>
     <PluginsPublishRoot>$(SolutionDir)dist\Microsoft.IIS.Administration\plugins</PluginsPublishRoot>

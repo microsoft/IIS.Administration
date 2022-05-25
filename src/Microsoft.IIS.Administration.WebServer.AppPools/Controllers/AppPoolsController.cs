@@ -17,7 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
     using Microsoft.AspNetCore.Authorization;
     using System.Threading.Tasks;
 
-
+    [Route("api/webserver/application-pools")]
     [RequireWebServer]
     public class AppPoolsController : ApiBaseController {
         private const string AUDIT_FIELDS = "*,model.recycling.log_events.private_memory,model.recycling.periodic_restart.private_memory";
@@ -46,7 +46,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.AppPoolName)]
         public object Get(string id) {
             // Extract the name of the target app pool from the uuid specified in the request
@@ -66,6 +66,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
         [ResourceInfo(Name = Defines.AppPoolName)]
         public async Task<object> Post([FromBody]dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             // Create AppPool
             ApplicationPool pool = AppPoolHelper.CreateAppPool(model);
 
@@ -91,7 +92,7 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
             return Created((string)AppPoolHelper.GetLocation(appPool.id), appPool);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit(fields: AUDIT_FIELDS, maskedFields: MASKED_FIELDS)]
         public void Delete(string id)
         {
@@ -109,11 +110,12 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
         }
 
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit(fields: AUDIT_FIELDS, maskedFields: MASKED_FIELDS)]
         [ResourceInfo(Name = Defines.AppPoolName)]
         public async Task<object> Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             // Cut off the notion of uuid from beginning of request
             string name = AppPoolId.CreateFromUuid(id).Name;
 

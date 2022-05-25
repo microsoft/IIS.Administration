@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
     using Sites;
 
     [RequireGlobalModule(RequestHelper.MODULE, RequestHelper.DISPLAY_NAME)]
+    [Route("api/webserver/http-request-monitor/requests")]
     public class RmRequestsController : ApiBaseController {
 
         [HttpGet]
@@ -68,7 +69,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor {
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.RequestName)]
         public object Get(string id) {
             var reqId = new RequestId(id);

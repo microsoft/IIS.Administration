@@ -17,9 +17,9 @@ namespace Microsoft.IIS.Administration.WebServer
 
         public void Use(IServiceCollection services)
         {
-            services.AddSingleton<IApplicationHostConfigProvider>(new ApplicationHostConfigProvider(null));
-            services.AddSingleton<IWebServerFeatureManager>(new WebServerFeatureManager());
-            services.AddSingleton<IWebServerVersion>(new WebServerVersion());
+            _ = services.AddSingleton<IApplicationHostConfigProvider>(new ApplicationHostConfigProvider(null));
+            _ = services.AddSingleton<IWebServerFeatureManager>(new WebServerFeatureManager());
+            _ = services.AddSingleton<IWebServerVersion>(new WebServerVersion());
         }
 
         public override void Start()
@@ -36,9 +36,9 @@ namespace Microsoft.IIS.Administration.WebServer
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            app.UseMiddleware<Injector>(app.ApplicationServices.GetRequiredService<IApplicationHostConfigProvider>());
+            _ = app.UseMiddleware<Injector>(app.ApplicationServices.GetRequiredService<IApplicationHostConfigProvider>());
 
-            router.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "webserver" });
+            _ = router.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "webserver" });
 
             hal.ProvideLink(Defines.Resource.Guid, "self", _ => new { href = $"/{Defines.PATH}" });
             hal.ProvideLink(Globals.ApiResource.Guid, Defines.Resource.Name, _ => new { href = $"/{Defines.PATH}" });
@@ -49,7 +49,7 @@ namespace Microsoft.IIS.Administration.WebServer
             var router = Environment.Host.RouteBuilder;
             var hal = Environment.Hal;
 
-            router.MapWebApiRoute(Defines.TransactionsResource.Guid, $"{Defines.TRANSACTIONS_PATH}/{{id?}}", new { controller = "transactions" }, skipEdge: true);
+            _ = router.MapWebApiRoute(Defines.TransactionsResource.Guid, $"{Defines.TRANSACTIONS_PATH}/{{id?}}", new { controller = "transactions" }, skipEdge: true);
             hal.ProvideLink(Defines.TransactionsResource.Guid, "self", trans => new { href = TransactionHelper.GetLocation(trans.id) });
 
             hal.ProvideLink(Defines.Resource.Guid, Defines.TransactionsResource.Name, _ => new { href = $"/{Defines.TRANSACTIONS_PATH}" });

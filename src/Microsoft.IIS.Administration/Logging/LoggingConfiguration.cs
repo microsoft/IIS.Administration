@@ -44,11 +44,11 @@ namespace Microsoft.IIS.Administration.Logging
                 case LogLevel.Trace:
                     return LogEventLevel.Verbose;
                 default:
-                    return (LogEventLevel.Fatal + 1);
+                    return LogEventLevel.Fatal + 1;
             }
         }
 
-        public string GetDefaultLogRoot(IHostingEnvironment env)
+        public string GetDefaultLogRoot(IWebHostEnvironment env)
         {
             return Path.GetFullPath(Path.Combine(env.ContentRootPath, "../../logs"));
         }

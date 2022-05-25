@@ -30,8 +30,7 @@ namespace Microsoft.IIS.Administration.Monitoring
             // When performance counters are requested they are added to the monitor for their category and then cached under category + instance
             //     for quick retrieval and lifetime management
             _cache = new MemoryCache(new MemoryCacheOptions() {
-                ExpirationScanFrequency = CacheExpiration,
-                CompactOnMemoryPressure = false
+                ExpirationScanFrequency = CacheExpiration
             });
 
             _counterFinder = finder;

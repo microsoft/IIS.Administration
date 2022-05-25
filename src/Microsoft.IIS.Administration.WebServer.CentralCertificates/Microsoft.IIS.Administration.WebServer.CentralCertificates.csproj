@@ -7,7 +7,7 @@
     <Description>Microsoft.IIS.Administration.WebServer.CentralCertificates Class Library</Description>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>$(IISAdministrationTargetFramework)</TargetFramework>
     <AssemblyName>Microsoft.IIS.Administration.WebServer.CentralCertificates</AssemblyName>
     <PackageId>Microsoft.IIS.Administration.WebServer.CentralCertificates</PackageId>
   </PropertyGroup>
@@ -22,7 +22,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Security.Cryptography.Csp" Version="$(SystemSecurityCryptographyCspVersion)" />
   </ItemGroup>
 
 </Project>

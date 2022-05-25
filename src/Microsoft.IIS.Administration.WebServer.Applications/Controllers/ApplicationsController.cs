@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
 
 
     [RequireWebServer]
+    [Route("api/webserver/webapps")]
     public class ApplicationsController : ApiBaseController
     {
         private IFileProvider _fileProvider;
@@ -69,7 +70,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.WebAppName)]
         public object Get(string id)
         {
@@ -93,7 +94,8 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
         [ResourceInfo(Name = Defines.WebAppName)]
         public object Post([FromBody] dynamic model)
         {
-            if(model == null) {
+            model = DynamicHelper.ToJObject(model);
+            if (model == null) {
                 throw new ApiArgumentException("model");
             }
 
@@ -122,11 +124,12 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
             return Created((string)ApplicationHelper.GetLocation(application.id), application);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.WebAppName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             // Cut off the notion of uuid from beginning of request
             ApplicationId appId = new ApplicationId(id);
 
@@ -156,7 +159,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
             return application;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

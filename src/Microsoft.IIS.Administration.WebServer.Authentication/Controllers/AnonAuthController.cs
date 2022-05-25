@@ -11,8 +11,10 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Web.Administration;
     using Core.Http;
     using Core;
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireGlobalModule("AnonymousAuthenticationModule", "Anonymous Authentication")]
+    [Route("api/webserver/authentication/anonymous-authentication")]
     public class AnonAuthController : ApiBaseController
     {
         private const string HIDDEN_FIELDS = "model.password";
@@ -28,7 +30,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return AnonymousAuthenticationHelper.ToJsonModel(site, path);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.AnonAuthenticationName)]
         public object Get(string id)
         {
@@ -39,11 +41,12 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return AnonymousAuthenticationHelper.ToJsonModel(site, authId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         [ResourceInfo(Name = Defines.AnonAuthenticationName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             AnonAuthId authId = new AnonAuthId(id);
 
             Site site = authId.SiteId == null ? null : SiteHelper.GetSite(authId.SiteId.Value);
@@ -61,7 +64,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return AnonymousAuthenticationHelper.ToJsonModel(site, authId.Path);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public void Delete(string id)
         {

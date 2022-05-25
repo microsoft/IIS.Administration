@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRedirect
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRedirect
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-redirect")]
     public class HttpRedirectController : ApiBaseController
     {
         private const string DISPLAY_NAME = "HTTP Redirect";
@@ -35,7 +37,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRedirect
             return LocationChanged(RedirectHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.HttpRedirectName)]
         [RequireGlobalModule(RedirectHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -47,12 +49,13 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRedirect
             return RedirectHelper.ToJsonModel(site, redId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.HttpRedirectName)]
         [RequireGlobalModule(RedirectHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -90,7 +93,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRedirect
             return Created(RedirectHelper.GetLocation(settings.id), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

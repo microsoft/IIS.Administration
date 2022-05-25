@@ -58,8 +58,7 @@ namespace Microsoft.IIS.Administration.Security {
         }
 
         private IEnumerable<string> GetRoleMappings(string role) {
-            IEnumerable<string> identities = null;
-
+            IEnumerable<string> identities;
             if (_roles.TryGetValue(role, out identities)) {
                 return identities;
             }

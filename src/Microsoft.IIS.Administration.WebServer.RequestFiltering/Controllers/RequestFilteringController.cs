@@ -12,9 +12,10 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core.Http;
     using Core;
     using System.Threading.Tasks;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
+    [Route("api/webserver/http-request-filtering")]
     public class RequestFilteringController : ApiBaseController
     {
         [HttpGet]
@@ -33,7 +34,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return LocationChanged(RequestFilteringHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.RequestFilteringName)]
         [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
         public object Get(string id)
@@ -50,12 +51,13 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return RequestFilteringHelper.ToJsonModel(site, reqId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.RequestFilteringName)]
         [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             RequestFilteringId reqId = new RequestFilteringId(id);
 
             Site site = reqId.SiteId == null ? null : SiteHelper.GetSite(reqId.SiteId.Value);
@@ -91,7 +93,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return Created(RequestFilteringHelper.GetLocation(settings.id), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

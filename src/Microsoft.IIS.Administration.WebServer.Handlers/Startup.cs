@@ -11,7 +11,6 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
     using Sites;
     using Web.Administration;
 
-
     public class Startup : BaseModule
     {
         public override void Start()
@@ -23,7 +22,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
         private void ConfigureMappings()
         {
             // Provide mvc with route
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.MappingsResource.Guid, $"{ Defines.MAPPINGS_PATH}/{{id?}}", new { controller = "handlermappings" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.MappingsResource.Guid, $"{ Defines.MAPPINGS_PATH}/{{id?}}", new { controller = "handlermappings" });
 
             // Register self hypermedia
             Environment.Hal.ProvideLink(Defines.MappingsResource.Guid, "self", mapping => new { href = MappingsHelper.GetLocation(mapping.id) });
@@ -34,7 +33,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
 
         private void ConfigureHandlers()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "handlers" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "handlers" });
 
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", handlers => new { href = HandlersHelper.GetLocation(handlers.id) });
 

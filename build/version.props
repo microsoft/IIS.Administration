@@ -1,27 +1,8 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <PropertyGroup>
-    <IISAdministrationVersion>2.3.0</IISAdministrationVersion>
-    <MicroBuildCoreVersion>0.3.0</MicroBuildCoreVersion>
-    <SystemSecurityCryptographyX509CertificatesVersion>4.3.2</SystemSecurityCryptographyX509CertificatesVersion>
-    <SerilogExtensionsLoggingVersion>2.0.2</SerilogExtensionsLoggingVersion>
-    <SerilogVersion>2.7.1</SerilogVersion>
-    <SerilogSinksRollingFileVersion>3.3.0</SerilogSinksRollingFileVersion>
-    <MicrosoftAspNetCoreMvcVersion>2.1.3</MicrosoftAspNetCoreMvcVersion>
-    <MicrosoftAspNetCoreAuthorizationVersion>2.1.2</MicrosoftAspNetCoreAuthorizationVersion>
-    <MicrosoftAspNetCoreMvcWebApiCompatShimVersion>2.1.3</MicrosoftAspNetCoreMvcWebApiCompatShimVersion>
-    <MicrosoftAspNetCoreStaticFilesVersion>2.1.1</MicrosoftAspNetCoreStaticFilesVersion>
-    <MicrosoftExtensionsConfigurationBinderVersion>2.1.1</MicrosoftExtensionsConfigurationBinderVersion>
-    <MicrosoftWebAdministrationVersion>11.1.0</MicrosoftWebAdministrationVersion>
-    <SystemCollectionsNonGenericVersion>4.3.0</SystemCollectionsNonGenericVersion>
-    <SystemDiagnosticsFileVersionInfoVersion>4.3.0</SystemDiagnosticsFileVersionInfoVersion>
-    <SystemDiagnosticsProcessVersion>4.3.0</SystemDiagnosticsProcessVersion>
-    <SystemNetNetworkInformationVersion>4.3.0</SystemNetNetworkInformationVersion>
-    <SystemSecurityCryptographyCspVersion>4.3.0</SystemSecurityCryptographyCspVersion>
-    <SystemServiceProcessServiceControllerVersion>4.5.0</SystemServiceProcessServiceControllerVersion>
-
-    <MicrosoftNETestSdkVersion>16.0.1</MicrosoftNETestSdkVersion>
-    <XUnitVersion>2.4.1</XUnitVersion>
-    <XUnitRunnerVisualStudioVersion>2.4.1</XUnitRunnerVisualStudioVersion>
-  </PropertyGroup>
+    <PropertyGroup>
+        <IISAdministrationVersion>6.0.0</IISAdministrationVersion>
+        <IISAdministrationTargetFramework>net6.0</IISAdministrationTargetFramework>
+        <MicroBuildCoreVersion>0.3.0</MicroBuildCoreVersion>
+    </PropertyGroup>
 </Project>

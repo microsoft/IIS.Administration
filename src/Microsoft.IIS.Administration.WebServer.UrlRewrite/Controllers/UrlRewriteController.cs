@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Web.Administration;
 
     [RequireWebServer]
+    [Route("api/webserver/url-rewrite")]
     public class UrlRewriteController : ApiBaseController
     {
         [HttpGet]
@@ -33,7 +34,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return LocationChanged(RewriteHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.UrlRewriteName)]
         [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
         public object Get(string id)
@@ -71,7 +72,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return Created(RewriteHelper.GetLocation(settings.id), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

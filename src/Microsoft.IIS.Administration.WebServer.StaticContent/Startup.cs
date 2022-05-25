@@ -11,7 +11,6 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
     using Sites;
     using Web.Administration;
 
-
     public class Startup : BaseModule
     {
         public override void Start()
@@ -23,7 +22,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
         private void ConfigureStaticContent()
         {
             // Provide mvc with route
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "staticcontent" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "staticcontent" });
 
             // Register self hypermedia
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", sc => new { href = StaticContentHelper.GetLocation(sc.id) });
@@ -53,7 +52,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
 
         private void ConfigureMimeMaps()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.MimeMapsResource.Guid, $"{ Defines.MIME_MAPS_PATH}/{{id?}}", new { controller = "mimemaps" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.MimeMapsResource.Guid, $"{ Defines.MIME_MAPS_PATH}/{{id?}}", new { controller = "mimemaps" });
 
             Environment.Hal.ProvideLink(Defines.MimeMapsResource.Guid, "self", mimeMap => new { href = $"/{Defines.MIME_MAPS_PATH}/{mimeMap.id}" });
 

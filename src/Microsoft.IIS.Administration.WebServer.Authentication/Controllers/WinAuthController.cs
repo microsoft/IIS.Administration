@@ -12,8 +12,10 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Core.Http;
     using Core;
     using System.Threading.Tasks;
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
+    [Route("api/webserver/authentication/windows-authentication")]
     public class WinAuthController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Windows Authentication";
@@ -30,7 +32,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return WindowsAuthenticationHelper.ToJsonModel(site, path);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.WindowsAuthenticationName)]
         [RequireGlobalModule(WindowsAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -42,12 +44,13 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return WindowsAuthenticationHelper.ToJsonModel(site, winAuthId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.WindowsAuthenticationName)]
         [RequireGlobalModule(WindowsAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             WinAuthId winAuthId = new WinAuthId(id);
 
             Site site = winAuthId.SiteId == null ? null : SiteHelper.GetSite(winAuthId.SiteId.Value);
@@ -80,7 +83,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return Created(WindowsAuthenticationHelper.GetLocation(auth.id), auth);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

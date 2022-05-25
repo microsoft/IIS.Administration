@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-handlers/entries")]
     public class HandlerMappingsController : ApiBaseController
     {
         [HttpGet]
@@ -45,7 +46,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.EntryName)]
         public object Get(string id)
         {
@@ -71,7 +72,8 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
         [ResourceInfo(Name = Defines.EntryName)]
         public object Post([FromBody] dynamic model)
         {
-            if(model == null) {
+            model = DynamicHelper.ToJObject(model);
+            if (model == null) {
                 throw new ApiArgumentException("model");
             }
             if (model.handler == null || !(model.handler is JObject)) {
@@ -101,11 +103,12 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             return Created(MappingsHelper.GetLocation(m.id), m);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.EntryName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             MappingId mappingId = new MappingId(id);
 
             Site site = mappingId.SiteId == null ? null : SiteHelper.GetSite(mappingId.SiteId.Value);
@@ -137,7 +140,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             return m;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

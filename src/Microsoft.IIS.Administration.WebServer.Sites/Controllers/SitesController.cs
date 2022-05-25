@@ -20,6 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
 
 
     [RequireWebServer]
+    [Route("api/webserver/websites")]
     public class SitesController : ApiBaseController
     {
         private const string AUDIT_FIELDS = "*,model.key";
@@ -68,7 +69,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.WebsiteName)]
         public object Get(string id)
         {
@@ -86,6 +87,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
         [ResourceInfo(Name = Defines.WebsiteName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             // Create Site
             Site site = SiteHelper.CreateSite(model, _fileProvider);
 
@@ -109,11 +111,12 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             return Created((string)SiteHelper.GetLocation(website.id), website);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit(AUDIT_FIELDS)]
         [ResourceInfo(Name = Defines.WebsiteName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             // Set settings
             Site site = SiteHelper.UpdateSite(new SiteId(id).Id, model, _fileProvider);
             if (site == null) {
@@ -161,7 +164,7 @@ namespace Microsoft.IIS.Administration.WebServer.Sites
             return sModel;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit(AUDIT_FIELDS)]
         public void Delete(string id)
         {

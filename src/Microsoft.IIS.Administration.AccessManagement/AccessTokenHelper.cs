@@ -47,11 +47,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
 
 
         public static string GetLocation(string id) {
-            if (string.IsNullOrEmpty(id)) {
-                throw new ArgumentNullException(nameof(id));
-            }
-
-            return $"/{Defines.ACCESSTOKENS_PATH}/{id}";
+            return string.IsNullOrEmpty(id) ? throw new ArgumentNullException(nameof(id)) : $"/{Defines.ACCESSTOKENS_PATH}/{id}";
         }
     }
 }

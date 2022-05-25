@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.Files
     using AspNetCore.Mvc;
     using System.Threading.Tasks;
 
+    [Route("api/files/content")]
     public class ContentController : ApiBaseController
     {
         private IFileProvider _fileProvider;
@@ -19,7 +20,7 @@ namespace Microsoft.IIS.Administration.Files
             _redirectService = redirectService;
         }
 
-        [HttpHead]
+        [HttpHead("{id}")]
         public IActionResult Head(string id)
         {
             FileId fileId = FileId.FromUuid(id);
@@ -36,7 +37,7 @@ namespace Microsoft.IIS.Administration.Files
             return new EmptyResult();
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         public async Task<IActionResult> Get(string id)
         {
             //
@@ -62,7 +63,7 @@ namespace Microsoft.IIS.Administration.Files
             return new EmptyResult();
         }
 
-        [HttpPut]
+        [HttpPut("{id}")]
         public async Task<IActionResult> Put(string id)
         {
             FileId fileId = FileId.FromUuid(id);

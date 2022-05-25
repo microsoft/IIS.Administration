@@ -9,6 +9,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
     using Core;
     using Core.Http;
     using Files;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-response-compression")]
     public class CompressionController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Compression";
@@ -43,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
             return LocationChanged(CompressionHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.CompressionName)]
         [RequireGlobalModule(CompressionHelper.STATIC_MODULE, DISPLAY_NAME)]
         [RequireGlobalModule(CompressionHelper.DYNAMIC_MODULE, DISPLAY_NAME)]
@@ -56,13 +58,14 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
             return CompressionHelper.ToJsonModel(site, compId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.CompressionName)]
         [RequireGlobalModule(CompressionHelper.STATIC_MODULE, DISPLAY_NAME)]
         [RequireGlobalModule(CompressionHelper.DYNAMIC_MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             CompressionId compId = new CompressionId(id);
 
             Site site = compId.SiteId == null ? null : SiteHelper.GetSite(compId.SiteId.Value);
@@ -95,7 +98,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
             return Created(CompressionHelper.GetLocation(compression.id), compression);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

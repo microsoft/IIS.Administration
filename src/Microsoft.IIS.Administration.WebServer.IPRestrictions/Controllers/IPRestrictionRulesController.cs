@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
 
 
     [RequireGlobalModule("IpRestrictionModule", "IP and Domain Restrictions")]
+    [Route("api/webserver/ip-restrictions/entries")]
     public class IPRestrictionRulesController : ApiBaseController
     {
         [HttpGet]
@@ -46,7 +47,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.EntryName)]
         public object Get(string id)
         {
@@ -73,6 +74,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
         [ResourceInfo(Name = Defines.EntryName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -113,11 +115,12 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
             return Created(IPRestrictionsHelper.GetRuleLocation(r.id), r);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.EntryName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             RuleId ruleId = new RuleId(id);
 
             Site site = ruleId.SiteId == null ? null : SiteHelper.GetSite(ruleId.SiteId.Value);
@@ -148,7 +151,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
             return rle;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

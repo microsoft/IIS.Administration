@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
     [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
     [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
+    [Route("api/webserver/http-request-tracing/providers")]
     public class TraceProvidersController : ApiBaseController
     {
         [HttpGet]
@@ -44,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.ProviderName)]
         public object Get(string id)
         {
@@ -70,6 +71,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
         [ResourceInfo(Name = Defines.ProviderName)]
         public object Post(dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             TraceProviderDefinition provider = null;
             Site site = null;
             HttpRequestTracingId hrtId = null;
@@ -105,11 +107,12 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return Created(ProvidersHelper.GetLocation(p.id), p);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.ProviderName)]
         public object Patch(string id, dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             ProviderId providerId = new ProviderId(id);
 
             Site site = providerId.SiteId == null ? null : SiteHelper.GetSite(providerId.SiteId.Value);
@@ -143,7 +146,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return prov;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

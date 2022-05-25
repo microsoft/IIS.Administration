@@ -23,7 +23,7 @@ namespace Microsoft.IIS.Administration.Security {
                 configure.Invoke(opts);
             }
 
-            IHostingEnvironment env = services.BuildServiceProvider().GetRequiredService<IHostingEnvironment>();
+            IWebHostEnvironment env = services.BuildServiceProvider().GetRequiredService<IWebHostEnvironment>();
             IConfiguration config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
 
             var provider = new ApiKeyProvider(opts);

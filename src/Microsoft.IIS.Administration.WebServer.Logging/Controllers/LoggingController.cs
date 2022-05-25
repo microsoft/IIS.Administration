@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
     using Core;
     using Core.Http;
     using Files;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
 
     [RequireWebServer]
+    [Route("api/webserver/logging")]
     public class LoggingController : ApiBaseController
     {
         private const string DISPLAY_NAME = "IIS Logging Tools";
@@ -41,7 +43,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             return LocationChanged(LoggingHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.LoggingName)]
         [RequireGlobalModule(LoggingHelper.HTTP_LOGGING_MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -57,12 +59,13 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             return LoggingHelper.ToJsonModel(site, logId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.LoggingName)]
         [RequireGlobalModule(LoggingHelper.HTTP_LOGGING_MODULE, DISPLAY_NAME)]
         public object Patch(string id, dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             LoggingId logId = new LoggingId(id);
 
             Site site = logId.SiteId == null ? null : SiteHelper.GetSite(logId.SiteId.Value);
@@ -101,7 +104,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             return Created(LoggingHelper.GetLocation(settings.id), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

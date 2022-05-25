@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\build\sign.props" />
+  <Import Project="..\build\version.props" />
   <Import Project="..\build\Microsoft.IIS.Administration.props" />
 
   <ItemGroup>
@@ -8,7 +9,7 @@
 
   <PropertyGroup>
     <Description>PsSetup</Description>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>$(IISAdministrationTargetFramework)</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>

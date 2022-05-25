@@ -11,9 +11,10 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
     using System.Net;
     using Web.Administration;
     using Core.Http;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
+    [Route("api/webserver/http-handlers")]
     public class HandlersController : ApiBaseController
     {
         [HttpGet]
@@ -31,7 +32,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             return LocationChanged(HandlersHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.HandlersName)]
         public object Get(string id)
         {
@@ -46,11 +47,12 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             return HandlersHelper.ToJsonModel(site, handlersId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.HandlersName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             HandlersId handlersId = new HandlersId(id);
 
             Site site = handlersId.SiteId == null ? null : SiteHelper.GetSite(handlersId.SiteId.Value);
@@ -74,7 +76,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             return HandlersHelper.ToJsonModel(site, handlersId.Path);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

@@ -113,6 +113,9 @@ namespace Microsoft.IIS.Administration.WebServer.AppPools
                     // 1. App pool's application pool was deleted.
                     // 2. App pool was just created and the status is not accessible yet.
                 }
+                //catch (System.UnauthorizedAccessException) {
+                //    // do nothing
+                //}
                 obj.status = Enum.GetName(typeof(Status), state).ToLower();
             }
 

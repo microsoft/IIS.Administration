@@ -16,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
     [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
     [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
+    [Route("api/webserver/http-request-tracing/traces")]
     public class RequestTracesController : ApiBaseController
     {
         private IFileProvider _provider;
@@ -53,7 +54,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.TraceName)]
         public async Task<object> Get(string id)
         {

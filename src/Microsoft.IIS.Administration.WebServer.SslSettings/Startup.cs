@@ -11,14 +11,13 @@ namespace Microsoft.IIS.Administration.WebServer.SslSettings
     using Sites;
     using Web.Administration;
 
-
     public class Startup : BaseModule
     {
         public Startup() { }
 
         public override void Start()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "SslSettings" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "SslSettings" });
 
             // Self
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", settings => new { href = SslSettingsHelper.GetLocation(settings.id) });

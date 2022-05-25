@@ -12,7 +12,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
         public Startup() { }
 
         public override void Start() {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "applications" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "applications" });
 
             var hal = Environment.Hal;
 

@@ -62,6 +62,8 @@ namespace Microsoft.IIS.Administration.Extensibility
             var rootPaths = new List<string>();
             rootPaths.Add(Path.Combine(_pluginDir, $"{assemblyName.Name}.{assemblyName.Version}"));
             rootPaths.Add(_pluginDir);
+            // Load Microsoft.Web.Administration v10 (package v11.1) referenced assemblies here
+            rootPaths.Add(Path.Combine(_pluginDir, @"ms.web.admin.refs")); 
 
             foreach (var path in rootPaths)
             {
@@ -102,17 +104,19 @@ namespace Microsoft.IIS.Administration.Extensibility
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
-            Assembly asm = LoadFromCurrentDomain(assemblyName);
-            if (asm != null)
+            Assembly asm;
+            try
             {
-                return asm;
+                asm = LoadFromCurrentDomain(assemblyName);               
             }
-            asm = LoadFromPluginDir(assemblyName);
-            if (asm != null)
+            catch (Exception)
             {
-                return asm;
+                // LoadFromCurrentDomain throws an exception if the assembly does not exist.
+                // Ignore it and try again below
+                asm = null;
             }
-            return LoadFromCurrentDomain(assemblyName);
+
+            return asm ?? LoadFromPluginDir(assemblyName) ?? LoadFromCurrentDomain(assemblyName);
         }
     }
 }

@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
     using Core;
 
     [RequireWebServer]
+    [Route("api/webserver/worker-processes")]
     public class WorkerProcessesController : ApiBaseController {
 
         [HttpGet]
@@ -55,7 +56,7 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
             return obj;
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.WorkerProcessName)]
         public object Get(string id)
         {
@@ -68,7 +69,7 @@ namespace Microsoft.IIS.Administration.WebServer.WorkerProcesses {
             return WorkerProcessHelper.WpToJsonModel(target, Context.Request.GetFields());
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

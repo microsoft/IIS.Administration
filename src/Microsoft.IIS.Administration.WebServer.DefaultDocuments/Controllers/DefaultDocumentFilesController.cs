@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
 
 
     [RequireGlobalModule(DefaultDocumentHelper.MODULE, "Default Document")]
+    [Route("api/webserver/default-documents/files")]
     public class DefaultDocumentFilesController : ApiBaseController
     {
         [HttpGet]
@@ -41,7 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.EntryName)]
         public object Get(string id)
         {
@@ -64,11 +65,12 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
             return FilesHelper.ToJsonModel(file, site, fileId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.EntryName)]
         public object Patch([FromBody] dynamic model, string id)
         {
+            model = DynamicHelper.ToJObject(model);
             FileId fileId = new FileId(id);
 
             Site site = fileId.SiteId == null ? null : SiteHelper.GetSite(fileId.SiteId.Value);
@@ -108,6 +110,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
         [ResourceInfo(Name = Defines.EntryName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             File file = null;            
             DefaultDocumentId docId = null;
             Site site = null;
@@ -152,7 +155,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
             return Created(FilesHelper.GetLocation(f.id), f);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

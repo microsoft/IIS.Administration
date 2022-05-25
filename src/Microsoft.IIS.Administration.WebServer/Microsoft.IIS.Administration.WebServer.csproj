@@ -7,7 +7,7 @@
     <Description>Microsoft.IIS.Administration.WebServer Class Library</Description>
     <VersionPrefix>$(IISAdministrationVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>$(IISAdministrationTargetFramework)</TargetFramework>
     <AssemblyName>Microsoft.IIS.Administration.WebServer</AssemblyName>
     <PackageId>Microsoft.IIS.Administration.WebServer</PackageId>
   </PropertyGroup>
@@ -22,8 +22,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Web.Administration" Version="$(MicrosoftWebAdministrationVersion)" />
-    <PackageReference Include="System.Diagnostics.Process" Version="$(SystemDiagnosticsProcessVersion)" />
+    <PackageReference Include="Microsoft.Web.Administration" Version="11.1.0" />
   </ItemGroup>
 
 </Project>

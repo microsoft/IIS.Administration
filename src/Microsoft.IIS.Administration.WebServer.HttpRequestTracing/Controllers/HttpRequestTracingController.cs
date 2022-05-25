@@ -9,6 +9,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
     using Core;
     using Core.Http;
     using Files;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-request-tracing")]
     public class HttpRequestTracingController : ApiBaseController
     {
         private IFileProvider _fileProvider;
@@ -42,7 +44,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return LocationChanged(Helper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.HttpRequestTracingName)]
         [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
         [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
@@ -55,12 +57,13 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return Helper.ToJsonModel(site, hrtId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ResourceInfo(Name = Defines.HttpRequestTracingName)]
         [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
         [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
         public object Patch(string id, dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             var hrtId = new HttpRequestTracingId(id);
 
             Site site = hrtId.SiteId == null ? null : SiteHelper.GetSite(hrtId.SiteId.Value);
@@ -92,7 +95,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return Created(Helper.GetLocation(settings.id), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

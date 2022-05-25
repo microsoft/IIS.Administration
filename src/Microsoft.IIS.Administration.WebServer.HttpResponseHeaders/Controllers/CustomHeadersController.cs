@@ -18,6 +18,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-response-headers/custom-headers")]
     public class CustomHeadersController : ApiBaseController
     {
         [HttpGet]
@@ -44,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.CustomHeaderName)]
         public object Get(string id)
         {
@@ -70,6 +71,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
         [ResourceInfo(Name = Defines.CustomHeaderName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -105,11 +107,12 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             return Created(CustomHeadersHelper.GetLocation(ch.id), ch);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.CustomHeaderName)]
         public object Patch(string id, dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             CustomHeaderId headerId = new CustomHeaderId(id);
 
             Site site = headerId.SiteId == null ? null : SiteHelper.GetSite(headerId.SiteId.Value);
@@ -140,7 +143,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             return ch;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

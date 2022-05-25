@@ -8,7 +8,6 @@ namespace Microsoft.IIS.Administration.WebServer.Delegation
     using Core;
     using Core.Http;
 
-
     public class Startup : BaseModule
     {
         public Startup() { }
@@ -16,7 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.Delegation
         public override void Start()
         {
             // Provide MVC with route
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "delegation" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "delegation" });
 
             // Self
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", section => new { href = $"/{Defines.PATH}/{section.id}" });

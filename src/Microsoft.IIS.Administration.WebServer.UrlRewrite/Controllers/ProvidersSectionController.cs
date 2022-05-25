@@ -7,11 +7,13 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using Web.Administration;
 
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
+    [Route("api/webserver/url-rewrite/providers")]
     public class ProvidersSectionController : ApiBaseController
     {
         [HttpGet]
@@ -28,7 +30,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return LocationChanged(ProvidersHelper.GetSectionLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.ProvidersSectionName)]
         public object Get(string id)
         {
@@ -44,11 +46,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return ProvidersHelper.SectionToJsonModel(site, rewriteId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.ProvidersSectionName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -70,7 +73,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return ProvidersHelper.SectionToJsonModel(site, providersId.Path);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

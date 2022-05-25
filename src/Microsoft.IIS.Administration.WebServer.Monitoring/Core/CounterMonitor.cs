@@ -118,13 +118,11 @@ namespace Microsoft.IIS.Administration.Monitoring
             }
         }
 
-        public async Task DoRefresh()
+        public Task DoRefresh()
         {
             if (!NeedsRefresh) {
-                return;
+                return Task.CompletedTask;
             }
-
-            PDH_FMT_COUNTERVALUE value = default(PDH_FMT_COUNTERVALUE);
 
             uint result = Pdh.PdhCollectQueryData(_query);
             if (result == Pdh.PDH_NO_DATA) {
@@ -141,6 +139,8 @@ namespace Microsoft.IIS.Administration.Monitoring
                 IPerfCounter counter = counterInstance.Key;
                 PdhCounterHandle handle = counterInstance.Value;
 
+
+                PDH_FMT_COUNTERVALUE value;
                 result = Pdh.PdhGetFormattedCounterValue(handle, PdhFormat.PDH_FMT_LARGE, IntPtr.Zero, out value);
 
                 if (result == Pdh.PDH_INVALID_DATA && value.CStatus == Pdh.PDH_CSTATUS_INVALID_DATA && !multiSample) {
@@ -184,8 +184,9 @@ namespace Microsoft.IIS.Administration.Monitoring
                 throw new MissingCountersException(missingCounters);
             }
 
-            TimeSpan calculationDelta = DateTime.UtcNow - _lastCalculatedTime;
+            _ = DateTime.UtcNow - _lastCalculatedTime;
             _lastCalculatedTime = DateTime.UtcNow;
+            return Task.CompletedTask;
         }
 
         private void DoDispose()
@@ -193,7 +194,7 @@ namespace Microsoft.IIS.Administration.Monitoring
             foreach (var key in _counters.Keys.ToList()) {
                 if (_counters[key] != null) {
                     _counters[key].Dispose();
-                    _counters.Remove(key);
+                    _ = _counters.Remove(key);
                 }
             }
 
@@ -243,14 +244,15 @@ namespace Microsoft.IIS.Administration.Monitoring
 
         private IEnumerable<PdhCounterHandle> DoRemoveCounters(IEnumerable<IPerfCounter> counters)
         {
-            PdhCounterHandle hCounter = null;
             List<PdhCounterHandle> removedCounters = new List<PdhCounterHandle>();
 
             foreach (var counter in counters) {
 
-                if (_counters.TryGetValue(counter, out hCounter)) {
+                PdhCounterHandle hCounter;
+                if (_counters.TryGetValue(counter, out hCounter))
+                {
 
-                    _counters.Remove(counter);
+                    _ = _counters.Remove(counter);
 
                     removedCounters.Add(hCounter);
                 }

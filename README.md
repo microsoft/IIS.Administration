@@ -2,55 +2,112 @@
 Microsoft IIS Administration API
 --------------------------------
 
-[![Build status](https://ci.appveyor.com/api/projects/status/l62ov4c6fbdi6vrq/branch/dev?svg=true)](https://ci.appveyor.com/project/jimmyca15/iis-administration-ed6b3/branch/dev)
-
-To find the latest news for the IIS Administration api visit the blog at https://blogs.iis.net/adminapi.
-
 Documentation is available at https://docs.microsoft.com/en-us/IIS-Administration 
 
-### Installation: ###
-* Supports 64 bit Windows Server 2008 R2 and above
-
-The latest installer can be obtained from https://manage.iis.net/get. The installer will automatically download and install all dependencies.
-
-### Nano Server Installation: ###
-There is a blog post to get up and running on Nano Server located at https://blogs.iis.net/adminapi/microsoft-iis-administration-on-nano-server.
-
-### Running Tests: ###
-* Run the ConfigureDevEnvironment script with the test environment flag
-`
-C:\src\repos\IIS.Administration\scripts\Configure-DevEnvironment.ps1 -ConfigureTestEnvironment
-`
-* Open the project in Visual Studio as an Administrator and launch without debugging
-* Open another instance of the project and run the tests located in the 'test' folder
-* Tests can also be run with the CLI
-
-### Publish and Install: ###
-Publishing and installing can be done through a PowerShell script. This requires the .NET Core SDK and Bower.
-
-```
-# Replace the path to match your clone location
-C:\src\repos\IIS.Administration\scripts\publish\publish.ps1
-C:\src\repos\IIS.Administration\scripts\publish\bin\setup\setup.ps1 Install -Verbose
-```
-
-### Develop and Debug in Visual studio 2017: ###
+### Develop and Debug with Visual studio 2022: ###
 * Clone this project
-* Load the project in visual studio
+* Load the solution (Microsoft.IIS.Administration.sln) in Visual Studio
 * Try restoring all the NuGet packages
+* Open src\Microsoft.IIS.Administration\config\appsettings.json, modify the users section as below,
+```
+"users": {
+      "administrators": [
+        "mydomain\\myusername",
+        "myusername@mycompany.com",
+        "IIS Administration API Owners"
+      ],
+      "owners": [
+        "mydomain\\myusername",
+        "myusername@mycompany.com",
+        "IIS Administration API Owners"
+      ]
+    },
+```    
 * Run PowerShell as an Administrator
 * Run Configure-DevEnvironment.ps1 script in the scripts dir
 * From the visual studio run profile menu select option Microsoft.IIS.Administration and run the application.
 * If you are not able to browse the site or your getting generic browser error, most like SSL certificate is not configured for that. IIS   express installs SSL certificates on   port 44300-44399. Try changing the port to one of these in appsettings.json
   **ex: "urls":"https://*:44326"**
 
-### Using the new API ###
-1. Navigate to https://manage.iis.net
-2. Click 'Get Access Token'
-3. Generate an access token and copy it to the clipboard
-4. Exit the access tokens window and return to the connection screen
-5. Paste the access token into the Access Token field of the connection screen
-6. Click 'Connect'
+### Build the Installer: ###
+In the following code, replace the path to match your clone location. It first starts the developer command prompt for Visual Studio 2022, publishes the solution and finally, builds the installer at installer\IISAdministrationBundle\bin\x64\Release.
+```
+%comspec% /k "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\Tools\VsDevCmd.bat"
+
+cd /d C:\src\repos\IIS.Administration
+msbuild -restore Microsoft.IIS.Administration.sln /t:publish
+
+build\nuget.exe restore installer\IISAdministrationSetup\packages.config -SolutionDirectory installer
+msbuild installer /p:configuration=release
+```
+
+
+
+### Installation and Known Issues: ###
+* Must first remove preview builds of .Net Core. The service does not work with preview builds of .Net Core.
+* Must remove previously installed versions of IIS Administration.
+* **_Repair_** does not work. Must do a full uninstall/re-install.
+* If errors occurred during installation, manually remove folder _C:\Program Files\IIS Administration_ and Windows service _"Microsoft IIS Administration"_.
+* If you don't have permissions for the APIs, add yourself to user group _"IIS Administration API Owners"_ on the host machine.
+* If you still don't have permissions after adding yourself to _"IIS Administration API Owners"_, add yourself to users/administrators and users/owners in appsettings.json.
+* If you have trouble viewing the Access Token created from the API Explorer in Microsoft Edge, go to [edge://settings/reset](edge://settings/reset) and reset your browser's settings.
+* Microsoft.Web.Administration.dll version conflicts with .Net 6.0: Remove all code related to **_"ms.web.admin.refs"_** in the future when it is ported to .Net 6.0.
+* Supports 64 bit Windows Server 2008 R2 and above
+
+### Nano Server Installation: ###
+There is a blog post to get up and running on Nano Server located at https://blogs.iis.net/adminapi/microsoft-iis-administration-on-nano-server.
+
+### Use APIs through API Explorer
+* Open https://localhost:55539.
+* Go to Access Keys and get an access token.
+* Back to API Explorer and paste the Access Token.
+* Make sure the local machine has IIS enabled.
+* Go to https://localhost:55539/#/api/webserver/websites. You should see all local Web sites listed.
+* Click POST, paste the following as JSON request,
+```
+JSON request
+{
+  "name": "Contoso1234",
+  "physical_path": "C:\\inetpub\\wwwroot",
+  "bindings": [
+    {
+      "port": 8080,
+      "protocol": "http",
+      "ip_address": "*"
+    }
+  ]
+}
+```
+* If you don't have permissions to create Web sites under C:\Inetpub, make sure you have _files_ section in appsettings.json like this, 
+```
+  "cors": {
+    "rules": []
+  },
+  "files": {
+    "locations": [
+      {
+        "alias": "inetpub",
+        "path": "C:\\inetpub",
+        "claims": [
+          "read",
+          "write"
+        ]
+      }
+  }
+```
+* Click -->, the new Web site should be created.
+* Open IIS Manager, you should see the newly created Web site under Sites.
+* Back to the browser, click DELETE, then -->. The newly created Web site should be deleted.
+
+### Running Tests: ###
+* Run the ConfigureDevEnvironment script with the test environment flag
+```
+   C:\src\repos\IIS.Administration\scripts\Configure-DevEnvironment.ps1 -ConfigureTestEnvironment
+```
+* Open the project in Visual Studio as an Administrator and launch without debugging
+* Make sure the appsettings.json being used is similar to the one at test\appsettings.test.json. Without the "files" section, new Web sites cannot be created. "cors" section is also required.
+* Open another instance of the project (also as Administrator since tests need to create new local users and enable some IIS features) and run the tests located in the 'test' folder
+* Tests can also be run with the CLI
 
 ## Examples ##
 

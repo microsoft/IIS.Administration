@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
 
     [RequireWebServer]
+    [Route("api/webserver/authentication/digest-authentication")]
     public class DigestAuthController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Digest Authentication";
@@ -31,7 +33,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return DigestAuthenticationHelper.ToJsonModel(site, path);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.DigestAuthenticationName)]
         [RequireGlobalModule(DigestAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -43,12 +45,13 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return DigestAuthenticationHelper.ToJsonModel(site, digestAuthId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.DigestAuthenticationName)]
         [RequireGlobalModule(DigestAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             DigestAuthId digestAuthId = new DigestAuthId(id);
 
             Site site = digestAuthId.SiteId == null ? null : SiteHelper.GetSite(digestAuthId.SiteId.Value);
@@ -81,7 +84,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return Created(DigestAuthenticationHelper.GetLocation(auth.id), auth);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

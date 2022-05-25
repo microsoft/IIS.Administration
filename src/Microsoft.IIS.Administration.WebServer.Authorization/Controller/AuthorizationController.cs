@@ -8,6 +8,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System.Net;
     using System.Threading.Tasks;
@@ -15,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
 
 
     [RequireWebServer]
+    [Route("api/webserver/authorization")]
     public class AuthorizationController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Authorization";
@@ -30,7 +32,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return AuthorizationHelper.ToJsonModel(site, path);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.AuthorizationName)]
         [RequireGlobalModule(AuthorizationHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -42,12 +44,13 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return AuthorizationHelper.ToJsonModel(site, authId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.AuthorizationName)]
         [RequireGlobalModule(AuthorizationHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             AuthorizationId authId = new AuthorizationId(id);
 
             Site site = authId.SiteId == null ? null : SiteHelper.GetSite(authId.SiteId.Value);
@@ -88,7 +91,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return Created(AuthorizationHelper.GetLocation(auth.id), auth);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

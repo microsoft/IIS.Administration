@@ -16,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
     using Web.Administration;
 
     [RequireGlobalModule(AuthorizationHelper.MODULE, "Authorization")]
+    [Route("api/webserver/authorization/rules")]
     public class RulesController : ApiBaseController
     {
         [HttpGet]
@@ -44,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.RuleName)]
         public object Get(string id)
         {
@@ -66,6 +67,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
         [ResourceInfo(Name = Defines.RuleName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -104,11 +106,12 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return Created(AuthorizationHelper.GetRuleLocation(r.id), r);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.RuleName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             RuleId ruleId = new RuleId(id);
 
             Site site = ruleId.SiteId == null ? null : SiteHelper.GetSite(ruleId.SiteId.Value);
@@ -132,7 +135,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return r;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

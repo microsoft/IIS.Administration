@@ -10,6 +10,7 @@ namespace Microsoft.IIS.Administration.WebServer.Info
 
 
     [RequireWebServer]
+    [Route("api/webserver/info")]
     public class WebServerInfoController : ApiBaseController
     {
         private IWebServerVersion _versionProvider;

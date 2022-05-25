@@ -16,7 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
         public override void Start()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "logging" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "logging" });
 
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", logging => new { href = LoggingHelper.GetLocation(logging.id) });
 

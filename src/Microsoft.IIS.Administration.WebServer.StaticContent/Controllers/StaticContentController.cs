@@ -12,9 +12,10 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
     using Core.Http;
     using Core;
     using System.Threading.Tasks;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
+    [Route("api/webserver/static-content")]
     public class StaticContentController : ApiBaseController
     {
         [HttpGet]
@@ -33,7 +34,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
             return LocationChanged(StaticContentHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.StaticContentName)]
         [RequireGlobalModule(StaticContentHelper.MODULE, StaticContentHelper.DISPLAY_NAME)]
         public object Get(string id)
@@ -49,12 +50,13 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
             return StaticContentHelper.ToJsonModel(site, staticContentId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.StaticContentName)]
         [RequireGlobalModule(StaticContentHelper.MODULE, StaticContentHelper.DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             StaticContentId staticContentId = new StaticContentId(id);
 
             Site site = staticContentId.SiteId == null ? null : SiteHelper.GetSite(staticContentId.SiteId.Value);
@@ -89,7 +91,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
             return Created(StaticContentHelper.GetLocation(settings.id), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

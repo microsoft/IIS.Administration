@@ -3,10 +3,10 @@
   <Import Project="..\packages\WiX.3.11.1\build\wix.props" Condition="Exists('..\packages\WiX.3.11.1\build\wix.props')" />
   <Import Project="..\packages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props" Condition="Exists('..\packages\MicroBuild.Core.0.2.0\build\MicroBuild.Core.props')" />
   <PropertyGroup>
-    <ArtifactsRoot>$(SolutionDir)..\dist</ArtifactsRoot>
+    <ArtifactsRoot>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), `.gitignore`))\dist</ArtifactsRoot>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
-    <ProductVersion>3.10</ProductVersion>
+    <ProductVersion>6.0</ProductVersion>
     <ProjectGuid>dddaee12-ea07-4818-9ff8-d9da8ea18c1e</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
     <OutputName>IISAdministrationSetup</OutputName>

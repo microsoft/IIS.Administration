@@ -17,7 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
         private IFileProvider _next;
         private FrebXslLocator _locator;
 
-        public FrebXslFileProvider(IFileProvider next, IHostingEnvironment env, IApplicationHostConfigProvider configProvider)
+        public FrebXslFileProvider(IFileProvider next, IWebHostEnvironment env, IApplicationHostConfigProvider configProvider)
         {
             _next = next;
             _locator = new FrebXslLocator(env, configProvider);
@@ -61,11 +61,9 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
         public IFileInfo GetFile(string path)
         {
-            if (path.Equals("freb.xsl", StringComparison.OrdinalIgnoreCase)) {
-                return new FrebXslFileInfo(_locator.Path == null ? null : new FileInfo(_locator.Path));
-            }
-
-            return _next.GetFile(path);
+            return path.Equals("freb.xsl", StringComparison.OrdinalIgnoreCase)
+                ? new FrebXslFileInfo(_locator.Path == null ? null : new FileInfo(_locator.Path))
+                : _next.GetFile(path);
         }
 
         public IEnumerable<IFileInfo> GetFiles(IFileInfo info, string searchPattern, SearchOption searchOption = SearchOption.TopDirectoryOnly)
@@ -75,37 +73,27 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
         public Stream GetFileStream(IFileInfo info, FileMode fileMode, FileAccess fileAccess, FileShare fileShare)
         {
-            if (info.Path.Equals("freb.xsl", StringComparison.OrdinalIgnoreCase)) {
-                if (fileAccess.HasFlag(FileAccess.Write)) {
-                    throw new ForbiddenArgumentException("path");
-                }
-
-                if (_locator.Path == null) {
-                    throw new NotFoundException("path");
-                }
-                
-                return new FileStream(_locator.Path, FileMode.Open, FileAccess.Read, fileShare);
-            }
-
-            return _next.GetFileStream(info, fileMode, fileAccess, fileShare);
+            return info.Path.Equals("freb.xsl", StringComparison.OrdinalIgnoreCase)
+                ? fileAccess.HasFlag(FileAccess.Write)
+                    ? throw new ForbiddenArgumentException("path")
+                    : _locator.Path == null
+                    ? throw new NotFoundException("path")
+                    : (Stream)new FileStream(_locator.Path, FileMode.Open, FileAccess.Read, fileShare)
+                : _next.GetFileStream(info, fileMode, fileAccess, fileShare);
         }
 
         public bool IsAccessAllowed(IFileInfo fileInfo, FileAccess requestedAccess)
         {
-            if (fileInfo.Path.Equals(FrebXslFileInfo.FILE_NAME, StringComparison.OrdinalIgnoreCase)) {
-                return !requestedAccess.HasFlag(FileAccess.Write);
-            }
-
-            return _next.IsAccessAllowed(fileInfo, requestedAccess);
+            return fileInfo.Path.Equals(FrebXslFileInfo.FILE_NAME, StringComparison.OrdinalIgnoreCase)
+                ? !requestedAccess.HasFlag(FileAccess.Write)
+                : _next.IsAccessAllowed(fileInfo, requestedAccess);
         }
 
         public bool IsAccessAllowed(string path, FileAccess requestedAccess)
         {
-            if (path.Equals(FrebXslFileInfo.FILE_NAME, StringComparison.OrdinalIgnoreCase)) {
-                return !requestedAccess.HasFlag(FileAccess.Write);
-            }
-
-            return _next.IsAccessAllowed(path, requestedAccess);
+            return path.Equals(FrebXslFileInfo.FILE_NAME, StringComparison.OrdinalIgnoreCase)
+                ? !requestedAccess.HasFlag(FileAccess.Write)
+                : _next.IsAccessAllowed(path, requestedAccess);
         }
 
         public void Move(IFileInfo source, IFileInfo destination)

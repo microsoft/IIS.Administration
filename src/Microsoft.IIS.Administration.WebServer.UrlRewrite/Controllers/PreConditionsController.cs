@@ -7,13 +7,14 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using AspNetCore.Mvc;
     using Core;
     using Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Sites;
     using System;
     using System.Linq;
     using System.Net;
     using Web.Administration;
 
-
+    [Route("api/webserver/url-rewrite/outbound/preconditions")]
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
     public class PreConditionsController : ApiBaseController
     {
@@ -41,7 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.PreConditionName)]
         public object Get(string id)
         {
@@ -62,11 +63,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return OutboundRulesHelper.PreConditionToJsonModel(precondition, site, preConditionId.Path, Context.Request.GetFields());
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ResourceInfo(Name = Defines.PreConditionName)]
         [Audit]
         public object Patch([FromBody]dynamic model, string id)
         {
+            model = DynamicHelper.ToJObject(model);
             var preConditionId = new PreConditionId(id);
 
             Site site = preConditionId.SiteId == null ? null : SiteHelper.GetSite(preConditionId.SiteId.Value);
@@ -100,6 +102,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [Audit]
         public object Post([FromBody]dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -121,7 +124,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return Created(OutboundRulesHelper.GetRuleLocation(pc.id), pc);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public void Delete(string id)
         {
             PreCondition preCondition = null;

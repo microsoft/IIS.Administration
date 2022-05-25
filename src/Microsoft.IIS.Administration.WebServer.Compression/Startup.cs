@@ -11,7 +11,6 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
     using Sites;
     using Web.Administration;
 
-
     public class Startup : BaseModule
     {
         public Startup() { }
@@ -21,7 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.Compression
             var host = Environment.Host;
             var hal = Environment.Hal;
 
-            host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "compression" });
+            _ = host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "compression" });
 
             // Self
             hal.ProvideLink(Defines.Resource.Guid, "self", comp => new { href = CompressionHelper.GetLocation(comp.id) });

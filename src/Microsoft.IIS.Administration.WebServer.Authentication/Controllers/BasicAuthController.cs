@@ -12,9 +12,10 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
     using Core.Http;
     using Core;
     using System.Threading.Tasks;
-
+    using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
+    [Route("api/webserver/authentication/basic-authentication")]
     public class BasicAuthController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Basic Authentication";
@@ -31,7 +32,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return BasicAuthenticationHelper.ToJsonModel(site, path);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.BasicAuthenticationName)]
         [RequireGlobalModule(BasicAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -43,12 +44,13 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return BasicAuthenticationHelper.ToJsonModel(site, basicAuthId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.BasicAuthenticationName)]
         [RequireGlobalModule(BasicAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             BasicAuthId basicAuthId = new BasicAuthId(id);
 
             Site site = basicAuthId.SiteId == null ? null : SiteHelper.GetSite(basicAuthId.SiteId.Value);
@@ -81,7 +83,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return Created(BasicAuthenticationHelper.GetLocation(auth.id), auth);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

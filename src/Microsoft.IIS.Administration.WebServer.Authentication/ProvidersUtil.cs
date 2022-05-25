@@ -34,7 +34,6 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
         public static List<string> GetAvailableProvidersList()
         {
-            List<string> configuredProviders = new List<string>();
             List<string> availableProvidersList = new List<string>();
             try {
                 const int SEC_E_OK = 0;
@@ -44,7 +43,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
                 IntPtr secPkgInfoPtr;
                 int retValue = EnumerateSecuirtyPackagesW(out pcPackages, out secPkgInfoPtr);
                 if (retValue != SEC_E_OK) {
-                    if (secPkgInfoPtr != null) {
+                    if (secPkgInfoPtr != IntPtr.Zero) {
                         retValue = FreeContextBuffer(secPkgInfoPtr);
                         if (retValue != SEC_E_OK) {
                             // Failed to release memory
@@ -59,7 +58,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
                     SecPkgInfo currentPackageStruct = (SecPkgInfo)Marshal.PtrToStructure<SecPkgInfo>(currentPtrToStruct);
                     // Ignore NegoExtender package (because NegoExtender is a psuedo authentication protocol)
                     // and show 'pku2u' because it proven that it works over HTTP
-                    if ((currentPackageStruct.Name).Equals("NegoExtender", StringComparison.OrdinalIgnoreCase)) {
+                    if (currentPackageStruct.Name.Equals("NegoExtender", StringComparison.OrdinalIgnoreCase)) {
                         // Go to the next available struct
                         currentPtrToStruct = (IntPtr)((Int64)currentPtrToStruct + Marshal.SizeOf<SecPkgInfo>());
                         continue;
@@ -75,8 +74,8 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
                     //    Just to be consistent with the runtime behavior we will display a warning message for all the Negotiate packages which are prefixed with 'Negotiate:'
                     if (((currentPackageStruct.fCapabilities & nego2FlagIntValue) != 0)
                         || ((currentPackageStruct.fCapabilities & negoFlagIntValue) != 0
-                            && !(currentPackageStruct.Name).Equals("Negotiate", StringComparison.OrdinalIgnoreCase)
-                            && !(currentPackageStruct.Name).Equals("NTLM", StringComparison.OrdinalIgnoreCase)
+                            && !currentPackageStruct.Name.Equals("Negotiate", StringComparison.OrdinalIgnoreCase)
+                            && !currentPackageStruct.Name.Equals("NTLM", StringComparison.OrdinalIgnoreCase)
                             )
                         ) {
                         strPackageName = "Negotiate:";

@@ -11,6 +11,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-request-monitor")]
     public class RequestMonitoringController : ApiBaseController
     {
         [HttpGet]
@@ -21,7 +22,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor
             return LocationChanged(RequestHelper.GetLocation(), RequestHelper.FeatureToJsonModel());
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.MonitorName)]
         [RequireGlobalModule(RequestHelper.MODULE, RequestHelper.DISPLAY_NAME)]
         public object Get(string id)
@@ -50,7 +51,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestMonitor
             return Created(RequestHelper.GetLocation(), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

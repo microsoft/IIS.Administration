@@ -89,7 +89,7 @@ function Create-IisAdministration($_name, $_path) {
     }
 
     $svcDllPath = Join-Path $_path "Microsoft.IIS.Administration\Microsoft.IIS.Administration.dll"
-    sc.exe create "$_name" depend= http binpath= "$dotnetPath \`"$svcDllPath\`" /serviceName=\`"$_name\`"" start= auto
+    sc.exe create "$_name" depend= http binpath= "\`"$dotnetPath\`" \`"$svcDllPath\`" /serviceName=\`"$_name\`"" start= auto
 }
 
 switch ($Command)

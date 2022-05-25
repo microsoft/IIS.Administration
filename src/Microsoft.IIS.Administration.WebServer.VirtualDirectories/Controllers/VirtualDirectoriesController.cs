@@ -19,6 +19,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
 
 
     [RequireWebServer]
+    [Route("api/webserver/virtual-directories")]
     public class VirtualDirectoriesController : ApiBaseController
     {
         private const string HIDDEN_FIELDS = "model.identity.password";
@@ -98,7 +99,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.VirtualDirectoryName)]
         public object Get(string id)
         {
@@ -125,6 +126,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
         [ResourceInfo(Name = Defines.VirtualDirectoryName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             Site site = ApplicationHelper.ResolveSite(model);
             string path = ApplicationHelper.ResolvePath(model);
 
@@ -155,11 +157,12 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             return Created((string)VDirHelper.GetLocation(virtualDir.id), virtualDir);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         [ResourceInfo(Name = Defines.VirtualDirectoryName)]
         public object Patch(string id, [FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             // Cut off the notion of uuid from beginning of request
             VDirId vdirId = new VDirId(id);
 
@@ -193,7 +196,7 @@ namespace Microsoft.IIS.Administration.WebServer.VirtualDirectories
             return virtualDir;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public void Delete(string id)
         {

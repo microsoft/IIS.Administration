@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     using System.Threading.Tasks;
 
     [RequireWebServer]
+    [Route("api/webserver/websites/monitoring")]
     public class WebSiteMonitoringController : ApiBaseController
     {
         private IWebSiteMonitor _monitor;
@@ -36,7 +37,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         }
 
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.WebSiteMonitoringName)]
         public async Task<object> Get(string id)
         {

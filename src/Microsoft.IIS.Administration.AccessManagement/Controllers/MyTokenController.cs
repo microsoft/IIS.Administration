@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     using Core.Security;
 
 
+    [Route("api/access-token")]
     public class MyTokenController : ApiBaseController {
         IApiKeyProvider _keyProvider;
 
@@ -30,11 +31,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
         public object Get() {
             ApiKey key = GetCurrentApiKey();
 
-            if (key == null) {
-                return NotFound();
-            }
-
-            return AccessTokenHelper.ToJsonModel(key);
+            return key == null ? NotFound() : (object)AccessTokenHelper.ToJsonModel(key);
         }
 
 
@@ -50,7 +47,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
             // Renew the key
             string token = await _keyProvider.RenewToken(key);
 
-            return Created(Request.RequestUri.PathAndQuery,
+            return Created(RequestUri.PathAndQuery,
                            AccessTokenHelper.ToJsonModel(new ApiToken() { Token=token, Key=key }));
         }
 
@@ -65,21 +62,13 @@ namespace Microsoft.IIS.Administration.AccessManagement {
 
             Claim tokenClaim = principal.Claims.Where(c => c.Type == Core.Security.ClaimTypes.AccessToken).FirstOrDefault();
 
-            if (tokenClaim == null) {
-                return null;
-            }
-
-            return _keyProvider.FindKey(tokenClaim.Value);
+            return tokenClaim == null ? null : _keyProvider.FindKey(tokenClaim.Value);
         }
 
-        protected override string GetId() {
-            ApiKey key = GetCurrentApiKey();
+        //protected override string GetId() {
+        //    ApiKey key = GetCurrentApiKey();
 
-            if (key == null) {
-                throw new NotFoundException("Access Token");
-            }
-
-            return key.Id;
-        }
+        //    return key == null ? throw new NotFoundException("Access Token") : key.Id;
+        //}
     }
 }

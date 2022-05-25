@@ -18,6 +18,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-response-headers/redirect-headers")]
     public class RedirectHeadersController : ApiBaseController
     {
         [HttpGet]
@@ -44,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.RedirectHeaderName)]
         public object Get(string id)
         {
@@ -70,6 +71,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
         [ResourceInfo(Name = Defines.RedirectHeaderName)]
         public object Post([FromBody] dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null) {
                 throw new ApiArgumentException("model");
             }
@@ -105,11 +107,12 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             return Created(RedirectHeadersHelper.GetLocation(h.id), h);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.RedirectHeaderName)]
         public object Patch(string id, dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             RedirectHeaderId headerId = new RedirectHeaderId(id);
 
             Site site = headerId.SiteId == null ? null : SiteHelper.GetSite(headerId.SiteId.Value);
@@ -143,7 +146,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
         }
 
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

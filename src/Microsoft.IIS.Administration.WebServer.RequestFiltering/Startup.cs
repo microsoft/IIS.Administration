@@ -11,7 +11,6 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Sites;
     using Web.Administration;
 
-
     public class Startup : BaseModule
     {
         public Startup() { }
@@ -30,7 +29,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
         private void ConfigureRequestFiltering()
         {
             // MVC routing
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "requestfiltering" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "requestfiltering" });
 
             // Self
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", rf => new { href = RequestFilteringHelper.GetLocation(rf.id) });
@@ -61,7 +60,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
         private void ConfigureFileExtensions()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.FileExtensionsResource.Guid, $"{ Defines.FILE_NAME_EXTENSIONS_PATH}/{{id?}}", new { controller = "filenameextensions" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.FileExtensionsResource.Guid, $"{ Defines.FILE_NAME_EXTENSIONS_PATH}/{{id?}}", new { controller = "filenameextensions" });
 
             Environment.Hal.ProvideLink(Defines.FileExtensionsResource.Guid, "self", fn => new { href = ExtensionsHelper.GetLocation(fn.id) });
 
@@ -70,7 +69,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
         private void ConfigureHeaderLimits()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.HeaderLimitsResource.Guid, $"{ Defines.HEADER_LIMITS_PATH}/{{id?}}", new { controller = "headerlimits" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.HeaderLimitsResource.Guid, $"{ Defines.HEADER_LIMITS_PATH}/{{id?}}", new { controller = "headerlimits" });
 
             Environment.Hal.ProvideLink(Defines.HeaderLimitsResource.Guid, "self", hl => new { href = HeaderLimitsHelper.GetLocation(hl.id) });
 
@@ -79,7 +78,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
         private void ConfigureHiddenSegments()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.HiddenSegmentsResource.Guid, $"{ Defines.HIDDEN_SEGMENTS_PATH}/{{id?}}", new { controller = "hiddensegments" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.HiddenSegmentsResource.Guid, $"{ Defines.HIDDEN_SEGMENTS_PATH}/{{id?}}", new { controller = "hiddensegments" });
 
             Environment.Hal.ProvideLink(Defines.HiddenSegmentsResource.Guid, "self", hs => new { href = HiddenSegmentsHelper.GetLocation(hs.id) });
 
@@ -88,7 +87,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
         private void ConfigureQueryStrings()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.QueryStringResource.Guid, $"{ Defines.QUERY_STRING_PATH}/{{id?}}", new { controller = "querystrings" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.QueryStringResource.Guid, $"{ Defines.QUERY_STRING_PATH}/{{id?}}", new { controller = "querystrings" });
 
             Environment.Hal.ProvideLink(Defines.QueryStringResource.Guid, "self", qs => new { href = QueryStringsHelper.GetLocation(qs.id) });
 
@@ -97,7 +96,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
         private void ConfigureRules()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RulesResource.Guid, $"{ Defines.RULES_PATH}/{{id?}}", new { controller = "filteringrules" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RulesResource.Guid, $"{ Defines.RULES_PATH}/{{id?}}", new { controller = "filteringrules" });
 
             Environment.Hal.ProvideLink(Defines.Resource.Guid, Defines.RulesResource.Name, rf => new { href = $"/{Defines.RULES_PATH}?{Defines.IDENTIFIER}={rf.id}" });
 
@@ -106,7 +105,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
 
         private void ConfigureUrls()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.UrlsResource.Guid, $"{ Defines.URLS_PATH}/{{id?}}", new { controller = "urls" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.UrlsResource.Guid, $"{ Defines.URLS_PATH}/{{id?}}", new { controller = "urls" });
 
             Environment.Hal.ProvideLink(Defines.UrlsResource.Guid, "self", url => new { href = UrlsHelper.GetLocation(url.id) });
 

@@ -27,13 +27,13 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
             if (previous != null) {
                 ServiceDescriptor frebProvider = ServiceDescriptor.Singleton<IFileProvider>(sp => {
-                    var env = (IHostingEnvironment)sp.GetService(typeof(IHostingEnvironment));
+                    var env = (IWebHostEnvironment)sp.GetService(typeof(IWebHostEnvironment));
                     var configProvider = (IApplicationHostConfigProvider)sp.GetService(typeof(IApplicationHostConfigProvider));
 
                     return new FrebXslFileProvider((IFileProvider)(previous?.ImplementationInstance ?? previous?.ImplementationFactory(sp)), env, configProvider);
                 });
 
-                services.Replace(frebProvider);
+                _ = services.Replace(frebProvider);
             }
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
         private void ConfigureHttpRequestTracing()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "HttpRequestTracing" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.Resource.Guid, $"{Defines.PATH}/{{id?}}", new { controller = "HttpRequestTracing" });
 
             // Self
             Environment.Hal.ProvideLink(Defines.Resource.Guid, "self", hrt => new { href = Helper.GetLocation(hrt.id) });
@@ -90,7 +90,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
         private void ConfigureProviders()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ProvidersResource.Guid, $"{ Defines.PROVIDERS_PATH}/{{id?}}", new { controller = "TraceProviders" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.ProvidersResource.Guid, $"{ Defines.PROVIDERS_PATH}/{{id?}}", new { controller = "TraceProviders" });
 
             Environment.Hal.ProvideLink(Defines.ProvidersResource.Guid, "self", p => new { href = ProvidersHelper.GetLocation(p.id) });
 
@@ -99,7 +99,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
         private void ConfigureRules()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RulesResource.Guid, $"{ Defines.RULES_PATH}/{{id?}}", new { controller = "TraceRules" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.RulesResource.Guid, $"{ Defines.RULES_PATH}/{{id?}}", new { controller = "TraceRules" });
 
             Environment.Hal.ProvideLink(Defines.RulesResource.Guid, "self", r => new { href = RulesHelper.GetLocation(r.id) });
 
@@ -108,7 +108,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
         private void ConfigureTraces()
         {
-            Environment.Host.RouteBuilder.MapWebApiRoute(Defines.TracesResource.Guid, $"{ Defines.TRACES_PATH}/{{id?}}", new { controller = "RequestTraces" });
+            _ = Environment.Host.RouteBuilder.MapWebApiRoute(Defines.TracesResource.Guid, $"{ Defines.TRACES_PATH}/{{id?}}", new { controller = "RequestTraces" });
 
             Environment.Hal.ProvideLink(Defines.TracesResource.Guid, "self", r => new { href = TracesHelper.GetLocation(r.id) });
 

@@ -85,11 +85,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
 
 
         public static string GetLocation(string id) {
-            if (string.IsNullOrEmpty(id)) {
-                throw new ArgumentNullException(nameof(id));
-            }
-
-            return $"/{Defines.APIKEYS_PATH}/{id}";
+            return string.IsNullOrEmpty(id) ? throw new ArgumentNullException(nameof(id)) : $"/{Defines.APIKEYS_PATH}/{id}";
         }
     }
 }

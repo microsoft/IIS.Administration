@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Microsoft.IIS.Administration": {
+      "commandName": "Project",
+      "commandLineArgs": "\"$(ProgramFiles)\\dotnet\\dotnet.exe\" \"$(AppOutputRoot)\\Microsoft.IIS.Administration.dll\"",
+      "workingDirectory": "$(AppOutputRoot)"
+    }
+  }
+}

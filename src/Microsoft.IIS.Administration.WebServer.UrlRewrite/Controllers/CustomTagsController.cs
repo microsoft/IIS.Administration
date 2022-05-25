@@ -7,6 +7,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.IIS.Administration.Core;
     using Microsoft.IIS.Administration.Core.Http;
+    using Microsoft.IIS.Administration.Core.Utils;
     using Microsoft.IIS.Administration.WebServer.Sites;
     using Microsoft.Web.Administration;
     using System;
@@ -14,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System.Net;
 
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
+    [Route("api/webserver/url-rewrite/outbound/custom_tags")]
     public class CustomTagsController : ApiBaseController
     {
         [HttpGet]
@@ -41,7 +43,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.CustomTagName)]
         public object Get(string id)
         {
@@ -64,11 +66,12 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return OutboundRulesHelper.TagsToJsonModel(tag, site, customTagsId.Path, Context.Request.GetFields());
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ResourceInfo(Name = Defines.CustomTagName)]
         [Audit]
         public object Patch([FromBody]dynamic model, string id)
         {
+            model = DynamicHelper.ToJObject(model);
             var customTagsId = new CustomTagsId(id);
 
             Site site = customTagsId.SiteId == null ? null : SiteHelper.GetSite(customTagsId.SiteId.Value);
@@ -105,6 +108,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
         [Audit]
         public object Post([FromBody]dynamic model)
         {
+            model = DynamicHelper.ToJObject(model);
             if (model == null)
             {
                 throw new ApiArgumentException("model");
@@ -131,7 +135,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return Created(OutboundRulesHelper.GetCustomTagsLocation(pc.id), pc);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public void Delete(string id)
         {
             TagsElement tags = null;
