@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core.Http;
 
     [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
+    [Route("api/webserver/http-request-filtering/http-headers")]
     public class HeaderLimitsController : ApiBaseController
     {
         [HttpGet]
@@ -40,7 +41,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.HeaderLimitName)]
         public object Get(string id)
         {
@@ -102,7 +103,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return Created(HeaderLimitsHelper.GetLocation(header_limit.id), header_limit);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.HeaderLimitName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -137,7 +138,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return head;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

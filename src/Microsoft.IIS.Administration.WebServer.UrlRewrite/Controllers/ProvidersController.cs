@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System.Net;
     using Web.Administration;
 
+    [Route("api/webserver/url-rewrite/providers/entries")]
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
     public class ProvidersController : ApiBaseController
     {
@@ -41,7 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.ProviderName)]
         public object Get(string id)
         {
@@ -62,7 +63,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return ProvidersHelper.ProviderToJsonModel(provider, site, providerId.Path, Context.Request.GetFields());
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ResourceInfo(Name = Defines.ProviderName)]
         [Audit]
         public object Patch([FromBody]dynamic model, string id)
@@ -131,7 +132,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return Created(ProvidersHelper.GetProviderLocation(p.id), p);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public void Delete(string id)
         {
             Provider provider = null;

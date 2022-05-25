@@ -2,11 +2,46 @@
 Microsoft IIS Administration API
 --------------------------------
 
-[![Build status](https://ci.appveyor.com/api/projects/status/l62ov4c6fbdi6vrq/branch/dev?svg=true)](https://ci.appveyor.com/project/jimmyca15/iis-administration-ed6b3/branch/dev)
-
-To find the latest news for the IIS Administration api visit the blog at https://blogs.iis.net/adminapi.
-
 Documentation is available at https://docs.microsoft.com/en-us/IIS-Administration 
+
+### Develop and Debug with Visual studio 2022: ###
+* Clone this project
+* Load the solution (Microsoft.IIS.Administration.sln) in Visual Studio
+* Try restoring all the NuGet packages
+* Open src\Microsoft.IIS.Administration\config\appsettings.json, modify the users section as below,
+```
+"users": {
+      "administrators": [
+        "mydomain\\myusername",
+        "myusername@mycompany.com",
+        "IIS Administration API Owners"
+      ],
+      "owners": [
+        "mydomain\\myusername",
+        "myusername@mycompany.com",
+        "IIS Administration API Owners"
+      ]
+    },
+```    
+* Run PowerShell as an Administrator
+* Run Configure-DevEnvironment.ps1 script in the scripts dir
+* From the visual studio run profile menu select option Microsoft.IIS.Administration and run the application.
+* If you are not able to browse the site or your getting generic browser error, most like SSL certificate is not configured for that. IIS   express installs SSL certificates on   port 44300-44399. Try changing the port to one of these in appsettings.json
+  **ex: "urls":"https://*:44326"**
+
+### Build the Installer: ###
+In the following code, replace the path to match your clone location. It first starts the developer command prompt for Visual Studio 2022, publishes the solution and finally, builds the installer at installer\IISAdministrationBundle\bin\x64\Release.
+```
+%comspec% /k "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\Tools\VsDevCmd.bat"
+
+cd /d C:\src\repos\IIS.Administration
+msbuild -restore Microsoft.IIS.Administration.sln /t:publish
+
+build\nuget.exe restore installer\IISAdministrationSetup\packages.config -SolutionDirectory installer
+msbuild installer /p:configuration=release
+```
+
+
 
 ### Installation and Known Issues: ###
 * Must first remove preview builds of .Net Core. The service does not work with preview builds of .Net Core.
@@ -18,8 +53,6 @@ Documentation is available at https://docs.microsoft.com/en-us/IIS-Administratio
 * If you have trouble viewing the Access Token created from the API Explorer in Microsoft Edge, go to [edge://settings/reset](edge://settings/reset) and reset your browser's settings.
 * Microsoft.Web.Administration.dll version conflicts with .Net 6.0: Remove all code related to **_"ms.web.admin.refs"_** in the future when it is ported to .Net 6.0.
 * Supports 64 bit Windows Server 2008 R2 and above
-
-The latest installer can be obtained from https://iis-manage.azurewebsites.net/get. The installer will automatically download and install all dependencies.
 
 ### Nano Server Installation: ###
 There is a blog post to get up and running on Nano Server located at https://blogs.iis.net/adminapi/microsoft-iis-administration-on-nano-server.
@@ -75,52 +108,6 @@ JSON request
 * Make sure the appsettings.json being used is similar to the one at test\appsettings.test.json. Without the "files" section, new Web sites cannot be created. "cors" section is also required.
 * Open another instance of the project (also as Administrator since tests need to create new local users and enable some IIS features) and run the tests located in the 'test' folder
 * Tests can also be run with the CLI
-
-### Publish and Install: ###
-Publishing and installing can be done through a PowerShell script. This requires the .NET Core SDK.
-
-In the following code, replace the path to match your clone location. It first starts the developer command prompt for Visual Studio 2022, publishes the solution and finally, builds the installer at installer\IISAdministrationBundle\bin\x64\Release.
-```
-%comspec% /k "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\Tools\VsDevCmd.bat"
-cd /d C:\src\repos\IIS.Administration
-msbuild -restore Microsoft.IIS.Administration.sln /t:publish
-
-build\nuget.exe restore installer\IISAdministrationSetup\packages.config -SolutionDirectory installer
-msbuild installer /p:configuration=release
-```
-
-### Develop and Debug in Visual studio 2022: ###
-* Clone this project
-* Load the project in visual studio
-* Try restoring all the NuGet packages
-* Open src\Microsoft.IIS.Administration\config\appsettings.json, modify the users section as below,
-```
-"users": {
-      "administrators": [
-        "mydomain\\myusername",
-        "myusername@mycompany.com",
-        "IIS Administration API Owners"
-      ],
-      "owners": [
-        "mydomain\\myusername",
-        "myusername@mycompany.com",
-        "IIS Administration API Owners"
-      ]
-    },
-```    
-* Run PowerShell as an Administrator
-* Run Configure-DevEnvironment.ps1 script in the scripts dir
-* From the visual studio run profile menu select option Microsoft.IIS.Administration and run the application.
-* If you are not able to browse the site or your getting generic browser error, most like SSL certificate is not configured for that. IIS   express installs SSL certificates on   port 44300-44399. Try changing the port to one of these in appsettings.json
-  **ex: "urls":"https://*:44326"**
-
-### Using the new API ###
-1. Navigate to https://manage.iis.net
-2. Click 'Get Access Token'
-3. Generate an access token and copy it to the clipboard
-4. Exit the access tokens window and return to the connection screen
-5. Paste the access token into the Access Token field of the connection screen
-6. Click 'Connect'
 
 ## Examples ##
 

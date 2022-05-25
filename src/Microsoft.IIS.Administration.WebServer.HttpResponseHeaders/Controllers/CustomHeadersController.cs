@@ -18,6 +18,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-response-headers/custom-headers")]
     public class CustomHeadersController : ApiBaseController
     {
         [HttpGet]
@@ -44,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.CustomHeaderName)]
         public object Get(string id)
         {
@@ -106,7 +107,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             return Created(CustomHeadersHelper.GetLocation(ch.id), ch);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.CustomHeaderName)]
         public object Patch(string id, dynamic model)
@@ -142,7 +143,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             return ch;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

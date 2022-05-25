@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
     [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
     [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
+    [Route("api/webserver/http-request-tracing/rules")]
     public class TraceRulesController : ApiBaseController
     {
         [HttpGet]
@@ -44,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.RuleName)]
         public object Get(string id)
         {
@@ -106,7 +107,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return Created(RulesHelper.GetLocation(r.id), r);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.RuleName)]
         public object Patch(string id, dynamic model)
@@ -145,7 +146,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return rle;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

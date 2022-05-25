@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
     using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
+    [Route("api/webserver/directory-browsing")]
     public class DirectoryBrowsingController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Directory Browsing";
@@ -35,7 +36,7 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
             return LocationChanged(DirectoryBrowsingHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.DirectoryBrowsingName)]
         [RequireGlobalModule(DirectoryBrowsingHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -47,7 +48,7 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
             return DirectoryBrowsingHelper.ToJsonModel(site, dirbId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.DirectoryBrowsingName)]
         [RequireGlobalModule(DirectoryBrowsingHelper.MODULE, DISPLAY_NAME)]
@@ -85,7 +86,7 @@ namespace Microsoft.IIS.Administration.WebServer.DirectoryBrowsing
             return Created(DirectoryBrowsingHelper.GetLocation(settings.id), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

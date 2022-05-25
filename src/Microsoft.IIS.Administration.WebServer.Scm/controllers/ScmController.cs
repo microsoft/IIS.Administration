@@ -10,6 +10,7 @@ namespace Microsoft.IIS.Administration.WebServer.Scm
     using Core;
 
     [RequireWebServer]
+    [Route("api/webserver/service-controller")]
     public class ScmController : ApiBaseController
     {
         [HttpGet]

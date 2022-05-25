@@ -27,7 +27,8 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     /// </summary>
     [Authorize(Policy = "ApiKeys")]
     [DisableCors]
-    public class ApiKeysController : ApiEdgeController {
+    [Route("security/api-keys")]
+    public class ApiKeysController : ApiController {
         IApiKeyProvider _keyProvider;
 
         public ApiKeysController(IApiKeyProvider keyProvider) {
@@ -49,7 +50,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.ApiKeyName)]
         public object Get(string id) {
             ApiKey key = _keyProvider.GetKey(id);
@@ -94,7 +95,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
 
 
         [ValidateAntiForgeryToken]
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ResourceInfo(Name = Defines.ApiKeyName)]
         public async Task<object> Patch(string id, [FromBody] dynamic model) {
             model = DynamicHelper.ToJObject(model);
@@ -113,7 +114,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
 
 
         [ValidateAntiForgeryToken]
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task Delete(string id) {
             ApiKey key = _keyProvider.GetKey(id);
 

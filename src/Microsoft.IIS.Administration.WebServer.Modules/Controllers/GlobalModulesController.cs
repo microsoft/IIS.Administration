@@ -16,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
 
 
     [RequireWebServer]
+    [Route("api/webserver/global-modules")]
     public class GlobalModulesController : ApiBaseController
     {
         [HttpGet]
@@ -41,7 +42,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.GlobalModuleName)]
         public object Get(string id)
         {
@@ -78,7 +79,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             return Created(ModuleHelper.GetGlobalModuleLocation(gm.id), gm);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.GlobalModuleName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -99,11 +100,10 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             return ModuleHelper.GlobalModuleToJsonModel(module);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
-        public void Delete(string id, [FromBody] dynamic model)
+        public void Delete(string id)
         {
-            model = DynamicHelper.ToJObject(model);
             GlobalModuleId moduleId = GlobalModuleId.CreateFromUuid(id);
 
             GlobalModule module = ModuleHelper.GetGlobalModules().FirstOrDefault(m => m.Name.Equals(moduleId.Name));

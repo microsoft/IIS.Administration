@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.Files
     using System.IO;
     using System.Net;
 
+    [Route("api/files/move")]
     public class MoveController : ApiBaseController
     {
         private MoveHelper _helper;
@@ -70,7 +71,7 @@ namespace Microsoft.IIS.Administration.Files
             return _helper.ToJsonModel(move);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         public object Get(string id)
         {
             MoveOperation move = null;

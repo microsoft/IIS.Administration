@@ -16,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core.Http;
 
     [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
+    [Route("api/webserver/http-request-filtering/hidden-segments")]
     public class HiddenSegmentsController : ApiBaseController
     {
         [HttpGet]
@@ -39,7 +40,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.HiddenSegmentName)]
         public object Get(string id)
         {
@@ -102,7 +103,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return Created(HiddenSegmentsHelper.GetLocation(hidden_segment.id), hidden_segment);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

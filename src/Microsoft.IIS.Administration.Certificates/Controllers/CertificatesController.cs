@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.Certificates
     using Core;
     using System.Threading.Tasks;
 
+    [Route("api/certificates")]
     public class CertificatesController : ApiBaseController
     {
         private const string _units = "certificates";
@@ -86,7 +87,7 @@ namespace Microsoft.IIS.Administration.Certificates
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.CertificateName)]
         public async Task<object> Get(string id)
         {

@@ -2,19 +2,20 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 
-namespace Microsoft.IIS.Administration.AccessManagement {
-    using System;
-    using System.Net;
-    using System.Threading.Tasks;
-    using System.Web.Http;
+namespace Microsoft.IIS.Administration.AccessManagement
+{
     using AspNetCore.Antiforgery;
     using AspNetCore.Authorization;
     using AspNetCore.Cors;
     using AspNetCore.Mvc;
     using Core;
+    using Core.Http;
     using Core.Security;
     using Core.Utils;
     using Extensions.Options;
+    using System;
+    using System.Net;
+    using System.Threading.Tasks;
 
 
     /// <summary>
@@ -25,6 +26,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
     /// </summary>
     [Authorize(Policy = "ApiKeys")]
     [DisableCors]
+    [Route("security/access-tokens")]
     public class AccessTokensController : ApiController {
         IApiKeyProvider _keyProvider;
 
@@ -46,7 +48,7 @@ namespace Microsoft.IIS.Administration.AccessManagement {
             Context.Response.StatusCode = (int)HttpStatusCode.NoContent;
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.AccessTokenName)]
         public object Get(string id) {
             SetAntiForgeryTokens();

@@ -7,6 +7,7 @@ namespace Microsoft.IIS.Administration
     using AspNetCore.Builder;
     using AspNetCore.Routing;
     using Core;
+    using Core.Http;
     using Extensions.DependencyInjection;
     using System;
     using System.Collections.Generic;

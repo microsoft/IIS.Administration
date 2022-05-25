@@ -10,6 +10,7 @@ namespace Microsoft.IIS.Administration.Certificates
     using System;
     using System.Linq;
 
+    [Route("api/certificates/stores")]
     public class CertificateStoresController : ApiBaseController
     {
         private ICertificateStoreProvider _provider;
@@ -30,7 +31,7 @@ namespace Microsoft.IIS.Administration.Certificates
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.StoresName)]
         public object Get(string id)
         {

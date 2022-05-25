@@ -5,10 +5,12 @@
 namespace Microsoft.IIS.Administration.WebServer.Monitoring
 {
     using Core.Http;
+    using Microsoft.AspNetCore.Mvc;
     using Microsoft.IIS.Administration.Core;
     using System.Threading.Tasks;
 
     [RequireWebServer]
+    [Route("api/webserver/monitoring")]
     public class WebServerMonitoringController : ApiBaseController
     {
         private IWebServerMonitor _monitor;
@@ -18,6 +20,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
             _monitor = monitor;
         }
 
+        [HttpGet]
         [ResourceInfo(Name = Defines.WebServerMonitoringName)]
         public async Task<object> Get()
         {

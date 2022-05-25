@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-modules/entries")]
     public class ModulesController : ApiBaseController {
 
         [HttpGet]
@@ -44,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.ModuleEntryName)]
         public object Get(string id) {
             EntryId entryId = new EntryId(id);
@@ -143,7 +144,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             return Created(ModuleHelper.GetModuleEntryLocation(moduleEntry.id), moduleEntry);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.ModuleEntryName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -185,7 +186,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             return entry;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

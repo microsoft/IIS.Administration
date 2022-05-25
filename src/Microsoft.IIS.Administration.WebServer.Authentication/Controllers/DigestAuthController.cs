@@ -16,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
 
     [RequireWebServer]
+    [Route("api/webserver/authentication/digest-authentication")]
     public class DigestAuthController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Digest Authentication";
@@ -32,7 +33,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return DigestAuthenticationHelper.ToJsonModel(site, path);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.DigestAuthenticationName)]
         [RequireGlobalModule(DigestAuthenticationHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -44,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return DigestAuthenticationHelper.ToJsonModel(site, digestAuthId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.DigestAuthenticationName)]
         [RequireGlobalModule(DigestAuthenticationHelper.MODULE, DISPLAY_NAME)]
@@ -83,7 +84,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return Created(DigestAuthenticationHelper.GetLocation(auth.id), auth);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

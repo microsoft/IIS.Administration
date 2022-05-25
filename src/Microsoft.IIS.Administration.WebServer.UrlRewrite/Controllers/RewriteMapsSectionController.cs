@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System.Net;
 
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
+    [Route("api/webserver/url-rewrite/rewrite-maps")]
     public class RewriteMapsSectionController : ApiBaseController
     {
         [HttpGet]
@@ -29,7 +30,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return LocationChanged(RewriteMapsHelper.GetSectionLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.RewriteMapsSectionName)]
         public object Get(string id)
         {
@@ -45,7 +46,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return RewriteMapsHelper.SectionToJsonModel(site, rewriteId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.RewriteMapsSectionName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -72,7 +73,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return RewriteMapsHelper.SectionToJsonModel(site, rewriteMapsId.Path);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

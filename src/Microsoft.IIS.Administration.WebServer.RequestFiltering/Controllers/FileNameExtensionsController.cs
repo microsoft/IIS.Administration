@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core.Http;
 
     [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
+    [Route("api/webserver/http-request-filtering/file-extensions")]
     public class FileNameExtensionsController : ApiBaseController
     {
         [HttpGet]
@@ -40,7 +41,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.FileExtensionName)]
         public object Get(string id)
         {
@@ -107,7 +108,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return Created(ExtensionsHelper.GetLocation(ext.id), ext);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.FileExtensionName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -146,7 +147,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return ext;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

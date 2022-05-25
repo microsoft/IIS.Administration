@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
     using System.Threading.Tasks;
 
     [RequireWebServer]
+    [Route("api/webserver/application-pools/monitoring")]
     public class AppPoolMonitoringController : ApiBaseController
     {
         private IAppPoolMonitor _monitor;
@@ -36,7 +37,7 @@ namespace Microsoft.IIS.Administration.WebServer.Monitoring
         }
 
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.AppPoolMonitoringName)]
         public async Task<object> Get(string id)
         {

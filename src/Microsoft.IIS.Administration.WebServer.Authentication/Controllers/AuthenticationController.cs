@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
 
 
     [RequireWebServer]
+    [Route("api/webserver/authentication")]
     public class AuthenticationController : ApiBaseController
     {
         [HttpGet]
@@ -33,7 +34,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authentication
             return Environment.Hal.Apply(Defines.AuthenticationResource.Guid, obj);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.AuthenticationName)]
         public object Get(string id)
         {

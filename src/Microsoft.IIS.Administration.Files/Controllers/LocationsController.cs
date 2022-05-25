@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.Files
     using System.Threading.Tasks;
 
     [Authorize(Policy = "System")]
+    [Route("api/files/locations")]
     public class LocationsController : ApiBaseController
     {
         LocationsHelper _helper;
@@ -33,7 +34,7 @@ namespace Microsoft.IIS.Administration.Files
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.LocationsName)]
         public object Get(string id)
         {
@@ -48,7 +49,7 @@ namespace Microsoft.IIS.Administration.Files
             return _helper.ToJsonModel(location);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ResourceInfo(Name = Defines.LocationsName)]
         [Audit(AuditAttribute.ALL)]
         public async Task<object> Patch([FromBody] dynamic model, string id)
@@ -89,7 +90,7 @@ namespace Microsoft.IIS.Administration.Files
             return Created(_helper.GetLocationPath(locModel.id), locModel);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit(AuditAttribute.ALL)]
         public async Task Delete(string id)
         {

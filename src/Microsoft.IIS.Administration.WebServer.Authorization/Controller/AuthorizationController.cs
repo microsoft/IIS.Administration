@@ -16,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
 
 
     [RequireWebServer]
+    [Route("api/webserver/authorization")]
     public class AuthorizationController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Authorization";
@@ -31,7 +32,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return AuthorizationHelper.ToJsonModel(site, path);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.AuthorizationName)]
         [RequireGlobalModule(AuthorizationHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -43,7 +44,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return AuthorizationHelper.ToJsonModel(site, authId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.AuthorizationName)]
         [RequireGlobalModule(AuthorizationHelper.MODULE, DISPLAY_NAME)]
@@ -90,7 +91,7 @@ namespace Microsoft.IIS.Administration.WebServer.Authorization
             return Created(AuthorizationHelper.GetLocation(auth.id), auth);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

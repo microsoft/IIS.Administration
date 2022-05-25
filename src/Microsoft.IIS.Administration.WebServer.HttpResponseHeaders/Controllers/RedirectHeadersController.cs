@@ -18,6 +18,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-response-headers/redirect-headers")]
     public class RedirectHeadersController : ApiBaseController
     {
         [HttpGet]
@@ -44,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.RedirectHeaderName)]
         public object Get(string id)
         {
@@ -106,7 +107,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             return Created(RedirectHeadersHelper.GetLocation(h.id), h);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.RedirectHeaderName)]
         public object Patch(string id, dynamic model)
@@ -145,7 +146,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
         }
 
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

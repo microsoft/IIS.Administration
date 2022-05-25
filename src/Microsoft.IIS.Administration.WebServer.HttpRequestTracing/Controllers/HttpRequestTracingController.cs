@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-request-tracing")]
     public class HttpRequestTracingController : ApiBaseController
     {
         private IFileProvider _fileProvider;
@@ -43,7 +44,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return LocationChanged(Helper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.HttpRequestTracingName)]
         [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
         [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
@@ -56,7 +57,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return Helper.ToJsonModel(site, hrtId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ResourceInfo(Name = Defines.HttpRequestTracingName)]
         [RequireGlobalModule(Helper.TRACING_MODULE, Helper.DISPLAY_NAME)]
         [RequireGlobalModule(Helper.FAILED_REQUEST_TRACING_MODULE, Helper.DISPLAY_NAME)]
@@ -94,7 +95,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpRequestTracing
             return Created(Helper.GetLocation(settings.id), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

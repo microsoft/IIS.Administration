@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.Files
     using System.Net;
     using System.Reflection;
 
+    [Route("api/files/downloads")]
     public class FileDownloadsController : ApiBaseController
     {
         private const int DEFAULT_DOWNLOAD_TIMEOUT = 5000; // milliseconds

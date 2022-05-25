@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.Delegation
     using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
+    [Route("api/webserver/feature-delegation")]
     public class DelegationController : ApiBaseController
     {
         [HttpGet]
@@ -30,7 +31,7 @@ namespace Microsoft.IIS.Administration.WebServer.Delegation
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.DelegationName)]
         public object Get(string id)
         {
@@ -48,7 +49,7 @@ namespace Microsoft.IIS.Administration.WebServer.Delegation
             return DelegationHelper.SectionToJsonModel(section, site, sectionId.Path, sectionId.ConfigScope);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.DelegationName)]
         public object Patch(string id, [FromBody] dynamic model)

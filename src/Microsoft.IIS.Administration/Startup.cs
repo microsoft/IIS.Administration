@@ -114,7 +114,6 @@ namespace Microsoft.IIS.Administration {
             }
 
             _ = builder.AddControllersAsServices();
-            _ = builder.AddWebApiConventions();
             _ = builder.AddRazorRuntimeCompilation();
         }
 
@@ -187,7 +186,7 @@ namespace Microsoft.IIS.Administration {
                 // Ensure routes meant to be extended do not block child routes
                 SortRoutes(routes);
             });
-
+            
             //
             // Register for application shutdown
             _ = applicationLifeTime.ApplicationStopped.Register(() => AdminHost.Instance.StopModules());

@@ -77,9 +77,6 @@
       <Component Id="C_Microsoft.IIS.Administration.Files.Core.dll" Guid="e6dd3e96-b6bf-428d-8145-f613433da408" Win64="$(var.IsWin64)">
         <File Id="Microsoft.IIS.Administration.Files.Core.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.Files.Core.dll" />
       </Component>
-      <Component Id="C_Microsoft.IIS.Administration.WebApiCompatShim.dll" Guid="181d8423-3a90-4a7f-9178-2b210dd2e79e" Win64="$(var.IsWin64)">
-        <File Id="Microsoft.IIS.Administration.WebApiCompatShim.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.WebApiCompatShim.dll" />
-      </Component>
       <Component Id="C_Newtonsoft.Json.Bson.dll" Guid="d17aec10-b477-4e35-9534-71471db52908" Win64="$(var.IsWin64)">
         <File Id="Newtonsoft.Json.Bson.dll" Source="$(var.APIDir)\Newtonsoft.Json.Bson.dll" />
       </Component>
@@ -100,9 +97,6 @@
       </Component>
       <Component Id="C_System.IdentityModel.Tokens.Jwt.dll" Guid="36e521bf-65d7-4e61-a7bf-33d8e85211d3" Win64="$(var.IsWin64)">
         <File Id="System.IdentityModel.Tokens.Jwt.dll" Source="$(var.APIDir)\System.IdentityModel.Tokens.Jwt.dll" />
-      </Component>
-      <Component Id="C_System.Net.Http.Formatting.dll" Guid="68b6cece-1ea7-4556-915b-8b4b6d4396f8" Win64="$(var.IsWin64)">
-        <File Id="System.Net.Http.Formatting.dll" Source="$(var.APIDir)\System.Net.Http.Formatting.dll" />
       </Component>
       <Component Id="C_System.ServiceProcess.ServiceController.dll" Guid="f693f958-dff6-4fd5-a236-47f88d735dee" Win64="$(var.IsWin64)">
         <File Id="System.ServiceProcess.ServiceController.dll" Source="$(var.APIDir)\System.ServiceProcess.ServiceController.dll" />

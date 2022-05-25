@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
     using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
+    [Route("api/webserver/http-response-headers")]
     public class HttpResponseHeadersController : ApiBaseController
     {
         [HttpGet]
@@ -31,7 +32,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             return LocationChanged(HttpResponseHeadersHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.ResponseHeadersName)]
         public object Get(string id)
         {
@@ -46,7 +47,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             return HttpResponseHeadersHelper.ToJsonModel(site, headerId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.ResponseHeadersName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -71,7 +72,7 @@ namespace Microsoft.IIS.Administration.WebServer.HttpResponseHeaders
             return HttpResponseHeadersHelper.ToJsonModel(site, headerId.Path);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

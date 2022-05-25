@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core.Http;
 
     [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
+    [Route("api/webserver/http-request-filtering/urls")]
     public class UrlsController : ApiBaseController
     {
         [HttpGet]
@@ -40,7 +41,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.UrlName)]
         public object Get(string id)
         {
@@ -102,7 +103,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return Created(UrlsHelper.GetLocation(u.id), u);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.UrlName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -136,7 +137,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return urlModel;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

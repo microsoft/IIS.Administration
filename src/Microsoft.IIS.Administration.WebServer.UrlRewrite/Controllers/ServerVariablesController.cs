@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Web.Administration;
 
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
+    [Route("api/webserver/url-rewrite/allowed-server-variables")]
     public class ServerVariablesController : ApiBaseController
     {
         [HttpGet]
@@ -29,7 +30,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return LocationChanged(ServerVariablesHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.ServerVariablesName)]
         public object Get(string id)
         {
@@ -45,7 +46,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return ServerVariablesHelper.ToJsonModel(site, serverVariablesId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.ServerVariablesName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -72,7 +73,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return ServerVariablesHelper.ToJsonModel(site, serverVariablesId.Path);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

@@ -134,8 +134,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{E05E
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.PsSetup", "scripts\Microsoft.IIS.Administration.PsSetup.csproj", "{C5FA05E9-0A3E-4C00-B261-CE35A568659D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.IIS.Administration.WebApiCompatShim", "src\Microsoft.IIS.Administration.WebApiCompatShim\Microsoft.IIS.Administration.WebApiCompatShim.csproj", "{AA8D30E0-DCB6-449E-A19A-F68A3155F0F0}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.Web.Administration.Refs", "src\Microsoft.Web.Administration.Refs\Microsoft.Web.Administration.Refs.csproj", "{2735D370-CA41-47D5-9CE3-3E05EC3E82C0}"
 EndProject
 Global
@@ -291,10 +289,6 @@ Global
 		{C5FA05E9-0A3E-4C00-B261-CE35A568659D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C5FA05E9-0A3E-4C00-B261-CE35A568659D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C5FA05E9-0A3E-4C00-B261-CE35A568659D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AA8D30E0-DCB6-449E-A19A-F68A3155F0F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AA8D30E0-DCB6-449E-A19A-F68A3155F0F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AA8D30E0-DCB6-449E-A19A-F68A3155F0F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AA8D30E0-DCB6-449E-A19A-F68A3155F0F0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2735D370-CA41-47D5-9CE3-3E05EC3E82C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2735D370-CA41-47D5-9CE3-3E05EC3E82C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2735D370-CA41-47D5-9CE3-3E05EC3E82C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -342,7 +336,6 @@ Global
 		{6FDC4BDA-91D3-4269-B89B-043EDC7768F7} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{F1AEBED1-CE86-48D2-8389-6559A088B6F8} = {5504DA5E-BCF3-409E-A285-E59EDBBBB8B8}
 		{C5FA05E9-0A3E-4C00-B261-CE35A568659D} = {E05E8FAA-90EE-43C7-911F-4543FB491159}
-		{AA8D30E0-DCB6-449E-A19A-F68A3155F0F0} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 		{2735D370-CA41-47D5-9CE3-3E05EC3E82C0} = {BC25CF2F-4139-4D3F-9DC5-279FD380D0F2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

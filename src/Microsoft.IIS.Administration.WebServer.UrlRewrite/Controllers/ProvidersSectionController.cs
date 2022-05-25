@@ -13,6 +13,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Web.Administration;
 
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
+    [Route("api/webserver/url-rewrite/providers")]
     public class ProvidersSectionController : ApiBaseController
     {
         [HttpGet]
@@ -29,7 +30,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return LocationChanged(ProvidersHelper.GetSectionLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.ProvidersSectionName)]
         public object Get(string id)
         {
@@ -45,7 +46,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return ProvidersHelper.SectionToJsonModel(site, rewriteId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.ProvidersSectionName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -72,7 +73,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return ProvidersHelper.SectionToJsonModel(site, providersId.Path);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

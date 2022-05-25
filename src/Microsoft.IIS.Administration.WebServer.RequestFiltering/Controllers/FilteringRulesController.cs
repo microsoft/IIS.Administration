@@ -18,6 +18,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
     using Core.Http;
 
     [RequireGlobalModule(RequestFilteringHelper.MODULE, RequestFilteringHelper.DISPLAY_NAME)]
+    [Route("api/webserver/http-request-filtering/rules")]
     public class FilteringRulesController : ApiBaseController
     {
         [HttpGet]
@@ -44,7 +45,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.FilteringRuleName)]
         public object Get(string id)
         {
@@ -115,7 +116,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return Created(RulesHelper.GetLocation(r.id), r);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.FilteringRuleName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -154,7 +155,7 @@ namespace Microsoft.IIS.Administration.WebServer.RequestFiltering
             return rle;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

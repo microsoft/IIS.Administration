@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using Web.Administration;
 
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
+    [Route("api/webserver/url-rewrite/inbound/rules")]
     public class InboundRulesController : ApiBaseController
     {
         [HttpGet]
@@ -42,7 +43,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.InboundRuleName)]
         public object Get(string id)
         {
@@ -63,7 +64,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return InboundRulesHelper.RuleToJsonModel(rule, site, inboundRuleId.Path, Context.Request.GetFields());
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ResourceInfo(Name = Defines.InboundRuleName)]
         [Audit]
         public object Patch([FromBody]dynamic model, string id)
@@ -134,7 +135,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return Created(InboundRulesHelper.GetRuleLocation(r.id), r);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public void Delete(string id)
         {
             InboundRule rule = null;

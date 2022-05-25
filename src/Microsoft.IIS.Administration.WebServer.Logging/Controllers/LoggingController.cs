@@ -16,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
 
 
     [RequireWebServer]
+    [Route("api/webserver/logging")]
     public class LoggingController : ApiBaseController
     {
         private const string DISPLAY_NAME = "IIS Logging Tools";
@@ -42,7 +43,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             return LocationChanged(LoggingHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.LoggingName)]
         [RequireGlobalModule(LoggingHelper.HTTP_LOGGING_MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -58,7 +59,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             return LoggingHelper.ToJsonModel(site, logId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.LoggingName)]
         [RequireGlobalModule(LoggingHelper.HTTP_LOGGING_MODULE, DISPLAY_NAME)]
@@ -103,7 +104,7 @@ namespace Microsoft.IIS.Administration.WebServer.Logging
             return Created(LoggingHelper.GetLocation(settings.id), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

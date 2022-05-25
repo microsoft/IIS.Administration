@@ -7,7 +7,7 @@ namespace Microsoft.IIS.Administration.Core.Http {
 
 
     [Authorize(Policy ="Api")]
-    public abstract class ApiBaseController : ApiEdgeController {
+    public abstract class ApiBaseController : ApiController {
         public virtual LocationChangedResult LocationChanged(string location, object content) {
             return new LocationChangedResult(location, content);
         }

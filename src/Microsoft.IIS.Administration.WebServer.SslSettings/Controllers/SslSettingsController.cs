@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.SslSettings
 
 
     [RequireWebServer]
+    [Route("api/webserver/ssl-settings")]
     public class SslSettingsController : ApiBaseController
     {
         [HttpGet]
@@ -33,7 +34,7 @@ namespace Microsoft.IIS.Administration.WebServer.SslSettings
             return LocationChanged(SslSettingsHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.SslSettingsName)]
         public object Get(string id)
         {
@@ -49,7 +50,7 @@ namespace Microsoft.IIS.Administration.WebServer.SslSettings
             return SslSettingsHelper.ToJsonModel(site, settingId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.SslSettingsName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -72,7 +73,7 @@ namespace Microsoft.IIS.Administration.WebServer.SslSettings
             return SslSettingsHelper.ToJsonModel(site, settingsId.Path);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

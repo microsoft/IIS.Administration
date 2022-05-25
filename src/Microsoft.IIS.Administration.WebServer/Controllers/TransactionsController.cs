@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer
 
 
     [RequireWebServer]
+    [Route("api/webserver/transactions")]
     public class TransactionsController : ApiBaseController
     {
         private IApplicationHostConfigProvider _configProvider;
@@ -36,7 +37,7 @@ namespace Microsoft.IIS.Administration.WebServer
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.TransactionName)]
         public object Get(string id)
         {
@@ -66,7 +67,7 @@ namespace Microsoft.IIS.Administration.WebServer
             return Created((string)TransactionHelper.GetLocation(tran.id), tran);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         public object Patch(string id, [FromBody] dynamic model)
         {

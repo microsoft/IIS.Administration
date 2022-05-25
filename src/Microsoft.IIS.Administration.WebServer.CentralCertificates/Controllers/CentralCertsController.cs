@@ -14,6 +14,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
 
     [RequireWebServer]
+    [Route("api/webserver/centralized-certificates")]
     public class CentralCertsController : ApiBaseController
     {
         private const string HIDDEN_FIELDS = "model.identity.password,model.private_key_password";
@@ -35,7 +36,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             return LocationChanged(CentralCertHelper.GetLocation(), CentralCertHelper.ToJsonModel());
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.CentralCertsName)]
         public object Get(string id)
         {
@@ -48,7 +49,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             return CentralCertHelper.ToJsonModel();
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ResourceInfo(Name = Defines.CentralCertsName)]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -66,6 +67,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
         }
 
         [HttpPost]
+        [HttpPost("{id}")]
         [ResourceInfo(Name = Defines.CentralCertsName)]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public async Task<object> Post([FromBody] dynamic model)
@@ -76,7 +78,7 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
             return CentralCertHelper.ToJsonModel();
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit(AuditAttribute.ALL, HIDDEN_FIELDS)]
         public async Task Delete(string id)
         {

@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
 
 
     [RequireWebServer]
+    [Route("api/webserver/webapps")]
     public class ApplicationsController : ApiBaseController
     {
         private IFileProvider _fileProvider;
@@ -69,7 +70,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.WebAppName)]
         public object Get(string id)
         {
@@ -123,7 +124,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
             return Created((string)ApplicationHelper.GetLocation(application.id), application);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.WebAppName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -158,7 +159,7 @@ namespace Microsoft.IIS.Administration.WebServer.Applications {
             return application;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

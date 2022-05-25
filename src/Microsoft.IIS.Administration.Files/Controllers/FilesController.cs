@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.Files
     using System.Linq;
     using System.Net;
 
+    [Route("api/files")]
     public class FilesController : ApiBaseController
     {
         private const string _units = "files";
@@ -114,7 +115,7 @@ namespace Microsoft.IIS.Administration.Files
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.FileName)]
         public object Get(string id)
         {
@@ -195,7 +196,7 @@ namespace Microsoft.IIS.Administration.Files
             return Created(FilesHelper.GetLocation(file.id), _helper.ToJsonModel(info));
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.FileName)]
         public object Patch([FromBody] dynamic model, string id)
@@ -231,7 +232,7 @@ namespace Microsoft.IIS.Administration.Files
             return result;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public IActionResult Delete(string id)
         {

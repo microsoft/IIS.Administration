@@ -16,6 +16,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-modules")]
     public class ModulesGeneralController : ApiBaseController
     {
         [HttpGet]
@@ -33,7 +34,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             return LocationChanged(ModuleHelper.GetModuleGroupLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.ModulesName)]
         public object Get(string id)
         {
@@ -49,7 +50,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             return ModuleHelper.ModuleFeatureToJsonModel(site, modulesId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.ModulesName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -94,7 +95,7 @@ namespace Microsoft.IIS.Administration.WebServer.Modules
             return ModuleHelper.ModuleFeatureToJsonModel(site, modulesId.Path);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

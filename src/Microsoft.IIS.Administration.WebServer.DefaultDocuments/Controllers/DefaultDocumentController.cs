@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
     using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
+    [Route("api/webserver/default-documents")]
     public class DefaultDocumentController : ApiBaseController
     {
         private const string DISPLAY_NAME = "Default Document";
@@ -36,7 +37,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
             return LocationChanged(DefaultDocumentHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.DefaultDocumentsName)]
         [RequireGlobalModule(DefaultDocumentHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -49,7 +50,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
             return DefaultDocumentHelper.ToJsonModel(site, docId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.DefaultDocumentsName)]
         [RequireGlobalModule(DefaultDocumentHelper.MODULE, DISPLAY_NAME)]
@@ -96,7 +97,7 @@ namespace Microsoft.IIS.Administration.WebServer.DefaultDocuments
             return Created(DefaultDocumentHelper.GetLocation(settings.id), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {

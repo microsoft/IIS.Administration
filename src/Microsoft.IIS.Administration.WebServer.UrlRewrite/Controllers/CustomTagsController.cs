@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
     using System.Net;
 
     [RequireGlobalModule(RewriteHelper.MODULE, RewriteHelper.DISPLAY_NAME)]
+    [Route("api/webserver/url-rewrite/outbound/custom_tags")]
     public class CustomTagsController : ApiBaseController
     {
         [HttpGet]
@@ -42,7 +43,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.CustomTagName)]
         public object Get(string id)
         {
@@ -65,7 +66,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return OutboundRulesHelper.TagsToJsonModel(tag, site, customTagsId.Path, Context.Request.GetFields());
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [ResourceInfo(Name = Defines.CustomTagName)]
         [Audit]
         public object Patch([FromBody]dynamic model, string id)
@@ -134,7 +135,7 @@ namespace Microsoft.IIS.Administration.WebServer.UrlRewrite
             return Created(OutboundRulesHelper.GetCustomTagsLocation(pc.id), pc);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public void Delete(string id)
         {
             TagsElement tags = null;

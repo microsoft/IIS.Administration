@@ -17,6 +17,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
 
 
     [RequireWebServer]
+    [Route("api/webserver/http-handlers/entries")]
     public class HandlerMappingsController : ApiBaseController
     {
         [HttpGet]
@@ -45,7 +46,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.EntryName)]
         public object Get(string id)
         {
@@ -102,7 +103,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             return Created(MappingsHelper.GetLocation(m.id), m);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.EntryName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -139,7 +140,7 @@ namespace Microsoft.IIS.Administration.WebServer.Handlers
             return m;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

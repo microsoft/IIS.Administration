@@ -13,11 +13,11 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
     using System.IO;
     using System.Linq;
     using System.Net;
-    using System.Web.Http;
     using Web.Administration;
     using Core.Http;
 
     [RequireGlobalModule("StaticFileModule", "Static Content")]
+    [Route("api/webserver/static-content/mime-maps")]
     public class MimeMapsController : ApiBaseController
     {
         [HttpGet]
@@ -47,7 +47,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
             };
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.MimeMapName)]
         public object Get(string id)
         {
@@ -108,7 +108,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
             return MimeMapHelper.ToJsonModel(mimeMap, site, staticContentId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.MimeMapName)]
         public object Patch(string id, [FromBody] dynamic model)
@@ -145,7 +145,7 @@ namespace Microsoft.IIS.Administration.WebServer.StaticContent
             return mm;
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public void Delete(string id)
         {

@@ -15,6 +15,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
     using Microsoft.IIS.Administration.Core.Utils;
 
     [RequireWebServer]
+    [Route("api/webserver/ip-restrictions")]
     public class IPRestrictionController : ApiBaseController
     {
         private const string DISPLAY_NAME = "IP and Domain Restrictions";
@@ -36,7 +37,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
             return LocationChanged(IPRestrictionsHelper.GetLocation(d.id), d);
         }
 
-        [HttpGet]
+        [HttpGet("{id}")]
         [ResourceInfo(Name = Defines.IpRestrictionsName)]
         [RequireGlobalModule(IPRestrictionsHelper.MODULE, DISPLAY_NAME)]
         public object Get(string id)
@@ -48,7 +49,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
             return IPRestrictionsHelper.ToJsonModel(site, ipId.Path);
         }
 
-        [HttpPatch]
+        [HttpPatch("{id}")]
         [Audit]
         [ResourceInfo(Name = Defines.IpRestrictionsName)]
         [RequireGlobalModule(IPRestrictionsHelper.MODULE, DISPLAY_NAME)]
@@ -85,7 +86,7 @@ namespace Microsoft.IIS.Administration.WebServer.IPRestrictions
             return Created(IPRestrictionsHelper.GetLocation(settings.id), settings);
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         [Audit]
         public async Task Delete(string id)
         {
