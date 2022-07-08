@@ -160,6 +160,12 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
                 obj.enabled_protocols = app.EnabledProtocols;
             }
 
+            //
+            // preload_enabled
+            if (fields.Exists("preload_enabled") && app.Attributes["preloadEnabled"] != null) {
+                obj.preload_enabled = app.Attributes["preloadEnabled"].Value;
+            }
+
             // website
             if (fields.Exists("website")) {
                 obj.website = SiteHelper.ToJsonModelRef(site, fields.Filter("website"));
@@ -297,7 +303,20 @@ namespace Microsoft.IIS.Administration.WebServer.Applications
                 if (rootVDir != null) {
                     rootVDir.PhysicalPath = physicalPath;
                 }
+            }
 
+            if (app.Attributes["preloadEnabled"] != null) {
+
+                string preloadEnabledValue = DynamicHelper.Value(model.preload_enabled);
+
+                if (preloadEnabledValue != null) {
+                    
+                    if (!bool.TryParse(preloadEnabledValue, out bool preloadEnabled)) {
+                        throw new ApiArgumentException("preload_enabled");
+                    }
+
+                    app.SetAttributeValue("preloadEnabled", preloadEnabled);
+                }
             }
 
             if (model.application_pool != null) {
