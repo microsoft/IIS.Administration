@@ -4,7 +4,7 @@ Microsoft IIS Administration API
 
 Documentation is available at https://docs.microsoft.com/en-us/IIS-Administration 
 
-### Develop and Debug with Visual studio 2022: ###
+### Develop and Debug with Visual Studio 2022: ###
 * Clone this project
 * Load the solution (Microsoft.IIS.Administration.sln) in Visual Studio
 * Try restoring all the NuGet packages
