@@ -72,10 +72,10 @@
         <File Id="Microsoft.IIS.Administration.dll" Source="$(var.APIDir)\Microsoft.IIS.Administration.dll" />
       </Component>
       <Component Id="C_Microsoft.IIS.Administration.Core.dll" Guid="8cbce269-78f9-4bbf-b714-dc14aa17d106" Win64="$(var.IsWin64)">
-        <File Id="Microsoft.IIS.Administration.Core.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.Core.dll" />
+        <File Id="Microsoft.IIS.Administration.Core.dll" Source="$(var.APIDir)\Microsoft.IIS.Administration.Core.dll" />
       </Component>
       <Component Id="C_Microsoft.IIS.Administration.Files.Core.dll" Guid="e6dd3e96-b6bf-428d-8145-f613433da408" Win64="$(var.IsWin64)">
-        <File Id="Microsoft.IIS.Administration.Files.Core.dll" Source="$(var.APIDir)\plugins\Microsoft.IIS.Administration.Files.Core.dll" />
+        <File Id="Microsoft.IIS.Administration.Files.Core.dll" Source="$(var.APIDir)\Microsoft.IIS.Administration.Files.Core.dll" />
       </Component>
       <Component Id="C_Newtonsoft.Json.Bson.dll" Guid="d17aec10-b477-4e35-9534-71471db52908" Win64="$(var.IsWin64)">
         <File Id="Newtonsoft.Json.Bson.dll" Source="$(var.APIDir)\Newtonsoft.Json.Bson.dll" />

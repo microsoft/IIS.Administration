@@ -22,7 +22,7 @@ if (!$buildDir -or !$publishDir) {
     }
 
     if (!$buildDir) {
-        $buildDir = Join-Path $projectRoot ".builds"
+        $buildDir = Join-Path $projectRoot "bin"
     }
 
     if (!$publishDir) {
@@ -35,10 +35,9 @@ Write-Verbose "Locate build directory $buildDir"
 try {
     foreach ($bitPath in Get-ChildItem -Recurse -Filter *.dll | Resolve-Path -Relative) {
         Write-Verbose "Locate built bit $bitPath"
-        $builtBit = Join-Path $buildDir $bitPath
         $publishedBit =  Join-Path $publishDir $bitPath
         if (Test-Path $publishedBit) {
-            Copy-Item -Path $builtBit -Destination $publishedBit -Force
+            Copy-Item -Path $bitPath -Destination $publishedBit -Force
             Write-Verbose "Copied built bit to $publishedBit"
         } else {
             Write-Warning "Cannot find published bit $publishedBit"

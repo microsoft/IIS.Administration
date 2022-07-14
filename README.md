@@ -4,7 +4,7 @@ Microsoft IIS Administration API
 
 Documentation is available at https://docs.microsoft.com/en-us/IIS-Administration 
 
-### Develop and Debug with Visual studio 2022: ###
+### Develop and Debug with Visual Studio 2022: ###
 * Clone this project
 * Load the solution (Microsoft.IIS.Administration.sln) in Visual Studio
 * Try restoring all the NuGet packages
@@ -48,6 +48,7 @@ msbuild installer /p:configuration=release
 * Must remove previously installed versions of IIS Administration.
 * **_Repair_** does not work. Must do a full uninstall/re-install.
 * If errors occurred during installation, manually remove folder _C:\Program Files\IIS Administration_ and Windows service _"Microsoft IIS Administration"_.
+* If the step above does not fix the installation failure, manually remove user group _"IIS Administration API Owners"_ from the host machine if it exists, and run setup again.
 * If you don't have permissions for the APIs, add yourself to user group _"IIS Administration API Owners"_ on the host machine.
 * If you still don't have permissions after adding yourself to _"IIS Administration API Owners"_, add yourself to users/administrators and users/owners in appsettings.json.
 * If you have trouble viewing the Access Token created from the API Explorer in Microsoft Edge, go to [edge://settings/reset](edge://settings/reset) and reset your browser's settings.
