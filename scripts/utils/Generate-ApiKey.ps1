@@ -19,7 +19,7 @@ function Get-RandomBytes($bytesLength) {
 }
 
 function Calculate-Hash($key, $salt, $hashSize) {
-    $iterations = 1000
+    $iterations = 100000
 
     $deriver = New-Object "System.Security.Cryptography.Rfc2898DeriveBytes" -ArgumentList ([byte[]]$key, [byte[]]$salt, $iterations)
 
