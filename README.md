@@ -5,9 +5,9 @@ Microsoft IIS Administration API
 Documentation is available at https://docs.microsoft.com/en-us/IIS-Administration 
 
 ### Develop and Debug with Visual Studio 2022: ###
-* Clone this project
-* Load the solution (Microsoft.IIS.Administration.sln) in Visual Studio
-* Try restoring all the NuGet packages
+* Clone this project.
+* Load the solution (Microsoft.IIS.Administration.sln) in Visual Studio.
+* Install .Net Framework 4.8.1 if prompted to. Otherwise, you are ready to build and debug the solution.
 * Open src\Microsoft.IIS.Administration\config\appsettings.json, modify the users section as below,
 ```
 "users": {
@@ -38,7 +38,6 @@ cd /d C:\src\repos\IIS.Administration
 msbuild Microsoft.IIS.Administration.sln -r -t:publish -p:Configuration=Release
 msbuild installer -r -p:Configuration=Release
 ```
-
 
 
 ### Installation and Known Issues: ###
@@ -199,7 +198,7 @@ res = await apiClient.DeleteAsync("https://localhost:55539" + site["_links"]["se
 
 ### PowerShell ###
 
-There is a [utils.ps1](./scripts/utils/utils.ps1) script that demonstrates how to generate an access token from PowerShell.
+[utils.ps1](./scripts/utils/utils.ps1) demonstrates how to generate an access token from PowerShell.
 
 ```
 # Replace the path to match your clone location
