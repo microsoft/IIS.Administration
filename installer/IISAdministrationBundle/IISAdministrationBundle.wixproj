@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="WixToolset.Bal.wixext" Version="6.0.0" />
     <PackageReference Include="WixToolset.Util.wixext" Version="6.0.0" />
+    <PackageReference Include="MicroBuild.Core" Version="0.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\IISAdministrationSetup\IISAdministrationSetup.wixproj" />
