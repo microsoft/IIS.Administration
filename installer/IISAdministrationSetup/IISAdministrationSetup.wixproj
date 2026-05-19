@@ -1,4 +1,6 @@
 ﻿<Project Sdk="WixToolset.Sdk/6.0.0">
+  <Import Project="..\..\build\version.props" />
+  <Import Project="..\..\build\Microsoft.IIS.Administration.props" />
   <PropertyGroup>
     <ArtifactsRoot>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), `.gitignore`))\dist</ArtifactsRoot>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
@@ -16,11 +18,11 @@
     <DefineConstants>Debug</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
-    <DefineConstants>$(DefineConstants);ArtifactsRoot=$(ArtifactsRoot)</DefineConstants>
+    <DefineConstants>$(DefineConstants);ArtifactsRoot=$(ArtifactsRoot);MsiVersion=$(IISAdministrationVersion);</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="WixToolset.Util.wixext" Version="6.0.0" />
     <PackageReference Include="WixToolset.UI.wixext" Version="6.0.0" />
-    <PackageReference Include="MicroBuild.Core" Version="0.3.0" />
+    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,6 @@
 ﻿<Project Sdk="WixToolset.Sdk/6.0.0">
+  <Import Project="..\..\build\version.props" />
+  <Import Project="..\..\build\Microsoft.IIS.Administration.props" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
@@ -13,10 +15,13 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DefineConstants>Debug</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants>$(DefineConstants);MsiVersion=$(IISAdministrationVersion);</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="WixToolset.Bal.wixext" Version="6.0.0" />
     <PackageReference Include="WixToolset.Util.wixext" Version="6.0.0" />
-    <PackageReference Include="MicroBuild.Core" Version="0.3.0" />
+    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\IISAdministrationSetup\IISAdministrationSetup.wixproj" />

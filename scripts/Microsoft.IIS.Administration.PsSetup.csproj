@@ -4,7 +4,7 @@
   <Import Project="..\build\Microsoft.IIS.Administration.props" />
 
   <ItemGroup>
-    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildVersion)" />
+    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)" />
   </ItemGroup>
 
   <PropertyGroup>
