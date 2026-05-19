@@ -7,7 +7,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net;
     using System.Net.Http;
     using Xunit;
-    using Xunit.Abstractions;
 
     public class IISOptionalFeatures
     {

@@ -12,7 +12,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using Web.Administration;
     using Xunit;
-    using Xunit.Abstractions;
 
     public class Compression
     {

@@ -11,7 +11,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using System.Text;
     using Xunit;
-    using Xunit.Abstractions;
 
     public class Authorization
     {
@@ -114,7 +113,7 @@ namespace Microsoft.IIS.Administration.Tests
             return Utils.ToJ(content);
         }
 
-        public static void ClearRules(HttpClient client, JObject feature)
+        internal static void ClearRules(HttpClient client, JObject feature)
         {
             string result;
             Assert.True(client.Get(Utils.GetLink(feature, "rules"), out result));

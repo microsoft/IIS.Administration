@@ -123,7 +123,7 @@ namespace Microsoft.IIS.Administration.Tests
             return Utils.ToJ(content);
         }
 
-        public static void DeleteModule(HttpClient client, JObject modulesFeature, string name)
+        internal static void DeleteModule(HttpClient client, JObject modulesFeature, string name)
         {
             if(modulesFeature != null) { 
                 string modulesLink = Utils.GetLink(modulesFeature, "entries");

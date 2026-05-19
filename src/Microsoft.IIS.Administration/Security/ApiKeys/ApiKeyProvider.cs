@@ -211,9 +211,7 @@ namespace Microsoft.IIS.Administration.Security {
         private byte[] CalcHash(byte[] key, byte[] salt) {
             //
             //
-            using (var rfc2898DeriveBytes = new Rfc2898DeriveBytes(key, salt, 100000)) {
-                return rfc2898DeriveBytes.GetBytes(_options.HashSize);
-            }
+            return Rfc2898DeriveBytes.Pbkdf2(key, salt, 100000, HashAlgorithmName.SHA1, _options.HashSize);
         }
 
         private static string GenerateId() {

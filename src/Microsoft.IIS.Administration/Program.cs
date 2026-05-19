@@ -5,10 +5,10 @@
 namespace Microsoft.IIS.Administration {
     using AspNetCore.Builder;
     using AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Hosting.WindowsServices;
     using Microsoft.AspNetCore.Server.HttpSys;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Logging.EventLog;
     using Serilog;
@@ -33,14 +33,25 @@ namespace Microsoft.IIS.Administration {
 
                 //
                 // Host
-                using (var host = new WebHostBuilder()
-                    .UseContentRoot(configHelper.RootPath)
-                    .ConfigureLogging((hostingContext, logging) => {
+                using (var host = Host.CreateDefaultBuilder(args)
+                    .UseWindowsService(options =>
+                    {
+                        if (runAsAService)
+                        {
+                            options.ServiceName = serviceName;
+                        }
+                    })
+                    .ConfigureAppConfiguration((hostingContext, builder) =>
+                    {
+                        _ = builder.AddConfiguration(config);
+                    })
+                    .ConfigureLogging((hostingContext, logging) =>
+                    {
                         _ = logging.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
 
-                    //
-                    // Console log is not available in running as a Service
-                    if (!runAsAService)
+                        //
+                        // Console log is not available in running as a Service
+                        if (!runAsAService)
                         {
                             _ = logging.AddConsole();
                         }
@@ -51,37 +62,34 @@ namespace Microsoft.IIS.Administration {
                             SourceName = EventSourceName
                         });
                     })
-                    .UseUrls("https://*:55539") // Config can override it. Use "urls":"https://*:55539"
-                    .UseConfiguration(config)
-                    .ConfigureServices(s => s.AddSingleton(config)) // Configuration Service
-                    .UseStartup<Startup>()
-                    .UseHttpSys(o => {
-                    //
-                    // Kernel mode Windows Authentication
-                    o.Authentication.Schemes = AuthenticationSchemes.Negotiate | AuthenticationSchemes.NTLM;
+                    .ConfigureWebHostDefaults(webBuilder =>
+                    {
+                        _ = webBuilder
+                            .UseContentRoot(configHelper.RootPath)
+                            .UseUrls("https://*:55539") // Config can override it. Use "urls":"https://*:55539"
+                            .ConfigureServices(s => s.AddSingleton(config)) // Configuration Service
+                            .UseStartup<Startup>()
+                            .UseHttpSys(o =>
+                            {
+                                //
+                                // Kernel mode Windows Authentication
+                                o.Authentication.Schemes = AuthenticationSchemes.Negotiate | AuthenticationSchemes.NTLM;
 
-                    //
-                    // Need anonymous to allow CORS preflight requests
-                    // app.UseWindowsAuthentication ensures (if needed) the request is authenticated to proceed
-                    o.Authentication.AllowAnonymous = true;
+                                //
+                                // Need anonymous to allow CORS preflight requests
+                                // app.UseWindowsAuthentication ensures (if needed) the request is authenticated to proceed
+                                o.Authentication.AllowAnonymous = true;
+                            });
                     })
                     .Build()
                     .UseHttps())
                 {
-
                     if (runAsAService)
                     {
-                        //
-                        // Run as a Service
                         Log.Information($"Running as service: {serviceName}");
-                        host.RunAsService();
                     }
-                    else
-                    {
-                        //
-                        // Run interactive
-                        host.Run();
-                    }
+
+                    host.Run();
                 }
             }
             catch (Exception ex)

@@ -14,7 +14,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System.ServiceProcess;
     using System.Threading.Tasks;
     using Xunit;
-    using Xunit.Abstractions;
 
     public class Monitoring
     {

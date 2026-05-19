@@ -35,10 +35,8 @@ In the following code, replace the path to match your clone location. It first s
 %comspec% /k "C:\Program Files\Microsoft Visual Studio\2022\Preview\Common7\Tools\VsDevCmd.bat"
 
 cd /d C:\src\repos\IIS.Administration
-msbuild -restore Microsoft.IIS.Administration.sln /t:publish
-
-build\nuget.exe restore installer\IISAdministrationSetup\packages.config -SolutionDirectory installer
-msbuild installer /p:configuration=release
+msbuild Microsoft.IIS.Administration.sln -r -t:publish -p:Configuration=Release
+msbuild installer -r -p:Configuration=Release
 ```
 
 

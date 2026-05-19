@@ -73,7 +73,7 @@ namespace Microsoft.IIS.Administration.Files
             var dl = _downloadService.Create(file.Path, ttl ?? DEFAULT_DOWNLOAD_TIMEOUT);
 
             // Inform client location points to downloadable attachment
-            Context.Response.Headers.Add("Pragma", "attachment");
+            Context.Response.Headers["Pragma"] = "attachment";
 
             return Created(dl.Href, null);
         }

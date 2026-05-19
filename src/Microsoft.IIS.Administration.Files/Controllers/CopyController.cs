@@ -66,7 +66,7 @@ namespace Microsoft.IIS.Administration.Files
             MoveOperation copy = InitiateCopy(src, destPath);
 
             Context.Response.StatusCode = (int) HttpStatusCode.Accepted;
-            Context.Response.Headers.Add("Location", MoveHelper.GetLocation(copy.Id, true));
+            Context.Response.Headers["Location"] = MoveHelper.GetLocation(copy.Id, true);
             
             return _helper.ToJsonModel(copy);
         }

@@ -74,9 +74,10 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.Hosting.WindowsServices" Version="6.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting.WindowsServices" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.8" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(SignType)' != '' ">
@@ -164,6 +165,6 @@
   </PropertyGroup>
   <Target Name="PostPublish" AfterTargets="Publish">
      <!-- Replace the integrity code. Need different values for local debugging and published signed files  -->
-     <Exec Command="PowerShell -Command &quot;(Get-Content $(layoutfile)) -replace '$(integrity-local)', '$(integrity-publish)' | Out-File -encoding ASCII $(layoutfile)&quot; "/>
+     <Exec Command="PowerShell -Command &quot;(Get-Content $(layoutfile)) -replace '$(integrity-local)', '$(integrity-publish)' | Out-File -encoding ASCII $(layoutfile)&quot; " />
   </Target>
 </Project>

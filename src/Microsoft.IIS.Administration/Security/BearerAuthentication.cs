@@ -40,7 +40,11 @@ namespace Microsoft.IIS.Administration.Security {
             })
             .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
+                // BearerTokenValidator implements ISecurityTokenValidator; opt in to that legacy pipeline.
+                options.UseSecurityTokenValidators = true;
+#pragma warning disable CS0618 // SecurityTokenValidators is obsolete; required while BearerTokenValidator implements ISecurityTokenValidator
                 options.SecurityTokenValidators.Add(validator);
+#pragma warning restore CS0618
 
                 options.Events = new JwtBearerEvents()
                 {

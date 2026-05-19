@@ -9,6 +9,11 @@
     <AssemblyName>Microsoft.IIS.Administration.Tests</AssemblyName>
     <PackageId>Microsoft.IIS.Administration.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <!--
+      xUnit1031: tests intentionally use blocking Task .Result/.Wait() (tests run with maxParallelThreads=1).
+      xUnit1051: TestContext.Current.CancellationToken plumbing through HTTP helpers is out of scope.
+    -->
+    <NoWarn>$(NoWarn);xUnit1031;xUnit1051</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,9 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>

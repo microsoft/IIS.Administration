@@ -9,7 +9,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System;
     using System.Net.Http;
     using Xunit;
-    using Xunit.Abstractions;
 
     public class DirectoryBrowsing
     {

@@ -11,7 +11,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.Web.Administration.Refs</RootNamespace>
     <AssemblyName>Microsoft.Web.Administration.Refs</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
@@ -56,11 +56,11 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-      <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      </PackageReference>
-      <!-- Previous versions of .Net packages referenced by Microsoft.Web.Administration 11.1.0 
+    <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <!-- Previous versions of .Net packages referenced by Microsoft.Web.Administration 11.1.0 
 	     Need to ship them because they are different from the newest .Net versions -->
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.0.1" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.0.0" />
@@ -82,7 +82,8 @@
     <PackageReference Include="System.Threading" Version="4.0.10" />
   </ItemGroup>
   <PropertyGroup>
-    <CopyNuGet>xcopy /Y /I $(USERPROFILE)\.nuget\packages</CopyNuGet>
+    <CopyNuGet Condition=" '$(NUGET_PACKAGES)' == '' ">xcopy /Y /I $(USERPROFILE)\.nuget\packages</CopyNuGet>
+    <CopyNuGet Condition=" '$(NUGET_PACKAGES)' != '' ">xcopy /Y /I $(NUGET_PACKAGES)</CopyNuGet>
     <WebAdminRefPath>ms.web.admin.refs\</WebAdminRefPath>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
@@ -107,7 +108,7 @@
     <Exec Command="$(CopyNuGet)\system.security.principal.windows\4.0.0\lib\net46\System.Security.Principal.Windows.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
     <Exec Command="$(CopyNuGet)\system.serviceprocess.servicecontroller\4.1.0\lib\net461\System.ServiceProcess.ServiceController.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
     <Exec Command="$(CopyNuGet)\system.threading\4.0.10\lib\DNXCore50\System.Threading.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
-    <Exec Command="$(CopyNuGet)\system.private.networking.4.0.0\lib\DNXCore50\System.Private.Networking.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
+    <Exec Command="xcopy /Y /I $(USERPROFILE)\.nuget\packages\system.private.networking.4.0.0\lib\DNXCore50\System.Private.Networking.dll $(PluginsOutputRoot)\$(WebAdminRefPath)" />
   </Target>
   <Target Name="PostPublish" AfterTargets="Publish">
     <!-- used by package Microsoft.Web.Administration, Version="11.1.0" -->
@@ -129,6 +130,6 @@
     <Exec Command="$(CopyNuGet)\system.security.principal.windows\4.0.0\lib\net46\System.Security.Principal.Windows.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
     <Exec Command="$(CopyNuGet)\system.serviceprocess.servicecontroller\4.1.0\lib\net461\System.ServiceProcess.ServiceController.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
     <Exec Command="$(CopyNuGet)\system.threading\4.0.10\lib\DNXCore50\System.Threading.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
-    <Exec Command="$(CopyNuGet)\system.private.networking.4.0.0\lib\DNXCore50\System.Private.Networking.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
+    <Exec Command="xcopy /Y /I $(USERPROFILE)\.nuget\packages\system.private.networking.4.0.0\lib\DNXCore50\System.Private.Networking.dll $(PluginsPublishRoot)\$(WebAdminRefPath)" />
   </Target>
 </Project>

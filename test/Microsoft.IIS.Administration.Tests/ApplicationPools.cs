@@ -193,7 +193,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                 for (int i = 0; i < scheduleOld.Count; i++)
                 {
-                    Assert.True(scheduleOld[i].ToObject<string>().Equals(scheduleNew[i].ToObject<string>()));
+                    Assert.Equal(scheduleOld[i].ToObject<string>(), scheduleNew[i].ToObject<string>());
                 }
 
                 Assert.True(Utils.JEquals<long>(pool, newPool, "rapid_fail_protection.interval"));
@@ -229,7 +229,7 @@ namespace Microsoft.IIS.Administration.Tests
             return pool == null ? null : Utils.FollowLink(client, pool, "self");
         }
 
-        public static void EnsureNoPool(HttpClient client, string name)
+        internal static void EnsureNoPool(HttpClient client, string name)
         {
             JObject pool = GetAppPool(client, name);
 

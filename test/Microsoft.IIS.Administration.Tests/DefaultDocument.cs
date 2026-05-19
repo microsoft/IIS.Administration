@@ -11,7 +11,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Linq;
     using System.Net.Http;
     using Xunit;
-    using Xunit.Abstractions;
 
     public class DefaultDocument
     {

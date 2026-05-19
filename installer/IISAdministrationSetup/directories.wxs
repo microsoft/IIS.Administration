@@ -2,17 +2,11 @@
 
 <?include ..\shared\common.wxi ?>
 
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Fragment>
-    <Directory Id="TARGETDIR" Name="SourceDir" />
-  </Fragment>
-
-  <Fragment>
-    <DirectoryRef Id="TARGETDIR" >
-      <Directory Id="$(var.ProgramFilesFolder)" >
-        <Directory Id="INSTALLDIR" ShortName="$(var.ProductNameShort)" Name="$(var.ProductFolderName)" />
-      </Directory>
-    </DirectoryRef>
+    <StandardDirectory Id="$(var.ProgramFilesFolder)">
+      <Directory Id="INSTALLDIR" ShortName="$(var.ProductNameShort)" Name="$(var.ProductFolderName)" />
+    </StandardDirectory>
   </Fragment>
 
   <Fragment>

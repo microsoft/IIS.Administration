@@ -234,7 +234,7 @@ namespace Microsoft.IIS.Administration.Tests
             var area2 = provider2.Value<JArray>("areas").ToObject<List<string>>();
 
             for (int i = 0; i < area1.Count(); i++) {
-                Assert.Equal<string>(area1[i], area2[i]);
+                Assert.Equal(area1[i], area2[i]);
             }
         }
     }

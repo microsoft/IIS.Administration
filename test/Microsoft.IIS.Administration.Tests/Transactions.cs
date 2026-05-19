@@ -9,7 +9,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using System.Text;
     using Xunit;
-    using Xunit.Abstractions;
 
     public class Transactions
     {

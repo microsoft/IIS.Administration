@@ -11,7 +11,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using System.Threading.Tasks;
     using Xunit;
-    using Xunit.Abstractions;
 
     public class UrlRewrite
     {

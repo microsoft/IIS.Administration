@@ -184,22 +184,22 @@ namespace Microsoft.IIS.Administration.Files
 
             //
             // Accept Ranges
-            _context.Response.Headers.Add(HeaderNames.AcceptRanges, "bytes");
+            _context.Response.Headers[HeaderNames.AcceptRanges] = "bytes";
 
             //
             // Last Modified
-            _context.Response.Headers.Add(HeaderNames.LastModified, _file.LastModified.ToUniversalTime().ToString("r"));
+            _context.Response.Headers[HeaderNames.LastModified] = _file.LastModified.ToUniversalTime().ToString("r");
 
             //
             // ETag
-            _context.Response.Headers.Add(HeaderNames.ETag, etag.Value);
+            _context.Response.Headers[HeaderNames.ETag] = etag.Value;
 
             if (IsCachedIfModifiedSince()) {
 
                 //
                 // Date
                 if (!_context.Response.Headers.ContainsKey(HeaderNames.Date)) {
-                    _context.Response.Headers.Add(HeaderNames.Date, DateTime.UtcNow.ToString());
+                    _context.Response.Headers[HeaderNames.Date] = DateTime.UtcNow.ToString();
                 }
             }
 
@@ -357,7 +357,7 @@ namespace Microsoft.IIS.Administration.Files
 
             context.Response.ContentLength = finish - start + 1;
             context.Response.StatusCode = (int)HttpStatusCode.PartialContent;
-            context.Response.Headers.Add(HeaderNames.ContentRange, $"{start}-{finish}/{info.Size}");
+            context.Response.Headers[HeaderNames.ContentRange] = $"{start}-{finish}/{info.Size}";
 
             using (Stream stream = _service.GetFileStream(info, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
                 try {

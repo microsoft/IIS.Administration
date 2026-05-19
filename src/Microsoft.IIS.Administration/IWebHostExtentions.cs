@@ -3,15 +3,17 @@
 
 
 namespace Microsoft.IIS.Administration {
-    using AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Hosting.Server;
     using Microsoft.AspNetCore.Hosting.Server.Features;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
     using System;
-    using System.Threading;
 
 
-    public static class IWebHostExtentions  {
-        public static IWebHost UseHttps(this IWebHost host) {
-            var serverAddresses = host.ServerFeatures.Get<IServerAddressesFeature>();
+    public static class IHostExtensions  {
+        public static IHost UseHttps(this IHost host) {
+            var server = host.Services.GetRequiredService<IServer>();
+            var serverAddresses = server.Features.Get<IServerAddressesFeature>();
 
             if (serverAddresses != null) {
                 foreach (var address in serverAddresses.Addresses) {

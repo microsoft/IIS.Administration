@@ -153,8 +153,8 @@ namespace Microsoft.IIS.Administration.WebServer.CentralCertificates
 
             try {
                 using (X509Certificate2 cert = !string.IsNullOrEmpty(_privateKeyPassword) ?
-                                                  new X509Certificate2(_file.Path, _privateKeyPassword) :
-                                                  new X509Certificate2(_file.Path)) {
+                                                  X509CertificateLoader.LoadPkcs12FromFile(_file.Path, _privateKeyPassword) :
+                                                  X509CertificateLoader.LoadCertificateFromFile(_file.Path)) {
 
                     cert.FriendlyName = _file.Name;
                     _cert = new Certificates.Certificate(cert, _store, _file.Name);

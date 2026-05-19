@@ -18,7 +18,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Threading.Tasks;
     using Web.Administration;
     using Xunit;
-    using Xunit.Abstractions;
 
     public class Files
     {
@@ -175,13 +174,13 @@ namespace Microsoft.IIS.Administration.Tests
                 vdir1a.PhysicalPath = vdir1aPhysicalPath;
                 vdir1b.PhysicalPath = vdir1bPhysicalPath;
 
-                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/"), rootVdirPhysicalPath);
-                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/abc/defg"), rootVdirPhysicalPath + @"\abc\defg");
-                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1"), vdir1aPhysicalPath);
-                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/abc/defg"), vdir1aPhysicalPath + @"\abc\defg");
-                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/vdir1bc/abc/defg"), vdir1aPhysicalPath + @"\vdir1bc\abc\defg");
-                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/vdir1b"), vdir1bPhysicalPath);
-                Assert.Equal(WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/vdir1b/abc/defg"), vdir1bPhysicalPath + @"\abc\defg");
+                Assert.Equal(rootVdirPhysicalPath, WebServer.Files.FilesHelper.GetPhysicalPath(site, "/"));
+                Assert.Equal(rootVdirPhysicalPath + @"\abc\defg", WebServer.Files.FilesHelper.GetPhysicalPath(site, "/abc/defg"));
+                Assert.Equal(vdir1aPhysicalPath, WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1"));
+                Assert.Equal(vdir1aPhysicalPath + @"\abc\defg", WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/abc/defg"));
+                Assert.Equal(vdir1aPhysicalPath + @"\vdir1bc\abc\defg", WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/vdir1bc/abc/defg"));
+                Assert.Equal(vdir1bPhysicalPath, WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/vdir1b"));
+                Assert.Equal(vdir1bPhysicalPath + @"\abc\defg", WebServer.Files.FilesHelper.GetPhysicalPath(site, "/app1/vdir1b/abc/defg"));
             }
         }
 
@@ -330,7 +329,7 @@ namespace Microsoft.IIS.Administration.Tests
                     var copyParent = new DirectoryInfo(physicalPath).Parent.FullName;
                     var copyPhysicalPath = Environment.ExpandEnvironmentVariables(copyInfo["file"].Value<string>("physical_path"));
 
-                    Assert.True(copyPhysicalPath.Equals(Path.Combine(copyParent, copyName), StringComparison.OrdinalIgnoreCase));
+                    Assert.Equal(Path.Combine(copyParent, copyName), copyPhysicalPath, StringComparer.OrdinalIgnoreCase);
 
                     var copyContent = File.ReadAllText(copyPhysicalPath);
 
@@ -694,7 +693,7 @@ namespace Microsoft.IIS.Administration.Tests
                     var res = client.SendAsync(req).Result;
 
                     Assert.True(res.Content.Headers.Contains("Content-Range"));
-                    Assert.True(res.Content.Headers.GetValues("Content-Range").First().Equals("1-3/6"));
+                    Assert.Equal("1-3/6", res.Content.Headers.GetValues("Content-Range").First());
 
                     var children = JObject.Parse(res.Content.ReadAsStringAsync().Result)["files"].ToObject<IEnumerable<JObject>>();
                     Assert.True(children.Count() == 3);
@@ -743,7 +742,7 @@ namespace Microsoft.IIS.Administration.Tests
                     var res = client.SendAsync(req).Result;
 
                     Assert.True(res.Content.Headers.Contains("Content-Range"));
-                    Assert.True(res.Content.Headers.GetValues("Content-Range").First().Equals($"2-5/{fileCount}"));
+                    Assert.Equal($"2-5/{fileCount}", res.Content.Headers.GetValues("Content-Range").First());
 
                     var children = JObject.Parse(res.Content.ReadAsStringAsync().Result)["files"].ToObject<IEnumerable<JObject>>();
                     Assert.True(children.Count() == 4);
@@ -873,7 +872,7 @@ namespace Microsoft.IIS.Administration.Tests
             targetFileInfo = client.Patch(Utils.Self(targetFileInfo), targetFileInfo);
 
             Assert.True(targetFileInfo != null);
-            Assert.True(targetFileInfo.Value<string>("name").Equals(alteredName));
+            Assert.Equal(alteredName, targetFileInfo.Value<string>("name"));
 
             files = Utils.FollowLink(client, rootVdir, "files")["files"].ToObject<IEnumerable<JObject>>();
             target = files.FirstOrDefault(f => f.Value<string>("name").Equals(alteredName, StringComparison.OrdinalIgnoreCase));

@@ -8,7 +8,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System;
     using System.IO;
     using System.Runtime.InteropServices;
-    using Xunit.Abstractions;
     using Newtonsoft.Json.Linq;
     using Xunit;
     using System.Net.Http;
@@ -102,9 +101,9 @@ namespace Microsoft.IIS.Administration.Tests
                 string ccsLink = Utils.GetLink(webserver, "central_certificates");
                 HttpResponseMessage res = client.PostRaw(ccsLink, (object)ccsInfo);
                 Assert.True((int)res.StatusCode == 400);
-                Assert.True(res.Content.Headers.ContentType.ToString().Contains("json"));
+                Assert.Contains("json", res.Content.Headers.ContentType.ToString());
                 JObject apiError = JsonConvert.DeserializeObject<JObject>(res.Content.ReadAsStringAsync().Result);
-                Assert.True(apiError.Value<string>("name").Equals("identity"));
+                Assert.Equal("identity", apiError.Value<string>("name"));
             }
         }
 
@@ -115,11 +114,11 @@ namespace Microsoft.IIS.Administration.Tests
             CcsUser user = await CcsUser.Get();
 
             Assert.True(Disable());
-            Assert.False(GetStores().Any(store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase)));
+            Assert.DoesNotContain(GetStores(), store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase));
             Assert.True(Enable(FOLDER_PATH, user.Username, user.Password, PVK_PASS));
-            Assert.True(GetStores().Any(store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase)));
+            Assert.Contains(GetStores(), store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase));
             Assert.True(Disable());
-            Assert.False(GetStores().Any(store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase)));
+            Assert.DoesNotContain(GetStores(), store => store.Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]
@@ -129,10 +128,10 @@ namespace Microsoft.IIS.Administration.Tests
             CcsUser user = await CcsUser.Get();
 
             Assert.True(Enable(FOLDER_PATH, user.Username, user.Password, PVK_PASS));
-            Assert.True(GetCertificates().Any(cert => {
+            Assert.Contains(GetCertificates(), cert => {
                 return cert.Value<string>("alias").Equals(CERT_NAME + ".pfx") &&
                     cert.Value<JObject>("store").Value<string>("name").Equals(NAME, StringComparison.OrdinalIgnoreCase);
-            }));
+            });
         }
 
         [Fact]
@@ -184,7 +183,7 @@ namespace Microsoft.IIS.Administration.Tests
 
                     JObject certificate = client.Get(Utils.Self(binding.Value<JObject>("certificate")));
                     Assert.NotNull(certificate);
-                    Assert.True(certificate["store"].Value<string>("name").Equals(NAME));
+                    Assert.Equal(NAME, certificate["store"].Value<string>("name"));
                 }
                 finally {
                     Sites.EnsureNoSite(client, siteName);

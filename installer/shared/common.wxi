@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Include>
-  <?define Version = "6.0" ?>
+  <?define Version = "10.0" ?>
   <?define MsiVersion = "$(var.Version).0" ?>
   <?define ProductNameShort = "IISAdmin" ?>
   <?define ProductFolderName = "IIS Administration" ?>

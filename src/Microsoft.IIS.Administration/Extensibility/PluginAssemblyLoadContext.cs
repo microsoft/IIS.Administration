@@ -34,11 +34,6 @@ namespace Microsoft.IIS.Administration.Extensibility
                     {
                         throw new ApplicationException($"Conflicting cultures for {target}, app: {existingName.CultureInfo} plugin: {target.CultureInfo}");
                     }
-                    if (existingName.ProcessorArchitecture != target.ProcessorArchitecture &&
-                        target.ProcessorArchitecture != ProcessorArchitecture.None)
-                    {
-                        throw new ApplicationException($"Conflicting arch for {target}, app: {existingName.ProcessorArchitecture} plugin: {target.ProcessorArchitecture}");
-                    }
                     if (existingName.Version < target.Version)
                     {
                         throw new ApplicationException($"Version downgrade for {target}, app: {existingName.Version} plugin: {target.Version}");

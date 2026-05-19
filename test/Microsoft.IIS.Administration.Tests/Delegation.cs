@@ -10,7 +10,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Collections.Generic;
     using System.Net.Http;
     using Xunit;
-    using Xunit.Abstractions;
 
     public class Delegation
     {
@@ -218,21 +217,21 @@ namespace Microsoft.IIS.Administration.Tests
             Assert.True(client.Patch(Utils.Self(section), JsonConvert.SerializeObject(section), out result));
             section = JsonConvert.DeserializeObject<JObject>(result);
 
-            Assert.Equal(section.Value<string>("override_mode"), "allow");
+            Assert.Equal("allow", section.Value<string>("override_mode"));
 
             section["override_mode"] = "deny";
 
             Assert.True(client.Patch(Utils.Self(section), JsonConvert.SerializeObject(section), out result));
             section = JsonConvert.DeserializeObject<JObject>(result);
 
-            Assert.Equal(section.Value<string>("override_mode"), "deny");
+            Assert.Equal("deny", section.Value<string>("override_mode"));
 
             section["override_mode"] = "inherit";
 
             Assert.True(client.Patch(Utils.Self(section), JsonConvert.SerializeObject(section), out result));
             section = JsonConvert.DeserializeObject<JObject>(result);
 
-            Assert.Equal(section.Value<string>("override_mode"), "inherit");
+            Assert.Equal("inherit", section.Value<string>("override_mode"));
         }
 
         private static void EditFeature(JObject featureRep, DelegatableFeature feature)

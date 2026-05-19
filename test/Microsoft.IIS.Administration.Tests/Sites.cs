@@ -13,7 +13,6 @@ namespace Microsoft.IIS.Administration.Tests
     using System.Net.Http;
     using System.Text;
     using Xunit;
-    using Xunit.Abstractions;
     using Core.Utils;
     using System.Net;
     using System.IO;
@@ -516,7 +515,7 @@ namespace Microsoft.IIS.Administration.Tests
             return site == null ? null : Utils.FollowLink(client, site, "self");
         }
 
-        public static void EnsureNoSite(HttpClient client, string siteName)
+        internal static void EnsureNoSite(HttpClient client, string siteName)
         {
             JObject site = GetSite(client, siteName);
 
