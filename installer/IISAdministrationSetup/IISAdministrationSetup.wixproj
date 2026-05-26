@@ -25,4 +25,7 @@
     <PackageReference Include="WixToolset.UI.wixext" Version="6.0.0" />
     <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\shared\en-us.wxl" />
+  </ItemGroup>
 </Project>

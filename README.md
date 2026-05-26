@@ -4,7 +4,7 @@ Microsoft IIS Administration API
 
 Documentation is available at https://docs.microsoft.com/en-us/IIS-Administration 
 
-### Develop and Debug with Visual Studio 2022: ###
+### Develop and Debug with Visual Studio 2026: ###
 * Clone this project.
 * Load the solution (Microsoft.IIS.Administration.sln) in Visual Studio.
 * Install .Net Framework 4.8.1 if prompted to. Otherwise, you are ready to build and debug the solution.
@@ -43,7 +43,7 @@ msbuild installer -r -p:Configuration=Release
 ### Installation and Known Issues: ###
 * Must first remove preview builds of .Net Core. The service does not work with preview builds of .Net Core.
 * Must remove previously installed versions of IIS Administration.
-* **_Repair_** does not work. Must do a full uninstall/re-install.
+* **_Repair_** is not available. Must do a full uninstall/re-install.
 * If errors occurred during installation, manually remove folder _C:\Program Files\IIS Administration_ and Windows service _"Microsoft IIS Administration"_.
 * If the step above does not fix the installation failure, manually remove user group _"IIS Administration API Owners"_ from the host machine if it exists, and run setup again.
 * If you don't have permissions for the APIs, add yourself to user group _"IIS Administration API Owners"_ on the host machine.

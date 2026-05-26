@@ -4,6 +4,9 @@
   <String Id="Language" Value="1033" />
   <String Id="LaunchCondition_32BIT" Value="The 64-bit version of [ProductName] cannot be installed on a 32-bit edition of Microsoft Windows." />
   <String Id="LaunchCondition_64BIT" Value="The 32-bit version of [ProductName] cannot be installed on a 64-bit edition of Microsoft Windows." />
+  <String Id="LaunchCondition_ARM64_Bundle" Value="[WixBundleName] cannot be installed on ARM64 editions of Microsoft Windows." />
+  <String Id="LaunchCondition_Exe" Value="To install [ProductName], please run the installer EXE." />
+  <String Id="LaunchCondition_Win7" Value="[ProductName] requires Microsoft Windows 7 or newer." />
   <String Id="Localization" Value="en-us" />
   <String Id="Manufacturer" Overridable="yes" Value="Microsoft Corporation" />
   <String Id="NewerVersionFound" Overridable="yes" Value="A newer version of [ProductName] was found on this machine." />

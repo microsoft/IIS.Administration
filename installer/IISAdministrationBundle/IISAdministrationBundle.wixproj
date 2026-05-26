@@ -24,6 +24,9 @@
     <PackageReference Include="MicroBuild.Core" Version="$(MicroBuildCoreVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="..\shared\en-us.wxl" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\IISAdministrationSetup\IISAdministrationSetup.wixproj" />
   </ItemGroup>
 </Project>

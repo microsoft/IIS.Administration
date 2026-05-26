@@ -14,6 +14,8 @@
       Version="$(var.MsiVersion)"
       UpgradeCode="$(var.UpgradeCode)">
 
+    <bal:Condition Condition="NativeMachine &lt;&gt; 43620" Message="!(loc.LaunchCondition_ARM64_Bundle)" />
+
     <BootstrapperApplication>
       <bal:WixStandardBootstrapperApplication LicenseFile="..\shared\assets\license.rtf"
                                               ThemeFile="resources\Theme.xml"
@@ -24,8 +26,8 @@
     </BootstrapperApplication>
 
     <Chain DisableRollback="yes">
-      <PackageGroupRef Id="dotnet_core_pkg" />
-      <PackageGroupRef Id="aspnetcore_pkg" />
+      <!-- <PackageGroupRef Id="dotnet_core_pkg" />
+      <PackageGroupRef Id="aspnetcore_pkg" /> -->
       <PackageGroupRef Id="iis_administration_pkg" />
     </Chain>
   </Bundle>
@@ -37,7 +39,7 @@
                          Value="Version"
                          Result="value"
                          Variable="DOTNET_RUNTIME_VERSION" />
-    <Variable Name="DOTNET_RUNTIME_VERSION_MINIMAL" Type="version" Value='6.0.1' />
+    <Variable Name="DOTNET_RUNTIME_VERSION_MINIMAL" Type="version" Value='10.0.8' />
     <PackageGroup Id="dotnet_core_pkg">
       <ExePackage Id="dotnet_core_exe"
                   Permanent="yes"
@@ -45,37 +47,36 @@
                   DetectCondition="(DOTNET_RUNTIME_VERSION) AND (DOTNET_RUNTIME_VERSION &gt;= DOTNET_RUNTIME_VERSION_MINIMAL)"
                   InstallArguments="/q /norestart">
           <ExePackagePayload
-                  Name="dotnet-runtime-6.0.1-win-x64.exe"
-                  Description="Microsoft .NET Runtime - 6.0.1 (x64)"
-                  Hash="5C53CF49B2F58CB8D05C29A865B80690C816975C"
-                  ProductName="Microsoft .NET Runtime - 6.0.1 (x64)" Size="28383304" Version="6.0.1.30717"
+                  Name="dotnet-runtime-10.0.8-win-x64.exe"
+                  Description=".NET 10.0 Runtime (v10.0.8) - Windows x64 Installer"
+                  Hash="111f99b2ce9be6981af409fcba2102fdcebb47d659d2d73ace0067046a0a5a3438956784c771c2003c92a98fcf6b7c60029785f04d850783ec519338203f5516"
+                  ProductName=".NET 10.0 Runtime (v10.0.8) - Windows x64 Installer" Size="28383304" Version="10.0.8"
                   Compressed="no"
-                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/df4372ca-82c8-4bfa-acf9-c49e27279e7e/6bddefd26964017ff520dc1443029e04/dotnet-runtime-6.0.1-win-x64.exe" />
+                  DownloadUrl="https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.8/dotnet-runtime-10.0.8-win-x64.exe" />
       </ExePackage>
     </PackageGroup>
   </Fragment>
 
   <Fragment>
-    <!--This would not work when only 6.0 preview is installed. Must manually uninstall 6.0 preview-->
-    <util:RegistrySearch Id="ASPNET_CORE_60_SHARED_FRAMEWORK_SEARCH"
+    <util:RegistrySearch Id="ASPNET_CORE_1008_SHARED_FRAMEWORK_SEARCH"
                          Root="HKLM"
-                         Key="SOFTWARE\Microsoft\ASP.NET Core\Shared Framework\v6.0"
+                         Key="SOFTWARE\Microsoft\ASP.NET Core\Shared Framework\v10.0.8"
                          Result="exists"
-                         Variable="ASPNET_CORE_60_SHARED_FRAMEWORK_EXISTS" />
+                         Variable="ASPNET_CORE_1008_SHARED_FRAMEWORK_EXISTS" />
     <PackageGroup Id="aspnetcore_pkg">
       <ExePackage Id="aspnetcore_exe"
                   Permanent="yes"
                   Vital="no"
-                  DetectCondition="(ASPNET_CORE_60_SHARED_FRAMEWORK_EXISTS)"
+                  DetectCondition="(ASPNET_CORE_1008_SHARED_FRAMEWORK_EXISTS)"
                   InstallArguments="/q /norestart">
 
         <ExePackagePayload
-                  Name="aspnetcore-runtime-6.0.1-win-x64.exe"
-                  Description="Microsoft ASP.NET Core 6.0.1 - Shared Framework (x64)"
-                  Hash="9AFB2F6265FF780E077089C8294F9FFBA7BC049D"
-                  ProductName="Microsoft ASP.NET Core 6.0.1 - Shared Framework (x64)" Size="8896496" Version="6.0.1.21567"
+                  Name="aspnetcore-runtime-10.0.8-win-x64.exe"
+                  Description="ASP.NET Core 10.0 Runtime (v10.0.8) - Windows x64 Installer"
+                  Hash="a8209d7bf770a69d8ba4643f903cd425636253d73d0ecabe6f4a4ff2870fbe619f252f5fa27b8e8f6f31b65a4495e55e4511f2fc4e40c7d867a9ee618844af86"
+                  ProductName="ASP.NET Core 10.0 Runtime (v10.0.8) - Windows x64 Installer" Size="8896496" Version="10.0.8"
                   Compressed="no"
-                  DownloadUrl="https://download.visualstudio.microsoft.com/download/pr/d526db30-5bfe-4c24-808c-4d8f5d2ba479/ae90c40bdefb2f1775d812ede8e84309/aspnetcore-runtime-6.0.1-win-x64.exe" />
+                  DownloadUrl="https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/10.0.8/aspnetcore-runtime-10.0.8-win-x64.exe" />
       </ExePackage>
     </PackageGroup>
   </Fragment>
